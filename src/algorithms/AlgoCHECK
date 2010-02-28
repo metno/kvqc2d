@@ -1,0 +1,37 @@
+/*
+Process4D( ReadProgramOptions params )
+{
+  while (ProcessTime >= stime) 
+  {
+     clear Tseries
+     find missing values for and return Qc2Data for a single time
+              if(!Qc2Data.empty()) {
+                   for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {  Loop through Qc2Data
+                          result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,tid,XTime,YTime));  find time series of arbitrary length bounding the missing value
+                    if (minupper != midpoint && minlower != midpoint){  TEST to see if there is a time series to work with    
+                           for (uint kkk=minlower+1;kkk<=minupper-1;++kkk){
+                               result = dbGate.select(Qc2InterpData, kvQueries::selectData( ...
+                               Qc2D GSW(Qc2InterpData,StationList,params);
+                               GSW.Qc2_interp();   find spatial interpolations corresponding to missing values
+                           }
+                           for (uint lll=maxlower;lll<=maxupper;++lll){
+                               if (Tseries[lll].original() != params.missing){
+                                  tt[nseries]=HourDec;
+                                  pp[nseries]=Tseries[lll].original();   find a time series for interpolation
+                               } 
+                               else {
+                                  gap_index.push_back(lll); // need to work out the new corrected values to pass back to kvalobs
+                                  These are the indices of the missing values
+                               }
+                           }
+                           gsl ...  ### Time interpolation here ####
+                    }
+                    gap_index.clear();
+                    Tseries.clear();
+                   }
+              }
+  ProcessTime.addHour(-1);
+  }
+return 0;
+}
+

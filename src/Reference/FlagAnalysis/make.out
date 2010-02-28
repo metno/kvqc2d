@@ -1,0 +1,672 @@
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:34,
+                 from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDataFlag.h:35,
+                 from main.cc:32:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:35:28: error: puTools/miString: No such file or directory
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:38:26: error: puTools/miTime: No such file or directory
+In file included from /metnomake[1]: Leaving directory `/metno/kvalobs/kvalobs-svn/src/kvQc2/Reference/FlagAnalysis/src'
+o/kvalobs/kvalobs-svn/src/lib/milog/Logger.h:37,
+                 from /metno/kvalobs/kvalobs-svn/src/lib/milog/milog.h:36,
+                 from main.cc:33:
+/metno/kvalobs/kvalobs-svn/src/lib/milog/thread/Thread.h:44:2: warning: #warning "NOT THREAD SAFE (define _REENTRANT)"
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:34,
+                 from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDataFlag.h:35,
+                 from main.cc:32:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:70: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:70: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:70: error: expected ‘;’ before ‘sortBy_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:71: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:71: error: ISO C++ forbids declaration of ‘miDate’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:71: error: expected ‘;’ before ‘julianDayThatYear’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:109: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:109: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:109: error: ‘miString’ declared as a ‘virtual’ field
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:109: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:117: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:117: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:117: error: expected ‘;’ before ‘quoted’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:125: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:125: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:125: error: expected ‘;’ before ‘quoted’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:133: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:133: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:133: error: expected ‘;’ before ‘quoted’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:148: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:148: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:148: error: ‘miString’ declared as a ‘virtual’ field
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:148: error: expected ‘;’ before ‘toUpdate’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:157: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:157: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:157: error: ‘miString’ declared as a ‘virtual’ field
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:157: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:160: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:160: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:160: error: expected ‘;’ before ‘insertQuery’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:161: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:161: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:161: error: expected ‘;’ before ‘selectAllQuery’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:162: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:162: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:162: error: expected ‘;’ before ‘selectAllQuery’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h: In member function ‘bool kvalobs::kvDbBase::exists() const’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbBase.h:140: error: ‘sortBy_’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDataFlag.h:35,
+                 from main.cc:32:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:53: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:53: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:53: error: expected ‘;’ before ‘medium_qcx_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:54: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:54: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:54: error: expected ‘;’ before ‘main_qcx_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:56: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:56: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:56: error: expected ‘;’ before ‘comment_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:62: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:66: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:70: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:73: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:78: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:78: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:78: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:79: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:79: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:79: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:81: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:81: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:81: error: expected ‘;’ before ‘medium_qcx’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:82: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:82: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:82: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:82: error: expected ‘;’ before ‘main_qcx’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:83: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:84: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:84: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:84: error: expected ‘;’ before ‘comment’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:85: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h: In constructor ‘kvalobs::kvQcxInfo::kvQcxInfo(int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:67: error: ‘medium_qcx’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:67: error: ‘main_qcx’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQcxInfo.h:67: error: ‘comment’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:35,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:55: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:55: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:55: error: expected ‘;’ before ‘checkname_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:56: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:56: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:56: error: expected ‘;’ before ‘signature_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:57: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:57: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:57: error: expected ‘;’ before ‘script_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:63: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:65: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:73: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:75: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:79: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:79: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:79: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:81: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:81: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:81: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:84: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:84: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:84: error: expected ‘;’ before ‘checkname’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:85: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:85: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:85: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:85: error: expected ‘;’ before ‘signature’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:86: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:86: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:86: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:86: error: expected ‘;’ before ‘script’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:88: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h: In constructor ‘kvalobs::kvAlgorithms::kvAlgorithms(int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:67: error: ‘checkname’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:67: error: ‘signature’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvAlgorithms.h:67: error: ‘script’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:36,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:55: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:55: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:55: error: expected ‘;’ before ‘qcx_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:56: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:56: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:56: error: expected ‘;’ before ‘medium_qcx_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:58: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:58: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:58: error: expected ‘;’ before ‘checkname_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:59: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:59: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:59: error: expected ‘;’ before ‘checksignature_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:60: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:60: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:60: error: expected ‘;’ before ‘active_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:61: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:61: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:61: error: expected ‘;’ before ‘fromtime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:67: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:73: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:80: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:86: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:90: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:90: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:90: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:91: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:91: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:91: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:94: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:94: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:94: error: expected ‘;’ before ‘qcx’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:95: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:95: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:95: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:95: error: expected ‘;’ before ‘medium_qcx’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:96: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:97: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:97: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:97: error: expected ‘;’ before ‘checkname’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:98: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:98: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:98: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:98: error: expected ‘;’ before ‘checksignature’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:99: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:99: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:99: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:99: error: expected ‘;’ before ‘active’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:100: error: expected `;' before ‘const’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:100: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:100: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:100: error: expected ‘;’ before ‘fromtime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:109: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h: In constructor ‘kvalobs::kvChecks::kvChecks(int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:75: error: ‘qcx’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:75: error: ‘medium_qcx’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:76: error: ‘checkname’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:76: error: ‘checksignature’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:76: error: ‘active’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvChecks.h:76: error: ‘fromtime’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:37,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:59: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:59: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:59: error: expected ‘;’ before ‘obstime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:62: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:62: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:62: error: expected ‘;’ before ‘tbtime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:69: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:69: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:69: error: expected ‘;’ before ‘cfailed_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:79: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:89: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:93: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:103: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:106: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:111: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:111: error: ‘bool kvalobs::kvData::set(int, int)’ cannot be overloaded
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:103: error: with ‘bool kvalobs::kvData::set(int, int)’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:125: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:125: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:125: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:126: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:126: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:126: error: expected ‘;’ before ‘toUpdate’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:127: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:127: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:127: error: expected ‘;’ before ‘toUpload’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:128: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:128: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:128: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:131: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:131: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:131: error: expected ‘;’ before ‘obstime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:132: error: expected `;' before ‘float’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:134: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:134: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:134: error: expected ‘;’ before ‘tbtime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:135: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:141: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:141: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:141: error: expected ‘;’ before ‘cfailed’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:143: error: expected `;' before ‘void’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:148: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:148: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h: In constructor ‘kvalobs::kvData::kvData(int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘obt’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘org’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘par’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘tbt’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘typ’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘sen’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘lvl’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘cor’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘cin’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘uin’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:90: error: ‘fai’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h: In member function ‘void kvalobs::kvData::cfailed(int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:148: error: ‘cfailed_’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvData.h:148: error: ‘cf’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:40,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:57: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:57: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:57: error: expected ‘;’ before ‘obstime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:68: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:72: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:79: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:83: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:88: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:88: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:88: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:89: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:89: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:89: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:92: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:92: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:92: error: expected ‘;’ before ‘obstime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:93: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h: In constructor ‘kvalobs::kvModelData::kvModelData(int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:75: error: ‘obstime’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:75: error: ‘paramid’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvModelData.h:75: error: ‘modelid’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:41,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:58: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:58: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:58: error: expected ‘;’ before ‘name_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:59: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:59: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:59: error: expected ‘;’ before ‘description_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:60: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:60: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:60: error: expected ‘;’ before ‘unit_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:62: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:62: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:62: error: expected ‘;’ before ‘comment_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:68: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:72: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:78: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:82: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:86: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:86: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:86: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:87: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:87: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:87: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:90: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:90: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:90: error: expected ‘;’ before ‘name’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:91: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:91: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:91: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:91: error: expected ‘;’ before ‘description’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:92: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:92: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:92: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:92: error: expected ‘;’ before ‘unit’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:93: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:94: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:94: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:94: error: expected ‘;’ before ‘comment’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:95: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h: In constructor ‘kvalobs::kvParam::kvParam(int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:74: error: ‘name’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:74: error: ‘description’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:74: error: ‘unit’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvParam.h:74: error: ‘comment’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:42,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:60: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:60: error: expected constructor, destructor, or type conversion before ‘selectChecks’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:69: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:69: error: expected constructor, destructor, or type conversion before ‘selectStationParam’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:77: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:77: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:83: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:83: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:92: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:92: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:98: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:98: error: expected constructor, destructor, or type conversion before ‘selectDataFromType’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:109: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:109: error: expected constructor, destructor, or type conversion before ‘selectTextDataFromType’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:118: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:118: error: expected constructor, destructor, or type conversion before ‘selectDataFromAbsType’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:127: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:127: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:135: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:135: error: expected constructor, destructor, or type conversion before ‘selectDataByTabletime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:143: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:143: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:153: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:153: error: expected constructor, destructor, or type conversion before ‘selectTextData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:162: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:162: error: expected constructor, destructor, or type conversion before ‘selectDataByTbtime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:169: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:169: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:175: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:175: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:178: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:178: error: expected constructor, destructor, or type conversion before ‘selectReferenceStation’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:184: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:184: error: expected constructor, destructor, or type conversion before ‘selectDataStat’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:191: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:191: error: expected constructor, destructor, or type conversion before ‘selectParam’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:197: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:197: error: expected constructor, destructor, or type conversion before ‘selectModelData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:204: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:204: error: expected constructor, destructor, or type conversion before ‘selectStationByStationId’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:209: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:209: error: expected constructor, destructor, or type conversion before ‘selectStationByWmonr’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:214: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:214: error: expected constructor, destructor, or type conversion before ‘selectStationByNationalnr’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:219: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:219: error: expected constructor, destructor, or type conversion before ‘selectStationByIcaoId’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:224: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:224: error: expected constructor, destructor, or type conversion before ‘selectStationByCall_sign’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:227: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:227: error: expected constructor, destructor, or type conversion before ‘selectStationOrdered’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:228: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:228: error: expected constructor, destructor, or type conversion before ‘selectAllStations’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:234: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:235: error: expected constructor, destructor, or type conversion before ‘selectObsPgmByTypeid’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:242: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:242: error: expected constructor, destructor, or type conversion before ‘selectObsPgm’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:247: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:247: error: expected constructor, destructor, or type conversion before ‘selectObsPgm’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:254: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:254: error: expected constructor, destructor, or type conversion before ‘selectObsPgm’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:262: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:262: error: expected constructor, destructor, or type conversion before ‘selectObsPgm’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:267: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:267: error: expected constructor, destructor, or type conversion before ‘selectKeyValues’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:282: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:282: error: expected constructor, destructor, or type conversion before ‘selectIsGenerated’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:288: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:288: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:296: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:296: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:308: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:308: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:318: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:318: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:327: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:327: error: expected constructor, destructor, or type conversion before ‘selectData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:336: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:336: error: expected constructor, destructor, or type conversion before ‘selectMissingData’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:344: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvQueries.h:344: error: expected constructor, destructor, or type conversion before ‘selectMissingData’
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:43,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:53: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:53: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:53: error: expected ‘;’ before ‘message_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:54: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:54: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:54: error: expected ‘;’ before ‘tbtime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:55: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:55: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:55: error: expected ‘;’ before ‘decoder_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:56: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:56: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:56: error: expected ‘;’ before ‘comment_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:61: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:64: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:68: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:71: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:75: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:75: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:75: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:76: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:76: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:76: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:78: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:78: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:78: error: expected ‘;’ before ‘message’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:79: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:79: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:79: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:79: error: expected ‘;’ before ‘tbtime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:80: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:80: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:80: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:80: error: expected ‘;’ before ‘decoder’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:81: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:81: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:81: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:81: error: expected ‘;’ before ‘comment’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:83: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h: In constructor ‘kvalobs::kvRejectdecode::kvRejectdecode(int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:65: error: ‘me’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:65: error: ‘tb’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:65: error: ‘decode’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvRejectdecode.h:65: error: ‘comment’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:44,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:60: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:60: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:60: error: expected ‘;’ before ‘name_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:63: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:63: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:63: error: expected ‘;’ before ‘ICAOid_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:64: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:64: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:64: error: expected ‘;’ before ‘call_sign_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:65: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:65: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:65: error: expected ‘;’ before ‘stationstr_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:68: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:68: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:68: error: expected ‘;’ before ‘fromtime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:74: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:77: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:82: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:85: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:88: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:88: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:88: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:89: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:89: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:89: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:96: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:96: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:96: error: expected ‘;’ before ‘name’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:97: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:99: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:99: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:99: error: expected ‘;’ before ‘ICAOID’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:100: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:100: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:100: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:100: error: expected ‘;’ before ‘call_sign’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:101: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:101: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:101: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:101: error: expected ‘;’ before ‘stationstr’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:102: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:104: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:104: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:104: error: expected ‘;’ before ‘fromtime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:105: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h: In constructor ‘kvalobs::kvStation::kvStation(int, float, float, float, float, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘na’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘wm’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘nn’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘ic’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘ca’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘ss’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStation.h:78: error: ‘fromtime’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:45,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:62: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:62: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:62: error: expected ‘;’ before ‘qcx_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:63: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:63: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:63: error: expected ‘;’ before ‘metadata_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:64: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:64: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:64: error: expected ‘;’ before ‘descMetadata_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:65: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:65: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:65: error: expected ‘;’ before ‘fromtime_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:70: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:72: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:76: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:77: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:81: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:81: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:81: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:82: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:82: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:82: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:91: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:91: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:91: error: expected ‘;’ before ‘qcx’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:92: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:92: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:92: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:92: error: expected ‘;’ before ‘metadata’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:93: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:93: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:93: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:93: error: expected ‘;’ before ‘descMetadata’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:94: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:94: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:94: error: ISO C++ forbids declaration of ‘miTime’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:94: error: expected ‘;’ before ‘fromtime’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:97: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:97: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:97: error: ISO C++ forbids declaration of ‘miDate’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:97: error: expected ‘;’ before ‘fromDAY’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:100: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:100: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:100: error: ISO C++ forbids declaration of ‘miDate’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:100: error: expected ‘;’ before ‘toDAY’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:102: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h: In constructor ‘kvalobs::kvStationParam::kvStationParam(int, int, int, int, int, int, int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:73: error: ‘qc’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:73: error: ‘md’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:73: error: ‘dm’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvStationParam.h:73: error: ‘fromtime’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:46,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:59: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:59: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:59: error: expected ‘;’ before ‘qcx_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:65: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:65: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:69: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:69: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:73: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:73: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:73: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:74: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:74: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:74: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:80: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:80: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:80: error: expected ‘;’ before ‘qcx’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:83: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:83: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:83: error: ISO C++ forbids declaration of ‘miDate’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:83: error: expected ‘;’ before ‘fromDAY’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:86: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:86: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:86: error: ISO C++ forbids declaration of ‘miDate’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:86: error: expected ‘;’ before ‘toDAY’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:89: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h: In constructor ‘kvalobs::kvTimecontrol::kvTimecontrol(int, int, int, int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTimecontrol.h:66: error: ‘qc’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:47,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:54: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:54: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:54: error: expected ‘;’ before ‘format_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:57: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:57: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:57: error: expected ‘;’ before ‘read_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:58: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:58: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:58: error: expected ‘;’ before ‘obspgm_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:59: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:59: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:59: error: expected ‘;’ before ‘comment_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:64: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:64: error: expected ‘,’ or ‘...’ before ‘na’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:69: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:69: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:69: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:69: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:71: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:71: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:71: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:74: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:74: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:74: error: expected ‘;’ before ‘format’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:75: error: expected `;' before ‘int’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:77: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:77: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:77: error: expected ‘;’ before ‘read’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:78: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:78: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:78: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:78: error: expected ‘;’ before ‘obspgm’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:79: error: expected `;' before ‘miutil’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:79: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:79: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:79: error: expected ‘;’ before ‘comment’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:82: error: expected `;' before ‘const’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:83: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:83: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:83: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h: In constructor ‘kvalobs::kvTypes::kvTypes(int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:66: error: ‘na’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:66: error: ‘obs’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvTypes.h:66: error: ‘co’ was not declared in this scope
+In file included from /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:48,
+                 from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:55: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:55: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:55: error: expected ‘;’ before ‘reference_’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:63: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:63: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:68: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:68: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:72: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:72: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:72: error: expected ‘;’ before ‘toSend’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:73: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:73: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:73: error: expected ‘;’ before ‘uniqueKey’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:78: error: ‘miutil’ has not been declared
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:78: error: ISO C++ forbids declaration of ‘miString’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:78: error: expected ‘;’ before ‘reference’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:80: error: expected `;' before ‘}’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h: In constructor ‘kvalobs::kvReferenceStation::kvReferenceStation(int, int, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvReferenceStation.h:64: error: ‘reference’ was not declared in this scope
+In file included from main.cc:34:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h: At global scope:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:204: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:204: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:436: error: expected ‘,’ or ‘...’ before ‘::’ token
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:437: error: ISO C++ forbids declaration of ‘miutil’ with no type
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:204: error: default argument missing for parameter 3 of ‘bool kvalobs::kvDbGate::insert(const std::list<T, std::allocator<_CharT> >&, bool, int)’
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h: In member function ‘bool kvalobs::kvDbGate::insert(const std::list<T, std::allocator<_CharT> >&, bool, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:214: error: ‘tblName’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h: In member function ‘bool kvalobs::kvDbGate::select(std::list<T, std::allocator<_CharT> >&, int)’:
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:453: error: ‘tblName’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:454: error: ‘q’ was not declared in this scope
+/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/kvDbGate.h:456: error: ‘q’ was not declared in this scope
+make[1]: *** [main-main.o] Error 1
+make: *** [all-recursive] Error 1

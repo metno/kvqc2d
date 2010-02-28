@@ -1,0 +1,15 @@
+AC_INIT(main,1.23)
+AM_INIT_AUTOMAKE
+
+AC_CONFIG_FILES([Makefile src/Makefile])
+
+AC_PROG_CC
+AC_PROG_YACC
+AC_PROG_CXX
+AC_PROG_INSTALL
+
+AC_OUTPUT
+
+PKG_CHECK_MODULES(putools, putools)
+
+
