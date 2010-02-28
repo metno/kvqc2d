@@ -44,5 +44,6 @@ if test -z $BOOST_PROGRAM_OPTIONS_LIB; then AC_MSG_ERROR([Unable to find boost p
  
 KV_MODEL2KV
 
+AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects)
 
 AC_OUTPUT

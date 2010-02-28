@@ -55,6 +55,16 @@ kvQc2_CPPFLAGS = \
 	-I$(top_builddir)/src/lib \
 	-I$(top_builddir)/src/lib/kvskel \
 	-I$(top_srcdir)/src/service-libs \
+        /metno/kvalobs/kvalobs-svn/src/lib/milog/libmilog.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/libkvalobs.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/kvdb/libkvdb.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/fileutil/libfileutil.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/miutil/libmiutil.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/miconfparser/libmiconfparser.a \
+        /metno/kvalobs/kvalobs-svn/src/lib/corbahelper/libcorbahelper.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvadmininterface.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvskel.la \
+        /metno/kvalobs/kvalobs-svn/src/lib/dnmithread/libdnmithread.la \
 	$(BOOST_CPPFLAGS) \
 	$(omniDynamic4_CFLAGS) \
 	$(putools_CFLAGS) \
