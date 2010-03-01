@@ -1,0 +1,14 @@
+My usual build strategy:
+
+aclocal
+automake --add-missing
+autoreconf -i --force
+./configure
+make
+
+....
+but many other ways to do the same
+
+NOTE:
+
+now autoconf builds ok but with hard-coded libtool library files in src/Makefile.am
