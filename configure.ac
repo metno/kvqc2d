@@ -5,8 +5,9 @@ AM_INIT_AUTOMAKE
 #METNO_SET_VERSION_INFO
 
 
-AC_CONFIG_SRCDIR([src/Qc2Main.cc])
-AC_CONFIG_HEADER([config.h])
+#AC_CONFIG_SRCDIR([src/Qc2Main.cc])
+#AC_CONFIG_SRCDIR([src])
+AC_CONFIG_HEADERS(config.h)
 
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -31,7 +32,7 @@ PKG_CHECK_MODULES(sqlite3, sqlite3)
 PKG_CHECK_MODULES(libxml2, libxml-2.0)
 PKG_CHECK_MODULES(libxmlpp, libxml++-2.6)
 PKG_CHECK_MODULES(cppunit, cppunit)
-#KV_PERL
+KV_PERL
 AX_BOOST_BASE
 AX_BOOST_THREAD
 if test -z $BOOST_THREAD_LIB; then AC_MSG_ERROR([Unable to find boost thread library]); fi 

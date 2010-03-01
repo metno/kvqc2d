@@ -44,36 +44,28 @@ kvQc2_SOURCES = \
 	algorithms/table_delaunay.h \
 	algorithms/tround.h 
 
-AM_CPPFLAGS = \
-        -DVERSION=\"$(VERSION)\" \
-        $(kvcpp_CFLAGS) \
-        $(BOOST_CPPFLAGS)
-
-
 kvQc2_CPPFLAGS = \
-	-I/metno/kvalobs/include \
-	-I/metno/kvalobs/kvalobs-svn/src/kvskel \
+	-I/metno/kvalobs/kvalobs-svn/src/lib \
+	-I/metno/kvalobs/kvalobs-svn/src/lib \
+	-I/metno/kvalobs/kvalobs-svn/src/lib/kvskel \
 	-I/metno/kvalobs/kvalobs-svn/src/service-libs \
 	$(BOOST_CPPFLAGS) \
 	$(omniDynamic4_CFLAGS) \
 	$(putools_CFLAGS) \
-	$(perl_CFLAGS) \
-        $(AM_CPPFLAGS)
+	$(perl_CFLAGS)
 	
 kvQc2_LDFLAGS = -pthread -export-dynamic	
 kvQc2_LDADD = \
-	#$(top_builddir)/src/lib/milog/libmilog.la \
-	#$(top_builddir)/src/lib/kvalobs/libkvalobs.la \
-	#$(top_builddir)/src/lib/kvdb/libkvdb.la \
-	#$(top_builddir)/src/lib/fileutil/libfileutil.la \
-	#$(top_builddir)/src/lib/miutil/libmiutil.la \
-	#$(top_builddir)/src/lib/miconfparser/libmiconfparser.a \
-	#$(top_builddir)/src/lib/corbahelper/libcorbahelper.la \
-	#$(top_builddir)/src/lib/kvskel/libkvadmininterface.la \
-	#$(top_builddir)/src/lib/kvskel/libkvskel.la \
-	#$(top_builddir)/src/lib/dnmithread/libdnmithread.la \
-	-L/metno/kvalobs/lib -lmilog -lkvalobs -lkvdb -lfileutil -lmiutil -lmiconfparser -lcorbahelper -lkvadmininterface -lkvskel -ldnmithread \
-        $(kvcpp_LIBS) \
+	/metno/kvalobs/kvalobs-svn/src/lib/milog/libmilog.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/libkvalobs.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/kvdb/libkvdb.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/fileutil/libfileutil.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/miutil/libmiutil.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/miconfparser/libmiconfparser.a \
+	/metno/kvalobs/kvalobs-svn/src/lib/corbahelper/libcorbahelper.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvadmininterface.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvskel.la \
+	/metno/kvalobs/kvalobs-svn/src/lib/dnmithread/libdnmithread.la \
 	$(putools_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) \
