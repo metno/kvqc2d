@@ -51,20 +51,9 @@ AM_CPPFLAGS = \
 
 
 kvQc2_CPPFLAGS = \
-	-I$(top_srcdir)/src/lib \
-	-I$(top_builddir)/src/lib \
-	-I$(top_builddir)/src/lib/kvskel \
-	-I$(top_srcdir)/src/service-libs \
-        /metno/kvalobs/kvalobs-svn/src/lib/milog/libmilog.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/kvalobs/libkvalobs.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/kvdb/libkvdb.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/fileutil/libfileutil.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/miutil/libmiutil.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/miconfparser/libmiconfparser.a \
-        /metno/kvalobs/kvalobs-svn/src/lib/corbahelper/libcorbahelper.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvadmininterface.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvskel.la \
-        /metno/kvalobs/kvalobs-svn/src/lib/dnmithread/libdnmithread.la \
+	-I/metno/kvalobs/include \
+	-I/metno/kvalobs/kvalobs-svn/src/kvskel \
+	-I/metno/kvalobs/kvalobs-svn/src/service-libs \
 	$(BOOST_CPPFLAGS) \
 	$(omniDynamic4_CFLAGS) \
 	$(putools_CFLAGS) \
@@ -83,16 +72,7 @@ kvQc2_LDADD = \
 	#$(top_builddir)/src/lib/kvskel/libkvadmininterface.la \
 	#$(top_builddir)/src/lib/kvskel/libkvskel.la \
 	#$(top_builddir)/src/lib/dnmithread/libdnmithread.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/milog/libmilog.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/libkvalobs.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvdb/libkvdb.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/fileutil/libfileutil.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/miutil/libmiutil.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/miconfparser/libmiconfparser.a \
-	/metno/kvalobs/kvalobs-svn/src/lib/corbahelper/libcorbahelper.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvadmininterface.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvskel.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/dnmithread/libdnmithread.la \
+	-L/metno/kvalobs/lib -lmilog -lkvalobs -lkvdb -lfileutil -lmiutil -lmiconfparser -lcorbahelper -lkvadmininterface -lkvskel -ldnmithread \
         $(kvcpp_LIBS) \
 	$(putools_LIBS) \
 	$(BOOST_THREAD_LIB) \
