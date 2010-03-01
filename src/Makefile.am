@@ -56,16 +56,16 @@ kvQc2_CPPFLAGS = \
 	
 kvQc2_LDFLAGS = -pthread -export-dynamic	
 kvQc2_LDADD = \
-	/metno/kvalobs/kvalobs-svn/src/lib/milog/libmilog.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvalobs/libkvalobs.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvdb/libkvdb.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/fileutil/libfileutil.la \
+	/metno/kvalobs/lib/kvalobs/libmilog.la \
+	/metno/kvalobs/lib/kvalobs/libkvalobs.la \
+	/metno/kvalobs/lib/kvalobs/libkvdb.la \
+	/metno/kvalobs/lib/kvalobs/libfileutil.la \
 	/metno/kvalobs/kvalobs-svn/src/lib/miutil/libmiutil.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/miconfparser/libmiconfparser.a \
-	/metno/kvalobs/kvalobs-svn/src/lib/corbahelper/libcorbahelper.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvadmininterface.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/kvskel/libkvskel.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/dnmithread/libdnmithread.la \
+	/metno/kvalobs/lib/kvalobs/libmiconfparser.a \
+	/metno/kvalobs/lib/kvalobs/libcorbahelper.la \
+	/metno/kvalobs/lib/kvalobs/libkvadmininterface.la \
+	/metno/kvalobs/lib/kvalobs/libkvskel.la \
+	/metno/kvalobs/lib/kvalobs/libdnmithread.la \
 	$(putools_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) \
