@@ -8,7 +8,7 @@
 
 #include <vector>
 #include <map>
-#include <puTools/miTime>
+#include <puTools/miTime.h>
 
 #include<string>
 
@@ -31,6 +31,11 @@ int InterpCode;
 int LastN;
 std::string ControlInfoString;
 std::vector<int> ControlInfoVector;
+
+bool zbool,Rbool,Ibool,Abool,Wbool;
+
+std::string NeighbourFilename;
+std::string CFAILED_STRING;
 
 int RunAtMinute;
 int RunAtHour;

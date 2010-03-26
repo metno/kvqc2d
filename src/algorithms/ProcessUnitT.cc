@@ -37,7 +37,7 @@
 #include <sstream>
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
-#include <puTools/miTime>
+#include <puTools/miTime.h>
 #include <memory>
 #include <stdexcept>
 
@@ -88,16 +88,11 @@ ProcessUnitT( ReadProgramOptions params )
   miutil::miTime YTime;
   ProcessTime = etime;
 
-  //std::cout << "ETIME TIME STAMP: " << etime << std::endl;
-  //std::cout << "STIME TIME STAMP: " << stime << std::endl;
-  //std::cout << "ProcessTIME TIME STAMP: " << ProcessTime << std::endl;
-
   miutil::miTime fixtime; /// fixtime here for tests
 
   std::vector<kvalobs::kvData> Tseries;
   std::list<kvalobs::kvData> MaxT;
   std::list<kvalobs::kvData> MinT;
-
 
   GetStationList(StationList);  /// StationList is all the possible stations ... Check
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
@@ -123,7 +118,7 @@ ProcessUnitT( ReadProgramOptions params )
               }
               if(!Qc2Data.empty()) {
                    for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
-                          Tseries.clear();   /// or is it better here ??? YES YES YES
+                          Tseries.clear();  
                           result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
                           for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
                              if  ( !CheckFlags.condition(is->controlinfo(),params.Aflag) ) { /// If one or more of the analysis flags are set then will not process further! 
@@ -131,73 +126,61 @@ ProcessUnitT( ReadProgramOptions params )
                              }
                           }
                              if (Tseries.size()==3) {
-                                   //std::cout << "---------------------" << std::endl;
-                                   //std::cout << "Found an analysis case ... " << std::endl;
-                                   LOGINFO("Interpolating data ...");
-                                   //std::cout << Tseries[0].stationID() << " " <<  Tseries[1].stationID() << " " << Tseries[2].stationID() << std::endl; 
-                                   //std::cout << Tseries[0].obstime() << " " <<  Tseries[1].obstime() << " " << Tseries[2].obstime() << std::endl; 
-                                   //std::cout << Tseries[0].original() << " " <<  Tseries[1].original() << " " << Tseries[2].original() << std::endl; 
+                                   //LOGINFO("Interpolating data ...");
                                    if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && 
                                        Tseries[2].original() > params.missing){
-                                       //std::cout << "Checking Other Parameters" << std::endl;
                                        result = dbGate.select(MaxT, kvQueries::selectData(id->stationID(),215,YTime,YTime));
                                        result = dbGate.select(MinT, kvQueries::selectData(id->stationID(),213,YTime,YTime));
-                                       //std::cout <<  MaxT.size() << " " << MinT.size() << std::endl;
-                                       if (MaxT.size()==1 && MinT.size()==1){
+                                       if (MaxT.size()==1 && MinT.size()==1 && 
+                                           MaxT.begin()->original() > -99.9 && MinT.begin()->original() > -99.9){
 
-                                               //std::cout <<  MaxT.begin()->original() << " " << MinT.begin()->original() << std::endl;
-                                               LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                                               LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); //this is calculate but not used
+                                                                                                                  //maybe add a comparitive test??
                                                TanTaxInterpolated=0.5*(MinT.begin()->original()+MaxT.begin()->original());
                                                TanTaxInterpolated=round<float,1>(TanTaxInterpolated);
 
-                                     result = dbGate.select(Qc2InterpData, kvQueries::selectData(StationIds,pid,Tseries[1].obstime(),
-                                                                                                           Tseries[1].obstime() ));
-                                     Qc2D GSW(Qc2InterpData,StationList,params);
-                                     GSW.Qc2_interp(); 
-                                     fixtime=Tseries[1].obstime();
-                                     //fixtime.addDay(730);  // Write the data to 2 years hence (beware leap years in back calculating)
-                                     fixflags=Tseries[1].controlinfo();
-                                     CheckFlags.setter(fixflags,params.Sflag);
+                                               //result = dbGate.select(Qc2InterpData, kvQueries::selectData(StationIds,pid,Tseries[1].obstime(),
+                                                                                                           //Tseries[1].obstime() ));
+                                               //Qc2D GSW(Qc2InterpData,StationList,params);
+                                               //GSW.Qc2_interp(); 
+                                               fixtime=Tseries[1].obstime();
+                                               fixflags=Tseries[1].controlinfo();
+                                               CheckFlags.setter(fixflags,params.Sflag);
 
 // The logic to write results back to the database and inform kvServiceD
 //  In this case the data we are working with (i.e. potentially right back to the db) is Tseries[1]
 
                       try {
                              /// Update if correction is out of TAN TAX range!
-                             if ( Tseries[1].corrected() <  MinT.begin()->original() || Tseries[1].corrected() >  MaxT.begin()->original() ) 
+                             //if ( Tseries[1].corrected() <  MinT.begin()->original() || Tseries[1].corrected() >  MaxT.begin()->original() ) 
+                             if ( ( Tseries[1].corrected() <  MinT.begin()->original() || Tseries[1].corrected() >  MaxT.begin()->original() )
+                                  &&  CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) )
                             {  
-                             //Set data structure to write to the database
-                             /// REMOVE ALL THE CONTROLS
-                                //if ( CheckFlags.condition(id->controlinfo(),params.Wflag) )  {  /// WFLAG needs putting back in
-                                /// and a control in the configuration file to turn totally on or off!!!!
+                                /// and a control in the configuration file to turn Wflag totally on or off!!!!
                                  {
-                                        //std::cout << "W-flag-Passed" << std::endl;
                                         kvData d;                                                   
-                                        d.set(Tseries[1].stationID(),
-                                              Tseries[1].obstime(),
-                                              Tseries[1].original(),
-                                              Tseries[1].paramID(),
-                                              Tseries[1].tbtime(),
-                                              Tseries[1].typeID(),
-                                              Tseries[1].sensor(),
-                                              Tseries[1].level(),
-                                              TanTaxInterpolated,                                                           
-                                              fixflags,
-                                              Tseries[1].useinfo(),
-                                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected()) );
+                                        d.set(Tseries[1].stationID(), Tseries[1].obstime(), Tseries[1].original(), Tseries[1].paramID(),
+                                              Tseries[1].tbtime(), Tseries[1].typeID(), Tseries[1].sensor(), Tseries[1].level(), TanTaxInterpolated,                                                    fixflags, Tseries[1].useinfo(),
+                                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+params.CFAILED_STRING );
                              // Set use info corresponding to controlinfo
                                         kvUseInfo ui = d.useinfo();
                                         ui.setUseFlags( d.controlinfo() );
                                         d.useinfo( ui );   
                              // write the data back
-                                        //std::cout << "This data to be written back to db ... " << std::endl; 
+                                        LOGINFO("ProcessUnitT Writing Data "+StrmConvert(TanTaxInterpolated)+" "
+                                                                            +StrmConvert(Tseries[1].stationID())+" "
+                                                                            +StrmConvert(Tseries[1].obstime().year())+"-"
+                                                                            +StrmConvert(Tseries[1].obstime().month())+"-"
+                                                                            +StrmConvert(Tseries[1].obstime().day())+" "
+                                                                            +StrmConvert(Tseries[1].obstime().hour())+":"
+                                                                            +StrmConvert(Tseries[1].obstime().min())+":"
+                                                                            +StrmConvert(Tseries[1].obstime().sec()) );
                                         dbGate.insert( d, "data", true); 
                              // fill structure to inform the serviced
                                         kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
                                         stList.push_back(DataToWrite);
                                    }
                               }
-                              //Tseries.clear();  /// This may be better here than at the bottom ... check later
                        }
                           catch ( dnmi::db::SQLException & ex ) {
                             IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -216,8 +199,6 @@ ProcessUnitT( ReadProgramOptions params )
                              }
                           }
                    }
-                //Tseries.clear();
-                //
   ProcessTime.addHour(-1);
   }
 return 0;

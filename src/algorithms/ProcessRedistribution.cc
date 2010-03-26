@@ -37,7 +37,7 @@
 #include <sstream>
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
-#include <puTools/miTime>
+#include <puTools/miTime.h>
 #include <memory>
 #include <stdexcept>
 
@@ -109,7 +109,7 @@ Redistribute( ReadProgramOptions params )
                 Qc2D GSW(Qc2Data,StationList, params,"Generate Missing Rows");
                 GSW.Qc2_interp(); 
                 GSW.distributor(StationList,ReturnData,0);
-                GSW.write_cdf(StationList);
+                ///GSW.write_cdf(StationList);
        }
               
        if(!ReturnData.empty()) {
@@ -119,6 +119,15 @@ Redistribute( ReadProgramOptions params )
                            std::cout << "Flag Check" << std::endl;
                            if ( CheckFlags.condition(id->controlinfo(),params.Wflag) ) { 
                                 std::cout << "WRITING ***************************************" << std::endl;
+                                        LOGINFO("Redistribute Precipitation Writing Data "
+                                                                            +StrmConvert(id->corrected())+" "
+                                                                            +StrmConvert(id->stationID())+" "
+                                                                            +StrmConvert(id->obstime().year())+"-"
+                                                                            +StrmConvert(id->obstime().month())+"-"
+                                                                            +StrmConvert(id->obstime().day())+" "
+                                                                            +StrmConvert(id->obstime().hour())+":"
+                                                                            +StrmConvert(id->obstime().min())+":"
+                                                                            +StrmConvert(id->obstime().sec()) );
                                 kvData d = *id;
                                 kvUseInfo ui = d.useinfo();
                                 ui.setUseFlags( d.controlinfo() );
