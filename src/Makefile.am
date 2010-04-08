@@ -1,3 +1,8 @@
+AM_CPPFLAGS = -D_REENTRANT \
+	$(kvcpp_CFLAGS) \
+	$(BOOST_CPPFLAGS) \
+	$(omniORB4_CFLAGS)  
+
 bin_PROGRAMS = kvQc2
 
 kvQc2_SOURCES = \
@@ -45,27 +50,16 @@ kvQc2_SOURCES = \
 	algorithms/tround.h 
 
 kvQc2_CPPFLAGS = \
-	-I/metno/kvalobs/kvalobs-svn/src/lib \
-	-I/metno/kvalobs/kvalobs-svn/src/lib \
-	-I/metno/kvalobs/kvalobs-svn/src/lib/kvskel \
-	-I/metno/kvalobs/kvalobs-svn/src/service-libs \
+	$(AM_CPPFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniDynamic4_CFLAGS) \
 	$(putools_CFLAGS) \
 	$(perl_CFLAGS)
-	
-kvQc2_LDFLAGS = -pthread -export-dynamic	
+
+kvQc2_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
+
 kvQc2_LDADD = \
-	/metno/kvalobs/lib/kvalobs/libmilog.la \
-	/metno/kvalobs/lib/kvalobs/libkvalobs.la \
-	/metno/kvalobs/lib/kvalobs/libkvdb.la \
-	/metno/kvalobs/lib/kvalobs/libfileutil.la \
-	/metno/kvalobs/kvalobs-svn/src/lib/miutil/libmiutil.la \
-	/metno/kvalobs/lib/kvalobs/libmiconfparser.a \
-	/metno/kvalobs/lib/kvalobs/libcorbahelper.la \
-	/metno/kvalobs/lib/kvalobs/libkvadmininterface.la \
-	/metno/kvalobs/lib/kvalobs/libkvskel.la \
-	/metno/kvalobs/lib/kvalobs/libdnmithread.la \
+	$(kvcpp_LIBS) \
 	$(putools_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) \
@@ -77,8 +71,9 @@ kvQc2_LDADD = \
         -lnetcdf \
         -lnetcdf_c++ \
         -lgsl \
-        -lgslcblas
-	-ldl 
+        -lgslcblas \
+	-ldl \
+        -lm         
 
 
 clean-local:
@@ -115,4 +110,9 @@ kvQc2Test_LDADD = \
 EXTRA_DIST = \
 	test/database/setupdb.sql \
 	test/etc/checkrunnertest.init.sql
+
+                        
+#sqldir=$(datadir)/kvsynopd
+#sql_DATA=kvsynopd_schema.sql
+#bin_SCRIPTS = kvsynopd_initdb
 

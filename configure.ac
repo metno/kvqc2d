@@ -24,10 +24,10 @@ AC_CONFIG_FILES([Makefile
 ])
 
 
-PKG_CHECK_MODULES(putools, putools)
+PKG_CHECK_MODULES(putools, puTools)
 KV_FIND_OMNIORB4
 KV_POSTGRESQL
-PKG_CHECK_MODULES(kvcpp, kvcpp)
+PKG_CHECK_MODULES(kvcpp, libkvcpp)
 PKG_CHECK_MODULES(sqlite3, sqlite3)
 PKG_CHECK_MODULES(libxml2, libxml-2.0)
 PKG_CHECK_MODULES(libxmlpp, libxml++-2.6)
