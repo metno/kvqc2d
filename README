@@ -1,14 +1,13 @@
 My usual build strategy:
 
-aclocal
-automake --add-missing
-autoreconf -i --force
+autoreconf -i
 ./configure
 make
 
-....
-but many other ways to do the same
+For development, typically built locally thus:
 
-NOTE:
+autoreconf -i 
+./configure --prefix=/metno/kvalobs
+make
 
-now autoconf builds ok but with hard-coded libtool library files in src/Makefile.am
+
