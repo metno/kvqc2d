@@ -1,6 +1,6 @@
 AC_PREREQ([2.61])
 #AC_INIT([kvalobs], [2.0.6], [kvoss@met.no])
-AC_INIT([kvQc2], [2.0.7], [kvoss@met.no])
+AC_INIT([kvqc2], [2.0.7], [kvoss@met.no])
 AM_INIT_AUTOMAKE
 #METNO_SET_VERSION_INFO
 
