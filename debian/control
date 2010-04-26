@@ -1,0 +1,30 @@
+Source: kvqc2
+Section: science
+Priority: extra
+Maintainer: kvalobs <kvalobs@met.no>
+Build-Depends: debhelper (>= 5), autotools-dev, lsb-base, g++ (>= 4.1.1), debconf,
+ automake, libtool,  sqlite3 (>= 3.3.8), libsqlite3-dev (>= 3.3.8),
+ libboost-dev (>= 1.33.1), libboost-thread-dev (>= 1.33.1),
+ libboost-regex-dev (>= 1.33.1), libboost-filesystem-dev (>= 1.33.1),
+ libboost-program-options-dev (>= 1.33.1), libomniorb4-dev (>= 4.0.6),
+ omniidl4 (>= 4.0.6), metlibs-putools-dev (>= 3.0), libproj (>= 0.0.0),
+ libperl (>= 5.8), libnetcdf (>= 4.0.0), libnetcf_c++ (>= 4.0.0), libgsl (>= 0.0.0),
+ libgslcblas (>= 0.0.0), libkvalobs_kvcpp (>= 1.0.0), libkvalobs_kvalobs (>= 1.0.0), 
+ libkvalobs_kvdb (>= 1.0.0), libkvalobs_fileutil (>= 1.0.0),
+ libkvalobs_milog (>= 1.0.0), libkvalobs_kvskel (>= 1.0.0),
+ libkvalobs_dnmithread (>= 1.0.0), libkvalobs_miconfparser (>= 1.0.0)
+Standards-Version: 3.7.2
+
+Package: kvqc2
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, sqlite3
+Description: Non-real-time and geo-statistical quality controls. 
+The geo-statistical algorithms will make up the QC2-ROM (space-control) 
+ and will rely on: handling of data-sets comprising points from the 
+ whole station network of interest, filtering of uncertain values before 
+ and after checks, gridding of data and iterative techniques, 
+ kriging interpolation and cross-validation, as well as the additional 
+ user-defined algorithms performing specific checks on data selected 
+ by the QC2-ROM engine in both time and/or space. 
+
+
