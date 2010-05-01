@@ -156,6 +156,7 @@ StressTester( ReadProgramOptions params )
           LOGINFO("Stress test time loop completed. "+StrmConvert(LoopCounter));
           watchdog.snapshot();
           std::cout << "Loop reset ... " << std::cout;
+          ++LoopCounter;
        }
 
        ProcessTime.addDay();
