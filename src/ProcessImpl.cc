@@ -143,11 +143,16 @@ select(ReadProgramOptions params)
          break;
      case 8:
          std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 7: Dummy");
+         LOGINFO("Case 8: StressTester");
+         StressTester(params);
+         break;
+     case 9:
+         std::cout << "Case: " << AlgoCode << std::endl;
+         LOGINFO("Case 9: Dummy");
          break;
      default:
          std::cout << "No valid Algorithm Code Provided. Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 8: No Valid Code");
+         LOGINFO("Case 10: No Valid Code");
          break;
      }
      return(0);

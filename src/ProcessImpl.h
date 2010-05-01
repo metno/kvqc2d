@@ -35,6 +35,7 @@ class ProcessImpl
     int Interpolate(ReadProgramOptions params);                                                           
     int ProcessSpaceCheck(ReadProgramOptions params);                                                           
     int FlagTester(ReadProgramOptions params);                                                           
+    int StressTester(ReadProgramOptions params);                                                           
 };
 
 

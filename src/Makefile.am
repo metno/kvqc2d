@@ -38,6 +38,7 @@ kvqc2_SOURCES = \
 	algorithms/ProcessSpaceCheck.cc \
 	algorithms/ProcessVariability.cc \
 	algorithms/FlagTester.cc \
+	algorithms/StressTester.cc \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \
 	algorithms/Qc2D.cc \
