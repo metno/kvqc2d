@@ -11,6 +11,7 @@ class stopwatch
 public:
  stopwatch() : start(std::clock()){} 
  ~stopwatch();
+ double snapshot();
 private:
  std::clock_t start;
 };

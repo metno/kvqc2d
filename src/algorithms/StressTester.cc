@@ -46,6 +46,7 @@
 #include "ProcessControl.h"
 #include "scone.h"
 #include "epsx.h"
+#include "../StopWatch.h"
 
 
 using namespace kvalobs;
@@ -65,6 +66,7 @@ StressTester( ReadProgramOptions params )
   const int tid=params.tid;
 
   miutil::miTime fixtime;
+  long LoopCounter=0;
 
 
   std::vector<float> XP;
@@ -93,7 +95,10 @@ StressTester( ReadProgramOptions params )
      StationIds.push_back( sit->stationID() );
   }
   ProcessTime = stime;
+  stopwatch watchdog;
   while (ProcessTime <= etime) {  //START MAIN LOOP
+
+
              try {
               result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));
               //std::cout << kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime) << std::endl;
@@ -127,8 +132,8 @@ StressTester( ReadProgramOptions params )
                                 DataToWrite.set(id->stationID(),fixtime,id->original(),id->paramID(),
                                       id->tbtime(),id->typeID(), id->sensor(),
                                       id->level(), id->corrected(),id->controlinfo(), 
-                                      id->useinfo(), id->cfailed()+" Qc2-R");
-                                LOGINFO("Writing Data ");
+                                      id->useinfo(), id->cfailed()+" Qc2-R Loop=" + StrmConvert(LoopCounter));
+                                //LOGINFO("Writing Data ");
                                 dbGate.insert( DataToWrite, "data", true);
                                 kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
                                 stList.push_back(DataToWrite);
@@ -144,6 +149,13 @@ StressTester( ReadProgramOptions params )
           }
 
        //
+       }
+
+       if (ProcessTime==etime) {  ///This will never stop!
+          ProcessTime  = stime;
+          LOGINFO("Stress test time loop completed. "+StrmConvert(LoopCounter));
+          watchdog.snapshot();
+          std::cout << "Loop reset ... " << std::cout;
        }
 
        ProcessTime.addDay();
