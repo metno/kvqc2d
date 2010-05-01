@@ -67,6 +67,7 @@ StressTester( ReadProgramOptions params )
 
   miutil::miTime fixtime;
   long LoopCounter=0;
+  double CpuUsage;
 
 
   std::vector<float> XP;
@@ -154,7 +155,8 @@ StressTester( ReadProgramOptions params )
        if (ProcessTime==etime) {  ///This will never stop!
           ProcessTime  = stime;
           LOGINFO("Stress test time loop completed. "+StrmConvert(LoopCounter));
-          watchdog.snapshot();
+          CpuUsage=watchdog.snapshot();
+          LOGINFO("Elapsed CPU: "+StrmConvert(CpuUsage));
           std::cout << "Loop reset ... " << std::cout;
           ++LoopCounter;
        }
