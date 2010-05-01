@@ -64,6 +64,9 @@ StressTester( ReadProgramOptions params )
   const int pid=params.pid;
   const int tid=params.tid;
 
+  miutil::miTime fixtime;
+
+
   std::vector<float> XP;
   std::vector<float> YP;
 
@@ -75,7 +78,7 @@ StressTester( ReadProgramOptions params )
   std::list<int> StationIds;
   std::list<int> StationIdsActual;
   std::list<kvalobs::kvData> Qc2Data;
-  std::list<kvalobs::kvData> ReturnData;
+  kvalobs::kvData DataToWrite;
   bool result;
 
   kvalobs::kvStationInfoList  stList;
@@ -90,9 +93,10 @@ StressTester( ReadProgramOptions params )
      StationIds.push_back( sit->stationID() );
   }
   ProcessTime = stime;
-  while (ProcessTime <= etime) {
+  while (ProcessTime <= etime) {  //START MAIN LOOP
              try {
               result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));
+              //std::cout << kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime) << std::endl;
               }
               catch ( dnmi::db::SQLException & ex ) {
                 IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -107,9 +111,44 @@ StressTester( ReadProgramOptions params )
                 GSW.Qc2_interp(); 
                 //GSW.SampleSemiVariogram();
                 GSW.write_cdf(StationList);
+
+       // PRINT OUT OR WRITE BACK SOME DATA
+       //
+            //std::cout << GSW.stid_.size() << std::endl;  //NB GSW holds the same as Qc2Data but with geo-location
+            //std::cout << Qc2Data.size() << std::endl;    //information as well as interp, variability parameters etc ...
+
+       // ADD circa 10 years (3650 days) to the data and write it back to the database ...
+       
+       for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
+                      try {
+                                fixtime=id->obstime();
+                                fixtime.addDay(3650);
+                                //can also work with GSW !!!!!!!!!!!
+                                DataToWrite.set(id->stationID(),fixtime,id->original(),id->paramID(),
+                                      id->tbtime(),id->typeID(), id->sensor(),
+                                      id->level(), id->corrected(),id->controlinfo(), 
+                                      id->useinfo(), id->cfailed()+" Qc2-R");
+                                LOGINFO("Writing Data ");
+                                dbGate.insert( DataToWrite, "data", true);
+                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                                stList.push_back(DataToWrite);
+                       }
+                       catch ( dnmi::db::SQLException & ex ) {
+                         IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+                         std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
+                       }
+                       catch ( ... ) {
+                         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+                         std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
+                       }
+          }
+
+       //
        }
+
        ProcessTime.addDay();
-     }
+     }  //END OF MAIN LOOP
+
 return 0;
 }
 
