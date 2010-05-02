@@ -8,12 +8,8 @@ Build-Depends: debhelper (>= 5), autotools-dev, lsb-base, g++ (>= 4.1.1), debcon
  libboost-regex-dev (>= 1.33.1), libboost-filesystem-dev (>= 1.33.1),
  libboost-program-options-dev (>= 1.33.1), libomniorb4-dev (>= 4.0.6),
  omniidl4 (>= 4.0.6), metlibs-putools-dev (>= 3.0), libproj (>= 0.0.0),
- libperl (>= 5.8), libnetcdf (>= 4.0.0), libnetcf_c++ (>= 4.0.0), libgsl (>= 0.0.0),
- libgslcblas (>= 0.0.0), libkvalobs_kvcpp (>= 1.0.0), libkvalobs_kvalobs (>= 1.0.0), 
- libkvalobs_kvdb (>= 1.0.0), libkvalobs_fileutil (>= 1.0.0),
- libkvalobs_milog (>= 1.0.0), libkvalobs_kvskel (>= 1.0.0),
- libkvalobs_dnmithread (>= 1.0.0),
- libkvalobs_miconfparser (>= 1.0.0)
+ libperl (>= 5.8), libnetcdf-dev (>= 4.0.0), libgsl (>= 0.0.0),
+ libgslcblas (>= 0.0.0)
 Standards-Version: 3.7.2
 
 Package: kvqc2
