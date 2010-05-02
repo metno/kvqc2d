@@ -20,12 +20,12 @@ Package: kvqc2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, sqlite3
 Description: Non-real-time and geo-statistical quality controls. 
-The geo-statistical algorithms will make up the QC2-ROM (space-control) 
+ The geo-statistical algorithms will make up the QC2-ROM (space-control) 
  and will rely on: handling of data-sets comprising points from the 
  whole station network of interest, filtering of uncertain values before 
  and after checks, gridding of data and iterative techniques, 
  kriging interpolation and cross-validation, as well as the additional 
  user-defined algorithms performing specific checks on data selected 
- by the QC2-ROM engine in both time and/or space. 
+ by the QC2-ROM engine in both time and space. 
 
 
