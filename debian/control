@@ -7,9 +7,7 @@ Build-Depends: debhelper (>= 5), autotools-dev, lsb-base, g++ (>= 4.1.1), debcon
  libboost-dev (>= 1.33.1), libboost-thread-dev (>= 1.33.1),
  libboost-regex-dev (>= 1.33.1), libboost-filesystem-dev (>= 1.33.1),
  libboost-program-options-dev (>= 1.33.1), libomniorb4-dev (>= 4.0.6),
- omniidl4 (>= 4.0.6), metlibs-putools-dev (>= 3.0), libproj (>= 0.0.0),
- libperl (>= 5.8), libnetcdf-dev (>= 4.0.0), libgsl (>= 0.0.0),
- libgslcblas (>= 0.0.0)
+ omniidl4 (>= 4.0.6)
 Standards-Version: 3.7.2
 
 Package: kvqc2

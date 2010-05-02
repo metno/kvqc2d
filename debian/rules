@@ -21,9 +21,11 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-
+	autoreconf -i
+	./configure --prefix=/usr  --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info  --localstatedir=/var --sysconfdir=/etc CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
 	touch configure-stamp
 
+	
 
 build: build-stamp
 
