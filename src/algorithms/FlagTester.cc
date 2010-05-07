@@ -66,6 +66,10 @@ FlagTester( ReadProgramOptions params )
   miutil::miTime etime=params.UT1;
   std::string CIF=params.ControlInfoString;
 
+  for (vector<std::string>::iterator it = params.ch_fhqc.begin(); it!=params.ch_fhqc.end(); ++it) {
+    std::cout << *it << std::endl;
+  }
+
   std::list<kvalobs::kvData> Qc2Data;
   std::list<kvalobs::kvData> ReturnData;
   bool result;
@@ -106,8 +110,8 @@ FlagTester( ReadProgramOptions params )
      kvalobs::kvControlInfo kbruce( FlagStrings[ii] );
      kvalobs::kvUseInfo ubruce( FlagStrings[ii+1] );
      ubruce.setUseFlags( kbruce );
-     std::cout << kbruce << " "<< FlagStrings[ii+1] << " " << ubruce << std::endl;
-     std::cout << "---------------" << std::endl;
+     //std::cout << kbruce << " "<< FlagStrings[ii+1] << " " << ubruce << std::endl;
+     //std::cout << "---------------" << std::endl;
    }
 
   //for (std::vector<string>::const_iterator vit = FlagStrings.begin(); vit != FlagStrings.end(); ++vit){
