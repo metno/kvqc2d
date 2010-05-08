@@ -32,6 +32,22 @@ ProcessControl(){
    HexToInt['D']=13;
    HexToInt['E']=14;
    HexToInt['F']=15;
+   StringToInt["0"]=0;
+   StringToInt["1"]=1;
+   StringToInt["2"]=2;
+   StringToInt["3"]=3;
+   StringToInt["4"]=4;
+   StringToInt["5"]=5;
+   StringToInt["6"]=6;
+   StringToInt["7"]=7;
+   StringToInt["8"]=8;
+   StringToInt["9"]=9;
+   StringToInt["A"]=10;
+   StringToInt["B"]=11;
+   StringToInt["C"]=12;
+   StringToInt["D"]=13;
+   StringToInt["E"]=14;
+   StringToInt["F"]=15;
 }
 
 /// If any of the members of the flag group zflag match the controlinfo TRUE is returned.
@@ -91,15 +107,22 @@ int
 ProcessControl::
 conditional_setter( kvalobs::kvControlInfo &controlinfo, std::map<int, std::vector<std::string> > vFlag ){
 
-  std::cout << controlinfo << std::endl;
+  int OldFlagValue, NewFlagValue;
+
+  //std::cout << controlinfo << std::endl;
 
   for (int inib = 0; inib < 16; ++inib) {
      for (std::vector<std::string>::iterator it = vFlag[inib].begin(); it!=vFlag[inib].end(); ++it) {
-       std::cout << *it << std::endl;
+       if (it->substr(1,2)=="->" & it->size() == 4) {
+             //std::cout << *it << std::endl;
+             OldFlagValue=StringToInt[ it->substr(0,1) ];
+             NewFlagValue=StringToInt[ it->substr(3,1) ];
+             if (controlinfo.flag(inib) == OldFlagValue) controlinfo.set( inib, NewFlagValue ); 
+       }
      }
   }
 
-  std::cout << controlinfo << std::endl;
+  //std::cout << controlinfo << std::endl;
 
 return 0;
 }

@@ -5,6 +5,8 @@
 #include <kvalobs/kvData.h>
 #include <vector>
 #include <map>
+#include <iostream>
+#include <string>
 
 #include "ReadProgramOptions.h"
 
@@ -23,7 +25,9 @@ public:
 protected:
 
 private:
+
    std::map<unsigned char,int> HexToInt;
+   std::map<std::string,int> StringToInt;
 
 };
 
