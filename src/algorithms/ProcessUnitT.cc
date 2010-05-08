@@ -146,6 +146,7 @@ ProcessUnitT( ReadProgramOptions params )
                                                fixtime=Tseries[1].obstime();
                                                fixflags=Tseries[1].controlinfo();
                                                CheckFlags.setter(fixflags,params.Sflag);
+                                               CheckFlags.conditional_setter(fixflags,params.chflag);
 
 // The logic to write results back to the database and inform kvServiceD
 //  In this case the data we are working with (i.e. potentially right back to the db) is Tseries[1]
