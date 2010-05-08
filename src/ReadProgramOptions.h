@@ -51,8 +51,8 @@ std::map<int, unsigned char> Iflag;
 std::map<int, unsigned char> Aflag;
 std::map<int, unsigned char> Wflag;
 std::map<int, unsigned char> Sflag;
+std::map<int, std::vector<std::string> > chflag;
 
-std::vector<std::string> ch_fqclevel,ch_fr,ch_fcc,ch_fs,ch_fnum,ch_fpos,ch_fmis,ch_ftime,ch_fw,ch_fstat,ch_fcp,ch_fclim,ch_fd,ch_fpre,ch_fcombi,ch_fhqc;
 std::vector<unsigned char> Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
 
 int Parse(std::string filename);

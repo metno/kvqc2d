@@ -489,22 +489,22 @@ try{
          Vfcombi = V_fcombi;
          Vfhqc = V_fhqc;
 
-         ch_fqclevel=change_fqclevel;
-         ch_fr=change_fr;
-         ch_fcc=change_fcc;
-         ch_fs=change_fs;
-         ch_fnum=change_fnum;
-         ch_fpos=change_fpos;
-         ch_fmis=change_fmis;
-         ch_ftime=change_ftime;
-         ch_fw=change_fw;
-         ch_fstat=change_fstat;
-         ch_fcp=change_fcp;
-         ch_fclim=change_fclim;
-         ch_fd=change_fd;
-         ch_fpre=change_fpre;
-         ch_fcombi=change_fcombi;
-         ch_fhqc=change_fhqc;
+         if (change_fqclevel.size() != 0) chflag[0]= change_fqclevel;
+         if (change_fr.size()       != 0) chflag[1]= change_fr;
+         if (change_fcc.size()      != 0) chflag[2]= change_fcc;
+         if (change_fs.size()       != 0) chflag[3]= change_fs;
+         if (change_fnum.size()     != 0) chflag[4]= change_fnum;
+         if (change_fpos.size()     != 0) chflag[5]= change_fpos;
+         if (change_fmis.size()     != 0) chflag[6]= change_fmis;
+         if (change_ftime.size()    != 0) chflag[7]= change_ftime;
+         if (change_fw.size()       != 0) chflag[8]= change_fw;
+         if (change_fstat.size()    != 0) chflag[9]= change_fstat;
+         if (change_fcp.size()      != 0) chflag[10]= change_fcp;
+         if (change_fclim.size()    != 0) chflag[11]= change_fclim;
+         if (change_fd.size()       != 0) chflag[12]= change_fd;
+         if (change_fpre.size()     != 0) chflag[13]= change_fpre;
+         if (change_fcombi.size()   != 0) chflag[14]= change_fcombi;
+         if (change_fhqc.size()     != 0) chflag[15]= change_fhqc;
 
    }
    catch(exception& e) {

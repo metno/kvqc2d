@@ -66,15 +66,12 @@ FlagTester( ReadProgramOptions params )
   miutil::miTime etime=params.UT1;
   std::string CIF=params.ControlInfoString;
 
-  for (vector<std::string>::iterator it = params.ch_fhqc.begin(); it!=params.ch_fhqc.end(); ++it) {
-    std::cout << *it << std::endl;
-  }
+  ProcessControl CheckFlags;
 
   std::list<kvalobs::kvData> Qc2Data;
   std::list<kvalobs::kvData> ReturnData;
   bool result;
 
-  ProcessControl CheckFlags;
   kvalobs::kvControlInfo fixflags;
   kvData d;
   std::vector<std::string> FlagStrings;
@@ -112,6 +109,10 @@ FlagTester( ReadProgramOptions params )
      ubruce.setUseFlags( kbruce );
      //std::cout << kbruce << " "<< FlagStrings[ii+1] << " " << ubruce << std::endl;
      //std::cout << "---------------" << std::endl;
+     //
+     //
+
+     CheckFlags.conditional_setter(kbruce,params.chflag);
    }
 
   //for (std::vector<string>::const_iterator vit = FlagStrings.begin(); vit != FlagStrings.end(); ++vit){

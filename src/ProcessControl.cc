@@ -84,8 +84,25 @@ setter( kvalobs::kvControlInfo &controlinfo, std::map<int, unsigned char> zflag 
    return 0;
 }
 
+/////////////
+/// Conditional Setter
 
+int 
+ProcessControl::
+conditional_setter( kvalobs::kvControlInfo &controlinfo, std::map<int, std::vector<std::string> > vFlag ){
 
+  std::cout << controlinfo << std::endl;
+
+  for (int inib = 0; inib < 16; ++inib) {
+     for (std::vector<std::string>::iterator it = vFlag[inib].begin(); it!=vFlag[inib].end(); ++it) {
+       std::cout << *it << std::endl;
+     }
+  }
+
+  std::cout << controlinfo << std::endl;
+
+return 0;
+}
 
 
 // fcc -1 // fclim -1 // fcombi -1 // fcp -1 // fd 7 // fhqc -1 // fmis -1 // fnum -1 // fpos 8 // fpre -1 // fqclevel -1 // fr -1 // fs -1 // fstat -1 // ftime -1 // fw -1 // [0|0|0|0|0|0|0|0|0|0|0|0|0|0|0|0]
