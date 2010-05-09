@@ -91,6 +91,7 @@ try{
               //std::cout << dit->path() << std::endl;
               //std::cout << dit->leaf() << std::endl;
               filename=dit->path().native_file_string();
+	      //filename=dit->native_file_string();
               if ( filename.substr(filename.length()-3,3) == "cfg") {
                    config_files.push_back(filename);
                    std::cout << "Configuration File Found: " << filename << std::endl; 
@@ -134,7 +135,7 @@ unsigned char W_fqclevel,W_fr,W_fcc,W_fs,W_fnum,W_fpos,W_fmis,W_ftime,W_fw,W_fst
 // CONTROL FLAGS TO SET 
 unsigned char S_fqclevel,S_fr,S_fcc,S_fs,S_fnum,S_fpos,S_fmis,S_ftime,S_fw,S_fstat,S_fcp,S_fclim,S_fd,S_fpre,S_fcombi,S_fhqc; //SET
 
-
+std::vector<std::string> change_fqclevel,change_fr,change_fcc,change_fs,change_fnum,change_fpos,change_fmis,change_ftime,change_fw,change_fstat,change_fcp,change_fclim,change_fd,change_fpre,change_fcombi,change_fhqc;
 std::vector<unsigned char> V_fqclevel,V_fr,V_fcc,V_fs,V_fnum,V_fpos,V_fmis,V_ftime,V_fw,V_fstat,V_fcp,V_fclim,V_fd,V_fpre,V_fcombi,V_fhqc; //For algorithms which need multiple control options for the same flag
 
 std::string ControlString;
@@ -299,6 +300,23 @@ try{
         ("S_fcombi",po::value<unsigned char>  (&S_fcombi)->default_value(0x3F),  "fcombi")
         ("S_fhqc",po::value<unsigned char>  (&S_fhqc)->default_value(0x3F),  "fhqc")
 
+
+       ("change_fqclevel",po::value<std::vector<std::string> >  (&change_fqclevel),  "Conditional change to fqclevel")
+        ("change_fr",po::value<std::vector<std::string> >  (&change_fr),  "Conditional change to fr")
+        ("change_fcc",po::value<std::vector<std::string> >  (&change_fcc),  "Conditional change to fcc")
+        ("change_fs",po::value<std::vector<std::string> >  (&change_fs),  "Conditional change to fs")
+        ("change_fnum",po::value<std::vector<std::string> >  (&change_fnum),  "Conditional change to fnum")
+        ("change_fpos",po::value<std::vector<std::string> >  (&change_fpos),  "Conditional change to fpos")
+        ("change_fmis",po::value<std::vector<std::string> >  (&change_fmis),  "Conditional change to fmis")
+        ("change_ftime",po::value<std::vector<std::string> >  (&change_ftime),  "Conditional change to ftime")
+        ("change_fw",po::value<std::vector<std::string> >  (&change_fw),  "Conditional change to fw")
+        ("change_fstat",po::value<std::vector<std::string> >  (&change_fstat),  "Conditional change to fstat")
+        ("change_fcp",po::value<std::vector<std::string> >  (&change_fcp),  "Conditional change to fcp")
+        ("change_fclim",po::value<std::vector<std::string> >  (&change_fclim),  "Conditional change to fclim")
+        ("change_fd",po::value<std::vector<std::string> >  (&change_fd),  "Conditional change to fd")
+        ("change_fpre",po::value<std::vector<std::string> >  (&change_fpre),  "Conditional change to fpre")
+        ("change_fcombi",po::value<std::vector<std::string> >  (&change_fcombi),  "Conditional change to fcombi")
+        ("change_fhqc",po::value<std::vector<std::string> >  (&change_fhqc),  "Conditional change to fhqc")
 
         ("V_fqclevel",po::value<std::vector<unsigned char> >  (&V_fqclevel),  "fqclevel")
         ("V_fr",po::value<std::vector<unsigned char> >  (&V_fr),  "fr")
@@ -471,6 +489,23 @@ try{
          Vfpre = V_fpre;
          Vfcombi = V_fcombi;
          Vfhqc = V_fhqc;
+
+         if (change_fqclevel.size() != 0) chflag[0]= change_fqclevel;
+         if (change_fr.size()       != 0) chflag[1]= change_fr;
+         if (change_fcc.size()      != 0) chflag[2]= change_fcc;
+         if (change_fs.size()       != 0) chflag[3]= change_fs;
+         if (change_fnum.size()     != 0) chflag[4]= change_fnum;
+         if (change_fpos.size()     != 0) chflag[5]= change_fpos;
+         if (change_fmis.size()     != 0) chflag[6]= change_fmis;
+         if (change_ftime.size()    != 0) chflag[7]= change_ftime;
+         if (change_fw.size()       != 0) chflag[8]= change_fw;
+         if (change_fstat.size()    != 0) chflag[9]= change_fstat;
+         if (change_fcp.size()      != 0) chflag[10]= change_fcp;
+         if (change_fclim.size()    != 0) chflag[11]= change_fclim;
+         if (change_fd.size()       != 0) chflag[12]= change_fd;
+         if (change_fpre.size()     != 0) chflag[13]= change_fpre;
+         if (change_fcombi.size()   != 0) chflag[14]= change_fcombi;
+         if (change_fhqc.size()     != 0) chflag[15]= change_fhqc;
 
    }
    catch(exception& e) {
