@@ -163,6 +163,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                   fixtime=dst_time[ stid ][ k ];
 
                   fixflags=d_controlinfo[ stid ][ k ];
+
                   ControlFlag.setter(fixflags,params.Sflag);
                   ControlFlag.conditional_setter(fixflags,params.chflag);
 
