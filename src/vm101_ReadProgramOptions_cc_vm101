@@ -80,7 +80,7 @@ try{
        
        std::string filename;
 
-       std::cout << full_path << std::endl;
+       //std::cout << full_path << std::endl;
 
        if ( !fs::exists( full_path ) ) {
            std::cout << "Does not exist: " << full_path.native_file_string() <<std::endl;
