@@ -148,7 +148,12 @@ select(ReadProgramOptions params)
          break;
      case 9:
          std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 9: Dummy");
+         LOGINFO("Case 9: SingleMissingPoint");
+         SingleMissingPoint(params);
+         break;
+     case 10:
+         std::cout << "Case: " << AlgoCode << std::endl;
+         LOGINFO("Case 10: Dummy");
          break;
      default:
          std::cout << "No valid Algorithm Code Provided. Case: " << AlgoCode << std::endl;
