@@ -118,6 +118,8 @@ int StepYear, StepMonth, StepDay, StepHour, StepMinute, StepSecond;
 int RunMinute;
 int RunHour;
 int ParamId;
+int MaxParamId;
+int MinParamId;
 int TypeId;
 int MissingValue;
 int MinValue;
@@ -173,7 +175,9 @@ try{
         ("Step_mm",po::value<int>  (&StepMinute)->default_value(0),  "Step Minute")
         ("Step_ss",po::value<int>  (&StepSecond)->default_value(0),  "Step Second")
 
-        ("ParamId",po::value<int>  (&ParamId),  "Parameter ID")
+        ("ParamId",po::value<int>  (&ParamId)->default_value(0),  "Parameter ID")
+        ("MaxParamId",po::value<int>  (&MaxParamId)->default_value(0),  "Parameter ID for a maximum value")
+        ("MinParamId",po::value<int>  (&MinParamId)->default_value(0),  "Parameter ID for a minimum value")
         ("TypeId",po::value<int>  (&TypeId),  "Type ID")
         ("AlgoCode",po::value<int>  (&AlgoCode)->default_value(-1),  "Algoritham Code")
         ("InterpCode",po::value<int>  (&InterpCode)->default_value(-1),  "Code to determine method of interpolation")
@@ -351,6 +355,8 @@ try{
          UT0=StartTime;
          UT1=EndTime;
          pid=ParamId;
+         maxpid=MaxParamId;
+         minpid=MinParamId;
          tid=TypeId;
          RunAtMinute=RunMinute;
          RunAtHour=RunHour;
@@ -539,6 +545,8 @@ std::vector<int> ControlInfoVector;  ///TBD
 RunAtMinute=0;
 RunAtHour=2;
 pid=0;
+maxpid=0;
+minpid=0;
 tid=0;
 
 return 0;

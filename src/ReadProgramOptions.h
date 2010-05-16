@@ -40,6 +40,7 @@ std::string CFAILED_STRING;
 int RunAtMinute;
 int RunAtHour;
 int pid;
+int maxpid,minpid;
 int tid;
 int missing;
 int MinimumValue;

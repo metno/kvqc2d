@@ -58,18 +58,18 @@ SingleMissingPoint( ReadProgramOptions params )
 {
   LOGINFO("SingleMissingPoint");
   int pid=params.pid;
+  int Maxpid=params.maxpid;
+  int Minpid=params.minpid;
   float LinInterpolated;
   float MaxMinInterpolated;
   miutil::miTime stime=params.UT0;
   miutil::miTime etime=params.UT1;
-  std::string CIF=params.ControlInfoString;
 
   std::list<kvalobs::kvStation> StationList;
   std::list<int> StationIds;
   std::list<kvalobs::kvData> Qc2Data;
   std::list<kvalobs::kvData> Qc2SeriesData;
   std::list<kvalobs::kvData> Qc2InterpData;
-  std::list<kvalobs::kvData> ReturnData;
   bool result;
 
   ProcessControl CheckFlags;
@@ -88,8 +88,8 @@ SingleMissingPoint( ReadProgramOptions params )
   miutil::miTime fixtime; /// fixtime here for tests
 
   std::vector<kvalobs::kvData> Tseries;
-  std::list<kvalobs::kvData> MaxT;
-  std::list<kvalobs::kvData> MinT;
+  std::list<kvalobs::kvData> MaxValue;
+  std::list<kvalobs::kvData> MinValue;
 
   GetStationList(StationList);  /// StationList is all the possible stations ... Check
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
@@ -126,14 +126,14 @@ SingleMissingPoint( ReadProgramOptions params )
                                    //LOGINFO("Interpolating data ...");
                                    if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && 
                                        Tseries[2].original() > params.missing){
-                                       result = dbGate.select(MaxT, kvQueries::selectData(id->stationID(),215,YTime,YTime));
-                                       result = dbGate.select(MinT, kvQueries::selectData(id->stationID(),213,YTime,YTime));
-                                       if (MaxT.size()==1 && MinT.size()==1 && 
-                                           MaxT.begin()->original() > -99.9 && MinT.begin()->original() > -99.9){
+                                       result = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
+                                       result = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime));
+                                       if (MaxValue.size()==1 && MinValue.size()==1 && 
+                                           MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
 
                                                LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); //this is calculate but not used
                                                                                                                   //maybe add a comparitive test??
-                                               MaxMinInterpolated=0.5*(MinT.begin()->original()+MaxT.begin()->original());
+                                               MaxMinInterpolated=0.5*(MinValue.begin()->original()+MaxValue.begin()->original());
                                                MaxMinInterpolated=round<float,1>(MaxMinInterpolated);
 
                                                //result = dbGate.select(Qc2InterpData, kvQueries::selectData(StationIds,pid,Tseries[1].obstime(),
@@ -150,8 +150,8 @@ SingleMissingPoint( ReadProgramOptions params )
 
                       try {
                              /// Update if correction is out of TAN TAX range!
-                             //if ( Tseries[1].corrected() <  MinT.begin()->original() || Tseries[1].corrected() >  MaxT.begin()->original() ) 
-                             if ( ( Tseries[1].corrected() <  MinT.begin()->original() || Tseries[1].corrected() >  MaxT.begin()->original() )
+                             //if ( Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() >  MaxValue.begin()->original() ) 
+                             if ( ( Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() >  MaxValue.begin()->original() )
                                   &&  CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) )
                             {  
                                 /// and a control in the configuration file to turn Wflag totally on or off!!!!
