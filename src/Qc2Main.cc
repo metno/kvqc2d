@@ -132,7 +132,7 @@ main( int argc, char** argv )
     LOGFATAL( rundir.native_file_string() << "exists but is not a directory" );
     return 1;
   }
-  filesystem::path pidfile( dnmi::file::createPidFileName( rundir.native_file_string(), "kvQc2" ) );
+  filesystem::path pidfile( dnmi::file::createPidFileName( rundir.native_file_string(), "kvqc2" ) );
 
   if ( dnmi::file::isRunningPidFile( pidfile.native_file_string(), error ) )
   {
@@ -140,49 +140,18 @@ main( int argc, char** argv )
     {
       LOGFATAL( "An error occured while reading the pidfile:" << endl
                 << pidfile.native_file_string() << " remove the file if it exist and"
-                << endl << "kvQc2 is not running. " <<
-                "If it is running and there is problems. Kill kvQc2 and"
+                << endl << "kvqc2 is not running. " <<
+                "If it is running and there is problems. Kill kvqc2 and"
                 << endl << "restart it." << endl << endl );
       return 1;
     }
     else
     {
-      LOGFATAL( "Is kvQc2 allready running?" << endl
+      LOGFATAL( "Is kvqc2 allready running?" << endl
                 << "If not remove the pidfile: " << pidfile.native_file_string() );
       return 1;
     }
   }
-
-
-  //if ( !pKv )
-  //{
-    //LOGFATAL( "The environment variable KVALOBS must be set!" );
-    //return 1;
-  //}
-//
-  //pidfile = string( pKv ) + "/var/run/Qc2.pid";
-//
-  //std::cout << pidfile << std::endl;
-//
-  //if ( dnmi::file::isRunningPidFile( pidfile, error ) )
-  //{
-    //if ( error )
-    //{
-      //LOGFATAL( "An error occured while reading the pidfile:" << endl
-                //<< pidfile << " remove the file if it exist and"
-                //<< endl << "Qc2 is not running. " <<
-                //"If it is running and there is problems. Kill Qc2 and"
-                //<< endl << "restart it." << endl << endl );
-      //return 1;
-    //}
-    //else
-    //{
-      //LOGFATAL( "Is Qc2 allready running?" << endl
-                //<< "If not remove the pidfile: " << pidfile );
-      //return 1;
-    //}
-  //}
-//
 
   Qc2App app( argc, argv, dbdriver, constr, options );
   
@@ -195,7 +164,7 @@ main( int argc, char** argv )
   orb = app.getOrb();
   poa = app.getPoa();
  
-  app.createPidFile( "kvQc2" );
+  app.createPidFile( "kvqc2" );
   sleep(1);
 
   Qc2Work Qc2Work( app, htmlpath );    //commented out while I test program options !!!!
@@ -204,7 +173,7 @@ main( int argc, char** argv )
   
   try {
 // This is where all the *InputImpl(app) and AdminImpl( App ) can be reinstalled if ti is needed
-      app.createPidFile( "Qc2" );
+      //app.createPidFile( "Qc2" );
       orb->run();
       orb->destroy();
   }
