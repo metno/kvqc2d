@@ -43,10 +43,6 @@
 #include <kvalobs/kvPath.h>
 
 
-
-//#include <qt.h>
-//#include "algorithms/Qraph.h"
-
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
@@ -114,7 +110,6 @@ main( int argc, char** argv )
   std::cout << "HTMLPATH" << htmlpath << std::endl;
   InitLogger( argc, argv, "Qc2", htmlpath );
   std::cout << "HTMLPATH" << htmlpath << std::endl;
-
 
   LOGINFO( "Qc2: starting ...." );
 
@@ -204,9 +199,6 @@ main( int argc, char** argv )
 
   CERR( "Qc2: exit ....\n" );
   app.deletePidFile();
-
-  std::cout << "Oh yesteryear" << std::endl;
-  std::cerr << "Flow my tears" << std::endl;
 
   return 0;
 }
