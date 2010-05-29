@@ -15,7 +15,7 @@
 namespace
 {
   
-  ///Handles db connection and dsconnection after timeout
+///Handles the db connection and disconnection after timeout
 
   class ConnectionHandler
   {
@@ -37,7 +37,7 @@ namespace
       }
 
       
-       // \returns a connection to db, either freshly generated or an old one
+       // returns a connection to db, either freshly generated or an old one
       
       dnmi::db::Connection * getConnection()
       {

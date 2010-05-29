@@ -3,7 +3,6 @@
 #define __Qc2App_h__
 
 #include <kvalobs/kvapp.h>
-//#include <kvskel/managerInput.hh>
 #include <kvskel/kvService.hh>
 #include <kvalobs/kvStationInfo.h>
 #include <dnmithread/CommandQue.h>
@@ -64,8 +63,5 @@ class Qc2App: public KvApp
 
   
 };
-
-
-
 
 #endif

@@ -604,6 +604,8 @@ idw_intp_limit(unsigned int index)
           //bool DoInt=false;
 
 
+          std::cout << stid_[index] << " {" << original_[index] << "}|";
+
  	  for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
  	  	  
  	  	  data_point=original_[pindex[i].second];
@@ -619,11 +621,13 @@ idw_intp_limit(unsigned int index)
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
                         weight += data_point/(pindex[i].first*pindex[i].first);
                         NeighboursUsed.push_back(data_point);
+                        /// Code to extract neighbour statistics ...
+                        std::cout << stid_[pindex[i].second] << " {" << original_[pindex[i].second] << "};";
  	  	  }
  	  }
 
           if (NeighboursUsed.size() > 0) {
-          computeStats(NeighboursUsed.begin( ), NeighboursUsed.end( ), sum, mean, var, dev, skew, kurt);
+             computeStats(NeighboursUsed.begin( ), NeighboursUsed.end( ), sum, mean, var, dev, skew, kurt);
           }
 
           /// How many neighbours to use is an open question.
@@ -632,7 +636,9 @@ idw_intp_limit(unsigned int index)
  	  if (inv_dist > 0.0) {
  	     intp_[index] = weight/inv_dist; 
              CP_[index]=dev;
+          std::cout << " # Model Value = " <<  intp_[index] << " +/-" << CP_[index] << " (" <<  NeighboursUsed.size() << " pts)";
  	  }  
+          std::cout << std::endl;
  
 } 
 

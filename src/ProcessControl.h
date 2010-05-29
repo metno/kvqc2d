@@ -10,6 +10,7 @@
 
 #include "ReadProgramOptions.h"
 
+/// ProcessControl provids methods to set controlinfo flag values and test controlinfo flag values.
 
 class ProcessControl{
 
