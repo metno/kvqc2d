@@ -12,8 +12,6 @@
 #include "ReadProgramOptions.h"
 #include "ProcessControl.h"
 
-//#include "vecmap.h"
-
 ///The class manages the redistribution of 24 hour precipitation data. 
 
 class Distribute{

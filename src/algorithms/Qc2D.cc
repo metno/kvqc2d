@@ -39,7 +39,6 @@
 #include "BasicStatistics.h"
 #include <dnmithread/mtcout.h>
 #include <kvalobs/kvData.h>
-//#include <kvalobs/kvKeyVal.h>
 #include "kvQABaseTypes.h"
 #include <map>
 
@@ -53,15 +52,9 @@
 
 #include "table_delaunay.h"
 
-
-//#include <boost/date_time/gregorian/gregorian.hpp>
-
 using namespace std;
 using namespace miutil;
 using namespace dnmi;
-
-
-
 
 
 ///Method to clear() all of the vectors held in the Qc2D data structure.
@@ -1390,14 +1383,14 @@ intp_delaunay(unsigned int index)
                                 //sprintf(epsfilename,"%d%s%d%s",stid_[index],"_",tri,".eps");
                                 //triangulation_order3_plot_eps ( epsfilename, node_num, table, copy_triangle_num, triangle_node, node_show,triangle_show,lon[0],lat[0],x_triangle[0],y_triangle[0],x_triangle[1],y_triangle[1],x_triangle[2],y_triangle[2] );
                          /// PLotting test triangles gives memory fault on virtual boxes !!!!ZZ
-                         std::cout << "TQ Triangulation Information" << std::endl;
-                         std::cout << "TQ Point ... Lon ... Lat .....Value" << std::endl;
-                         std::cout << " TQ 0 "<< lon[0] << " " <<lat[0] << " " << std::endl;
+                         //std::cout << "TQ Triangulation Information" << std::endl;
+                         //std::cout << "TQ Point ... Lon ... Lat .....Value" << std::endl;
+                         //std::cout << " TQ 0 "<< lon[0] << " " <<lat[0] << " " << std::endl;
 
-                         std::cout << " TQ "<< lon[0] << " " <<lat[0] << std::endl;
-                         std::cout << " TQ "<< x_triangle[0] << " " <<y_triangle[0]<< std::endl;
-                         std::cout << " TQ "<< x_triangle[1]<< " " <<y_triangle[1]<< std::endl;
-                         std::cout << " TQ "<< x_triangle[2]<< " " <<y_triangle[2]<< std::endl;
+                         //std::cout << " TQ "<< lon[0] << " " <<lat[0] << std::endl;
+                         //std::cout << " TQ "<< x_triangle[0] << " " <<y_triangle[0]<< std::endl;
+                         //std::cout << " TQ "<< x_triangle[1]<< " " <<y_triangle[1]<< std::endl;
+                         //std::cout << " TQ "<< x_triangle[2]<< " " <<y_triangle[2]<< std::endl;
                       
                                 for (int ii=0;ii<3;++ii){
                  
@@ -1407,7 +1400,7 @@ intp_delaunay(unsigned int index)
                                       rr[ii]=data_point;
                                       xp[ii]=x_triangle[ii];
                                       yp[ii]=y_triangle[ii];
-                                      std::cout << rr[ii] << std::endl;
+                                      //std::cout << rr[ii] << std::endl;
 
                           }
 
@@ -1425,7 +1418,7 @@ intp_delaunay(unsigned int index)
                                       d_rr_over_d_x=((yp[1]-yp[0])*(rr[2]-rr[0])-(yp[2]-yp[0])*(rr[1]-rr[0]))/Denom;
                                       d_rr_over_d_y=((xp[2]-xp[0])*(rr[1]-rr[0])-(xp[1]-xp[0])*(rr[2]-rr[0]))/Denom;
                                       intp_[index]=rr[0]+(xt-xp[0])*d_rr_over_d_x+(yt-yp[0])*d_rr_over_d_y;
-                                      std::cout << "RESULTS ######## "<< intp_[index] << " " << original_[index] << std::endl;
+                                      //std::cout << "RESULTS ######## "<< intp_[index] << " " << original_[index] << std::endl;
                                  }
 
                          }           

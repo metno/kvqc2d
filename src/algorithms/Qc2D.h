@@ -48,10 +48,6 @@ public:
 
   std::map<int, int>                  stindex; //use this to lookup index based on station id.
   void istindex(int stid)             {stindex[ stid ] = stid_.size()-1;}
-  //void istindex(int stid)             {stindex[ stid ] = stidex.size()-1;}
-  //void istindex(int stid)             {stindex[ stid ] = obstime_.size()-1;}   // Can be any counter ?????
-  //void istindex(int stid)             {stindex[ stid ] = 100;   // Can be any counter ?????
-                                      //std::cout << stid << " " << "Size " << stindex.size() << std::endl;} 
 
                                       //maps the station id to the index of the vectors
                                       //as they are populated ... does this work for all 
@@ -59,8 +55,6 @@ public:
                                       //element is always created in the statement.
 
 
-  //Qc2D() {clean();}
- 
   std::vector<float> intp()                         {return intp_;}
 
   void istid(int stid)                                  {stid_.push_back(stid);}
