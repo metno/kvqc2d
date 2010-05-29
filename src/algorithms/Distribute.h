@@ -26,20 +26,6 @@ public:
 
   Distribute( const std::list<kvalobs::kvStation> & slist, ReadProgramOptions params );
   ~Distribute(){}
-  //~Distribute(){
-    //dst_data.clear();                
-    //dst_intp.clear();                
-    //dst_corr.clear();                
-    //dst_newd.clear();                
-    //dst_tbtime.clear();                
-    //dst_time.clear();                
-    //d_sensor.clear();                
-    //d_level.clear();                
-    //d_typeid.clear();                
-    //d_controlinfo.clear();                
-    //d_useinfo.clear();                
-    //d_cfailed.clear();                
-   //}
 
   ReadProgramOptions params;
 

@@ -74,12 +74,3 @@ void computeStats(Iter_T first, Iter_T last, T& sum, T& mean,
   kurt = computeKurtosisExcess(first, last, mean);
 }
 
-  //double sum, mean, var, dev, skew, kurt;
-  //cout << "count = " << v.size( ) << "\n";
-  //cout << "sum = " << sum << "\n";
-  //cout << "mean = " << mean << "\n";
-  //cout << "variance = " << var << "\n";
-  //cout << "standard deviation = " << dev << "\n";
-  //cout << "skew = " << skew << "\n";
-  //cout << "kurtosis excess = " << kurt << "\n";
-  //cout << endl;

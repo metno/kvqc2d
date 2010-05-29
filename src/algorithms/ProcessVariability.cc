@@ -44,19 +44,7 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
-
-//#include <qapplication.h>
-//#include <qpushbutton.h>
-//#include <qlcdnumber.h>
-//#include <qfont.h>
-//#include <qlayout.h>
-//#include "PaperField.h"
-
-
 #include "ProcessControl.h"
-
-
-
 
 using namespace kvalobs;
 using namespace std;
@@ -80,17 +68,6 @@ Variability( ReadProgramOptions params )
   for (std::vector<unsigned char>::const_iterator ik = params.Vfs.begin(); ik != params.Vfs.end(); ++ik){
     std::cout << *ik << std::endl;
   }
-
-
-//  return 0;  /// temporarily do this for testing !!!
-// --------------------------------------------
-
-
-  //QApplication a(0,0);
-  //PaperField Plotter;
-  //Plotter.setGeometry( 100, 100, 500, 355 );
-  //a.setMainWidget( &Plotter );
-  //Plotter.show();
 
   std::list<kvalobs::kvStation> StationList;
   std::list<int> StationIds;
@@ -152,7 +129,6 @@ Variability( ReadProgramOptions params )
                 std::cout << " " << skew;
                 std::cout << " " << kurt;
                 std::cout << endl;
-                //Plotter.AddPoint( iday,(int)(mean*10.0) );
                 ++iday;
        }
               
@@ -193,7 +169,6 @@ Variability( ReadProgramOptions params )
        }
   ProcessTime.addHour(StepH);
   }
-//a.exec();
 return 0;
 }
 

@@ -45,7 +45,6 @@
 #include "CheckedDataHelper.h"
 #include "ProcessControl.h"
 #include "scone.h"
-#include "epsx.h"
 
 
 using namespace kvalobs;

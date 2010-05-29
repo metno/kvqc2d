@@ -45,7 +45,6 @@
 #include "CheckedDataHelper.h"
 #include "ProcessControl.h"
 #include "scone.h"
-#include "epsx.h"
 #include "../StopWatch.h"
 
 

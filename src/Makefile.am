@@ -28,8 +28,6 @@ kvqc2_SOURCES = \
 	algorithms/BasicStatistics.h \
 	algorithms/Distribute.cc \
 	algorithms/Distribute.h \
-	algorithms/epsx.cc \
-	algorithms/epsx.h \
 	algorithms/kvQABaseTypes.h \
 	algorithms/Process4D.cc \
 	algorithms/ProcessRedistribution.cc \
