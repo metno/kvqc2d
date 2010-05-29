@@ -42,7 +42,6 @@
 #include <puTools/miTime.h>
 #include <kvalobs/kvPath.h>
 
-
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
@@ -61,25 +60,19 @@ const char* options[][ 2 ] =
 using namespace std;
 using namespace boost;
 
-
 int
 main( int argc, char** argv )
 {
-
-
   stopwatch SW;
   CORBA::ORB_ptr orb;
   PortableServer::POA_ptr poa;
-
   ostringstream ost;
   
   string dbdriver;
-  string stewpot; // EGL
   miutil::conf::ConfSection *conf = KvApp::getConfiguration();
   string constr( KvApp::createConnectString() );
   char *pKv = getenv( "KVALOBS" );
   bool error;
-  //string pidfile;
 
   milog::LogContext logContext("Qc2 ...");
 
@@ -90,13 +83,6 @@ main( int argc, char** argv )
     if ( val.size() == 1 )
       dbdriver = val[ 0 ].valAsString();
       std::cout <<  "FROM CONFIGURATION FILE: " << dbdriver << std::endl;
-
-    miutil::conf::ValElementList valerie = conf->getValue( "Qc2.stewart" );
-
-    if ( valerie.size() == 1 )
-      stewpot = valerie[ 0 ].valAsString();
-     
-      std::cout <<  "FROM CONFIGURATION FILE: " << stewpot << std::endl;
   }
 
   //Use postgresql as a last guess.
@@ -104,13 +90,8 @@ main( int argc, char** argv )
     dbdriver = "pgdriver.so";
 
   string htmlpath;
-  std::cout << "HTMLPATH" << htmlpath << std::endl;
   string logpath_(htmlpath);
-
-  std::cout << "HTMLPATH" << htmlpath << std::endl;
   InitLogger( argc, argv, "Qc2", htmlpath );
-  std::cout << "HTMLPATH" << htmlpath << std::endl;
-
   LOGINFO( "Qc2: starting ...." );
 
   filesystem::path rundir( kvPath("localstatedir") + "/run" );

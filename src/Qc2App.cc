@@ -55,15 +55,9 @@ Qc2App::Qc2App(int argn, char **argv,
    shutdown_(false), orbIsDown(false)
 
 {
-  
-  LOGINFO("Soup");
-  
-  for (int k=0;k < argn; ++k){
-  	std::cout << "arg " << k << ": " << argv[k]  << std::endl;
-  }
+
   
   string driver(kvPath("pkglibdir")+"/db/"+dbDriver);
-  //string driver(getKvalobsPath()+"lib/kvdb/"+dbDriver);
   setSigHandlers();
 
   LOGINFO("Loading driver for database engine <" << driver << ">!\n");
@@ -72,7 +66,6 @@ Qc2App::Qc2App(int argn, char **argv,
     LOGERROR("Can't load driver <" << driver << endl
 	     << dbMgr.getErr() << endl
     	     << "Check if the driver is in the directory $KVALOBS/lib/kvdb???");
-
     exit(1);
   }
 
@@ -128,11 +121,8 @@ Qc2App::releaseDbConnection(dnmi::db::Connection *con)
 bool
 Qc2App::
 sendDataToKvService(const kvalobs::kvStationInfoList &info_,
-                    bool &bussy)
+                    bool &busy)
 {
-
-
-
   kvalobs::kvStationInfoList info=const_cast<kvalobs::kvStationInfoList&>(info_)
 ;
   //  kvalobs::CIkvParamInfoList it;
@@ -142,7 +132,7 @@ sendDataToKvService(const kvalobs::kvStationInfoList &info_,
   bool                       usedNS=false;
   CKvalObs::CService::DataReadyInput_ptr service;
 
-  bussy=false;
+  busy=false;
 
   if(info.empty()){
     LOGDEBUG("No data to send to kvServiced.");
@@ -166,7 +156,7 @@ sendDataToKvService(const kvalobs::kvStationInfoList &info_,
                                refServiceCheckedInput,
                                serviceBussy)){
           if(serviceBussy)
-            bussy=true;
+            busy=true;
         }
 
         return true;

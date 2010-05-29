@@ -62,25 +62,18 @@ int
 ReadProgramOptions::
 SelectConfigFiles( std::vector<string>& config_files)
 {
-     
-       //std::string filename;
-       //filename="gordon";
-       //config_files.push_back(filename);
 
 try{
-       //char *pKv=getenv("KVALOBS"); 
        //fs::path config_path(string(pKv)+"/Qc2Config/");
        fs::path config_path(kvPath("sysconfdir")+"/Qc2Config/");
        
        // scan for files
        std::cout << "Scanning For Files" << std::endl;   
-       fs::directory_iterator end_iter; // By default this is pass the end of a directory !
+       fs::directory_iterator end_iter; // By default this is after the end of a directory !
        fs::path full_path( fs::initial_path() );
        full_path = fs::system_complete( config_path );
        
        std::string filename;
-
-       std::cout << full_path << std::endl;
 
        if ( !fs::exists( full_path ) ) {
            //std::cout << "Does not exist: " << full_path.native_file_string() <<std::endl;
@@ -88,8 +81,6 @@ try{
        }
        else {
            for ( fs::directory_iterator dit( full_path ); dit != end_iter; ++dit ) {
-              //std::cout << dit->path() << std::endl;
-              //std::cout << dit->leaf() << std::endl;
               filename=dit->path().native_file_string();
               if ( filename.substr(filename.length()-3,3) == "cfg") {
                    config_files.push_back(filename);
@@ -338,11 +329,12 @@ try{
         ("V_fcombi",po::value<std::vector<unsigned char> >  (&V_fcombi),  "fcombi")
         ("V_fhqc",po::value<std::vector<unsigned char> >  (&V_fhqc),  "fhqc")
 
-        ; // End of the line is here !!
+        ; // ***************** The end of the line is here !! ****************************
+
         ifstream ifs(filename.c_str());   
         store(parse_config_file(ifs, config_file_options), vm);
         notify(vm);
-        if (LastN != -1) {       // Ho Ho Ho retain the option to run into the future ... must test this ....
+        if (LastN != -1) {       // Ho Ho Ho retain the option to run into the future 
             miutil::miTime TempStartTime=miutil::miTime::nowTime();
             TempStartTime.addDay(-LastN);
             StartDay=TempStartTime.day();
@@ -370,10 +362,6 @@ try{
          missing=MissingValue;
          MinimumValue=MinValue;
          std::cout << miutil::miTime::nowTime() << ": " << UT0 << " -> " << UT1 << "  " << filename << std::endl;
-
-
-         //std::map<std::string, unsigned char> zflag; // initially wantd to implement this like this!!! But string description of flags not supported in
-                                            // the library
 
          if (z_fqclevel != 0x3F) zflag[0]= z_fqclevel;
          if (z_fr != 0x3F) zflag[1]= z_fr;
