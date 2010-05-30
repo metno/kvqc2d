@@ -157,7 +157,7 @@ select(ReadProgramOptions params)
          break;
      default:
          std::cout << "No valid Algorithm Code Provided. Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 10: No Valid Code");
+         LOGINFO("Case ??: No Valid Code");
          break;
      }
      return(0);
