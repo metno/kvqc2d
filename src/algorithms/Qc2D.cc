@@ -1329,9 +1329,9 @@ intp_delaunay(unsigned int index)
                 /// We are assuming that table is not reordered !!!!!
 
             if (!result) {  //-------------------------
-                     cout << "\n";
-                     cout << "  Computed the triangulation.\n";
-                     cout << "  Number of triangles is " << triangle_num << "\n";
+                     //cout << "\n";
+                     //cout << "  Computed the triangulation.\n";
+                     //cout << "  Number of triangles is " << triangle_num << "\n";
                      copy_triangle_num=triangle_num;
 
           
