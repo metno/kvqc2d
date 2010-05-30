@@ -83,19 +83,16 @@ Interpolate( ReadProgramOptions params )
 
   miutil::miTime ProcessTime;
 
-  GetStationList(StationList);  /// StationList is all the possible stations
+  GetStationList(StationList);  // StationList is all the possible stations
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
      StationIds.push_back( sit->stationID() );
   }
   ProcessTime = stime;
   while (ProcessTime <= etime) {
 
-     //std::cout << "Time Stamp: " << ProcessTime << std::endl;
-
              try {
               result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));
               //result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,tid,ProcessTime,ProcessTime));
-              //std::cout << pid << " " << tid << std::endl;
               }
               catch ( dnmi::db::SQLException & ex ) {
                 IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -105,39 +102,6 @@ Interpolate( ReadProgramOptions params )
               }
 
       if(!Qc2Data.empty()) {
-
-                ////Let us do some experiments with flag testing to work out how far we are ...
-
-                // This is the logic in Redistribution ... what is it actually doing?
-
-
-                for (std::list<kvalobs::kvData>::const_iterator sid = Qc2Data.begin(); sid != Qc2Data.end(); ++sid) {
-
-                           //std::cout << sid->controlinfo() << std::endl;
-                           //std::cout << "W flag Size" << std::endl;
-                           //std::cout << params.Wflag.size() << std::endl;
-
-                           fixflags=sid->controlinfo();
-
-
-                           if ( CheckFlags.condition(sid->controlinfo(),params.Wflag) ) { 
-                                   //std::cout << "Yes ... Wflag" << std::endl;
-                             } else {
-                                   //std::cout << "No ... Wflag" << std::endl;
-                             }
-                // And now we are trying to do something in ProcessUnitT ...
-                             if  ( CheckFlags.condition(sid->controlinfo(),params.Aflag) ) {
-                                   //std::cout << "Yes ... Aflag" << std::endl;
-                             } else {
-                                   //std::cout << "No ... Aflag" << std::endl;
-                             }
-                           //std::cout << fixflags << std::endl;
-                           CheckFlags.setter(fixflags,params.Wflag);
-                           //std::cout << fixflags << std::endl;
-                           //std::cout << "------------------------------------------" << std::endl;
-                }
-                ///End of experiments ... this
-
 
                 Qc2D GSW(Qc2Data,StationList, params);
                 GSW.Qc2_interp(); 

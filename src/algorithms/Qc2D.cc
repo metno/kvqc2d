@@ -151,8 +151,8 @@ Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, ReadProg
   }
 
 /// Includes handling of missing rows.
-///  This block will add entries for stations with no values. If an accumulated value is found for these
-///  stations a reaccumulation is performed.
+/// This block will add entries for stations with no values. If an accumulated value is found for these
+/// stations a reaccumulation is performed.
 for ( std::list<kvalobs::kvStation>::const_iterator ist = SL.begin(); ist != SL.end(); ++ ist )
   {
       std::vector<int>::const_iterator vit = find (stid_.begin(), stid_.end(),  ist->stationID() );
@@ -228,7 +228,6 @@ distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvDa
  	    
  	for (unsigned int i=0 ; i<original_.size() ; i++) { 	
 
-             //if ( ControlFlag.condition(controlinfo_[i],params.Aflag) && typeid_[i]==params.tid) {  /// Check the typeid thing ... this looks like double
              if ( ControlFlag.condition(controlinfo_[i],params.Aflag) ) { 
 
                   DataForRedistribution.add_element(stid_[i],original_[i],intp_[i],corrected_[i],redis_[i],
@@ -246,7 +245,7 @@ distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvDa
         }        
 }
 
-/// Pointless interface to the interpolation method. Replace with interpolation algorithm strategy!!! 
+/// Interface to the interpolation method. Replace later with interpolation algorithm strategy ?!?!
 void 
 Qc2D::
 Qc2_interp()
@@ -1777,8 +1776,6 @@ filter(vector<float>& fdata, float Min, float Max, float IfMod=0.0, float Mod=0.
      if (dude == IfMod) { dude=Mod; }
      if (dude != params.missing) {
            fdata.push_back(dude); 
-           //std::cout << "| "<< original_[i] << " : " << dude << " ";
      }
   }
-  //std::cout << std::endl;
 }
