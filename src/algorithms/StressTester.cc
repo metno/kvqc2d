@@ -156,7 +156,7 @@ StressTester( ReadProgramOptions params )
           LOGINFO("Stress test time loop completed. "+StrmConvert(LoopCounter));
           CpuUsage=watchdog.snapshot();
           LOGINFO("Elapsed CPU: "+StrmConvert(CpuUsage));
-          std::cout << "Loop reset ... " << std::cout;
+          std::cout << "Loop reset ... " << std::endl;
           ++LoopCounter;
        }
 
