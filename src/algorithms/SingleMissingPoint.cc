@@ -120,52 +120,61 @@ SingleMissingPoint( ReadProgramOptions params )
                }
             }
             if (Tseries.size()==3) {
+
                if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
+
+
                   resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                   resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime));
+                  std::cout << "resultMax: " << resultMax << " " << MaxValue.begin()->original() << " " << MaxValue.size() << std::endl;
+                  std::cout << "resultMin: " << resultMin << " " << MinValue.begin()->original() << " " << MinValue.size() << std::endl;
                   if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); 
+                     LinInterpolated=round<float,1>(LinInterpolated);
                      MaxMinInterpolated=0.5*(MinValue.begin()->original()+MaxValue.begin()->original());
                      MaxMinInterpolated=round<float,1>(MaxMinInterpolated);
+                     std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
                      NewCorrected=MaxMinInterpolated;
                      fixflags=Tseries[1].controlinfo();
                      CheckFlags.setter(fixflags,params.Sflag);
                      CheckFlags.conditional_setter(fixflags,params.chflag);
-                     try{
-                        if ( ( Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() > MaxValue.begin()->original() ) &&  
-                        CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
-                           kvData d;                                                   
-                           d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                                 Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                                 Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+params.CFAILED_STRING );
-                           kvUseInfo ui = d.useinfo();
-                           ui.setUseFlags( d.controlinfo() );
-                           d.useinfo( ui );   
-                           LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
-                           dbGate.insert( d, "data", true); 
-                           kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
-                           stList.push_back(DataToWrite);
-                        }
-                     }
-                     catch ( dnmi::db::SQLException & ex ) {
-                        IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-                        std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
-                     }
-                     catch ( ... ) {
-                        IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-                        std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
-                     }
-                     if(!stList.empty()){
-                        checkedDataHelper.sendDataToService(stList);
-                        stList.clear();
+                  } // Here is the logic to update
+      
+                  try{
+                     if ( ( Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() > MaxValue.begin()->original() ) &&  
+                            CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
+                        kvData d;                                                   
+                        d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                              Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
+                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+params.CFAILED_STRING );
+                        kvUseInfo ui = d.useinfo();
+                        ui.setUseFlags( d.controlinfo() );
+                        d.useinfo( ui );   
+                        LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
+                        //dbGate.insert( d, "data", true); 
+                        //kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                        //stList.push_back(DataToWrite);
                      }
                   }
-               }
-            }
-         }
-      }
+                  catch ( dnmi::db::SQLException & ex ) {
+                     IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+                     std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
+                  }
+                  catch ( ... ) {
+                     IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+                     std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
+                  }
+                  if(!stList.empty()){
+                     checkedDataHelper.sendDataToService(stList);
+                     stList.clear();
+                  }
+
+               } // Contents of the points are valid
+            } //Three points to work with
+         } // Loopthrough all stations at the given time
+      } // There is Qc2Data Loop
    ProcessTime.addHour(-1);
-   }
+   } // TimeLoop
    return 0;
 }
 
