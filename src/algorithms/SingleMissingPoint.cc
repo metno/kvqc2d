@@ -152,7 +152,7 @@ SingleMissingPoint( ReadProgramOptions params )
                   std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
       
                   try{
-                     if (Tseries[1].corrected() != NewCorrected && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
+                     if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         fixflags=Tseries[1].controlinfo();
                         CheckFlags.setter(fixflags,params.Sflag);
                         CheckFlags.conditional_setter(fixflags,params.chflag);
@@ -164,9 +164,9 @@ SingleMissingPoint( ReadProgramOptions params )
                         ui.setUseFlags( d.controlinfo() );
                         d.useinfo( ui );   
                         LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
-                        //dbGate.insert( d, "data", true); 
-                        //kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
-                        //stList.push_back(DataToWrite);
+                        dbGate.insert( d, "data", true); 
+                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                        stList.push_back(DataToWrite);
                      }
                   }
                   catch ( dnmi::db::SQLException & ex ) {
