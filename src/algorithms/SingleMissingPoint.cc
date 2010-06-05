@@ -125,14 +125,20 @@ SingleMissingPoint( ReadProgramOptions params )
 
 
                   NewCorrected=-99999.0;
-                  //IF MAX and MIN PARS ... 
                   if (params.maxpid>0 and params.minpid>0) {
                      resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                      resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime));
                      if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
                         MaxMinInterpolated=0.5*(MinValue.begin()->original()+MaxValue.begin()->original());
                         MaxMinInterpolated=round<float,1>(MaxMinInterpolated);
-                        NewCorrected=MaxMinInterpolated;
+                        if (Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() > MaxValue.begin()->original()) {
+                           //NB if a corrected value exists and it is already between the min and max then do not overwrite...(ie the corrected
+                           //shall be out of range))
+                           NewCorrected=MaxMinInterpolated;
+                        }
+                        else {
+                           NewCorrected=Tseries[1].corrected();
+                        }
                      }
                   }  
 
@@ -140,19 +146,15 @@ SingleMissingPoint( ReadProgramOptions params )
                      /// Trigger later here based on interpolation options...
                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); 
                      LinInterpolated=round<float,1>(LinInterpolated);
+                     NewCorrected=LinInterpolated;
                   }
-                  
-
-                     std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
-                     fixflags=Tseries[1].controlinfo();
-                     CheckFlags.setter(fixflags,params.Sflag);
-                     CheckFlags.conditional_setter(fixflags,params.chflag);
-
-
+                  std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
       
                   try{
-                     if ( ( Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() > MaxValue.begin()->original() ) &&  
-                            CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
+                     if (Tseries[1].corrected() != NewCorrected && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
+                        fixflags=Tseries[1].controlinfo();
+                        CheckFlags.setter(fixflags,params.Sflag);
+                        CheckFlags.conditional_setter(fixflags,params.chflag);
                         kvData d;                                                   
                         d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
