@@ -124,21 +124,31 @@ SingleMissingPoint( ReadProgramOptions params )
                if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
 
 
-                  resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
-                  resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime));
-                  std::cout << "resultMax: " << resultMax << " " << MaxValue.begin()->original() << " " << MaxValue.size() << std::endl;
-                  std::cout << "resultMin: " << resultMin << " " << MinValue.begin()->original() << " " << MinValue.size() << std::endl;
-                  if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
+                  NewCorrected=-99999.0;
+                  //IF MAX and MIN PARS ... 
+                  if (params.maxpid>0 and params.minpid>0) {
+                     resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
+                     resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime));
+                     if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
+                        MaxMinInterpolated=0.5*(MinValue.begin()->original()+MaxValue.begin()->original());
+                        MaxMinInterpolated=round<float,1>(MaxMinInterpolated);
+                        NewCorrected=MaxMinInterpolated;
+                     }
+                  }  
+
+                  if ( NewCorrected == -99999.0 ) {
+                     /// Trigger later here based on interpolation options...
                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); 
                      LinInterpolated=round<float,1>(LinInterpolated);
-                     MaxMinInterpolated=0.5*(MinValue.begin()->original()+MaxValue.begin()->original());
-                     MaxMinInterpolated=round<float,1>(MaxMinInterpolated);
+                  }
+                  
+
                      std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
-                     NewCorrected=MaxMinInterpolated;
                      fixflags=Tseries[1].controlinfo();
                      CheckFlags.setter(fixflags,params.Sflag);
                      CheckFlags.conditional_setter(fixflags,params.chflag);
-                  } // Here is the logic to update
+
+
       
                   try{
                      if ( ( Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() > MaxValue.begin()->original() ) &&  
