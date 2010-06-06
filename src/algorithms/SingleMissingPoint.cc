@@ -143,7 +143,7 @@ SingleMissingPoint( ReadProgramOptions params )
                      }
                   }  
 
-                  if ( NewCorrected == -99999.0 ) {
+                  if ( NewCorrected == -99999.0 && Tseries[0].original() > -99.9 && Tseries[2].original() > -99.9) {
                      /// Trigger later here based on interpolation options...
                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); 
                      LinInterpolated=round<float,1>(LinInterpolated);
