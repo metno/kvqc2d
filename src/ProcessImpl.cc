@@ -153,6 +153,11 @@ select(ReadProgramOptions params)
          break;
      case 10:
          std::cout << "Case: " << AlgoCode << std::endl;
+         LOGINFO("Case 10: New variation ... SingleMissingPoint2");
+         SingleMissingPoint2(params);
+         break;
+     case 11:
+         std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 10: Dummy");
          break;
      default:

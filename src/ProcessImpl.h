@@ -37,6 +37,7 @@ class ProcessImpl
     int FlagTester(ReadProgramOptions params);                                                           
     int StressTester(ReadProgramOptions params);                                                           
     int SingleMissingPoint(ReadProgramOptions params);                                                           
+    int SingleMissingPoint2(ReadProgramOptions params);                                                           
 };
 
 

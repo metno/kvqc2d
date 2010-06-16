@@ -33,6 +33,7 @@ kvqc2_SOURCES = \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/ProcessUnitT.cc \
 	algorithms/SingleMissingPoint.cc \
+	algorithms/SingleMissingPoint2.cc \
 	algorithms/Interpolate.cc \
 	algorithms/ProcessSpaceCheck.cc \
 	algorithms/ProcessVariability.cc \
