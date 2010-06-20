@@ -53,12 +53,15 @@ ProcessControl(){
 /// If any of the members of the flag group zflag match the controlinfo TRUE is returned.
 bool 
 ProcessControl::
-condition(kvalobs::kvControlInfo controlinfo, std::map<int, unsigned char> zflag){
+condition(kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned char> > zflag){
 
   int filter=0;
+  int k;
 
-  for (std::map<int, unsigned char>::const_iterator ik=zflag.begin(); ik != zflag.end(); ++ik) {
-       if ( (*ik).second == controlinfo.cflag((*ik).first) ) ++filter;
+  for (std::map<int, std::vector<unsigned char> >::const_iterator ik=zflag.begin(); ik != zflag.end(); ++ik) {
+       for (k=0;k<(*ik).second.size();k++) {
+           if ( (*ik).second[k] == controlinfo.cflag((*ik).first) ) ++filter;
+       }
   }
 
   if (filter) {
@@ -69,19 +72,26 @@ condition(kvalobs::kvControlInfo controlinfo, std::map<int, unsigned char> zflag
 
 bool
 ProcessControl::
-true_nibble( kvalobs::kvControlInfo controlinfo, std::map<int, unsigned char> vlag, int vindex, bool flagbool ){
+true_nibble( kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned char> > vlag, int vindex, bool flagbool ){
 
-     if (flagbool) { 
-         if (controlinfo.cflag(vindex)==vlag[vindex]) { 
-             return true;}
-         else{
-             return false;}
-     } else {
-         if (controlinfo.cflag(vindex)!=vlag[vindex]) { 
-             return true;}
-         else{
-             return false;}
-    }
+unsigned char zindex;
+
+for (int i=0;i<vlag[vindex].size();i++) {
+
+        zindex=vlag[vindex][i];
+   
+        if (flagbool) { 
+            if (controlinfo.cflag(vindex)==zindex) { 
+                return true;}
+            else{
+                return false;}
+        } else {
+            if (controlinfo.cflag(vindex)!=zindex) { 
+                return true;}
+            else{
+                return false;}
+       }
+   }
 
 }
 

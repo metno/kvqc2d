@@ -17,11 +17,11 @@ class ProcessControl{
 public:
 
    ProcessControl();
-   bool condition( kvalobs::kvControlInfo controlinfo, std::map<int, unsigned char> vlag );
-   int setter( kvalobs::kvControlInfo &controlinfo, std::map<int, unsigned char> vlag );
+   bool condition( kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned char> > vlag );
+   int setter( kvalobs::kvControlInfo &controlinfo, std::map<int, unsigned char>  vlag );
    int conditional_setter( kvalobs::kvControlInfo &controlinfo, std::map<int, std::vector<std::string> > vlag );
 
-   bool true_nibble( kvalobs::kvControlInfo controlinfo, std::map<int, unsigned char> vlag, int vindex, bool flagbool );
+   bool true_nibble( kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned char> > vlag, int vindex, bool flagbool );
 
 protected:
 

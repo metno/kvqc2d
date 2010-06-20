@@ -116,7 +116,7 @@ SingleMissingPoint2( ReadProgramOptions params )
             result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
             for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
                if  ( !CheckFlags.condition(is->controlinfo(),params.Aflag) ) {  //Actually here that we check that this has not been 
-                                                                                //done befor eby checking for set flags ...
+                                                                                //done before by checking for set flags ...
                      Tseries.push_back(*is);
                }
             }

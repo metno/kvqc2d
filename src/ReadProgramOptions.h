@@ -46,11 +46,11 @@ int missing;
 int MinimumValue;
 float InterpolationLimit;
 bool newfile;
-std::map<int, unsigned char> zflag;
-std::map<int, unsigned char> Rflag;
-std::map<int, unsigned char> Iflag;
-std::map<int, unsigned char> Aflag;
-std::map<int, unsigned char> Wflag;
+std::map<int, std::vector<unsigned char> > zflag;
+std::map<int, std::vector<unsigned char> > Rflag;
+std::map<int, std::vector<unsigned char> > Iflag;
+std::map<int, std::vector<unsigned char> > Aflag;
+std::map<int, std::vector<unsigned char> > Wflag;
 std::map<int, unsigned char> Sflag;
 std::map<int, std::vector<std::string> > chflag;
 
