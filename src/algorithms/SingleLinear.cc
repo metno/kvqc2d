@@ -56,7 +56,7 @@ int
 ProcessImpl::
 SingleLinear( ReadProgramOptions params )
 {
-   LOGINFO("SingleMissingPoint2");
+   LOGINFO("Single Linear");
    int pid=params.pid;
    int Maxpid=params.maxpid;
    int Minpid=params.minpid;

@@ -56,7 +56,7 @@ int
 ProcessImpl::
 SingleMinMaxAverage( ReadProgramOptions params )
 {
-   LOGINFO("SingleMissingPoint");
+   LOGINFO("Single Missing Max Min Average");
    int pid=params.pid;
    int Maxpid=params.maxpid;
    int Minpid=params.minpid;
