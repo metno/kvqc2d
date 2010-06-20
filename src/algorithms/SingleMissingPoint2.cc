@@ -130,24 +130,17 @@ SingleMissingPoint2( ReadProgramOptions params )
                     resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                     resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
                     if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
-                       if (LinInterpolated > resultMax) NewCorrected=resultMax; 
-                       if (LinInterpolated < resultMin) NewCorrected=resultMin; 
+                       if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
+                       if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
                     }
 		    if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
                        //NB if a corrected value exists and it is already between the min and max then do not overwrite
                        NewCorrected=Tseries[1].corrected();
                     }
                  }
+                 // If NewCorrected has not been set then use the LinInerpolated Result
                  if (NewCorrected == -99999.0) NewCorrected=round<float,1>(LinInterpolated);
- 
-                  //Note may still need to filter out spurious -99.9s  !!!!
-
-
-                  //if ( NewCorrected == -99999.0 && Tseries[0].original() > -99.9 && Tseries[2].original() > -99.9) {
-
-                  std::cout << "Linear: " << LinInterpolated << " NewCorrected " <<  NewCorrected << std::endl;
-      
-                  try{
+                 try{
                      if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         fixflags=Tseries[1].controlinfo();
                         CheckFlags.setter(fixflags,params.Sflag);
@@ -155,7 +148,7 @@ SingleMissingPoint2( ReadProgramOptions params )
                         kvData d;                                                   
                         d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+params.CFAILED_STRING );
+                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+" QC2d-2 "+params.CFAILED_STRING );
                         kvUseInfo ui = d.useinfo();
                         ui.setUseFlags( d.controlinfo() );
                         d.useinfo( ui );   
