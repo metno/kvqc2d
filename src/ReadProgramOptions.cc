@@ -483,10 +483,10 @@ try{
          Vfcombi = V_fcombi;
          Vfhqc = V_fhqc;
 
-         std::cout << "Vector Flags Work" << std::endl;
-         for (int i=0;i<Vfpre.size();i++){
-           std::cout << Vfpre[i] << std::endl;
-         }
+         //std::cout << "Vector Flags Work" << std::endl;
+         //for (int i=0;i<Vfpre.size();i++){
+           //std::cout << Vfpre[i] << std::endl;
+         //}
 
          if (change_fqclevel.size() != 0) chflag[0]= change_fqclevel;
          if (change_fr.size()       != 0) chflag[1]= change_fr;

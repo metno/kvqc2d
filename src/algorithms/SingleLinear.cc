@@ -54,7 +54,7 @@ using namespace miutil;
 
 int 
 ProcessImpl::
-SingleMissingPoint2( ReadProgramOptions params )
+SingleLinear( ReadProgramOptions params )
 {
    LOGINFO("SingleMissingPoint2");
    int pid=params.pid;

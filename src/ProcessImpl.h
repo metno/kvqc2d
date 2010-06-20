@@ -36,8 +36,8 @@ class ProcessImpl
     int ProcessSpaceCheck(ReadProgramOptions params);                                                           
     int FlagTester(ReadProgramOptions params);                                                           
     int StressTester(ReadProgramOptions params);                                                           
-    int SingleMissingPoint(ReadProgramOptions params);                                                           
-    int SingleMissingPoint2(ReadProgramOptions params);                                                           
+    int SingleMinMaxAverage(ReadProgramOptions params);                                                           
+    int SingleLinear(ReadProgramOptions params);                                                           
 };
 
 

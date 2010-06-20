@@ -148,13 +148,13 @@ select(ReadProgramOptions params)
          break;
      case 9:
          std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 9: SingleMissingPoint");
-         SingleMissingPoint(params);
+         LOGINFO("Case 9: Single Min Max Average");
+         SingleMinMaxAverage(params);
          break;
      case 10:
          std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 10: New variation ... SingleMissingPoint2");
-         SingleMissingPoint2(params);
+         LOGINFO("Case 10: Single Linear");
+         SingleLinear(params);
          break;
      case 11:
          std::cout << "Case: " << AlgoCode << std::endl;
