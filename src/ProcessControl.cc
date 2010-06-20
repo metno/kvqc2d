@@ -79,20 +79,17 @@ unsigned char zindex;
 for (int i=0;i<vlag[vindex].size();i++) {
 
         zindex=vlag[vindex][i];
-   
+  
         if (flagbool) { 
             if (controlinfo.cflag(vindex)==zindex) { 
                 return true;}
-            else{
-                return false;}
         } else {
             if (controlinfo.cflag(vindex)!=zindex) { 
                 return true;}
-            else{
-                return false;}
        }
    }
-
+return false;
+/// THIS NEEDS CHECKING SINCE EVERYTHING WAS VECTORIZED.
 }
 
 /// Any values set in the flag group zflag are written into Controlinfo
