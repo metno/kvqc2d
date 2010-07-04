@@ -131,7 +131,7 @@ SingleMinMaxAverage( ReadProgramOptions params )
                      resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime));
                      if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
                         MaxMinInterpolated=0.5*(MinValue.begin()->original()+MaxValue.begin()->original());
-                        MaxMinInterpolated=round<float,1>(MaxMinInterpolated);
+                        MaxMinInterpolated=MaxMinInterpolated;
                         if (Tseries[1].corrected() <  MinValue.begin()->original() || Tseries[1].corrected() > MaxValue.begin()->original()) {
                            //NB if a corrected value exists and it is already between the min and max then do not overwrite...(ie the corrected
                            //shall be out of range))
@@ -146,10 +146,9 @@ SingleMinMaxAverage( ReadProgramOptions params )
                   if ( NewCorrected == -99999.0 && Tseries[0].original() > -99.9 && Tseries[2].original() > -99.9) {
                      /// Trigger later here based on interpolation options...
                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original()); 
-                     LinInterpolated=round<float,1>(LinInterpolated);
                      NewCorrected=LinInterpolated;
                   }
-                  std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
+                  //std::cout << "Linear: " << LinInterpolated << " Mx: " <<  MaxMinInterpolated << std::endl;
       
                   try{
                      if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
@@ -157,9 +156,10 @@ SingleMinMaxAverage( ReadProgramOptions params )
                         CheckFlags.setter(fixflags,params.Sflag);
                         CheckFlags.conditional_setter(fixflags,params.chflag);
                         kvData d;                                                   
+                        NewCorrected=round<float,1>(NewCorrected);
                         d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+params.CFAILED_STRING );
+                              Tseries[1].cfailed()+" QC2d-2"+params.CFAILED_STRING );
                         kvUseInfo ui = d.useinfo();
                         ui.setUseFlags( d.controlinfo() );
                         d.useinfo( ui );   

@@ -135,20 +135,22 @@ SingleLinear( ReadProgramOptions params )
                     }
 		    if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
                        //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                       NewCorrected=Tseries[1].corrected();
+                       NewCorrected=Tseries[1].corrected(); 
                     }
                  }
                  // If NewCorrected has not been set then use the LinInerpolated Result
-                 if (NewCorrected == -99999.0) NewCorrected=round<float,1>(LinInterpolated);
+                 if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
                  try{
                      if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         fixflags=Tseries[1].controlinfo();
                         CheckFlags.setter(fixflags,params.Sflag);
                         CheckFlags.conditional_setter(fixflags,params.chflag);
                         kvData d;                                                   
+                        // Round the value to the correct precision before writing back
+                        NewCorrected=round<float,1>(NewCorrected);
                         d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+" Qc2 UnitT corrected was:"+StrmConvert(Tseries[1].corrected())+" QC2d-2 "+params.CFAILED_STRING );
+                              Tseries[1].cfailed()+" QC2d-2 "+params.CFAILED_STRING );
                         kvUseInfo ui = d.useinfo();
                         ui.setUseFlags( d.controlinfo() );
                         d.useinfo( ui );   
