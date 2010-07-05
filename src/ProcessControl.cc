@@ -76,6 +76,7 @@ true_nibble( kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsig
 
 unsigned char zindex;
 
+
 for (int i=0;i<vlag[vindex].size();i++) {
 
         zindex=vlag[vindex][i];
@@ -89,7 +90,8 @@ for (int i=0;i<vlag[vindex].size();i++) {
        }
    }
 return false;
-/// THIS NEEDS CHECKING SINCE EVERYTHING WAS VECTORIZED.
+/// THIS NEEDS CHECKING SINCE EVERYTHING WAS VECTORIZED. 
+/// First checks were OK!!! But check for multiple settings too?
 }
 
 /// Any values set in the flag group zflag are written into Controlinfo
