@@ -121,7 +121,7 @@ ProcessUnitT( ReadProgramOptions params )
            Tseries.clear();  
            result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
            for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
-              if  ( !CheckFlags.condition(is->controlinfo(),params.Aflag) ) { /// If one or more of the analysis flags are set then will not process further! 
+              if  ( !CheckFlags.condition(is->controlinfo(),params.Notflag) ) { /// If one or more of the analysis flags are set then will not process further! 
                  Tseries.push_back(*is);
               }
            }

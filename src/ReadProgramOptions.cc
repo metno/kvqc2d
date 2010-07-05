@@ -123,6 +123,7 @@ std::vector<unsigned char> z_fqclevel,z_fr,z_fcc,z_fs,z_fnum,z_fpos,z_fmis,z_fti
 std::vector<unsigned char> R_fqclevel,R_fr,R_fcc,R_fs,R_fnum,R_fpos,R_fmis,R_ftime,R_fw,R_fstat,R_fcp,R_fclim,R_fd,R_fpre,R_fcombi,R_fhqc; //READ
 std::vector<unsigned char> I_fqclevel,I_fr,I_fcc,I_fs,I_fnum,I_fpos,I_fmis,I_ftime,I_fw,I_fstat,I_fcp,I_fclim,I_fd,I_fpre,I_fcombi,I_fhqc; //INTERPOLATE
 std::vector<unsigned char> A_fqclevel,A_fr,A_fcc,A_fs,A_fnum,A_fpos,A_fmis,A_ftime,A_fw,A_fstat,A_fcp,A_fclim,A_fd,A_fpre,A_fcombi,A_fhqc; //ALGORITHM
+std::vector<unsigned char> Not_fqclevel,Not_fr,Not_fcc,Not_fs,Not_fnum,Not_fpos,Not_fmis,Not_ftime,Not_fw,Not_fstat,Not_fcp,Not_fclim,Not_fd,Not_fpre,Not_fcombi,Not_fhqc; // Restrictions on the ALGORITHM
 std::vector<unsigned char> W_fqclevel,W_fr,W_fcc,W_fs,W_fnum,W_fpos,W_fmis,W_ftime,W_fw,W_fstat,W_fcp,W_fclim,W_fd,W_fpre,W_fcombi,W_fhqc; //WRITE
 // CONTROL FLAGS TO SET 
 unsigned char S_fqclevel,S_fr,S_fcc,S_fs,S_fnum,S_fpos,S_fmis,S_ftime,S_fw,S_fstat,S_fcp,S_fclim,S_fd,S_fpre,S_fcombi,S_fhqc; //SET
@@ -257,6 +258,25 @@ try{
         ("A_fhqc",po::value<std::vector<unsigned char> >  (&A_fhqc),  "fhqc")
 
         ("Abool",po::value<bool>  (&Abool)->default_value(true),  "Option to change logic of all flag controls")
+
+        ("Not_fqclevel",po::value<std::vector<unsigned char> >  (&Not_fqclevel),  "fqclevel")
+        ("Not_fr",po::value<std::vector<unsigned char> >  (&Not_fr),  "fr")
+        ("Not_fcc",po::value<std::vector<unsigned char> >  (&Not_fcc),  "fcc")
+        ("Not_fs",po::value<std::vector<unsigned char> >  (&Not_fs),  "fs")
+        ("Not_fnum",po::value<std::vector<unsigned char> >  (&Not_fnum),  "fnum")
+        ("Not_fpos",po::value<std::vector<unsigned char> >  (&Not_fpos),  "fpos")
+        ("Not_fmis",po::value<std::vector<unsigned char> >  (&Not_fmis),  "fmis")
+        ("Not_ftime",po::value<std::vector<unsigned char> >  (&Not_ftime),  "ftime")
+        ("Not_fw",po::value<std::vector<unsigned char> >  (&Not_fw),  "fw")
+        ("Not_fstat",po::value<std::vector<unsigned char> >  (&Not_fstat),  "fstat")
+        ("Not_fcp",po::value<std::vector<unsigned char> >  (&Not_fcp),  "fcp")
+        ("Not_fclim",po::value<std::vector<unsigned char> >  (&Not_fclim),  "fclim")
+        ("Not_fd",po::value<std::vector<unsigned char> >  (&Not_fd),  "fd")
+        ("Not_fpre",po::value<std::vector<unsigned char> >  (&Not_fpre),  "fpre")
+        ("Not_fcombi",po::value<std::vector<unsigned char> >  (&Not_fcombi),  "fcombi")
+        ("Not_fhqc",po::value<std::vector<unsigned char> >  (&Not_fhqc),  "fhqc")
+
+        ("Notbool",po::value<bool>  (&Notbool)->default_value(true),  "Option to change logic of all flag controls")
 
         ("W_fqclevel",po::value<std::vector<unsigned char> >  (&W_fqclevel),  "fqclevel")
         ("W_fr",po::value<std::vector<unsigned char> >  (&W_fr),  "fr")
@@ -430,6 +450,23 @@ try{
          Aflag[13]= A_fpre;
          Aflag[14]= A_fcombi;
          Aflag[15]= A_fhqc;
+
+         Notflag[0]= Not_fqclevel;
+         Notflag[1]= Not_fr;
+         Notflag[2]= Not_fcc;
+         Notflag[3]= Not_fs;
+         Notflag[4]= Not_fnum;
+         Notflag[5]= Not_fpos;
+         Notflag[6]= Not_fmis;
+         Notflag[7]= Not_ftime;
+         Notflag[8]= Not_fw;
+         Notflag[9]= Not_fstat;
+         Notflag[10]= Not_fcp;
+         Notflag[11]= Not_fclim;
+         Notflag[12]= Not_fd;
+         Notflag[13]= Not_fpre;
+         Notflag[14]= Not_fcombi;
+         Notflag[15]= Not_fhqc;
 
          Wflag[0]= W_fqclevel;
          Wflag[1]= W_fr;

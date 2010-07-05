@@ -32,7 +32,7 @@ int LastN;
 std::string ControlInfoString;
 std::vector<int> ControlInfoVector;
 
-bool zbool,Rbool,Ibool,Abool,Wbool;
+bool zbool,Rbool,Ibool,Abool,Notbool,Wbool;
 
 std::string NeighbourFilename;
 std::string CFAILED_STRING;
@@ -47,11 +47,12 @@ int MinimumValue;
 float InterpolationLimit;
 bool newfile;
 std::map<int, std::vector<unsigned char> > zflag;
-std::map<int, std::vector<unsigned char> > Rflag;
-std::map<int, std::vector<unsigned char> > Iflag;
-std::map<int, std::vector<unsigned char> > Aflag;
-std::map<int, std::vector<unsigned char> > Wflag;
-std::map<int, unsigned char> Sflag;
+std::map<int, std::vector<unsigned char> > Rflag;    //Requirements for reading 
+std::map<int, std::vector<unsigned char> > Iflag;    //Requirements for interpolation
+std::map<int, std::vector<unsigned char> > Aflag;    //Requirements for analysis
+std::map<int, std::vector<unsigned char> > Notflag;  //Restrictions for analysis
+std::map<int, std::vector<unsigned char> > Wflag;    //Requirements for write
+std::map<int, unsigned char> Sflag;                  //Flags to set
 std::map<int, std::vector<std::string> > chflag;
 
 std::vector<unsigned char> Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
