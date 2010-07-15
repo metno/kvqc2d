@@ -124,6 +124,8 @@ std::vector<unsigned char> R_fqclevel,R_fr,R_fcc,R_fs,R_fnum,R_fpos,R_fmis,R_fti
 std::vector<unsigned char> I_fqclevel,I_fr,I_fcc,I_fs,I_fnum,I_fpos,I_fmis,I_ftime,I_fw,I_fstat,I_fcp,I_fclim,I_fd,I_fpre,I_fcombi,I_fhqc; //INTERPOLATE
 std::vector<unsigned char> A_fqclevel,A_fr,A_fcc,A_fs,A_fnum,A_fpos,A_fmis,A_ftime,A_fw,A_fstat,A_fcp,A_fclim,A_fd,A_fpre,A_fcombi,A_fhqc; //ALGORITHM
 std::vector<unsigned char> Not_fqclevel,Not_fr,Not_fcc,Not_fs,Not_fnum,Not_fpos,Not_fmis,Not_ftime,Not_fw,Not_fstat,Not_fcp,Not_fclim,Not_fd,Not_fpre,Not_fcombi,Not_fhqc; // Restrictions on the ALGORITHM
+std::vector<unsigned char> U_0,U_1,U_2,U_3,U_4,U_5,U_6,U_7,U_8,U_9,U_10,U_11,U_12,U_13,U_14,U_15; //ALGORITHM Use flags control
+std::vector<unsigned char> NotU_0,NotU_1,NotU_2,NotU_3,NotU_4,NotU_5,NotU_6,NotU_7,NotU_8,NotU_9,NotU_10,NotU_11,NotU_12,NotU_13,NotU_14,NotU_15; //ALGORITHM Not Use flags control
 std::vector<unsigned char> W_fqclevel,W_fr,W_fcc,W_fs,W_fnum,W_fpos,W_fmis,W_ftime,W_fw,W_fstat,W_fcp,W_fclim,W_fd,W_fpre,W_fcombi,W_fhqc; //WRITE
 // CONTROL FLAGS TO SET 
 unsigned char S_fqclevel,S_fr,S_fcc,S_fs,S_fnum,S_fpos,S_fmis,S_ftime,S_fw,S_fstat,S_fcp,S_fclim,S_fd,S_fpre,S_fcombi,S_fhqc; //SET
@@ -277,6 +279,44 @@ try{
         ("Not_fhqc",po::value<std::vector<unsigned char> >  (&Not_fhqc),  "fhqc")
 
         ("Notbool",po::value<bool>  (&Notbool)->default_value(true),  "Option to change logic of all flag controls")
+
+        ("U_0",po::value<std::vector<unsigned char> >  (&U_0),  "f0")
+        ("U_1",po::value<std::vector<unsigned char> >  (&U_1),  "f1")
+        ("U_2",po::value<std::vector<unsigned char> >  (&U_2),  "f2")
+        ("U_3",po::value<std::vector<unsigned char> >  (&U_3),  "f3")
+        ("U_4",po::value<std::vector<unsigned char> >  (&U_4),  "f4")
+        ("U_5",po::value<std::vector<unsigned char> >  (&U_5),  "f5")
+        ("U_6",po::value<std::vector<unsigned char> >  (&U_6),  "f6")
+        ("U_7",po::value<std::vector<unsigned char> >  (&U_7),  "f7")
+        ("U_8",po::value<std::vector<unsigned char> >  (&U_8),  "f8")
+        ("U_9",po::value<std::vector<unsigned char> >  (&U_9),  "f9")
+        ("U_10",po::value<std::vector<unsigned char> >  (&U_10),  "f10")
+        ("U_11",po::value<std::vector<unsigned char> >  (&U_11),  "f11")
+        ("U_12",po::value<std::vector<unsigned char> >  (&U_12),  "f12")
+        ("U_13",po::value<std::vector<unsigned char> >  (&U_13),  "f13")
+        ("U_14",po::value<std::vector<unsigned char> >  (&U_14),  "f14")
+        ("U_15",po::value<std::vector<unsigned char> >  (&U_15),  "f15")
+
+        ("Ubool",po::value<bool>  (&Ubool)->default_value(true),  "Option to change logic of all flag controls")
+
+        ("NotU_0",po::value<std::vector<unsigned char> >  (&NotU_0),  "f0")
+        ("NotU_1",po::value<std::vector<unsigned char> >  (&NotU_1),  "f1")
+        ("NotU_2",po::value<std::vector<unsigned char> >  (&NotU_2),  "f2")
+        ("NotU_3",po::value<std::vector<unsigned char> >  (&NotU_3),  "f3")
+        ("NotU_4",po::value<std::vector<unsigned char> >  (&NotU_4),  "f4")
+        ("NotU_5",po::value<std::vector<unsigned char> >  (&NotU_5),  "f5")
+        ("NotU_6",po::value<std::vector<unsigned char> >  (&NotU_6),  "f6")
+        ("NotU_7",po::value<std::vector<unsigned char> >  (&NotU_7),  "f7")
+        ("NotU_8",po::value<std::vector<unsigned char> >  (&NotU_8),  "f8")
+        ("NotU_9",po::value<std::vector<unsigned char> >  (&NotU_9),  "f9")
+        ("NotU_10",po::value<std::vector<unsigned char> >  (&NotU_10),  "f10")
+        ("NotU_11",po::value<std::vector<unsigned char> >  (&NotU_11),  "f11")
+        ("NotU_12",po::value<std::vector<unsigned char> >  (&NotU_12),  "f12")
+        ("NotU_13",po::value<std::vector<unsigned char> >  (&NotU_13),  "f13")
+        ("NotU_14",po::value<std::vector<unsigned char> >  (&NotU_14),  "f14")
+        ("NotU_15",po::value<std::vector<unsigned char> >  (&NotU_15),  "f15")
+
+        ("NotUbool",po::value<bool>  (&NotUbool)->default_value(true),  "Option to change logic of all flag controls")
 
         ("W_fqclevel",po::value<std::vector<unsigned char> >  (&W_fqclevel),  "fqclevel")
         ("W_fr",po::value<std::vector<unsigned char> >  (&W_fr),  "fr")
@@ -467,6 +507,40 @@ try{
          Notflag[13]= Not_fpre;
          Notflag[14]= Not_fcombi;
          Notflag[15]= Not_fhqc;
+
+         Uflag[0]= U_0;
+         Uflag[1]= U_1;
+         Uflag[2]= U_2;
+         Uflag[3]= U_3;
+         Uflag[4]= U_4;
+         Uflag[5]= U_5;
+         Uflag[6]= U_6;
+         Uflag[7]= U_7;
+         Uflag[8]= U_8;
+         Uflag[9]= U_9;
+         Uflag[10]= U_10;
+         Uflag[11]= U_11;
+         Uflag[12]= U_12;
+         Uflag[13]= U_13;
+         Uflag[14]= U_14;
+         Uflag[15]= U_15;
+
+         NotUflag[0]= NotU_0;
+         NotUflag[1]= NotU_1;
+         NotUflag[2]= NotU_2;
+         NotUflag[3]= NotU_3;
+         NotUflag[4]= NotU_4;
+         NotUflag[5]= NotU_5;
+         NotUflag[6]= NotU_6;
+         NotUflag[7]= NotU_7;
+         NotUflag[8]= NotU_8;
+         NotUflag[9]= NotU_9;
+         NotUflag[10]= NotU_10;
+         NotUflag[11]= NotU_11;
+         NotUflag[12]= NotU_12;
+         NotUflag[13]= NotU_13;
+         NotUflag[14]= NotU_14;
+         NotUflag[15]= NotU_15;
 
          Wflag[0]= W_fqclevel;
          Wflag[1]= W_fr;

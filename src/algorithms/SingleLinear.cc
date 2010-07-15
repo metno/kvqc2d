@@ -114,15 +114,23 @@ SingleLinear( ReadProgramOptions params )
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
             Tseries.clear();  
             result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
-            for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
-               if  ( !CheckFlags.condition(is->controlinfo(),params.Notflag) ) {  //Actually here that we check that this has not been 
-                                                                                //done before by checking for set flags ...
-                     Tseries.push_back(*is);
-               }
-            }
-            if (Tseries.size()==3) {
 
-               if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
+            for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
+                     Tseries.push_back(*is);
+            }
+
+            if (Tseries.size()==3                                                          &&
+                Tseries[1].obstime().hour() % 24 == (Tseries[0].obstime().hour() + 1) % 24 &&
+                Tseries[1].obstime().hour() % 24 == (Tseries[2].obstime().hour() - 1) % 24 &&      
+                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)             &&
+                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)             &&
+                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                &&
+                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                &&
+                !CheckFlags.condition(Tseries[0].controlinfo(),params.NotUflag)             &&
+                !CheckFlags.condition(Tseries[2].controlinfo(),params.NotUflag)             &&
+                CheckFlags.condition(Tseries[0].controlinfo(),params.Uflag)                &&
+                CheckFlags.condition(Tseries[2].controlinfo(),params.Uflag) ) {
+                if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
 
                  NewCorrected=-99999.0;
                  LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());

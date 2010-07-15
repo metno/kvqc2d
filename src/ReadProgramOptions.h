@@ -32,7 +32,7 @@ int LastN;
 std::string ControlInfoString;
 std::vector<int> ControlInfoVector;
 
-bool zbool,Rbool,Ibool,Abool,Notbool,Wbool;
+bool zbool,Rbool,Ibool,Abool,Notbool,Wbool,Ubool,NotUbool;
 
 std::string NeighbourFilename;
 std::string CFAILED_STRING;
@@ -52,6 +52,8 @@ std::map<int, std::vector<unsigned char> > Iflag;    //Requirements for interpol
 std::map<int, std::vector<unsigned char> > Aflag;    //Requirements for analysis
 std::map<int, std::vector<unsigned char> > Notflag;  //Restrictions for analysis
 std::map<int, std::vector<unsigned char> > Wflag;    //Requirements for write
+std::map<int, std::vector<unsigned char> > Uflag;    //Requirements for User flag 
+std::map<int, std::vector<unsigned char> > NotUflag; //Requirements for not User flag 
 std::map<int, unsigned char> Sflag;                  //Flags to set
 std::map<int, std::vector<std::string> > chflag;
 
