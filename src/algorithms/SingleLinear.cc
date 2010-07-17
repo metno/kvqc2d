@@ -119,6 +119,21 @@ SingleLinear( ReadProgramOptions params )
                      Tseries.push_back(*is);
             }
 
+
+
+                std::cout << Tseries[1].obstime().hour() % 24 << " " << (Tseries[0].obstime().hour() + 1) % 24 << std::endl;
+                std::cout << Tseries[1].obstime().hour() % 24 << " " << (Tseries[2].obstime().hour() - 1) % 24       << std::endl;
+                std::cout << (Tseries[1].obstime().hour() % 24 == (Tseries[0].obstime().hour() + 1) % 24) << std::endl;
+                std::cout << (Tseries[1].obstime().hour() % 24 == (Tseries[2].obstime().hour() - 1) % 24) << std::endl;
+                std::cout << !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)             << " ";
+                std::cout << !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)             << " ";
+                std::cout << CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                << " ";
+                std::cout << CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                << " ";
+                std::cout << !CheckFlags.condition(Tseries[0].controlinfo(),params.NotUflag)             << " ";
+                std::cout << !CheckFlags.condition(Tseries[2].controlinfo(),params.NotUflag)             << " ";
+                std::cout << CheckFlags.condition(Tseries[0].controlinfo(),params.Uflag)                << " ";
+                std::cout << CheckFlags.condition(Tseries[2].controlinfo(),params.Uflag)  << std::endl;
+
             if (Tseries.size()==3                                                          &&
                 Tseries[1].obstime().hour() % 24 == (Tseries[0].obstime().hour() + 1) % 24 &&
                 Tseries[1].obstime().hour() % 24 == (Tseries[2].obstime().hour() - 1) % 24 &&      
