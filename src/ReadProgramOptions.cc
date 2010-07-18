@@ -136,6 +136,23 @@ std::vector<unsigned char> V_fqclevel,V_fr,V_fcc,V_fs,V_fnum,V_fpos,V_fmis,V_fti
 std::string ControlString;
 std::vector<int> ControlVector;
 
+Vfull.push_back('0');
+Vfull.push_back('1');
+Vfull.push_back('2');
+Vfull.push_back('3');
+Vfull.push_back('4');
+Vfull.push_back('5');
+Vfull.push_back('6');
+Vfull.push_back('7');
+Vfull.push_back('8');
+Vfull.push_back('9');
+Vfull.push_back('A');
+Vfull.push_back('B');
+Vfull.push_back('C');
+Vfull.push_back('D');
+Vfull.push_back('E');
+Vfull.push_back('F');
+
 try{
    po::variables_map vm;
    po::options_description config_file_options("Configuration File Parameters");
@@ -490,6 +507,11 @@ try{
          Aflag[13]= A_fpre;
          Aflag[14]= A_fcombi;
          Aflag[15]= A_fhqc;
+
+         /// If no specific flag is set then the algorithm shall run for all flags.
+         if (Aflag.size()==0) {
+            for (i=0;i<16;i++) Aflag[i]=Vfull;
+         }
 
          Notflag[0]= Not_fqclevel;
          Notflag[1]= Not_fr;

@@ -62,6 +62,9 @@ std::vector<unsigned char> Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,V
 int Parse(std::string filename);
 int SelectConfigFiles(std::vector<std::string>& config_files);
 int clear();
+
+std::vector<unsigned char> Vfull;
+
 };
 
 
