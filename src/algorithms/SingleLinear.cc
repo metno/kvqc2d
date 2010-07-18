@@ -120,11 +120,14 @@ SingleLinear( ReadProgramOptions params )
             }
 
 
+                std::cout << Tseries[0].obstime().hour() << std::endl;
+                std::cout << Tseries[1].obstime().hour() << std::endl;
+                std::cout << Tseries[2].obstime().hour() << std::endl;
 
-                std::cout << Tseries[1].obstime().hour() % 24 << " " << (Tseries[0].obstime().hour() + 1) % 24 << std::endl;
-                std::cout << Tseries[1].obstime().hour() % 24 << " " << (Tseries[2].obstime().hour() - 1) % 24       << std::endl;
-                std::cout << (Tseries[1].obstime().hour() % 24 == (Tseries[0].obstime().hour() + 1) % 24) << std::endl;
-                std::cout << (Tseries[1].obstime().hour() % 24 == (Tseries[2].obstime().hour() - 1) % 24) << std::endl;
+                std::cout << Tseries[1].obstime().hour() << " " << (Tseries[0].obstime().hour() + 1) % 24 << std::endl;
+                std::cout << Tseries[1].obstime().hour() << " " << (24 + (Tseries[2].obstime().hour() - 1)) % 24       << std::endl;
+                std::cout << (Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24) << std::endl;
+                std::cout << (Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24) << std::endl;
                 std::cout << !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)             << " ";
                 std::cout << !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)             << " ";
                 std::cout << CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                << " ";
@@ -135,8 +138,8 @@ SingleLinear( ReadProgramOptions params )
                 std::cout << CheckFlags.condition(Tseries[2].controlinfo(),params.Uflag)  << std::endl;
 
             if (Tseries.size()==3                                                          &&
-                Tseries[1].obstime().hour() % 24 == (Tseries[0].obstime().hour() + 1) % 24 &&
-                Tseries[1].obstime().hour() % 24 == (Tseries[2].obstime().hour() - 1) % 24 &&      
+                Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24 &&
+                Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
                 !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)             &&
                 !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)             &&
                 CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                &&

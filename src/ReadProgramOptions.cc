@@ -510,7 +510,7 @@ try{
 
          /// If no specific flag is set then the algorithm shall run for all flags.
          if (Aflag.size()==0) {
-            for (i=0;i<16;i++) Aflag[i]=Vfull;
+            for (int i=0;i<16;i++) Aflag[i]=Vfull;
          }
 
          Notflag[0]= Not_fqclevel;
