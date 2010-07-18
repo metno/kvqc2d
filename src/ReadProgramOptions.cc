@@ -509,7 +509,7 @@ try{
          Aflag[15]= A_fhqc;
 
          /// If no specific flag is set then the algorithm shall run for all flags.
-         if (Aflag.size()==0) {
+         if ( Aflag[0].empty() && Aflag[1].empty() && Aflag[2].empty() && Aflag[3].empty() && Aflag[4].empty() && Aflag[5].empty() && Aflag[6].empty() && Aflag[7].empty() && Aflag[8].empty() && Aflag[9].empty() && Aflag[10].empty() && Aflag[11].empty() && Aflag[12].empty() && Aflag[13].empty() && Aflag[14].empty() && Aflag[15].empty()  ) {
             for (int i=0;i<16;i++) Aflag[i]=Vfull;
          }
 
@@ -546,6 +546,10 @@ try{
          Uflag[13]= U_13;
          Uflag[14]= U_14;
          Uflag[15]= U_15;
+         /// If no specific flag is set then the algorithm shall run for all flags.
+         if ( Uflag[0].empty() && Uflag[1].empty() && Uflag[2].empty() && Uflag[3].empty() && Uflag[4].empty() && Uflag[5].empty() && Uflag[6].empty() && Uflag[7].empty() && Uflag[8].empty() && Uflag[9].empty() && Uflag[10].empty() && Uflag[11].empty() && Uflag[12].empty() && Uflag[13].empty() && Uflag[14].empty() && Uflag[15].empty()  ) {
+            for (int i=0;i<16;i++) Uflag[i]=Vfull;
+         }
 
          NotUflag[0]= NotU_0;
          NotUflag[1]= NotU_1;
@@ -656,6 +660,11 @@ Iflag.clear();
 Aflag.clear();
 Wflag.clear();
 Sflag.clear();
+
+Uflag.clear();
+NotUflag.clear();
+Notflag.clear();
+Vfull.clear();
 
 miutil::miTime UT0(1900,1,1,0,0,0);
 miutil::miTime UT1(1900,1,1,0,0,0);

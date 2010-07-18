@@ -58,6 +58,7 @@ condition(kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned
   int filter=0;
   int k;
 
+
   for (std::map<int, std::vector<unsigned char> >::const_iterator ik=zflag.begin(); ik != zflag.end(); ++ik) {
        for (k=0;k<(*ik).second.size();k++) {
            if ( (*ik).second[k] == controlinfo.cflag((*ik).first) ) ++filter;
