@@ -120,33 +120,16 @@ SingleLinear( ReadProgramOptions params )
             }
 
 
-                std::cout << Tseries[0].obstime().hour() << std::endl;
-                std::cout << Tseries[1].obstime().hour() << std::endl;
-                std::cout << Tseries[2].obstime().hour() << std::endl;
-
-                std::cout << Tseries[1].obstime().hour() << " " << (Tseries[0].obstime().hour() + 1) % 24 << std::endl;
-                std::cout << Tseries[1].obstime().hour() << " " << (24 + (Tseries[2].obstime().hour() - 1)) % 24       << std::endl;
-                std::cout << (Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24) << std::endl;
-                std::cout << (Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24) << std::endl;
-                std::cout << !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)             << " ";
-                std::cout << !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)             << " ";
-                std::cout << CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                << " ";
-                std::cout << CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                << " ";
-                std::cout << !CheckFlags.condition(Tseries[0].controlinfo(),params.NotUflag)             << " ";
-                std::cout << !CheckFlags.condition(Tseries[2].controlinfo(),params.NotUflag)             << " ";
-                std::cout << CheckFlags.condition(Tseries[0].controlinfo(),params.Uflag)                << " ";
-                std::cout << CheckFlags.condition(Tseries[2].controlinfo(),params.Uflag)  << std::endl;
-
-            if (Tseries.size()==3                                                          &&
+            if (Tseries.size()==3                                                            &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24 &&
                 Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
-                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)             &&
-                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)             &&
-                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                &&
-                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                &&
-                !CheckFlags.condition(Tseries[0].controlinfo(),params.NotUflag)             &&
-                !CheckFlags.condition(Tseries[2].controlinfo(),params.NotUflag)             &&
-                CheckFlags.condition(Tseries[0].controlinfo(),params.Uflag)                &&
+                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               &&
+                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)               &&
+                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                  &&
+                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                  &&
+                !CheckFlags.condition(Tseries[0].controlinfo(),params.NotUflag)              &&
+                !CheckFlags.condition(Tseries[2].controlinfo(),params.NotUflag)              &&
+                CheckFlags.condition(Tseries[0].controlinfo(),params.Uflag)                  &&
                 CheckFlags.condition(Tseries[2].controlinfo(),params.Uflag) ) {
                 if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
 
