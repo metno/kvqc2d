@@ -76,12 +76,13 @@ try{
        std::string filename;
 
        if ( !fs::exists( full_path ) ) {
-           //std::cout << "Does not exist: " << full_path.native_file_string() <<std::endl;
-           std::cout << "Does not exist: " << full_path.file_string() <<std::endl;
+           //std::cout << "Does not exist: " << full_path.native_file_string() <<std::endl; //ETCH
+           std::cout << "Does not exist: " << full_path.file_string() <<std::endl; //HARDY
        }
        else {
            for ( fs::directory_iterator dit( full_path ); dit != end_iter; ++dit ) {
-              filename=dit->path().native_file_string();
+              filename=dit->path().native_file_string(); //HARDY
+              //filename=dit->native_file_string(); // ETCH
               if ( filename.substr(filename.length()-3,3) == "cfg") {
                    config_files.push_back(filename);
                    std::cout << "Configuration File Found: " << filename << std::endl; 
