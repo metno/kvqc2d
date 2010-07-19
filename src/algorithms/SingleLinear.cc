@@ -121,7 +121,7 @@ SingleLinear( ReadProgramOptions params )
 
 
             if (Tseries.size()==3                                                            &&
-                Tseries[1].corrected == params.missing                                       &&
+                Tseries[1].corrected() == params.missing                                       &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
                 Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
                 !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               &&
