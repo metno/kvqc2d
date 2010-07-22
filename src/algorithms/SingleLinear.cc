@@ -135,7 +135,7 @@ SingleLinear( ReadProgramOptions params )
                 //CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)  << " " << std::endl;
 
             if (Tseries.size()==3                                                            &&
-                //Tseries[1].corrected() == params.missing                                       &&
+                Tseries[1].corrected() == params.missing                                     &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
                 Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
                 Tseries[1].typeID() == Tseries[0].typeID()                                   &&
