@@ -119,23 +119,27 @@ SingleLinear( ReadProgramOptions params )
                      Tseries.push_back(*is);
             }
 
-            //std::cout << Tseries.size()                                                      << " " <<
-                //Tseries[1].corrected()                                     << " " <<
-                //(Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24)        << " " <<
-                //(Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24)       << " " <<
-                //!CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               << " " <<
-                //!CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)              << " " <<
-                //CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                  << " " <<
-                //CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                  << " " <<
-                //!CheckFlags.condition(Tseries[0].useinfo(),params.NotUflag)              << " " <<
-                //!CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)              << " " <<
-                //CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                  << " " <<
-                //CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)  << " " << std::endl;
+                std::cout << Tseries.size()                                                     << " " <<
+                Tseries[1].corrected()                                                          << " " <<
+                (Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24)         << " " <<
+                (Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24)  << " " <<
+                (Tseries[1].typeID() == Tseries[0].typeID())                                    << " " <<
+                (Tseries[1].typeID() == Tseries[2].typeID())                                    << " " <<
+                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)                  << " " <<
+                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)                  << " " <<
+                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                     << " " <<
+                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                     << " " <<
+                !CheckFlags.condition(Tseries[0].useinfo(),params.NotUflag)                     << " " <<
+                !CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)                     << " " <<
+                CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                         << " " <<
+                CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)  << " " << std::endl;
 
             if (Tseries.size()==3                                                            &&
                 Tseries[1].corrected() == params.missing                                       &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
                 Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
+                Tseries[1].typeID() == Tseries[0].typeID()                                   &&
+                Tseries[1].typeID() == Tseries[2].typeID()                                   &&
                 !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               &&
                 !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)               &&
                 CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                  &&
