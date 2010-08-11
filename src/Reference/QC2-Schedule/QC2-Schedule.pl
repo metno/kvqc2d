@@ -58,7 +58,7 @@ foreach my $f (@files) {
 							     $_=~s/.*=//;
 							     $MIN=$_;
 							     }
-                         if($_=~m/ParamId/){
+                         if($_=~m/^ParamId/){
 							     $_=~s/.*=//;
 							     $PAR=$_;
 							     }
