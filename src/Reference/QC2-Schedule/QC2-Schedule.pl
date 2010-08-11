@@ -21,7 +21,7 @@
 #
 # Based on an original concept for Gant charts in html by Joe Lynds 2002-2008  http://www.jlion.com
 #
-$ip="/home/paule/PM/";
+$ip="./";
 
 # Argument check and usage statement
 
