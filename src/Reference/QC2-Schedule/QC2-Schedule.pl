@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 #  Simple Perl script to plot the start times of each Qc2 algorithm 
-#  paule@met.no 2010-10-02
+#  paule@met.no 2010-08-02
 #
 #  Usage: 
 #
