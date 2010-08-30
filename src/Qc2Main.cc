@@ -95,6 +95,7 @@ main( int argc, char** argv )
   LOGINFO( "Qc2: starting ...." );
 
   filesystem::path rundir( kvPath("localstatedir") + "/run" );
+  std::cout <<   kvPath("localstatedir")  << std::endl;
   if ( ! boost::filesystem::exists(rundir) ) {
     try {
       filesystem::create_directories(rundir);      

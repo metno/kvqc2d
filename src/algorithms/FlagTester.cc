@@ -83,7 +83,8 @@ FlagTester( ReadProgramOptions params )
    string key;
 
    std::ifstream ind;
-   ind.open("/metno/kvalobs/kvalobs-svn/src/kvQc2/algorithms/Flags.txt");
+   //ind.open("/metno/kvalobs/kvalobs-svn/src/kvQc2/algorithms/Flags.txt");
+   ind.open("/metno/kvalobs/kvqc2-svn/trunk/src/algorithms/Flags.txt");
    // Change the file to read both original controlinfo and useinfo
    if(ind) {
       while ( !ind.eof() ) {
@@ -107,7 +108,7 @@ FlagTester( ReadProgramOptions params )
      kvalobs::kvControlInfo kbruce( FlagStrings[ii] );
      kvalobs::kvUseInfo ubruce( FlagStrings[ii+1] );
      ubruce.setUseFlags( kbruce );
-     //std::cout << kbruce << " "<< FlagStrings[ii+1] << " " << ubruce << std::endl;
+     std::cout << kbruce << " "<< FlagStrings[ii+1] << " " << ubruce << std::endl;
      //std::cout << "---------------" << std::endl;
      //
      //

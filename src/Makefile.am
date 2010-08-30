@@ -34,6 +34,7 @@ kvqc2_SOURCES = \
 	algorithms/ProcessUnitT.cc \
 	algorithms/SingleMinMaxAverage.cc \
 	algorithms/SingleLinear.cc \
+	algorithms/DipTest.cc \
 	algorithms/Interpolate.cc \
 	algorithms/ProcessSpaceCheck.cc \
 	algorithms/ProcessVariability.cc \
@@ -85,10 +86,8 @@ TESTS = kvqc2Test
 check_PROGRAMS = kvqc2Test
 
 kvqc2Test_SOURCES= \
-	test/test.cc \
-	test/kvalobscachetest.h test/kvalobscachetest.cc \
-	test/checkrunnertest.h test/checkrunnertest.cc \
-	test/database/kvalobsdatabase.h test/database/kvalobsdatabase.cc \
+        test/Test.cc \
+        test/TestQc2D.cc \
 	$(kvqc2_SOURCES:kvqc2.cc=)
 
 #	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"
@@ -116,4 +115,6 @@ EXTRA_DIST = \
 #sqldir=$(datadir)/kvsynopd
 #sql_DATA=kvsynopd_schema.sql
 #bin_SCRIPTS = kvsynopd_initdb
+
+include test/make.mk
 
