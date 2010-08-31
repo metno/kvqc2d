@@ -44,6 +44,8 @@ kvqc2_SOURCES = \
 	algorithms/proj++.h \
 	algorithms/Qc2D.cc \
 	algorithms/Qc2D.h \
+	algorithms/Qc3D.cc \
+	algorithms/Qc3D.h \
 	algorithms/scone.h \
 	algorithms/StationSelection.cc \
 	algorithms/StationSelection.h \
