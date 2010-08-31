@@ -98,7 +98,8 @@ DipTest( ReadProgramOptions params )
       YTime.addHour(1);
       Tseries.clear();
       try {
-        result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
+        /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
+        result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,XTime,YTime));
         //********* Change this to select the appropriate data
       }
       catch ( dnmi::db::SQLException & ex ) {
@@ -108,70 +109,10 @@ DipTest( ReadProgramOptions params )
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
       }
       if(!Qc2Data.empty()) { 
-         for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
-            Tseries.clear();  
-            result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
-
-            for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
-                     Tseries.push_back(*is);
-            }
-
-        //********* Rework for DipTest ** UNDER CONSTRUCTION !!! *** 
-            if (Tseries.size()==3                                                            &&
-                //Tseries[1].corrected() == params.missing                                       &&
-                Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
-                Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
-                Tseries[1].typeID() == Tseries[0].typeID()                                   &&
-                Tseries[1].typeID() == Tseries[2].typeID()                                   &&
-                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               &&
-                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)               &&
-                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                  &&
-                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                  &&
-                !CheckFlags.condition(Tseries[0].useinfo(),params.NotUflag)              &&
-                !CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)              &&
-                CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                  &&
-                CheckFlags.condition(Tseries[2].useinfo(),params.Uflag) ) {
-                if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
-
-                 NewCorrected=-99999.0;
-                 LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                 if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
-                 try{
-                     if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
-                        fixflags=Tseries[1].controlinfo();
-                        CheckFlags.setter(fixflags,params.Sflag);
-                        CheckFlags.conditional_setter(fixflags,params.chflag);
-                        kvData d;                                                   
-                        // Round the value to the correct precision before writing back
-                        NewCorrected=round<float,1>(NewCorrected);
-                        d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                              Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+" QC2d-1 "+params.CFAILED_STRING );
-                        kvUseInfo ui = d.useinfo();
-                        ui.setUseFlags( d.controlinfo() );
-                        d.useinfo( ui );   
-                        LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
-                        dbGate.insert( d, "data", true); 
-                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
-                        stList.push_back(DataToWrite);
-                     }
-                  }
-                  catch ( dnmi::db::SQLException & ex ) {
-                     IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-                     std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
-                  }
-                  catch ( ... ) {
-                     IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-                     std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
-                  }
-                  if(!stList.empty()){
-                     checkedDataHelper.sendDataToService(stList);
-                     stList.clear();
-                  }
-
-               } // Contents of the points are valid
-            } //Three points to work with
-         } // Loopthrough all stations at the given time
+         /// Now pack the data into a 3D object
+         
+         
+         
       } // There is Qc2Data Loop
    ProcessTime.addHour(-1);
    } // TimeLoop
