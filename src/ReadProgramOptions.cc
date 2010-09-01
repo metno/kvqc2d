@@ -657,10 +657,10 @@ Iflag.clear();
 Aflag.clear();
 Wflag.clear();
 Sflag.clear();
-
 Uflag.clear();
 NotUflag.clear();
 Notflag.clear();
+chflag.clear();
 Vfull.clear();
 
 miutil::miTime UT0(1900,1,1,0,0,0);
