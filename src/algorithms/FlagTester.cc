@@ -109,6 +109,7 @@ if (params.InFlagFilename == "NotSet") {
    }
    else {
           LOGINFO("Could not open flag input file");
+          return 1;
    }
 
   ind.close();
