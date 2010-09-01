@@ -82,11 +82,22 @@ FlagTester( ReadProgramOptions params )
    string valis;
    string key;
 
+if (params.InFlagFilename == "NotSet") {
+          LOGINFO("No filename for test flags defined");
+          return 1;
+}
+
    std::ifstream ind;
    std::ofstream ond;
    //ind.open("/metno/kvalobs/kvalobs-svn/src/kvQc2/algorithms/Flags.txt");
-   ind.open("/metno/kvalobs/kvqc2-svn/trunk/src/algorithms/Flags.txt");
-   ond.open("/metno/kvalobs/kvqc2-svn/trunk/src/algorithms/OutFlags.txt");
+   ind.open( params.InFlagFilename.c_str() );
+   if (params.OutFlagFilename == "NotSet") {
+      ond.open("/tmp/Qc2-Flagtest-Output.dat");
+      LOGINFO("Flag output written to /tmp/Qc2-Flagtest-Output.dat");
+   }
+   else { 
+      ond.open( params.OutFlagFilename.c_str() );
+   }
    // Change the file to read both original controlinfo and useinfo
    if(ind) {
       while ( !ind.eof() ) {
@@ -112,7 +123,7 @@ FlagTester( ReadProgramOptions params )
         // Set the initial useinfo 
         kvalobs::kvUseInfo ubruce( FlagStrings[ii+1] );
         // Apply changes to the control infor as specified by the config file for Qc2
-        CheckFlags.setter(fixflags,params.Sflag);
+        CheckFlags.setter(kbruce,params.Sflag);
         CheckFlags.conditional_setter(kbruce,params.chflag);
         //Generate the corresponding useinfo file based on setUseflags from the kvalobs library
         ubruce.setUseFlags( kbruce );

@@ -116,6 +116,8 @@ int TypeId;
 int MissingValue;
 int MinValue;
 std::string BestStationFilename;
+std::string FlagsIn;
+std::string FlagsOut;
 std::string CfailedString;
 float InterpolationDistance;
 // Test control flag paramters
@@ -193,6 +195,8 @@ try{
         ("ControlVector",po::value<std::vector<int> > (&ControlVector),  "Control Vector (not used)")     //DOCME
 
         ("BestStationFilename",po::value<std::string> (&BestStationFilename)->default_value("NotSet"),  "Filename containing the best station list")     //DOCME
+        ("FlagsIn",po::value<std::string> (&FlagsIn)->default_value("NotSet"),  "Pathname for file containing controlinfo useifno test flag pairs")     //DOCME
+        ("FlagsOut",po::value<std::string> (&FlagsOut)->default_value("NotSet"),  "Pathname for results of flag tests. ")     //DOCME
         ("CfailedString",po::value<std::string> (&CfailedString)->default_value(""),  "Value to add to CFAILED if the algorithm runs and writes data back to the database")     //DOCME
 
         ("MissingValue",po::value<int>(&MissingValue)->default_value(-32767),  "Original Missing Data Value")      //DOCME
@@ -432,6 +436,8 @@ try{
          ControlInfoVector=ControlVector;
          InterpolationLimit=InterpolationDistance;
          NeighbourFilename=BestStationFilename;
+         InFlagFilename=FlagsIn;
+         OutFlagFilename=FlagsOut;
          CFAILED_STRING=CfailedString;
          missing=MissingValue;
          MinimumValue=MinValue;

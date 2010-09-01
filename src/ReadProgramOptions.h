@@ -35,6 +35,8 @@ std::vector<int> ControlInfoVector;
 bool zbool,Rbool,Ibool,Abool,Notbool,Wbool,Ubool,NotUbool;
 
 std::string NeighbourFilename;
+std::string InFlagFilename;
+std::string OutFlagFilename;
 std::string CFAILED_STRING;
 
 int RunAtMinute;
