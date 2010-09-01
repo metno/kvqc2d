@@ -83,8 +83,10 @@ FlagTester( ReadProgramOptions params )
    string key;
 
    std::ifstream ind;
+   std::ofstream ond;
    //ind.open("/metno/kvalobs/kvalobs-svn/src/kvQc2/algorithms/Flags.txt");
    ind.open("/metno/kvalobs/kvqc2-svn/trunk/src/algorithms/Flags.txt");
+   ond.open("/metno/kvalobs/kvqc2-svn/trunk/src/algorithms/OutFlags.txt");
    // Change the file to read both original controlinfo and useinfo
    if(ind) {
       while ( !ind.eof() ) {
@@ -95,42 +97,35 @@ FlagTester( ReadProgramOptions params )
          }
    }
    else {
-          std::cout << "Could not open Flags.txt file!" << std::endl;
+          LOGINFO("Could not open flag input file");
    }
 
   ind.close();
 
-   int ii;
-   for(ii=0; ii < FlagStrings.size()-1; ii=ii+2)
-   {
-     //cout << FlagStrings[ii] << endl;
-     //std::cout << ubruce << std::endl;
-     kvalobs::kvControlInfo kbruce( FlagStrings[ii] );
-     kvalobs::kvUseInfo ubruce( FlagStrings[ii+1] );
-     ubruce.setUseFlags( kbruce );
-     std::cout << kbruce << " "<< FlagStrings[ii+1] << " " << ubruce << std::endl;
-     //std::cout << "---------------" << std::endl;
-     //
-     //
+  if(ond) {
 
-     CheckFlags.conditional_setter(kbruce,params.chflag);
+      int ii;
+      for(ii=0; ii < FlagStrings.size()-1; ii=ii+2)
+      {
+        // Set the initial controlinfo
+        kvalobs::kvControlInfo kbruce( FlagStrings[ii] );
+        // Set the initial useinfo 
+        kvalobs::kvUseInfo ubruce( FlagStrings[ii+1] );
+        // Apply changes to the control infor as specified by the config file for Qc2
+        CheckFlags.setter(fixflags,params.Sflag);
+        CheckFlags.conditional_setter(kbruce,params.chflag);
+        //Generate the corresponding useinfo file based on setUseflags from the kvalobs library
+        ubruce.setUseFlags( kbruce );
+        ond << FlagStrings[ii] << " "<< FlagStrings[ii+1] << " " << kbruce << " " << ubruce << std::endl;
+   
+      }
+   }
+   else {
+          LOGINFO("Could not open flag output file");
+          std::cout << "Could not open Flag Output File!" << std::endl;
    }
 
-  //for (std::vector<string>::const_iterator vit = FlagStrings.begin(); vit != FlagStrings.end(); ++vit){
-     //kvalobs::kvUseInfo ubruce;
-     //std::cout << ubruce << std::endl;
-     //kvalobs::kvControlInfo kbruce(*vit);
-     //ubruce.setUseFlags( kbruce );
-     //std::cout << kbruce << " "<< ubruce << std::endl;
-     //std::cout << "---------------" << std::endl;
-  //}
-
-  //kvUseInfo ui = d.useinfo();
-  //std::cout << d.controlinfo() << std::endl;
-  //std::cout << ui << std::endl;
-  //ui.setUseFlags( d.controlinfo() );
-  //std::cout << ui << std::endl;
-  //std::cout << "---------------" << std::endl;
+   ond.close();
 
 return 0;
 }
