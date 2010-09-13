@@ -118,7 +118,9 @@ SingleLinear_v32( ReadProgramOptions params )
 //  Next Time
 //  }
 //
+// NB code like this first until logic checked ... if (id->controlinfo().flag(13)==9) 
 //
+// and then add in the config file parameters ... 
 
 
 
@@ -150,7 +152,6 @@ SingleLinear_v32( ReadProgramOptions params )
             }
 
             if (Tseries.size()==3                                                            &&
-                //Tseries[1].corrected() == params.missing                                       &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
                 Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
                 Tseries[1].typeID() == Tseries[0].typeID()                                   &&
