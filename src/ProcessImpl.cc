@@ -154,7 +154,8 @@ select(ReadProgramOptions params)
      case 10:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 10: Single Linear");
-         SingleLinear(params);
+         //SingleLinear(params);
+         SingleLinear_v32(params);
          break;
      case 11:
          std::cout << "Case: " << AlgoCode << std::endl;

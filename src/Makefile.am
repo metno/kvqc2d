@@ -34,6 +34,7 @@ kvqc2_SOURCES = \
 	algorithms/ProcessUnitT.cc \
 	algorithms/SingleMinMaxAverage.cc \
 	algorithms/SingleLinear.cc \
+	algorithms/SingleLinear_v32.cc \
 	algorithms/DipTest.cc \
 	algorithms/Interpolate.cc \
 	algorithms/ProcessSpaceCheck.cc \
