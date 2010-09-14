@@ -178,14 +178,14 @@ SingleLinear_v32( ReadProgramOptions params )
                             if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
                             if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
                          }
-		                 if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
+		         if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
                          //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                            NewCorrected=Tseries[1].corrected(); 
+                            NewCorrected=-99999.0;  // -99999.0 is the flag to not write
                          }
                       }
                    }
                    if (Tseries[1].controlinfo().flag(7) == 1){	
-                   	  LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
                       if (params.maxpid>0 and params.minpid>0) {
                          resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                          resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
@@ -193,18 +193,19 @@ SingleLinear_v32( ReadProgramOptions params )
                             if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
                             if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
                          }
-		                 if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
-                         //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                            NewCorrected=Tseries[1].corrected(); 
+		         if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
+                            //NB if a corrected value exists and it is already between the min and max then do not overwrite
+                            NewCorrected=-99999.0; 
                          }
                          if (NewCorrected==Tseries[1].corrected()) {
-                         	NewCorrected=-99999.0;
+                            NewCorrected=-99999.0;
                          }
                       }
                    }
                 }
                 else {
                    //if ftime=0{ } ... for this option we do nothing
+                   //and for this option we reset to missing value ...
                    if (Tseries[1].controlinfo().flag(7) == 1){	
                       NewCorrected=params.missing;
                    }                	
