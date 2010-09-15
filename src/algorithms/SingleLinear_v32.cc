@@ -267,9 +267,3 @@ SingleLinear_v32( ReadProgramOptions params )
    } // TimeLoop
    return 0;
 }
-
-//2d interpolation code may be added ...
-//std::list<kvalobs::kvData> Qc2InterpData;
-//result = dbGate.select(Qc2InterpData, kvQueries::selectData(StationIds,pid,Tseries[1].obstime(),Tseries[1].obstime() ));
-//Qc2D GSW(Qc2InterpData,StationList,params);
-//GSW.Qc2_interp(); 
