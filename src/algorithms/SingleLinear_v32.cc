@@ -88,6 +88,14 @@ SingleLinear_v32( ReadProgramOptions params )
    std::vector<kvalobs::kvData> Tseries;
    std::list<kvalobs::kvData> MaxValue;
    std::list<kvalobs::kvData> MinValue;
+
+   std::map<int, std::vector<std::string> > setmissing_chflag;
+   std::vector<std::string> setmissing_fmis;
+   //char *s1="1->3";
+   //char *s2="4->2";
+   setmissing_fmis.push_back("1->3");
+   setmissing_fmis.push_back("4->2");
+   setmissing_chflag[6]=setmissing_fmis;
  
    GetStationList(StationList);  /// StationList is all the possible stations ... Check
    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
@@ -169,8 +177,10 @@ SingleLinear_v32( ReadProgramOptions params )
                 Tseries[1].original()== params.missing                                        && 
                 Tseries[2].original() > params.missing  )     
                 {
-                   if (Tseries[1].controlinfo().flag(7) == 0){ 
+                   if (Tseries[1].controlinfo().flag(7) == 0){  
+                   std::cout << " ftime=0 " << std::endl;
                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                      NewCorrected=LinInterpolated;
                       if (params.maxpid>0 and params.minpid>0) {
                          resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                          resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
@@ -185,7 +195,9 @@ SingleLinear_v32( ReadProgramOptions params )
                       }
                    }
                    if (Tseries[1].controlinfo().flag(7) == 1){	
+                      std::cout << " ftime=1 " << std::endl;
                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                      NewCorrected=LinInterpolated;
                       if (params.maxpid>0 and params.minpid>0) {
                          resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                          resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
@@ -214,10 +226,13 @@ SingleLinear_v32( ReadProgramOptions params )
                  // If NewCorrected has not been set then use the LinInerpolated Result
                  //if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
                  try{
-                     if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
+                     if (NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         fixflags=Tseries[1].controlinfo();
                         CheckFlags.setter(fixflags,params.Sflag);
                         CheckFlags.conditional_setter(fixflags,params.chflag);
+                        if (NewCorrected == params.missing){
+                           CheckFlags.conditional_setter(fixflags,setmissing_chflag);
+                        }
                         kvData d;                                                   
                         // Round the value to the correct precision before writing back
                         NewCorrected=round<float,1>(NewCorrected);
