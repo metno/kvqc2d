@@ -132,7 +132,7 @@ SingleLinear_v32( ReadProgramOptions params )
 
 
 
-
+   miutil::miString ladle;
 
    while (ProcessTime >= stime) 
    {
@@ -142,7 +142,11 @@ SingleLinear_v32( ReadProgramOptions params )
       YTime.addHour(1);
       Tseries.clear();
       try {
-        result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
+        //result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
+        //result = dbGate.select(Qc2Data, "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID=211 AND obstime=ProcessTime.isoTime()");
+        ladle="WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID=211 AND obstime=\'"+ProcessTime.isoTime()+"\'";
+        //std::cout << ladle << std::endl;
+        result = dbGate.select(Qc2Data, ladle);
       }
       catch ( dnmi::db::SQLException & ex ) {
         IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -151,6 +155,7 @@ SingleLinear_v32( ReadProgramOptions params )
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
       }
       if(!Qc2Data.empty()) { 
+         std::cout<<"Not Emplty" <<std::endl;
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
             Tseries.clear();  
             result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
@@ -174,7 +179,7 @@ SingleLinear_v32( ReadProgramOptions params )
                 CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                      &&
                 CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)                      &&
                 Tseries[0].original() > params.missing                                       && 
-                Tseries[1].original()== params.missing                                        && 
+                (Tseries[1].original()== params.missing || Tseries[1].corrected() == params.missing) && 
                 Tseries[2].original() > params.missing  )     
                 {
                    if (Tseries[1].controlinfo().flag(7) == 0){  
