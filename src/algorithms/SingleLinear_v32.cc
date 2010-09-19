@@ -143,9 +143,7 @@ SingleLinear_v32( ReadProgramOptions params )
       Tseries.clear();
       try {
         //result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
-        //result = dbGate.select(Qc2Data, "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID=211 AND obstime=ProcessTime.isoTime()");
-        ladle="WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID=211 AND obstime=\'"+ProcessTime.isoTime()+"\'";
-        //std::cout << ladle << std::endl;
+        ladle="WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID="+StrmConvert(pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
         result = dbGate.select(Qc2Data, ladle);
       }
       catch ( dnmi::db::SQLException & ex ) {
@@ -155,7 +153,6 @@ SingleLinear_v32( ReadProgramOptions params )
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
       }
       if(!Qc2Data.empty()) { 
-         std::cout<<"Not Emplty" <<std::endl;
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
             Tseries.clear();  
             result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
@@ -183,7 +180,6 @@ SingleLinear_v32( ReadProgramOptions params )
                 Tseries[2].original() > params.missing  )     
                 {
                    if (Tseries[1].controlinfo().flag(7) == 0){  
-                   std::cout << " ftime=0 " << std::endl;
                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
                       NewCorrected=LinInterpolated;
                       if (params.maxpid>0 and params.minpid>0) {
@@ -200,7 +196,6 @@ SingleLinear_v32( ReadProgramOptions params )
                       }
                    }
                    if (Tseries[1].controlinfo().flag(7) == 1){	
-                      std::cout << " ftime=1 " << std::endl;
                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
                       NewCorrected=LinInterpolated;
                       if (params.maxpid>0 and params.minpid>0) {
