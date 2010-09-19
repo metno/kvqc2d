@@ -179,7 +179,7 @@ SingleLinear_v32( ReadProgramOptions params )
                 CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                      &&
                 CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)                      &&
                 Tseries[0].original() > params.missing                                       && 
-                (Tseries[1].original()== params.missing || Tseries[1].corrected() == params.missing) && 
+                //(Tseries[1].original()== params.missing || Tseries[1].corrected() == params.missing) && 
                 Tseries[2].original() > params.missing  )     
                 {
                    if (Tseries[1].controlinfo().flag(7) == 0){  
@@ -224,7 +224,8 @@ SingleLinear_v32( ReadProgramOptions params )
                    //if ftime=0{ } ... for this option we do nothing
                    //and for this option we reset to missing value ...
                    if (Tseries[1].controlinfo().flag(7) == 1){	
-                      NewCorrected=params.missing;
+                      if (Tseries[1].controlinfo().flag(6)==1 || Tseries[1].controlinfo().flag(6)==3) NewCorrected=params.missing;
+                      if (Tseries[1].controlinfo().flag(6)==2 || Tseries[1].controlinfo().flag(6)==4) NewCorrected=params.rejected;
                    }                	
                 }              
            

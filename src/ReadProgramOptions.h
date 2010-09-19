@@ -45,6 +45,7 @@ int pid;
 int maxpid,minpid;
 int tid;
 int missing;
+int rejected;
 int MinimumValue;
 float InterpolationLimit;
 bool newfile;

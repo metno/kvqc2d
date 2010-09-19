@@ -114,6 +114,7 @@ int MaxParamId;
 int MinParamId;
 int TypeId;
 int MissingValue;
+int RejectedValue;
 int MinValue;
 std::string BestStationFilename;
 std::string FlagsIn;
@@ -200,6 +201,7 @@ try{
         ("CfailedString",po::value<std::string> (&CfailedString)->default_value(""),  "Value to add to CFAILED if the algorithm runs and writes data back to the database")     //DOCME
 
         ("MissingValue",po::value<int>(&MissingValue)->default_value(-32767),  "Original Missing Data Value")      //DOCME
+        ("RejectedValue",po::value<int>(&RejectedValue)->default_value(-32766),  "Original Rejected Data Value")      //DOCME
         ("MinValue",po::value<int>(&MinValue)->default_value(-32767),  "Minimum Data Value For Some Controls")      //DOCME
         ("InterpolationDistance",po::value<float>(&InterpolationDistance)->default_value(25),  "Nearest Neighbour Limiting Distance")      //DOCME
 
@@ -440,6 +442,7 @@ try{
          OutFlagFilename=FlagsOut;
          CFAILED_STRING=CfailedString;
          missing=MissingValue;
+         rejected=RejectedValue;
          MinimumValue=MinValue;
          std::cout << miutil::miTime::nowTime() << ": " << UT0 << " -> " << UT1 << "  " << filename << std::endl;
 
