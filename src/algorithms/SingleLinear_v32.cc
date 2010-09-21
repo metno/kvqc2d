@@ -175,13 +175,19 @@ SingleLinear_v32( ReadProgramOptions params )
                 !CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)                  &&
                 CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                      &&
                 CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)                      &&
-                Tseries[0].original() > params.missing                                       && 
-                //(Tseries[1].original()== params.missing || Tseries[1].corrected() == params.missing) && 
-                Tseries[2].original() > params.missing  )     
+                Tseries[0].original() != params.missing                                      && 
+                Tseries[0].original() != params.rejected                                     && 
+                Tseries[2].original() != params.missing                                      && 
+                Tseries[2].original() != params.rejected )                                       
                 {
+                   std::cout << "IF..." << std::endl;
+                   std::cout <<  Tseries[1].controlinfo() << std::endl;
+                   std::cout << "flag(6): " << Tseries[1].controlinfo().flag(6) << std::endl;
+                   std::cout << "flag(7): " << Tseries[1].controlinfo().flag(7) << std::endl;
+                   std::cout << "flag(8): " << Tseries[1].controlinfo().flag(8) << std::endl;
                    if (Tseries[1].controlinfo().flag(7) == 0){  
                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                      NewCorrected=LinInterpolated;
+                      NewCorrected=round<float,1>(LinInterpolated);
                       if (params.maxpid>0 and params.minpid>0) {
                          resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                          resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
@@ -197,7 +203,7 @@ SingleLinear_v32( ReadProgramOptions params )
                    }
                    if (Tseries[1].controlinfo().flag(7) == 1){	
                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                      NewCorrected=LinInterpolated;
+                      NewCorrected=round<float,1>(LinInterpolated);
                       if (params.maxpid>0 and params.minpid>0) {
                          resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                          resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
@@ -209,23 +215,32 @@ SingleLinear_v32( ReadProgramOptions params )
                             //NB if a corrected value exists and it is already between the min and max then do not overwrite
                             NewCorrected=-99999.0; 
                          }
-                         if (NewCorrected==Tseries[1].corrected()) {
-                            NewCorrected=-99999.0;
-                         }
+                      }
+                      if (NewCorrected==Tseries[1].corrected()) {
+                         NewCorrected=-99999.0;
                       }
                    }
                 }
                 else {
+                   std::cout << "ELSE..." << std::endl;
+                   std::cout <<  Tseries[1].controlinfo() << std::endl;
+                   std::cout << "flag(6): " << Tseries[1].controlinfo().flag(6) << std::endl;
+                   std::cout << "flag(7): " << Tseries[1].controlinfo().flag(7) << std::endl;
+                   std::cout << "flag(8): " << Tseries[1].controlinfo().flag(8) << std::endl;
                    //if ftime=0{ } ... for this option we do nothing
                    //and for this option we reset to missing value ...
                    if (Tseries[1].controlinfo().flag(7) == 1){	
                       if (Tseries[1].controlinfo().flag(6)==1 || Tseries[1].controlinfo().flag(6)==3) NewCorrected=params.missing;
                       if (Tseries[1].controlinfo().flag(6)==2 || Tseries[1].controlinfo().flag(6)==4) NewCorrected=params.rejected;
                    }                	
+                   if (NewCorrected==Tseries[1].corrected()) {
+                         NewCorrected=-99999.0;
+                   }
                 }              
            
                  // If NewCorrected has not been set then use the LinInerpolated Result
                  //if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
+                 std::cout << "NewC= " << NewCorrected << std::endl;
                  try{
                      if (NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         fixflags=Tseries[1].controlinfo();
@@ -236,7 +251,7 @@ SingleLinear_v32( ReadProgramOptions params )
                         }
                         kvData d;                                                   
                         // Round the value to the correct precision before writing back
-                        NewCorrected=round<float,1>(NewCorrected);
+                        //NewCorrected=round<float,1>(NewCorrected);
                         d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
                               Tseries[1].cfailed()+" QC2d-2 "+params.CFAILED_STRING );
