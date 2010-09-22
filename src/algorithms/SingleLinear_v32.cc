@@ -74,6 +74,7 @@ SingleLinear_v32( ReadProgramOptions params )
  
    ProcessControl CheckFlags;
    kvalobs::kvControlInfo fixflags;
+   kvalobs::kvData dwrite;                                                   
 
    kvalobs::kvStationInfoList  stList;
    CheckedDataHelper checkedDataHelper(app);
@@ -91,8 +92,6 @@ SingleLinear_v32( ReadProgramOptions params )
 
    std::map<int, std::vector<std::string> > setmissing_chflag;
    std::vector<std::string> setmissing_fmis;
-   //char *s1="1->3";
-   //char *s2="4->2";
    setmissing_fmis.push_back("1->3");
    setmissing_fmis.push_back("4->2");
    setmissing_chflag[6]=setmissing_fmis;
@@ -102,7 +101,7 @@ SingleLinear_v32( ReadProgramOptions params )
       StationIds.push_back( sit->stationID() );
    } 
 
-//
+// PSEUDO-CODE
 //
 //  while (ProcessTime >= stime)
 //  {
@@ -126,8 +125,7 @@ SingleLinear_v32( ReadProgramOptions params )
 //  Next Time
 //  }
 //
-// NB code like this first until logic checked ... if (id->controlinfo().flag(13)==9) 
-//
+// NB code like this first until logic checked ...  
 // and then add in the config file parameters ... 
 
 
@@ -140,7 +138,6 @@ SingleLinear_v32( ReadProgramOptions params )
       XTime.addHour(-1);
       YTime=ProcessTime;
       YTime.addHour(1);
-      Tseries.clear();
       try {
         //result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
         ladle="WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID="+StrmConvert(pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
@@ -161,86 +158,76 @@ SingleLinear_v32( ReadProgramOptions params )
                      Tseries.push_back(*is);
             }
             
-            NewCorrected=-99999.0;
-            if (Tseries.size()==3                                                            &&
+            if  (Tseries.size()==3 &&  // Check that we have three valid data points
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
                 Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
                 Tseries[1].typeID() == Tseries[0].typeID()                                   &&
-                Tseries[1].typeID() == Tseries[2].typeID()                                   &&
-                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               &&
-                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)               &&
-                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                  &&
-                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                  &&
-                !CheckFlags.condition(Tseries[0].useinfo(),params.NotUflag)                  &&
-                !CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)                  &&
-                CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                      &&
-                CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)                      &&
-                Tseries[0].original() != params.missing                                      && 
-                Tseries[0].original() != params.rejected                                     && 
-                Tseries[2].original() != params.missing                                      && 
-                Tseries[2].original() != params.rejected )                                       
-                {
-                   std::cout << "IF..." << std::endl;
-                   std::cout <<  Tseries[1].controlinfo() << std::endl;
-                   std::cout << "flag(6): " << Tseries[1].controlinfo().flag(6) << std::endl;
-                   std::cout << "flag(7): " << Tseries[1].controlinfo().flag(7) << std::endl;
-                   std::cout << "flag(8): " << Tseries[1].controlinfo().flag(8) << std::endl;
-                   if (Tseries[1].controlinfo().flag(7) == 0){  
-                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                      NewCorrected=round<float,1>(LinInterpolated);
-                      if (params.maxpid>0 and params.minpid>0) {
-                         resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
-                         resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
-                         if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
-                            if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
-                            if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
-                         }
-		         if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
-                         //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                            NewCorrected=-99999.0;  // -99999.0 is the flag to not write
-                         }
-                      }
-                   }
-                   if (Tseries[1].controlinfo().flag(7) == 1){	
-                      LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                      NewCorrected=round<float,1>(LinInterpolated);
-                      if (params.maxpid>0 and params.minpid>0) {
-                         resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
-                         resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
-                         if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
-                            if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
-                            if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
-                         }
-		         if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
+                Tseries[1].typeID() == Tseries[2].typeID() ){
+
+                NewCorrected=-99999.0; // By default no update will be made
+
+                if (!CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)           && // check that the neighbours are good
+                   !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)            &&
+                   CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)               &&
+                   CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)               &&
+                   !CheckFlags.condition(Tseries[0].useinfo(),params.NotUflag)               &&
+                   !CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)               &&
+                   CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                   &&
+                   CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)                   &&
+                   Tseries[0].original() != params.missing                                   && 
+                   Tseries[0].original() != params.rejected                                  && 
+                   Tseries[2].original() != params.missing                                   && 
+                   Tseries[2].original() != params.rejected )                                       
+                   {
+                      if (Tseries[1].controlinfo().flag(7) == 0){  
+                         LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                         NewCorrected=round<float,1>(LinInterpolated);
+                         if (params.maxpid>0 and params.minpid>0) {
+                            resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
+                            resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
+                            if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
+                               if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
+                               if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
+                            }
+		            if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
                             //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                            NewCorrected=-99999.0; 
+                               NewCorrected=-99999.0;  // -99999.0 is the flag to not write
+                            }
                          }
                       }
-                      if (NewCorrected==Tseries[1].corrected()) {
-                         NewCorrected=-99999.0;
+                      if (Tseries[1].controlinfo().flag(7) == 1){	
+                         LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                         NewCorrected=round<float,1>(LinInterpolated);
+                         if (params.maxpid>0 and params.minpid>0) {
+                            resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
+                            resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
+                            if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
+                               if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
+                               if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
+                            }
+		            if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
+                               //NB if a corrected value exists and it is already between the min and max then do not overwrite
+                               NewCorrected=-99999.0; 
+                            }
+                         }
+                         if (NewCorrected==Tseries[1].corrected()) {
+                            NewCorrected=-99999.0;
+                         }
                       }
                    }
-                }
-                else {
-                   std::cout << "ELSE..." << std::endl;
-                   std::cout <<  Tseries[1].controlinfo() << std::endl;
-                   std::cout << "flag(6): " << Tseries[1].controlinfo().flag(6) << std::endl;
-                   std::cout << "flag(7): " << Tseries[1].controlinfo().flag(7) << std::endl;
-                   std::cout << "flag(8): " << Tseries[1].controlinfo().flag(8) << std::endl;
-                   //if ftime=0{ } ... for this option we do nothing
-                   //and for this option we reset to missing value ...
-                   if (Tseries[1].controlinfo().flag(7) == 1){	
-                      if (Tseries[1].controlinfo().flag(6)==1 || Tseries[1].controlinfo().flag(6)==3) NewCorrected=params.missing;
-                      if (Tseries[1].controlinfo().flag(6)==2 || Tseries[1].controlinfo().flag(6)==4) NewCorrected=params.rejected;
-                   }                	
-                   if (NewCorrected==Tseries[1].corrected()) {
-                         NewCorrected=-99999.0;
-                   }
-                }              
-           
-                 // If NewCorrected has not been set then use the LinInerpolated Result
-                 //if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
-                 std::cout << "NewC= " << NewCorrected << std::endl;
+                   else {
+                      //NB for ftime=0 ... do nothing
+                     
+                      //For ftime=1, reset to missing value ...
+                      if (Tseries[1].controlinfo().flag(7) == 1){	
+                         if (Tseries[1].controlinfo().flag(6)==1 || Tseries[1].controlinfo().flag(6)==3) NewCorrected=params.missing;
+                         if (Tseries[1].controlinfo().flag(6)==2 || Tseries[1].controlinfo().flag(6)==4) NewCorrected=params.rejected;
+                      }                	
+                      if (NewCorrected==Tseries[1].corrected()) {
+                            NewCorrected=-99999.0;
+                      }
+                   }              
+              
                  try{
                      if (NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         fixflags=Tseries[1].controlinfo();
@@ -249,19 +236,21 @@ SingleLinear_v32( ReadProgramOptions params )
                         if (NewCorrected == params.missing){
                            CheckFlags.conditional_setter(fixflags,setmissing_chflag);
                         }
-                        kvData d;                                                   
-                        // Round the value to the correct precision before writing back
-                        //NewCorrected=round<float,1>(NewCorrected);
-                        d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                        if (NewCorrected == params.rejected){
+                           CheckFlags.conditional_setter(fixflags,setmissing_chflag);
+                        }
+                        dwrite.clean();
+                        dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
                               Tseries[1].cfailed()+" QC2d-2 "+params.CFAILED_STRING );
-                        kvUseInfo ui = d.useinfo();
-                        ui.setUseFlags( d.controlinfo() );
-                        d.useinfo( ui );   
-                        LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
-                        dbGate.insert( d, "data", true); 
+                        kvUseInfo ui = dwrite.useinfo();
+                        ui.setUseFlags( dwrite.controlinfo() );
+                        dwrite.useinfo( ui );   
+                        LOGINFO("ProcessUnitT Writing Data "+StrmConvert(dwrite.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
+                        dbGate.insert( dwrite, "data", true); 
                         kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
                         stList.push_back(DataToWrite);
+                        NewCorrected=-99999.0;
                      }
                   }
                   catch ( dnmi::db::SQLException & ex ) {
@@ -276,7 +265,8 @@ SingleLinear_v32( ReadProgramOptions params )
                      checkedDataHelper.sendDataToService(stList);
                      stList.clear();
                   }
-                  
+
+            } // Three points to work with   
          } // Loopthrough all stations at the given time
       } // There is Qc2Data Loop
    ProcessTime.addHour(-1);

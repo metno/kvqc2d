@@ -113,9 +113,9 @@ int ParamId;
 int MaxParamId;
 int MinParamId;
 int TypeId;
-int MissingValue;
-int RejectedValue;
-int MinValue;
+float MissingValue;
+float RejectedValue;
+float MinValue;
 std::string BestStationFilename;
 std::string FlagsIn;
 std::string FlagsOut;
@@ -200,9 +200,9 @@ try{
         ("FlagsOut",po::value<std::string> (&FlagsOut)->default_value("NotSet"),  "Pathname for results of flag tests. ")     //DOCME
         ("CfailedString",po::value<std::string> (&CfailedString)->default_value(""),  "Value to add to CFAILED if the algorithm runs and writes data back to the database")     //DOCME
 
-        ("MissingValue",po::value<int>(&MissingValue)->default_value(-32767),  "Original Missing Data Value")      //DOCME
-        ("RejectedValue",po::value<int>(&RejectedValue)->default_value(-32766),  "Original Rejected Data Value")      //DOCME
-        ("MinValue",po::value<int>(&MinValue)->default_value(-32767),  "Minimum Data Value For Some Controls")      //DOCME
+        ("MissingValue",po::value<float>(&MissingValue)->default_value(-32767.0),  "Original Missing Data Value")      //DOCME
+        ("RejectedValue",po::value<float>(&RejectedValue)->default_value(-32766.0),  "Original Rejected Data Value")      //DOCME
+        ("MinValue",po::value<float>(&MinValue)->default_value(-32767.0),  "Minimum Data Value For Some Controls")      //DOCME
         ("InterpolationDistance",po::value<float>(&InterpolationDistance)->default_value(25),  "Nearest Neighbour Limiting Distance")      //DOCME
 
         ("z_fqclevel",po::value<std::vector<unsigned char> >  (&z_fqclevel),  "fqclevel [GENERAL FILTER]")     //DOCME
