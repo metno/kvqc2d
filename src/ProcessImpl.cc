@@ -99,11 +99,6 @@ select(ReadProgramOptions params)
 {
      int AlgoCode = params.AlgoCode;
 
-     std::cout << params.ControlInfoString << std::endl;
-     std::cout << params.ControlInfoVector[0] << std::endl;
-     std::cout << params.ControlInfoVector[1] << std::endl;
-
-
      switch (AlgoCode) {
      case 1:
          std::cout << "Case: " << AlgoCode << std::endl;
