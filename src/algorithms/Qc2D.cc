@@ -235,9 +235,11 @@ distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvDa
                                 controlinfo_[i], useinfo_[i], cfailed_[i]);
 
                   if (original_[i] != params.missing) {        // This condition means the
-                                                       // value is no longer missing
-                                                       // This is data to Redistribute
-                       DataForRedistribution.RedistributeStationData(stid_[i],ReturnData);
+                                                               // value is no longer missing
+                                                               // This is data to Redistribute
+                       if (original_[i] != params.rejected) DataForRedistribution.RedistributeStationData(stid_[i],ReturnData);
+                                                               // Add also a check for the case where the value is rejected
+                                                               // Then do not redistribute
                        DataForRedistribution.clean_station_entry(stid_[i]);   
 
                   }
