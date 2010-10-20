@@ -395,8 +395,8 @@ calculate_intp_wet_dry(unsigned int index)
  	  for (int i=1 ; i<imax+1 ; i++) { //implement a uniformity check
             data_point=original_[pindex[i].second];
             if (data_point == -1) data_point = 0; 
-            if (imax > 1 && data_point > -1 && pindex[i].first > 0 && 
- 	  	                               CheckFlags.condition(controlinfo_[i],params.Iflag) ) {
+            //if (imax > 1 && data_point > -1 && pindex[i].first > 0  && CheckFlags.condition(controlinfo_[i],params.Iflag) ){
+            if (imax > 1 && data_point > -1 && pindex[i].first > 0  && CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag) ){
 
                    if (lat_[pindex[i].second] >  lat_[index] &&
                        lon_[pindex[i].second] >  lon_[index]) {
@@ -514,7 +514,8 @@ calculate_intp_wet_dry(unsigned int index)
  	  	  //if (imax > 1 && data_point > -1 && pindex[i].first > 0 && data_point < 40 &&
  	  	  if (DoInt && imax > 1 && data_point > -1 && pindex[i].first > 0 && 
  	  	                              //controlinfo_[pindex[i].second].flag( 12 ) == 1  ) {
-                                               CheckFlags.condition(controlinfo_[i],params.Iflag)) {
+                                               //CheckFlags.condition(controlinfo_[i],params.Iflag)) {
+                                               CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag)) {
                         
                         //std::cout << "Interpolatig ... " << std::endl;
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
@@ -599,7 +600,7 @@ idw_intp_limit(unsigned int index)
 
 
           //FOR NEIGHBOURS//std::cout << stid_[index] << " {" << original_[index] << "}|";
-          std::cout << "Stationid: "<< stid_[index] << " Nearest neighbours: ";
+          //std::cout << "Stationid: "<< stid_[index] << " Nearest neighbours: ";
 
  	  for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
  	  	  
@@ -610,13 +611,15 @@ idw_intp_limit(unsigned int index)
  	  	                                        // may have been rain but none
  	  	                                        // was measurable
  	  	  
-                  std::cout << stid_[pindex[i].second] << " ";
+                  //std::cout << stid_[pindex[i].second] << " ";
 
  	  	  if (imax > 1 && data_point > -1 && pindex[i].first > 0 && 
-                                              CheckFlags.condition(controlinfo_[i],params.Iflag)) {
+                                              //CheckFlags.condition(controlinfo_[i],params.Iflag)) {
+                                              CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag)) {
 
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
                         weight += data_point/(pindex[i].first*pindex[i].first);
+                        //cfailed_[index]=
                         NeighboursUsed.push_back(data_point);
                         /// Code to extract neighbour statistics ...
                         //FOR NEIGHBOURS//std::cout << stid_[pindex[i].second] << " {" << original_[pindex[i].second] << "};";
@@ -636,7 +639,7 @@ idw_intp_limit(unsigned int index)
           //FOR NEIGHBOURS//std::cout << " # Model Value = " <<  intp_[index] << " +/-" << CP_[index] << " (" <<  NeighboursUsed.size() << " pts)";
  	  }  
           //FOR NEIGHBOURS//std::cout << std::endl;
-          std::cout << std::endl;
+          //std::cout << std::endl;
  
 } 
 
@@ -725,7 +728,8 @@ calculate_intp_h(unsigned int index)
  
                                                 
  	  	  if (imax > 1 && data_point > -1 && pindex[i].first > 0 && 
- 	  	                               CheckFlags.condition(controlinfo_[i],params.Iflag)  ) {
+ 	  	                               //CheckFlags.condition(controlinfo_[i],params.Iflag)  ) {
+ 	  	                               CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag)  ) {
                           data_point_h = data_point;
 
                           TV=data_point;
