@@ -599,6 +599,7 @@ idw_intp_limit(unsigned int index)
 
 
           //FOR NEIGHBOURS//std::cout << stid_[index] << " {" << original_[index] << "}|";
+          std::cout << "Stationid: "<< stid_[index] << " Nearest neighbours: ";
 
  	  for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
  	  	  
@@ -609,6 +610,8 @@ idw_intp_limit(unsigned int index)
  	  	                                        // may have been rain but none
  	  	                                        // was measurable
  	  	  
+                  std::cout << stid_[pindex[i].second] << " ";
+
  	  	  if (imax > 1 && data_point > -1 && pindex[i].first > 0 && 
                                               CheckFlags.condition(controlinfo_[i],params.Iflag)) {
 
@@ -633,6 +636,7 @@ idw_intp_limit(unsigned int index)
           //FOR NEIGHBOURS//std::cout << " # Model Value = " <<  intp_[index] << " +/-" << CP_[index] << " (" <<  NeighboursUsed.size() << " pts)";
  	  }  
           //FOR NEIGHBOURS//std::cout << std::endl;
+          std::cout << std::endl;
  
 } 
 
