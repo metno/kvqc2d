@@ -242,7 +242,7 @@ SingleLinear_v32( ReadProgramOptions params )
                         dwrite.clean();
                         dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+" QC2d-2 "+params.CFAILED_STRING );
+                              Tseries[1].cfailed()+",QC2d-2 "+params.CFAILED_STRING );
                         kvUseInfo ui = dwrite.useinfo();
                         ui.setUseFlags( dwrite.controlinfo() );
                         dwrite.useinfo( ui );   
