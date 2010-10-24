@@ -119,6 +119,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
         kvalobs::kvData ReturnElement;
         miutil::miTime fixtime;
         kvalobs::kvControlInfo fixflags;
+        miutil::miString new_cfailed;
 
 	int stid = sid;
         int irun = 0;
@@ -161,12 +162,15 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                   if (original_accval == -1.0) roundVal=-1.0; 
 
                   fixtime=dst_time[ stid ][ k ];
-
                   fixflags=d_controlinfo[ stid ][ k ];
 
                   ControlFlag.setter(fixflags,params.Sflag);
                   ControlFlag.conditional_setter(fixflags,params.chflag);
 
+                  new_cfailed=d_cfailed[ stid ][ k ];
+                  if (new_cfailed.length() > 0) new_cfailed += ",";
+                  new_cfailed += "QC2-redist||QC2m-2,tidligere="+StrmConvert(dst_corr[ stid ][ k ]);
+                  if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
                   //std::cout << "RESULTS: "           <<    "\"" 
                             //<< stid                        << "\",\"" 
                             //<< dst_time[ stid ][ k ]       << "\",\"" 
@@ -185,7 +189,8 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                                 dst_tbtime[ stid ][ k ],d_typeid[ stid ][ k ], d_sensor[ stid ][ k ],
                                 d_level[ stid ][ k ], roundVal,fixflags, 
                                 d_useinfo[ stid ][ k ], 
-                                d_cfailed[ stid ][ k ]+",Qc2 Redis corrected was:"+StrmConvert(dst_corr[ stid ][ k ])+params.CFAILED_STRING);
+                                //d_cfailed[ stid ][ k ]+",Qc2 Redis corrected was:"+StrmConvert(dst_corr[ stid ][ k ])+params.CFAILED_STRING);
+                                new_cfailed);
                   ReturnData.push_back(ReturnElement);
                }
            }
