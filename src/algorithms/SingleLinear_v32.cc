@@ -131,6 +131,7 @@ SingleLinear_v32( ReadProgramOptions params )
 
 
    miutil::miString ladle;
+   miutil::miString new_cfailed;
 
    while (ProcessTime >= stime) 
    {
@@ -239,10 +240,20 @@ SingleLinear_v32( ReadProgramOptions params )
                         if (NewCorrected == params.rejected){
                            CheckFlags.conditional_setter(fixflags,setmissing_chflag);
                         }
+                        new_cfailed=Tseries[1].cfailed();
+                        if (new_cfailed.length() > 0) new_cfailed += ",";
+                        new_cfailed += "QC2d-2";
+                        if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
+
                         dwrite.clean();
+                        //dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                              //Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
+                              //Tseries[1].cfailed()+",QC2d-2 "+params.CFAILED_STRING );
                         dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
                               Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+",QC2d-2 "+params.CFAILED_STRING );
+                              new_cfailed );
+                        //dwrite.cfailed("QC2d-2");
+                        //dwrite.cfailed(params.CFAILED_STRING);
                         kvUseInfo ui = dwrite.useinfo();
                         ui.setUseFlags( dwrite.controlinfo() );
                         dwrite.useinfo( ui );   
