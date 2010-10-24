@@ -147,9 +147,9 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                  sumint= dst_intp[ stid ][ k ] + sumint; 
            }
      
-           if (available_data && sumint > 0.0) {
-               float normaliser=accval/sumint;
-               float roundSum=0.0;
+           if (available_data && sumint > 0.0 && dst_time[ stid ][ 0 ] != params.UT0) {  // NB if the available data starts at the first time
+               float normaliser=accval/sumint;                                      // we cannot redistribute since there might be times
+               float roundSum=0.0;                                                  // earlier!!!
                float roundVal;
                //for (int k=sindex-irun+1; k<=sindex ; ++k) {
                for (int k=sindex-irun; k<=sindex ; ++k) {
