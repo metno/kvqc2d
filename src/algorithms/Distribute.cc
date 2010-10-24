@@ -161,11 +161,11 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                  if (dst_intp[ stid ][ k ] == -10.0) available_data=0;  // this is set if any of the points are unavailable
                  sumint= dst_intp[ stid ][ k ] + sumint; 
 
-                 //d_now=dst_time[ stid ][ k ];
-                 //d_test=d_now;
-                 //d_test.addDay(-1);
-                 //d_next=dst_time[ stid ][ k-1 ];
-                 //if ( d_next != d_test ) continuous=false;
+                 d_now=dst_time[ stid ][ k ];
+                 d_test=d_now;
+                 d_test.addDay(-1);
+                 d_next=dst_time[ stid ][ k-1 ];
+                 if ( d_next != d_test ) continuous=false;
            }
      
            if (available_data && sumint > 0.0 && dst_time[ stid ][ sindex-irun ] != params.UT0 && continuous) {  // NB if the available data starts at the first time
