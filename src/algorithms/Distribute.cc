@@ -118,8 +118,12 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
 {
         kvalobs::kvData ReturnElement;
         miutil::miTime fixtime;
+        miutil::miTime d_now;
+        miutil::miTime d_next;
+        miutil::miTime d_test;
         kvalobs::kvControlInfo fixflags;
         miutil::miString new_cfailed;
+        bool continuous=true;
 
 	int stid = sid;
         int irun = 0;
@@ -135,6 +139,17 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
 
         float sumint = 0.0;
         float missing_val = params.missing;
+
+        //check the series is continuous
+        //for (int jjj=0; jjj != index-1; ++jjj) {
+           //d_now=dst_time[ stid ][ jjj ];
+           //std::cout << d_now << std::endl;
+           //d_test=d_now;
+           //d_test.addDay();
+           //d_next=dst_time[ stid ][ jjj + 1 ];
+           //if ( d_next != d_test ) continuous=false;
+        //}
+
         while (missing_val == params.missing && index != 0) {   //works out how long the series to redistribute is
               missing_val=dst_data[ stid ][ index - 1 ];
               ++irun;
@@ -145,9 +160,15 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
            for (int k=sindex; k>=sindex-irun ; --k) {
                  if (dst_intp[ stid ][ k ] == -10.0) available_data=0;  // this is set if any of the points are unavailable
                  sumint= dst_intp[ stid ][ k ] + sumint; 
+
+                 d_now=dst_time[ stid ][ k ];
+                 d_test=d_now;
+                 d_test.addDay(-1);
+                 d_next=dst_time[ stid ][ k-1 ];
+                 if ( d_next != d_test ) continuous=false;
            }
      
-           if (available_data && sumint > 0.0 && dst_time[ stid ][ 0 ] != params.UT0) {  // NB if the available data starts at the first time
+           if (available_data && sumint > 0.0 && dst_time[ stid ][ 0 ] != params.UT0 && continuous) {  // NB if the available data starts at the first time
                float normaliser=accval/sumint;                                      // we cannot redistribute since there might be times
                float roundSum=0.0;                                                  // earlier!!!
                float roundVal;
