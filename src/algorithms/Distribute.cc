@@ -168,7 +168,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                  if ( d_next != d_test ) continuous=false;
            }
      
-           if (available_data && sumint > 0.0 && dst_time[ stid ][ 0 ] != params.UT0 && continuous) {  // NB if the available data starts at the first time
+           if (available_data && sumint > 0.0 && dst_time[ stid ][ sindex-irun ] != params.UT0 && continuous) {  // NB if the available data starts at the first time
                float normaliser=accval/sumint;                                      // we cannot redistribute since there might be times
                float roundSum=0.0;                                                  // earlier!!!
                float roundVal;
