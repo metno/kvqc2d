@@ -273,7 +273,6 @@ SingleLinear_v32( ReadProgramOptions params )
                      std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
                   }
                   if(!stList.empty()){
-                     std::cout << "Sending" << std::endl;
                      checkedDataHelper.sendDataToService(stList);
                      stList.clear();
                   }
