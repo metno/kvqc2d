@@ -140,6 +140,11 @@ main( int argc, char** argv )
 
   orb = app.getOrb();
   poa = app.getPoa();
+
+
+  PortableServer::POAManager_var pman = app.getPoaMgr();   ///NEW
+  pman->activate();  ///NEW
+
  
   app.createPidFile( "kvqc2" );
   sleep(1);
