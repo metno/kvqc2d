@@ -52,11 +52,7 @@ kvqc2_SOURCES = \
 	algorithms/StationSelection.h \
 	algorithms/table_delaunay.cc \
 	algorithms/table_delaunay.h \
-	algorithms/tround.h \
-        ServiceCheckedInputImpl.cc \
-        ServiceCheckedInputImpl.h \
-        ServiceDataCommand.cc \
-        ServiceDataCommand.h
+	algorithms/tround.h
 
 kvqc2_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
