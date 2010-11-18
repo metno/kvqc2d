@@ -148,7 +148,7 @@ Variability( ReadProgramOptions params )
 
                                 //dbGate.insert( *id, "data", true);
                                 dbGate.insert( d, "data", true); // see above
-                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->typeID());
                                 stList.push_back(DataToWrite);
                            }
                        }

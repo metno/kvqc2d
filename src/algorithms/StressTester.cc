@@ -135,7 +135,7 @@ StressTester( ReadProgramOptions params )
                                       id->useinfo(), id->cfailed()+" Qc2-R Loop=" + StrmConvert(LoopCounter));
                                 //LOGINFO("Writing Data ");
                                 dbGate.insert( DataToWrite, "data", true);
-                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->typeID());
                                 stList.push_back(DataToWrite);
                        }
                        catch ( dnmi::db::SQLException & ex ) {

@@ -165,7 +165,7 @@ ProcessUnitT( ReadProgramOptions params )
                                                                             +StrmConvert(Tseries[1].obstime().sec()) );
                              dbGate.insert( d, "data", true); 
                              // fill structure to inform the serviced
-                             kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                             kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
                              stList.push_back(DataToWrite);
                         }
                        }

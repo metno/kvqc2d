@@ -284,7 +284,8 @@ Process4D( ReadProgramOptions params )
                                    //ui.setUseFlags( d.controlinfo() );
                                    //d.useinfo( ui );   
                                    //dbGate.insert( d, "data", true); 
-                                   //kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                                   //kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->typeID());
+                                   //kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
                                    //stList.push_back(DataToWrite);
                               //if ( CheckFlags.condition(id->controlinfo(),params.zflag) ) {  
                                    //XP.push_back(d.original());

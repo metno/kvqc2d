@@ -133,7 +133,7 @@ Redistribute( ReadProgramOptions params )
                                 ui.setUseFlags( d.controlinfo() );
                                 d.useinfo( ui );   
                                 dbGate.insert( d, "data", true); 
-                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->paramID());
+                                kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->typeID());
                                 stList.push_back(DataToWrite);
                            }
                        }
