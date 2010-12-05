@@ -44,6 +44,7 @@ int RunAtHour;
 int pid;
 int maxpid,minpid;
 int tid;
+std::vector<int> tids;
 float missing;
 float rejected;
 float MinimumValue;

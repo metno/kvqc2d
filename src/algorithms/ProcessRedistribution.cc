@@ -61,6 +61,7 @@ Redistribute( ReadProgramOptions params )
   miutil::miTime etime=params.UT1;
   const int pid=params.pid;
   const int tid=params.tid;
+  const std::vector<int> tids=params.tids;
 
   ProcessControl CheckFlags;
 
@@ -77,6 +78,7 @@ Redistribute( ReadProgramOptions params )
   kvalobs::kvDbGate dbGate( &con );
 
   miutil::miTime ProcessTime;
+  miutil::miString ladle;
 
 
   GetStationList(StationList);  /// StationList is all the possible stations
@@ -90,10 +92,28 @@ Redistribute( ReadProgramOptions params )
   //std::cout << "STIME TIME STAMP: " << stime << std::endl;
   //std::cout << "ProcessTIME TIME STAMP: " << ProcessTime << std::endl;
 
+
+
   while (ProcessTime <= etime) {
 
              try {
-              result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,tid,ProcessTime,ProcessTime));
+
+                ostringstream ost;    // later put this back in kvQueries
+                ost << " WHERE stationid IN (";
+                for (std::list<int>::const_iterator sp= StationIds.begin(); sp!=StationIds.end(); sp++)
+                    ost << (sp==StationIds.begin() ? "" : ",") << *sp;
+                ost << ") and paramid="    << pid
+                    << " and typeid IN (";
+                for (std::vector<int>::const_iterator tp= tids.begin(); tp!=tids.end(); tp++) 
+                    ost << (tp==tids.begin() ? "" : ",") << *tp;
+                ost << ") and obstime=\'"  << ProcessTime.isoTime() << "\'"
+                    << " order by obstime";
+                ladle=ost.str();
+                std::cout << ladle << std::endl;
+                sleep(10);
+                result = dbGate.select(Qc2Data, ladle);
+
+              //result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,tid,ProcessTime,ProcessTime));
               /// TODO: interpolate across all type ids and check for effective duplicates.            
               //result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));
               }

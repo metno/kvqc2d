@@ -113,6 +113,7 @@ int ParamId;
 int MaxParamId;
 int MinParamId;
 int TypeId;
+std::vector<int> TypeIds;
 float MissingValue;
 float RejectedValue;
 float MinValue;
@@ -190,6 +191,7 @@ try{
         ("MaxParamId",po::value<int>  (&MaxParamId)->default_value(0),  "Parameter ID for a maximum value")     //DOCME
         ("MinParamId",po::value<int>  (&MinParamId)->default_value(0),  "Parameter ID for a minimum value")     //DOCME
         ("TypeId",po::value<int>  (&TypeId),  "Type ID")     //DOCME
+        ("TypeIds",po::value<std::vector<int> >  (&TypeIds),  "One of many Type IDs")     //DOCME
         ("AlgoCode",po::value<int>  (&AlgoCode)->default_value(-1),  "Algoritham Code")     //DOCME
         ("InterpCode",po::value<int>  (&InterpCode)->default_value(-1),  "Code to determine method of interpolation")     //DOCME
         ("ControlString",po::value<std::string>  (&ControlString),  "Control Info (not used)")     //DOCME
@@ -430,6 +432,7 @@ try{
          maxpid=MaxParamId;
          minpid=MinParamId;
          tid=TypeId;
+         tids=TypeIds;  // if multiple are required
          RunAtMinute=RunMinute;
          RunAtHour=RunHour;
          StepD=StepDay;
@@ -689,6 +692,7 @@ pid=0;
 maxpid=0;
 minpid=0;
 tid=0;
+tids.clear();
 
 return 0;
 }
