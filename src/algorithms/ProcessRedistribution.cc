@@ -98,7 +98,7 @@ Redistribute( ReadProgramOptions params )
 
              try {
 
-                ostringstream ost;    // later put this back in kvQueries
+                ostringstream ost;    /a// later put this back in kvQueries ******************
                 ost << " WHERE stationid IN (";
                 for (std::list<int>::const_iterator sp= StationIds.begin(); sp!=StationIds.end(); sp++)
                     ost << (sp==StationIds.begin() ? "" : ",") << *sp;
@@ -109,8 +109,6 @@ Redistribute( ReadProgramOptions params )
                 ost << ") and obstime=\'"  << ProcessTime.isoTime() << "\'"
                     << " order by obstime";
                 ladle=ost.str();
-                std::cout << ladle << std::endl;
-                sleep(10);
                 result = dbGate.select(Qc2Data, ladle);
 
               //result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,tid,ProcessTime,ProcessTime));
