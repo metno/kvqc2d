@@ -98,7 +98,7 @@ Redistribute( ReadProgramOptions params )
 
              try {
 
-                ostringstream ost;    /a// later put this back in kvQueries ******************
+                ostringstream ost;    /// later put this back in kvQueries ******************
                 ost << " WHERE stationid IN (";
                 for (std::list<int>::const_iterator sp= StationIds.begin(); sp!=StationIds.end(); sp++)
                     ost << (sp==StationIds.begin() ? "" : ",") << *sp;
