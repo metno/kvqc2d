@@ -520,6 +520,8 @@ calculate_intp_wet_dry(unsigned int index)
                         //std::cout << "Interpolatig ... " << std::endl;
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
                         weight += data_point/(pindex[i].first*pindex[i].first);
+                          if (cfailed_[index].length() > 0) cfailed_[index] += ",";
+                          cfailed_[index]+=StrmConvert(stid_[pindex[i].second]);
  	  	  }
  	  }
 
@@ -749,6 +751,8 @@ calculate_intp_h(unsigned int index)
 
  	  	  	  inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
  	  	          weight += data_point/(pindex[i].first*pindex[i].first);
+                          if (cfailed_[index].length() > 0) cfailed_[index] += ",";
+                          cfailed_[index]+=StrmConvert(stid_[pindex[i].second]);
  	  	  }
            }
 
