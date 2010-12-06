@@ -74,7 +74,7 @@ main( int argc, char** argv )
   char *pKv = getenv( "KVALOBS" );
   bool error;
 
-  milog::LogContext logContext("Qc2 ...");
+  milog::LogContext logContext("kvqc2d ...");
 
   if ( conf )
   {
@@ -91,8 +91,8 @@ main( int argc, char** argv )
 
   string htmlpath;
   string logpath_(htmlpath);
-  InitLogger( argc, argv, "Qc2", htmlpath );
-  LOGINFO( "Qc2: starting ...." );
+  InitLogger( argc, argv, "kvqc2d", htmlpath );
+  LOGINFO( "kvqc2d: starting ...." );
 
   filesystem::path rundir( kvPath("localstatedir") + "/run" );
   std::cout <<   kvPath("localstatedir")  << std::endl;
@@ -184,7 +184,7 @@ main( int argc, char** argv )
   }
 
 
-  CERR( "Qc2: exit ....\n" );
+  CERR( "kvqc2d: exit ....\n" );
   app.deletePidFile();
 
   return 0;
