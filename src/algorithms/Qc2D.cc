@@ -619,7 +619,8 @@ idw_intp_limit(unsigned int index)
 
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
                         weight += data_point/(pindex[i].first*pindex[i].first);
-                        cfailed_[index]+=","+StrmConvert(stid_[pindex[i].second]);
+                        if (cfailed_[index].length() > 0) cfailed_[index] += ",";
+                        cfailed_[index]+=StrmConvert(stid_[pindex[i].second]);
                         NeighboursUsed.push_back(data_point);
                         /// Code to extract neighbour statistics ...
                         //FOR NEIGHBOURS//std::cout << stid_[pindex[i].second] << " {" << original_[pindex[i].second] << "};";
