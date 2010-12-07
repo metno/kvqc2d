@@ -48,7 +48,6 @@
 
 #include "ProcessControl.h"
 #include "proj++.h"
-#include "scone.h"
 
 #include "table_delaunay.h"
 

@@ -4,10 +4,12 @@
 
 #include <kvalobs/kvStationInfo.h>
 #include <kvalobs/kvStation.h>
+#include <kvalobs/kvData.h>
 #include <string>
 #include <stack>
 
 #include "ReadProgramOptions.h"
+#include "scone.h"
 
 class Qc2App;
 
@@ -40,6 +42,9 @@ class ProcessImpl
     int SingleLinear(ReadProgramOptions params);                                                           
     int SingleLinear_v32(ReadProgramOptions params);                                                           
     int DipTest(ReadProgramOptions params);                                                           
+
+    //utilities
+    std::string kvqc2logstring(kvalobs::kvData kd);
 };
 
 

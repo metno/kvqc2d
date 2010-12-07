@@ -45,7 +45,6 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
-#include "scone.h"
 #include "tround.h"
 
 using namespace kvalobs;

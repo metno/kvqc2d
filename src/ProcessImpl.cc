@@ -169,3 +169,26 @@ select(ReadProgramOptions params)
      return(0);
 }
 
+std::string   
+ProcessImpl::
+kvqc2logstring(kvalobs::kvData kd)
+{
+  std::string logstring;
+
+  logstring=
+      StrmConvert(kd.stationID())+" "
+      +StrmConvert(kd.obstime().year())+"-"
+      +StrmConvert(kd.obstime().month())+"-"
+      +StrmConvert(kd.obstime().day())+" "
+      +StrmConvert(kd.obstime().hour())+":"
+      +StrmConvert(kd.obstime().min())+":"
+      +StrmConvert(kd.obstime().sec())+" "
+      +StrmConvert(kd.original())+" "
+      +StrmConvert(kd.paramID())+" "
+      +StrmConvert(kd.typeID())+" "
+      +StrmConvert(kd.sensor())+" "
+      +StrmConvert(kd.level())+" "
+      +StrmConvert(kd.corrected());
+
+return(logstring);
+}

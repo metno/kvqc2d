@@ -2,7 +2,7 @@
 
 #include <kvalobs/kvDataFlag.h>
 
-#include "algorithms/scone.h"
+#include "scone.h"
 
 /// All flag check chars not set unless set explicitely in a configuration file, the values set
 /// are carried around in a map with the index pair corresponding  to the nibble position. This

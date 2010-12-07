@@ -44,7 +44,6 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 #include "ProcessControl.h"
-#include "scone.h"
 #include "../StopWatch.h"
 
 

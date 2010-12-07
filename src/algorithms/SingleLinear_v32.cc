@@ -45,7 +45,6 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
-#include "scone.h"
 #include "tround.h"
 
 using namespace kvalobs;
@@ -252,7 +251,8 @@ SingleLinear_v32( ReadProgramOptions params )
                         kvUseInfo ui = dwrite.useinfo();
                         ui.setUseFlags( dwrite.controlinfo() );
                         dwrite.useinfo( ui );   
-                        LOGINFO("ProcessUnitT Writing Data "+StrmConvert(dwrite.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
+                        LOGINFO("SingleLinear_v32: "+kvqc2logstring(dwrite) );
+                        //LOGINFO("ProcessUnitT Writing Data "+StrmConvert(dwrite.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
                         dbGate.insert( dwrite, "data", true); 
                         kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
                         stList.push_back(DataToWrite);

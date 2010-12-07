@@ -44,7 +44,6 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 #include "ProcessControl.h"
-#include "scone.h"
 
 using namespace kvalobs;
 using namespace std;
@@ -134,18 +133,17 @@ Redistribute( ReadProgramOptions params )
           std::cout << "Not Empty" << std::endl;
           for (std::list<kvalobs::kvData>::const_iterator id = ReturnData.begin(); id != ReturnData.end(); ++id) {
                       try {
-                           std::cout << "Flag Check" << std::endl;
                            if ( CheckFlags.condition(id->controlinfo(),params.Wflag) ) { 
-                                std::cout << "WRITING ***************************************" << std::endl;
-                                        LOGINFO("Redistribute Precipitation Writing Data "
-                                                                            +StrmConvert(id->corrected())+" "
-                                                                            +StrmConvert(id->stationID())+" "
-                                                                            +StrmConvert(id->obstime().year())+"-"
-                                                                            +StrmConvert(id->obstime().month())+"-"
-                                                                            +StrmConvert(id->obstime().day())+" "
-                                                                            +StrmConvert(id->obstime().hour())+":"
-                                                                            +StrmConvert(id->obstime().min())+":"
-                                                                            +StrmConvert(id->obstime().sec()) );
+                           LOGINFO("Redistribution: "+kvqc2logstring(*id) );
+                                        ////LOGINFO("Redistribute Precipitation Writing Data "
+                                                                            //+StrmConvert(id->corrected())+" "
+                                                                            //+StrmConvert(id->stationID())+" "
+                                                                            //+StrmConvert(id->obstime().year())+"-"
+                                                                            //+StrmConvert(id->obstime().month())+"-"
+                                                                            //+StrmConvert(id->obstime().day())+" "
+                                                                            //+StrmConvert(id->obstime().hour())+":"
+                                                                            //+StrmConvert(id->obstime().min())+":"
+                                                                            //+StrmConvert(id->obstime().sec()) );
                                 kvData d = *id;
                                 kvUseInfo ui = d.useinfo();
                                 ui.setUseFlags( d.controlinfo() );

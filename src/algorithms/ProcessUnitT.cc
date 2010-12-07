@@ -45,7 +45,6 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
-#include "scone.h"
 #include "tround.h"
 
 using namespace kvalobs;
@@ -155,14 +154,15 @@ ProcessUnitT( ReadProgramOptions params )
                              ui.setUseFlags( d.controlinfo() );
                              d.useinfo( ui );   
                              // write the data back
-                             LOGINFO("ProcessUnitT Writing Data "+StrmConvert(TanTaxInterpolated)+" "
-                                                                            +StrmConvert(Tseries[1].stationID())+" "
-                                                                            +StrmConvert(Tseries[1].obstime().year())+"-"
-                                                                            +StrmConvert(Tseries[1].obstime().month())+"-"
-                                                                            +StrmConvert(Tseries[1].obstime().day())+" "
-                                                                            +StrmConvert(Tseries[1].obstime().hour())+":"
-                                                                            +StrmConvert(Tseries[1].obstime().min())+":"
-                                                                            +StrmConvert(Tseries[1].obstime().sec()) );
+                             LOGINFO("ProcessUnitT:"+kvqc2logstring(d) );
+                             //LOGINFO("ProcessUnitT Writing Data "+StrmConvert(TanTaxInterpolated)+" "
+                                                                            //+StrmConvert(Tseries[1].stationID())+" "
+                                                                            //+StrmConvert(Tseries[1].obstime().year())+"-"
+                                                                            //+StrmConvert(Tseries[1].obstime().month())+"-"
+                                                                            //+StrmConvert(Tseries[1].obstime().day())+" "
+                                                                            //+StrmConvert(Tseries[1].obstime().hour())+":"
+                                                                            //+StrmConvert(Tseries[1].obstime().min())+":"
+                                                                            //+StrmConvert(Tseries[1].obstime().sec()) );
                              dbGate.insert( d, "data", true); 
                              // fill structure to inform the serviced
                              kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());

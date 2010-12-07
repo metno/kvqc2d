@@ -35,7 +35,6 @@
 #include <algorithm>
 #include "Distribute.h"
 #include "tround.h"
-#include "scone.h"
 #include <dnmithread/mtcout.h>
 #include <milog/milog.h>
 #include <map>
