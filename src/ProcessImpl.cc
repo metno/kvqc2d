@@ -105,57 +105,68 @@ select(ReadProgramOptions params)
          LOGINFO("Case 1: Redistribute");
          //Redistribute(params.UT0, params.UT1, params.tid);
          Redistribute(params);
+         LOGINFO("Case 1: Completed");
          break;
      case 2:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 2: Variability");
          Variability(params);
+         LOGINFO("Case 2: Completed");
          break;
      case 3:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 3: Process4D");
          Process4D(params);
+         LOGINFO("Case 3: Completed");
          break;
      case 4:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 4: ProcessUnitT");
          ProcessUnitT(params);
+         LOGINFO("Case 4: Completed");
          break;
      case 5:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 5: Interpolate");
          Interpolate(params);
+         LOGINFO("Case 5: Completed");
          break;
      case 6:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 6: ProcessSpaceCheck");
          ProcessSpaceCheck(params);
+         LOGINFO("Case 6: Completed");
          break;
      case 7:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 7: FlagTester");
          FlagTester(params);
+         LOGINFO("Case 7: Completed");
          break;
      case 8:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 8: StressTester");
          StressTester(params);
+         LOGINFO("Case 8: Completed");
          break;
      case 9:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 9: Single Min Max Average");
          SingleMinMaxAverage(params);
+         LOGINFO("Case 9: Completed");
          break;
      case 10:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 10: Single Linear");
          //SingleLinear(params);
          SingleLinear_v32(params);
+         LOGINFO("Case 10: Completed");
          break;
      case 11:
          std::cout << "Case: " << AlgoCode << std::endl;
          LOGINFO("Case 11: DipTest");
          DipTest(params);
+         LOGINFO("Case 11: Completed");
          break;
      case 12:
          std::cout << "Case: " << AlgoCode << std::endl;
