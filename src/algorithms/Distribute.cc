@@ -184,6 +184,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
                   roundVal=round<float,1>(dst_newd[ stid ][ k ]);
                   roundSum += roundVal;  // Need to check roundSum does not deviate too much from accval
                   if (original_accval == -1.0) roundVal=-1.0; 
+                  if (roundVal == 0.0) roundVal=-1.0;   // BUG1304 ... By default assume dry.
 
                   fixtime=dst_time[ stid ][ k ];
                   fixflags=d_controlinfo[ stid ][ k ];
@@ -193,7 +194,8 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
 
                   new_cfailed=d_cfailed[ stid ][ k ];
                   if (new_cfailed.length() > 0) new_cfailed += ",";
-                  new_cfailed += "QC2-redist||QC2m-2,tidligere="+StrmConvert(dst_corr[ stid ][ k ]);
+                  //new_cfailed += "QC2-redist||QC2m-2,tidligere="+StrmConvert(dst_corr[ stid ][ k ]);
+                  new_cfailed += "QC2-redist";
                   if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
                   //std::cout << "RESULTS: "           <<    "\"" 
                             //<< stid                        << "\",\"" 
