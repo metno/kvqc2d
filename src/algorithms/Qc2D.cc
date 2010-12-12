@@ -227,7 +227,7 @@ distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvDa
  	    
  	for (unsigned int i=0 ; i<original_.size() ; i++) { 	
 
-             if ( ControlFlag.condition(controlinfo_[i],params.Aflag) && ( find(params.tids.begin(),params.tids.end(),typeid_[i])==params.tids.end() ) ) { 
+             if ( ControlFlag.condition(controlinfo_[i],params.Aflag) && ( find(params.tids.begin(),params.tids.end(),typeid_[i])!=params.tids.end() ) ) { 
                        ///Only redistribute typeids specified in the configuration file
 
                   DataForRedistribution.add_element(stid_[i],original_[i],intp_[i],corrected_[i],redis_[i],
@@ -319,6 +319,8 @@ calculate_intp_wet_dry(unsigned int index)
           double a, c;
  	  const double radish = 0.01745329251994329509;
           ProcessControl CheckFlags;
+
+          bool first_station;
  	  
  	  typedef pair <float,int> id_pair;
  	  
@@ -501,7 +503,7 @@ calculate_intp_wet_dry(unsigned int index)
                           //<<mMP<< std::endl;
 
           //std::cout << "Stations : " <<stid_[index];
-
+          first_station=true;
  	  for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
  	  	  
  	  	  data_point=original_[pindex[i].second];
@@ -520,9 +522,13 @@ calculate_intp_wet_dry(unsigned int index)
                         //std::cout << "Interpolatig ... " << std::endl;
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
                         weight += data_point/(pindex[i].first*pindex[i].first);
-                          if (cfailed_[index].length() > 0) cfailed_[index] += ",";
-                          if (i==1) cfailed_[index] += "QC2N";
-                          cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                          if (first_station) {
+                            if (cfailed_[index].length() > 0) cfailed_[index] += ",";
+                            cfailed_[index]+="QC2N_"+StrmConvert(stid_[pindex[i].second]);
+                            first_station=false;
+                          } else {
+                            cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                          }
  	  	  }
  	  }
 
@@ -551,6 +557,7 @@ idw_intp_limit(unsigned int index)
           double a, c;
  	  const double radish = 0.01745329251994329509;
 
+          bool first_station;
           ProcessControl CheckFlags;
 
           std::vector<float> NeighboursUsed;
@@ -605,6 +612,7 @@ idw_intp_limit(unsigned int index)
           //FOR NEIGHBOURS//std::cout << stid_[index] << " {" << original_[index] << "}|";
           //std::cout << "Stationid: "<< stid_[index] << " Nearest neighbours: ";
 
+          first_station=true;
  	  for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
  	  	  
  	  	  data_point=original_[pindex[i].second];
@@ -622,9 +630,13 @@ idw_intp_limit(unsigned int index)
 
                         inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
                         weight += data_point/(pindex[i].first*pindex[i].first);
-                        if (cfailed_[index].length() > 0) cfailed_[index] += ",";
-                        if (i==1) cfailed_[index] += "QC2N";
-                        cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                          if (first_station) {
+                            if (cfailed_[index].length() > 0) cfailed_[index] += ",";
+                            cfailed_[index]+="QC2N_"+StrmConvert(stid_[pindex[i].second]);
+                            first_station=false;
+                          } else {
+                            cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                          }
                         NeighboursUsed.push_back(data_point);
                         /// Code to extract neighbour statistics ...
                         //FOR NEIGHBOURS//std::cout << stid_[pindex[i].second] << " {" << original_[pindex[i].second] << "};";
@@ -668,6 +680,7 @@ calculate_intp_h(unsigned int index)
           double a, c;
  	  const double radish = 0.01745329251994329509;
 
+          bool first_station;
           ProcessControl CheckFlags;
 
           int steps;                         
@@ -715,7 +728,8 @@ calculate_intp_h(unsigned int index)
  	  inv_dist = 0.0;
  	  weight   = 0.0;
           //int idog=0;
- 	  
+ 	 
+          first_station=true; 
  	  for (int i=1 ; i<imax+1 ; i++) {
  	  	  
  	  	  data_point=original_[pindex[i].second];
@@ -753,9 +767,13 @@ calculate_intp_h(unsigned int index)
 
  	  	  	  inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
  	  	          weight += data_point/(pindex[i].first*pindex[i].first);
-                          if (cfailed_[index].length() > 0) cfailed_[index] += ",";
-                          if (i==1) cfailed_[index] += "QC2N";
-                          cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                          if (first_station) {
+                            if (cfailed_[index].length() > 0) cfailed_[index] += ",";
+                            cfailed_[index]+="QC2N_"+StrmConvert(stid_[pindex[i].second]);
+                            first_station=false;
+                          } else {
+                            cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                          }
  	  	  }
            }
 
