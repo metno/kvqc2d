@@ -109,7 +109,7 @@ main( int argc, char** argv )
     LOGFATAL( rundir.native_file_string() << "exists but is not a directory" );
     return 1;
   }
-  filesystem::path pidfile( dnmi::file::createPidFileName( rundir.native_file_string(), "kvqc2" ) );
+  filesystem::path pidfile( dnmi::file::createPidFileName( rundir.native_file_string(), "kvqc2d" ) );
 
   if ( dnmi::file::isRunningPidFile( pidfile.native_file_string(), error ) )
   {
@@ -117,14 +117,14 @@ main( int argc, char** argv )
     {
       LOGFATAL( "An error occured while reading the pidfile:" << endl
                 << pidfile.native_file_string() << " remove the file if it exist and"
-                << endl << "kvqc2 is not running. " <<
-                "If it is running and there is problems. Kill kvqc2 and"
+                << endl << "kvqc2d is not running. " <<
+                "If it is running and there is problems. Kill kvqc2d and"
                 << endl << "restart it." << endl << endl );
       return 1;
     }
     else
     {
-      LOGFATAL( "Is kvqc2 allready running?" << endl
+      LOGFATAL( "Is kvqc2d allready running?" << endl
                 << "If not remove the pidfile: " << pidfile.native_file_string() );
       return 1;
     }
@@ -146,7 +146,7 @@ main( int argc, char** argv )
   pman->activate();  ///NEW
 
  
-  app.createPidFile( "kvqc2" );
+  app.createPidFile( "kvqc2d" );
   sleep(1);
 
   Qc2Work Qc2Work( app, htmlpath );    //commented out while I test program options !!!!

@@ -3,9 +3,9 @@ AM_CPPFLAGS = -D_REENTRANT \
 	$(BOOST_CPPFLAGS) \
 	$(omniORB4_CFLAGS)  
 
-bin_PROGRAMS = kvqc2
+bin_PROGRAMS = kvqc2d
 
-kvqc2_SOURCES = \
+kvqc2d_SOURCES = \
 	CheckedDataCommandBase.h \
 	CheckedDataHelper.cc \
 	CheckedDataHelper.h \
@@ -54,16 +54,16 @@ kvqc2_SOURCES = \
 	algorithms/table_delaunay.h \
 	algorithms/tround.h
 
-kvqc2_CPPFLAGS = \
+kvqc2d_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniDynamic4_CFLAGS) \
 	$(putools_CFLAGS) \
 	$(perl_CFLAGS)
 
-kvqc2_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
+kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 
-kvqc2_LDADD = \
+kvqc2d_LDADD = \
 	$(kvcpp_LIBS) \
 	$(putools_LIBS) \
 	$(BOOST_THREAD_LIB) \
@@ -84,30 +84,30 @@ kvqc2_LDADD = \
 clean-local:
 	rm -rf test/var
 
-TESTS = kvqc2Test
+TESTS = kvqc2dTest
 
-check_PROGRAMS = kvqc2Test
+check_PROGRAMS = kvqc2dTest
 
-kvqc2Test_SOURCES= \
+kvqc2dTest_SOURCES= \
         test/Test.cc \
         test/TestQc2D.cc \
-	$(kvqc2_SOURCES:kvqc2.cc=)
+	$(kvqc2d_SOURCES:kvqc2d.cc=)
 
 #	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"
 
 SETUP_DB = \"$(srcdir)/test/database/setupdb.sql\"
 #SETUP_DB = \"$(top_srcdir)/src/kvalobs_database/kvalobs_schema.sql\"
 	
-kvqc2Test_CPPFLAGS = \
+kvqc2dTest_CPPFLAGS = \
 	-DDBDRIVER=\"$(top_builddir)/src/lib/dbdrivers/.libs/sqlite3driver.so\" \
 	-DSETUPDB_SQL=$(SETUP_DB) \
 	-DCHECKRUNNERTEST_INIT_SQL=\"$(srcdir)/test/etc/checkrunnertest.init.sql\" \
-	$(kvqc2_CPPFLAGS) \
+	$(kvqc2d_CPPFLAGS) \
 	$(cppunit_CFLAGS) \
 	-DLOG_CHECK_SCRIPT 
 	
-kvqc2Test_LDADD = \
-	$(kvqc2_LDADD) \
+kvqc2dTest_LDADD = \
+	$(kvqc2d_LDADD) \
 	$(cppunit_LIBS)
 	
 EXTRA_DIST = \
