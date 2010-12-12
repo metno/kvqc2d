@@ -227,7 +227,8 @@ distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvDa
  	    
  	for (unsigned int i=0 ; i<original_.size() ; i++) { 	
 
-             if ( ControlFlag.condition(controlinfo_[i],params.Aflag) ) { 
+             if ( ControlFlag.condition(controlinfo_[i],params.Aflag) && ( find(params.tids.begin(),params.tids.end(),typeid_[i])==params.tids.end() ) ) { 
+                       ///Only redistribute typeids specified in the configuration file
 
                   DataForRedistribution.add_element(stid_[i],original_[i],intp_[i],corrected_[i],redis_[i],
                                 tbtime_[i],obstime_[i], sensor_[i], level_[i], typeid_[i], 
