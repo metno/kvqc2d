@@ -40,6 +40,7 @@
 #include <puTools/miTime.h>
 #include <memory>
 #include <stdexcept>
+//#include <maths.h>
 
 #include "ProcessControl.h"
 #include "CheckedDataCommandBase.h"
@@ -59,7 +60,9 @@ DipTest( ReadProgramOptions params )
    int pid=params.pid;
    float LinInterpolated;
    float AkimaInterpolated;
-   float NewCorrected;
+   float ABS20, ABS10;
+   kvalobs::kvData dwrite;                                                   
+   miutil::miString new_cfailed;
    miutil::miTime stime=params.UT0;
    miutil::miTime etime=params.UT1;
  
@@ -68,6 +71,7 @@ DipTest( ReadProgramOptions params )
    std::list<kvalobs::kvData> Qc2Data;
    std::list<kvalobs::kvData> Qc2SeriesData;
    bool result;
+   bool HOLDING=false;
  
    ProcessControl CheckFlags;
    kvalobs::kvControlInfo fixflags;
@@ -98,7 +102,7 @@ DipTest( ReadProgramOptions params )
       Tseries.clear();
       try {
         /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
-        result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,XTime,YTime));
+		result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));
         //********* Change this to select the appropriate data
       }
       catch ( dnmi::db::SQLException & ex ) {
@@ -108,18 +112,81 @@ DipTest( ReadProgramOptions params )
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
       }
       if(!Qc2Data.empty()) { 
-         /// Now pack the data into a 3D object
-         
-         
-         
+         for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
+            Tseries.clear();  
+            result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
+
+            for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
+                     Tseries.push_back(*is);
+            }
+            
+            if  (Tseries.size()==3 &&  // Check that we have three valid data points and no mixing of typeids
+                Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
+                Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
+                Tseries[1].typeID() == Tseries[0].typeID()                                   &&
+                Tseries[1].typeID() == Tseries[2].typeID()                                   &&
+                Tseries[0].controlinfo().flag(3) == 1	                                     &&
+                Tseries[1].controlinfo().flag(3) == 2	                                     &&
+                Tseries[2].controlinfo().flag(3) == 2 ){
+
+
+				ABS20 = fabs( Tseries[2].original()-Tseries[0].original() );
+				ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
+
+				if (ABS20 < ABS10) {
+                std::cout << Tseries[0].obstime() << " " << Tseries[0].original() << " " << Tseries[0].corrected() << " " << Tseries[0].controlinfo() << std::endl;
+                std::cout << Tseries[1].obstime() << " " << Tseries[1].original() << " " << Tseries[1].corrected() << " " << Tseries[1].controlinfo() << std::endl;
+                std::cout << Tseries[2].obstime() << " " << Tseries[2].original() << " " << Tseries[2].corrected() << " " << Tseries[2].controlinfo() << std::endl;
+				std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << std::endl;
+				std::cout << Tseries[0].original() << " " <<Tseries[1].original() << " " << Tseries[2].original() << std::endl;
+				std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << std::endl;
+				}
+
+                   if ( HOLDING ) { // add the requisite controls here (i.e. replace "result"
+                            LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                      }
+                      else {
+                            LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                      }                	
+                                 
+                 try{
+                     if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) && HOLDING ) {  
+                        fixflags=Tseries[1].controlinfo();
+                        CheckFlags.setter(fixflags,params.Sflag);
+                        CheckFlags.conditional_setter(fixflags,params.chflag);
+                        new_cfailed=Tseries[1].cfailed();
+                        if (new_cfailed.length() > 0) new_cfailed += ",";
+                        new_cfailed += "QC2d-2";
+                        if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
+                        dwrite.clean();
+                        dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                              Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),Tseries[1].corrected(),fixflags,Tseries[1].useinfo(),
+                              new_cfailed );
+                        kvUseInfo ui = dwrite.useinfo();
+                        ui.setUseFlags( dwrite.controlinfo() );
+                        dwrite.useinfo( ui );   
+                        LOGINFO("DipTest: "+kvqc2logstring(dwrite) );
+                        dbGate.insert( dwrite, "data", true); 
+                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
+                        stList.push_back(DataToWrite);
+                     }
+                  }
+                  catch ( dnmi::db::SQLException & ex ) {
+                     IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+                     std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
+                  }
+                  catch ( ... ) {
+                     IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+                     std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
+                  }
+                  if(!stList.empty()){
+                     checkedDataHelper.sendDataToService(stList);
+                     stList.clear();
+                  }
+            } // Three points to work with   
+         } // Loopthrough all stations at the given time
       } // There is Qc2Data Loop
    ProcessTime.addHour(-1);
    } // TimeLoop
    return 0;
 }
-
-//2d interpolation code may be added ...
-//std::list<kvalobs::kvData> Qc2InterpData;
-//result = dbGate.select(Qc2InterpData, kvQueries::selectData(StationIds,pid,Tseries[1].obstime(),Tseries[1].obstime() ));
-//Qc2D GSW(Qc2InterpData,StationList,params);
-//GSW.Qc2_interp(); 
