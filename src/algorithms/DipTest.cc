@@ -148,26 +148,44 @@ DipTest( ReadProgramOptions params )
                                  
                  try{
                      if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
-                        fixflags1=Tseries[1].controlinfo();
-                        fixflags2=Tseries[2].controlinfo();
-                        CheckFlags.setter(fixflags,params.Sflag);
-                        CheckFlags.setter(fixflags,params.Sflag);
-                        CheckFlags.conditional_setter(fixflags,params.chflag);
-                        new_cfailed=Tseries[1].cfailed();
-                        if (new_cfailed.length() > 0) new_cfailed += ",";
-                        new_cfailed += "QC2d-2";
-                        if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
-                        dwrite.clean();
-                        dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                              Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),Tseries[1].corrected(),fixflags,Tseries[1].useinfo(),
-                              new_cfailed );
-                        kvUseInfo ui = dwrite.useinfo();
-                        ui.setUseFlags( dwrite.controlinfo() );
-                        dwrite.useinfo( ui );   
-                        LOGINFO("DipTest: "+kvqc2logstring(dwrite) );
-                        dbGate.insert( dwrite, "data", true); 
-                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
-                        stList.push_back(DataToWrite);
+                       
+					    Tseries[1].controlinfo().set(3,9); // later control this from the config file
+                        new_cfailed1=Tseries[1].cfailed();
+                        if (new_cfailed1.length() > 0) new_cfailed1 += ",";
+                        new_cfailed1 += "QC2d-1";
+                        if (params.CFAILED_STRING.length() > 0) new_cfailed1 += ","+params.CFAILED_STRING;
+                        
+                        Tseries[2].controlinfo().set(3,4); // later control this from the config file
+						new_cfailed2=Tseries[2].cfailed();
+                        if (new_cfailed2.length() > 0) new_cfailed2 += ",";
+                        new_cfailed2 += "QC2d-1";
+                        if (params.CFAILED_STRING.length() > 0) new_cfailed2 += ","+params.CFAILED_STRING;
+
+                        dwrite1.clean();
+                        dwrite1.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                              Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),LinInterpolated,Tseries[1].controlinfo(),Tseries[1].useinfo(),
+                              new_cfailed1 );
+                        kvUseInfo ui1 = dwrite1.useinfo();
+                        ui1.setUseFlags( dwrite1.controlinfo() );
+                        dwrite1.useinfo( ui1 );   
+                        dbGate.insert( dwrite1, "data", true); 
+
+                        dwrite2.clean();
+                        dwrite2.set(Tseries[2].stationID(),Tseries[2].obstime(),Tseries[2].original(),Tseries[2].paramID(),Tseries[2].tbtime(),
+                              Tseries[2].typeID(),Tseries[2].sensor(), Tseries[2].level(),Tseries[2].corrected(),Tseries[2].controlinfo(),Tseries[2].useinfo(),
+                              new_cfailed2 );
+                        kvUseInfo ui2 = dwrite2.useinfo();
+                        ui2.setUseFlags( dwrite2.controlinfo() );
+                        dwrite2.useinfo( ui2 );   
+                        dbGate.insert( dwrite2, "data", true); 
+
+                        kvalobs::kvStationInfo::kvStationInfo DataToWrite1(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
+                        stList.push_back(DataToWrite1);
+                        kvalobs::kvStationInfo::kvStationInfo DataToWrite2(Tseries[2].stationID(),Tseries[2].obstime(),Tseries[2].typeID());
+                        stList.push_back(DataToWrite2);
+
+                        LOGINFO("DipTest: "+kvqc2logstring(dwrite1) );
+                        LOGINFO("DipTest: "+kvqc2logstring(dwrite2) );
                      }
                   }
                   catch ( dnmi::db::SQLException & ex ) {
