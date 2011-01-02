@@ -61,8 +61,10 @@ DipTest( ReadProgramOptions params )
    float LinInterpolated;
    float AkimaInterpolated;
    float ABS20, ABS10;
-   kvalobs::kvData dwrite;                                                   
-   miutil::miString new_cfailed;
+   kvalobs::kvData dwrite1;                                                   
+   kvalobs::kvData dwrite2;                                                   
+   miutil::miString new_cfailed1;
+   miutil::miString new_cfailed2;
    miutil::miTime stime=params.UT0;
    miutil::miTime etime=params.UT1;
  
@@ -74,7 +76,8 @@ DipTest( ReadProgramOptions params )
    bool HOLDING=false;
  
    ProcessControl CheckFlags;
-   kvalobs::kvControlInfo fixflags;
+   kvalobs::kvControlInfo fixflags1;
+   kvalobs::kvControlInfo fixflags2;
 
    kvalobs::kvStationInfoList  stList;
    CheckedDataHelper checkedDataHelper(app);
@@ -134,24 +137,20 @@ DipTest( ReadProgramOptions params )
 				ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
 
 				if (ABS20 < ABS10) {
-                std::cout << Tseries[0].obstime() << " " << Tseries[0].original() << " " << Tseries[0].corrected() << " " << Tseries[0].controlinfo() << std::endl;
-                std::cout << Tseries[1].obstime() << " " << Tseries[1].original() << " " << Tseries[1].corrected() << " " << Tseries[1].controlinfo() << std::endl;
-                std::cout << Tseries[2].obstime() << " " << Tseries[2].original() << " " << Tseries[2].corrected() << " " << Tseries[2].controlinfo() << std::endl;
-				std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << std::endl;
-				std::cout << Tseries[0].original() << " " <<Tseries[1].original() << " " << Tseries[2].original() << std::endl;
-				std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << std::endl;
+                    std::cout << Tseries[0].obstime() << " " << Tseries[0].original() << " " << Tseries[0].corrected() << " " << Tseries[0].controlinfo() << std::endl;
+                    std::cout << Tseries[1].obstime() << " " << Tseries[1].original() << " " << Tseries[1].corrected() << " " << Tseries[1].controlinfo() << std::endl;
+                    std::cout << Tseries[2].obstime() << " " << Tseries[2].original() << " " << Tseries[2].corrected() << " " << Tseries[2].controlinfo() << std::endl;
+				    std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << std::endl;
+				    std::cout << Tseries[0].original() << " " <<Tseries[1].original() << " " << Tseries[2].original() << std::endl;
+				    std::cout << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << std::endl;
+                    LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
 				}
-
-                   if ( HOLDING ) { // add the requisite controls here (i.e. replace "result"
-                            LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                      }
-                      else {
-                            LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
-                      }                	
                                  
                  try{
-                     if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) && HOLDING ) {  
-                        fixflags=Tseries[1].controlinfo();
+                     if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
+                        fixflags1=Tseries[1].controlinfo();
+                        fixflags2=Tseries[2].controlinfo();
+                        CheckFlags.setter(fixflags,params.Sflag);
                         CheckFlags.setter(fixflags,params.Sflag);
                         CheckFlags.conditional_setter(fixflags,params.chflag);
                         new_cfailed=Tseries[1].cfailed();
