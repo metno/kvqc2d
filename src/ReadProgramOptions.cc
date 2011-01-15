@@ -115,6 +115,7 @@ int MinParamId;
 int TypeId;
 std::vector<int> TypeIds;
 float MissingValue;
+float DeltaValue;
 float RejectedValue;
 float MinValue;
 std::string BestStationFilename;
@@ -204,6 +205,7 @@ try{
 
         ("MissingValue",po::value<float>(&MissingValue)->default_value(-32767.0),  "Original Missing Data Value")      //DOCME
         ("RejectedValue",po::value<float>(&RejectedValue)->default_value(-32766.0),  "Original Rejected Data Value")      //DOCME
+        ("DeltaValue",po::value<float>(&DeltaValue)->default_value(0.0),  "Delta Value for Dip Test (can be Øgland's Parameter for example")      //DOCME
         ("MinValue",po::value<float>(&MinValue)->default_value(-32767.0),  "Minimum Data Value For Some Controls")      //DOCME
         ("InterpolationDistance",po::value<float>(&InterpolationDistance)->default_value(25),  "Nearest Neighbour Limiting Distance")      //DOCME
 
@@ -445,6 +447,7 @@ try{
          OutFlagFilename=FlagsOut;
          CFAILED_STRING=CfailedString;
          missing=MissingValue;
+         delta=DeltaValue;
          rejected=RejectedValue;
          MinimumValue=MinValue;
          std::cout << miutil::miTime::nowTime() << ": " << UT0 << " -> " << UT1 << "  " << filename << std::endl;

@@ -49,6 +49,7 @@ float missing;
 float rejected;
 float MinimumValue;
 float InterpolationLimit;
+float delta;
 bool newfile;
 std::map<int, std::vector<unsigned char> > zflag;
 std::map<int, std::vector<unsigned char> > Rflag;    //Requirements for reading 
