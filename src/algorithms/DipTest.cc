@@ -60,7 +60,7 @@ DipTest( ReadProgramOptions params )
    int pid=params.pid;
    float LinInterpolated;
    float AkimaInterpolated;
-   float ABS20, ABS10;
+   float ABS20, ABS10, ABS21;
    kvalobs::kvData dwrite1;                                                   
    kvalobs::kvData dwrite2;                                                   
    miutil::miString new_cfailed1;
@@ -132,11 +132,18 @@ DipTest( ReadProgramOptions params )
                 Tseries[1].controlinfo().flag(3) == 2	                                     &&
                 Tseries[2].controlinfo().flag(3) == 2 ){
 
-
+//            x
+//             
+//      x           x     -> time
+//
+//     A(0)  A(1)  A(2)
+//
 				ABS20 = fabs( Tseries[2].original()-Tseries[0].original() );
 				ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
+                ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
 
-				if (ABS20 < ABS10) {
+
+				if (ABS20 < ABS10 && ABS21>params.delta) {
                     std::cout << Tseries[0].obstime() << " " << Tseries[0].original() << " " << Tseries[0].corrected() << " " << Tseries[0].controlinfo() << std::endl;
                     std::cout << Tseries[1].obstime() << " " << Tseries[1].original() << " " << Tseries[1].corrected() << " " << Tseries[1].controlinfo() << std::endl;
                     std::cout << Tseries[2].obstime() << " " << Tseries[2].original() << " " << Tseries[2].corrected() << " " << Tseries[2].controlinfo() << std::endl;
