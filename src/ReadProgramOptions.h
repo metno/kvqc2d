@@ -35,6 +35,7 @@ std::vector<int> ControlInfoVector;
 bool zbool,Rbool,Ibool,Abool,Notbool,Wbool,Ubool,NotUbool;
 
 std::string NeighbourFilename;
+std::string ParValFile;
 std::string InFlagFilename;
 std::string OutFlagFilename;
 std::string CFAILED_STRING;
@@ -45,6 +46,7 @@ int pid;
 int maxpid,minpid;
 int tid;
 std::vector<int> tids;
+std::map<int,float> parvals;
 float missing;
 float rejected;
 float MinimumValue;

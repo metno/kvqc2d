@@ -34,6 +34,7 @@
 #include "Qc2Connection.h"
 #include "Qc2D.h"
 #include "ReadProgramOptions.h"
+#include "ParseParValFile.h"
 #include <sstream>
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
@@ -57,7 +58,6 @@ ProcessImpl::
 DipTest( ReadProgramOptions params )
 {
    LOGINFO("Dip Test");
-   int pid=params.pid;
    float LinInterpolated;
    float AkimaInterpolated;
    float ABS20, ABS10, ABS21;
@@ -90,6 +90,12 @@ DipTest( ReadProgramOptions params )
    ProcessTime = etime;
 
    std::vector<kvalobs::kvData> Tseries;
+
+   int pid=params.pid;
+   if (params.ParValFile != "NotSet") {
+          ParseParValFile ParValues(params.ParValFile);   
+          std::map<int, float>  PidValMap=ParValues.ReturnMap(); 
+   }
  
    GetStationList(StationList);  /// StationList is all the possible stations ... Check
    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {

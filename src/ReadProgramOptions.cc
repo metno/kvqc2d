@@ -114,11 +114,13 @@ int MaxParamId;
 int MinParamId;
 int TypeId;
 std::vector<int> TypeIds;
+std::map<int,float> ParVal;
 float MissingValue;
 float DeltaValue;
 float RejectedValue;
 float MinValue;
 std::string BestStationFilename;
+std::string ParValFilename;
 std::string FlagsIn;
 std::string FlagsOut;
 std::string CfailedString;
@@ -199,6 +201,7 @@ try{
         ("ControlVector",po::value<std::vector<int> > (&ControlVector),  "Control Vector (not used)")     //DOCME
 
         ("BestStationFilename",po::value<std::string> (&BestStationFilename)->default_value("NotSet"),  "Filename containing the best station list")     //DOCME
+        ("ParValFilename",po::value<std::string> (&ParValFilename)->default_value("NotSet"),  "Filename containing pairs of paramids and associated values")     //DOCME
         ("FlagsIn",po::value<std::string> (&FlagsIn)->default_value("NotSet"),  "Pathname for file containing controlinfo useifno test flag pairs")     //DOCME
         ("FlagsOut",po::value<std::string> (&FlagsOut)->default_value("NotSet"),  "Pathname for results of flag tests. ")     //DOCME
         ("CfailedString",po::value<std::string> (&CfailedString)->default_value(""),  "Value to add to CFAILED if the algorithm runs and writes data back to the database")     //DOCME
@@ -413,6 +416,8 @@ try{
         ("V_fcombi",po::value<std::vector<unsigned char> >  (&V_fcombi),  "fcombi")     //DOCME
         ("V_fhqc",po::value<std::vector<unsigned char> >  (&V_fhqc),  "fhqc")     //DOCME
 
+		//("ParVal",po::value<std::map<int,float> > (&ParVal), "Parameter ID and Value pair") //BOOST Program Optiosn Does not support maps like this.
+
         ; // ***************** The end of the line is here !! ****************************
 
         ifstream ifs(filename.c_str());   
@@ -435,6 +440,7 @@ try{
          minpid=MinParamId;
          tid=TypeId;
          tids=TypeIds;  // if multiple are required
+		 parvals=ParVal;
          RunAtMinute=RunMinute;
          RunAtHour=RunHour;
          StepD=StepDay;
@@ -443,6 +449,7 @@ try{
          ControlInfoVector=ControlVector;
          InterpolationLimit=InterpolationDistance;
          NeighbourFilename=BestStationFilename;
+         ParValFile=ParValFilename;
          InFlagFilename=FlagsIn;
          OutFlagFilename=FlagsOut;
          CFAILED_STRING=CfailedString;
@@ -696,6 +703,7 @@ maxpid=0;
 minpid=0;
 tid=0;
 tids.clear();
+parvals.clear();
 
 return 0;
 }

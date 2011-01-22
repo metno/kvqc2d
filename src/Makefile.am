@@ -48,6 +48,8 @@ kvqc2d_SOURCES = \
 	algorithms/Qc3D.cc \
 	algorithms/Qc3D.h \
 	algorithms/scone.h \
+	algorithms/ParseParValFile.cc \
+	algorithms/ParseParValFile.h \
 	algorithms/StationSelection.cc \
 	algorithms/StationSelection.h \
 	algorithms/table_delaunay.cc \
