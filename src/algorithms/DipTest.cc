@@ -95,6 +95,9 @@ DipTest( ReadProgramOptions params )
    if (params.ParValFile != "NotSet") {
           ParseParValFile ParValues(params.ParValFile);   
           std::map<int, float>  PidValMap=ParValues.ReturnMap(); 
+          for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
+				  std::cout << (*it).first << " " << (*it).second << std::endl;
+          } 
    }
  
    GetStationList(StationList);  /// StationList is all the possible stations ... Check
