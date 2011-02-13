@@ -144,9 +144,9 @@ DipTest( ReadProgramOptions params )
                    Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
                    Tseries[1].typeID() == Tseries[0].typeID()                                   &&
                    Tseries[1].typeID() == Tseries[2].typeID()                                   &&
-                   Tseries[0].controlinfo().flag(3) == 1	                                     &&
-                   Tseries[1].controlinfo().flag(3) == 2){	                                     //&&
-                   //Tseries[2].controlinfo().flag(3) == 2 ){
+                   Tseries[0].controlinfo().flag(3) == 1	                                    &&
+                   Tseries[1].controlinfo().flag(3) == 2	                                    &&
+                   Tseries[2].controlinfo().flag(3) == 2 ) {
    
    //            x
    //             
