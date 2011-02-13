@@ -161,7 +161,7 @@ DipTest( ReadProgramOptions params )
    
 				   if (ABS20 < ABS10 && ABS21>delta) {
    
-                       LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                       LinInterpolated=round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
                                        
                        try{
                            if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
