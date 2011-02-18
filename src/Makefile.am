@@ -9,6 +9,8 @@ kvqc2d_SOURCES = \
 	CheckedDataCommandBase.h \
 	CheckedDataHelper.cc \
 	CheckedDataHelper.h \
+	kvMetadataTable.cc \
+	kvMetadataTable.h \
 	InitLogger.cc \
 	InitLogger.h \
 	ProcessControl.cc \
@@ -54,7 +56,9 @@ kvqc2d_SOURCES = \
 	algorithms/StationSelection.h \
 	algorithms/table_delaunay.cc \
 	algorithms/table_delaunay.h \
-	algorithms/tround.h
+	algorithms/tround.h 
+
+
 
 kvqc2d_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
