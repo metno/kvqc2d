@@ -35,7 +35,6 @@
 #include "Qc2D.h"
 #include "ReadProgramOptions.h"
 #include "ParseParValFile.h"
-#include "kvMetadataTable.h"
 #include <sstream>
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
@@ -99,98 +98,6 @@ DipTest( ReadProgramOptions params )
    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
       StationIds.push_back( sit->stationID() );
    } 
-
-
-////
-// Look into the station_param metadata , this will be moved eslewhere later
-// code lifted from .../kvQabased/kvQABaseDBConnection.cc
-////
-
-
-{
-  bool result;
-  std::string data;
-
-  //****************//
-
-  int sid=15890;
-  miutil::miTime otime=stime;
-  std::string qcx="QC1-1-211";
-  std::list<kvMetadataTable> tables;
-
-  //***************//
-
-  // fetch metadata from table 'station_param'
-
-  std::list<int> slist; // list of stations
-  //slist = StationIds;
-  slist.push_back( 0 );
-  //slist.push_back( sid );
-
-  std::list<kvalobs::kvStationParam> splist;
-
-  try
-  {
-    std::cout << "trying" << std::endl;
-    std::cout <<  kvQueries::selectStationParam( slist, otime, qcx ) << std::endl;
-    result = dbGate.select( splist,
-                            kvQueries::selectStationParam( slist, otime, qcx ) );
-  }
-  catch ( dnmi::db::SQLException & ex )
-  {
-    IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-  }
-  catch ( ... )
-  {
-    IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-  }
-
-  if ( !result )
-    std::cout << "no result" << std::endl;
-    return false;
-
-  std::list<kvalobs::kvStationParam>::const_iterator it = splist.begin();
-
-  for ( ;it != splist.end(); it++ )
-  {
-    IDLOGDEBUG( "html", "Found StationParams:" << *it << std::endl );
-    std::cout << "... result" << std::endl;
-
-	std::cout << it->paramID() << std::endl;
-	std::cout << it->metadata() << std::endl;
-
-    // get info about parameter
-    kvalobs::kvParam kvparam;
-    //if ( !getParameter( it->paramID(), kvparam ) )
-    //{
-      //IDLOGWARN( "html", "kvQABaseDBConnection::getMetadata WARNING "
-                 //<< " getParameter failed, paramid:"
-                 //<< it->paramID() << std::endl );
-      //return false;
-    //}
-
-    //std::ostringstream ost;
-    //ost << kvparam.name() << "&"
-    //<< it->level() << "&"
-    //<< it->sensor();
-
-    // unpack metadata-string to table-structures
-    //result &= kvMetadataTable::processString( ost.str(),
-              //it->metadata(), tables );
-    //if ( !result )
-    //{
-      //IDLOGWARN( "html", "kvQABaseDBConnection::getMetadata WARNING "
-                 //<< " kvMetadataTable::processString with name:"
-                 //<< ost.str() << " and data:" << it->metadata() << std::endl );
-    //}
-  }
-
-  std::cout << "Result: " << result << std::endl;
-}
-
-////
-////
-////
 
    //int pid=params.pid;
    if (params.ParValFile != "NotSet") {
