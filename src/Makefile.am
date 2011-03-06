@@ -83,7 +83,7 @@ kvqc2d_LDADD = \
         -lnetcdf_c++ \
         -lgsl \
         -lgslcblas \
-	-ldl \
+     	-ldl \
         -lm         
 
 

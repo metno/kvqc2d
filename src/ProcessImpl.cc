@@ -62,9 +62,11 @@ GetStationList(std::list<kvalobs::kvStation>& StationList)
 
    bool result;
    kvalobs::kvDbGate dbGate( &con );
+   std::list<kvalobs::kvStation> SL;
 
    try {
-        result = dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" );
+        //result = dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" );
+        result = dbGate.select( SL, kvQueries::selectAllStations("stationid"), "station" );
      }
      catch ( dnmi::db::SQLException & ex ) {
         IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -72,6 +74,16 @@ GetStationList(std::list<kvalobs::kvStation>& StationList)
      catch ( ... ) {
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
      }
+
+// Make Qc2 specific selection on the StationList here
+// Only use stations less than 100000 i.e. only Norwegian stations
+// Also remove stations that are ships.
+    for ( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
+			if (it->stationID() < 100000  &&  it->maxspeed()  > 0.0) {
+			    StationList.push_back(*it);
+			}
+    }
+
 }
 
 void 
