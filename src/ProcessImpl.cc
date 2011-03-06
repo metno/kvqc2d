@@ -79,7 +79,7 @@ GetStationList(std::list<kvalobs::kvStation>& StationList)
 // Only use stations less than 100000 i.e. only Norwegian stations
 // Also remove stations that are ships.
     for ( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
-			if (it->stationID() < 100000  &&  it->maxspeed()  < 1.0) {
+			if (it->stationID() < 100000  &&  it->maxspeed()==0.0) {
 			    StationList.push_back(*it);
 			}
     }
