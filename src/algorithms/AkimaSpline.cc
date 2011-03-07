@@ -28,46 +28,45 @@
   with KVALOBS; if not, write to the Free Software Foundation Inc., 
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "ProcessImpl.h"
-#include "BasicStatistics.h"
-#include "Qc2App.h"
-#include "Qc2Connection.h"
-#include "Qc2D.h"
-#include "ReadProgramOptions.h"
-#include <sstream>
-#include <milog/milog.h>
-#include <kvalobs/kvDbGate.h>
-#include <memory>
-#include <stdexcept>
 
-#include "CheckedDataCommandBase.h"
-#include "CheckedDataHelper.h"
+#include "AkimaSpline.h"
 
-#include <math.h>
-//GNU Statistical library
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_spline.h>
-
-
-using namespace kvalobs;
 using namespace std;
-using namespace miutil;
 
-int AkimaSpline(std::vector<double> tt, std::vector<double>pp, int npoints)
+AkimaSpline::AkimaSpline(std::vector<double> xt, std::vector<double> yt)
 {
 
-  int i, nseries;
-  double xi, yi|;
-  double tt[100], pp[100]; // only set up for time series; max 100 points, and trap to catch errors ...
+  npoints=xt.size();
+
+  for (int j=0; j<xt.size();++j){
+     tt[j]=xt[j];
+     pp[j]=yt[j];
+  }
+
   gsl_interp_accel *acc = gsl_interp_accel_alloc ();
   gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
   gsl_spline_init (spline, tt, pp, npoints);
-  for (xi = tt[0]; xi <= tt[nseries-1]; xi += 1.0)  {
-     yi = gsl_spline_eval (spline, xi, acc);
-  }
-  gsl_spline_free (spline);
-  gsl_interp_accel_free (acc);
 
-  return 0;
 }
 
+int AkimaSpline::AkimaPoint(double xp, double yp)
+{
+
+  //for (xi = tt[0]; xi <= tt[npoints-1]; xi += 1.0)  {
+     //yi = gsl_spline_eval (spline, xi, acc);
+  //}
+  yp = gsl_spline_eval (spline, xp, acc);
+
+return 0;
+}
+
+int AkimaSpline::AkimaPoints()
+{
+
+  for (xi = tt[0]; xi <= tt[npoints-1]; xi += 1.0)  {
+     yi = gsl_spline_eval (spline, xi, acc);
+	 std::cout << xi << " " << yi << std::endl; //This is just a test for now
+  }
+
+return 0;
+}
