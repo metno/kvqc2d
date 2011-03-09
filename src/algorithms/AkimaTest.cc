@@ -45,6 +45,8 @@
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
+#include "AkimaSpline.h"
+
 #include "tround.h"
 
 using namespace kvalobs;
@@ -88,6 +90,16 @@ AkimaTest( ReadProgramOptions params )
    std::list<kvalobs::kvData> MaxValue;
    std::list<kvalobs::kvData> MinValue;
  
+				 std::vector<double> xt,yt;
+				 for (int i=0;i<5;i++){
+						 xt.push_back(i*1.0);
+						 yt.push_back( xt[i]*xt[i] - xt[i]);
+                 }
+                 AkimaSpline AkimaY(xt,yt);
+				 AkimaY.AkimaPoints();
+
+
+
    GetStationList(StationList);  /// StationList is all the possible stations ... Check
    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
       StationIds.push_back( sit->stationID() );
@@ -96,9 +108,9 @@ AkimaTest( ReadProgramOptions params )
    while (ProcessTime >= stime) 
    {
       XTime=ProcessTime;
-      XTime.addHour(-1);
+      XTime.addHour(-2);
       YTime=ProcessTime;
-      YTime.addHour(1);
+      YTime.addHour(2);
       Tseries.clear();
       try {
         result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
@@ -133,24 +145,32 @@ AkimaTest( ReadProgramOptions params )
                 //CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                         << " " <<
                 //CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)  << " " << std::endl;
 
-            if (Tseries.size()==3                                                            &&
-                Tseries[1].corrected() == params.missing                                     &&
+            if (Tseries.size()==5                                                            &&
+                Tseries[2].corrected() == params.missing                                     &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
-                Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
+                Tseries[2].obstime().hour() == (Tseries[1].obstime().hour() + 1) % 24        &&
+                Tseries[3].obstime().hour() == (Tseries[2].obstime().hour() + 1) % 24        &&
+                Tseries[4].obstime().hour() == (Tseries[3].obstime().hour() + 1) % 24        &&
                 Tseries[1].typeID() == Tseries[0].typeID()                                   &&
-                Tseries[1].typeID() == Tseries[2].typeID()                                   &&
-                !CheckFlags.condition(Tseries[0].controlinfo(),params.Notflag)               &&
-                !CheckFlags.condition(Tseries[2].controlinfo(),params.Notflag)               &&
-                CheckFlags.condition(Tseries[0].controlinfo(),params.Aflag)                  &&
-                CheckFlags.condition(Tseries[2].controlinfo(),params.Aflag)                  &&
-                !CheckFlags.condition(Tseries[0].useinfo(),params.NotUflag)              &&
-                !CheckFlags.condition(Tseries[2].useinfo(),params.NotUflag)              &&
+                Tseries[2].typeID() == Tseries[1].typeID()                                   &&
+                Tseries[3].typeID() == Tseries[2].typeID()                                   &&
+                Tseries[4].typeID() == Tseries[3].typeID()                                   &&
                 CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                  &&
-                CheckFlags.condition(Tseries[2].useinfo(),params.Uflag) ) {
+                CheckFlags.condition(Tseries[1].useinfo(),params.Uflag)                  &&
+                CheckFlags.condition(Tseries[3].useinfo(),params.Uflag)                  &&
+                CheckFlags.condition(Tseries[4].useinfo(),params.Uflag) ) {
                 if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
 
                  NewCorrected=-99999.0;
-                 LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
+                 LinInterpolated=0.5*(Tseries[1].original()+Tseries[3].original() );
+				 std::vector<double> xt,yt;
+				 for (int i=0;i<5;i++){
+						 xt.push_back(i*1.0);
+						 yt.push_back( Tseries[i].original() );
+                 }
+                 AkimaSpline AkimaX(xt,yt);
+				 AkimaX.AkimaPoints();
+				 // first argument only needs to be 1,2,3,4,5 ... maybe do not need
                  if (params.maxpid>0 and params.minpid>0) {
                     resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
                     resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
@@ -165,39 +185,39 @@ AkimaTest( ReadProgramOptions params )
                  }
                  // If NewCorrected has not been set then use the LinInerpolated Result
                  if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
-                 try{
-                     if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
-                        fixflags=Tseries[1].controlinfo();
-                        CheckFlags.setter(fixflags,params.Sflag);
-                        CheckFlags.conditional_setter(fixflags,params.chflag);
-                        kvData d;                                                   
-                        // Round the value to the correct precision before writing back
-                        NewCorrected=round<float,1>(NewCorrected);
-                        d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                              Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              Tseries[1].cfailed()+" QC2d-2 "+params.CFAILED_STRING );
-                        kvUseInfo ui = d.useinfo();
-                        ui.setUseFlags( d.controlinfo() );
-                        d.useinfo( ui );   
-                        LOGINFO("ProcessUnitT:"+kvqc2logstring(d) );
-                        //LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
-                        dbGate.insert( d, "data", true); 
-                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
-                        stList.push_back(DataToWrite);
-                     }
-                  }
-                  catch ( dnmi::db::SQLException & ex ) {
-                     IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-                     std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
-                  }
-                  catch ( ... ) {
-                     IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-                     std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
-                  }
-                  if(!stList.empty()){
-                     checkedDataHelper.sendDataToService(stList);
-                     stList.clear();
-                  }
+                 ////// try{
+                     ////// if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
+                        ////// fixflags=Tseries[1].controlinfo();
+                        ////// CheckFlags.setter(fixflags,params.Sflag);
+                        ////// CheckFlags.conditional_setter(fixflags,params.chflag);
+                        ////// kvData d;                                                   
+                        ////// // Round the value to the correct precision before writing back
+                        ////// NewCorrected=round<float,1>(NewCorrected);
+                        ////// d.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                              ////// Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
+                              ////// Tseries[1].cfailed()+" QC2d-2 "+params.CFAILED_STRING );
+                        ////// kvUseInfo ui = d.useinfo();
+                        ////// ui.setUseFlags( d.controlinfo() );
+                        ////// d.useinfo( ui );   
+                        ////// LOGINFO("ProcessUnitT:"+kvqc2logstring(d) );
+                        ////// //LOGINFO("ProcessUnitT Writing Data "+StrmConvert(d.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
+                        ////// // TEMP //dbGate.insert( d, "data", true); 
+                        ////// // TEMP //kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
+                        ////// // TEMP //stList.push_back(DataToWrite);
+                     ////// }
+                  ////// }
+                  ////// catch ( dnmi::db::SQLException & ex ) {
+                     ////// IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+                     ////// std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
+                  ////// }
+                  ////// catch ( ... ) {
+                     ////// IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+                     ////// std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
+                  ////// }
+                  ////// if(!stList.empty()){
+                     ////// checkedDataHelper.sendDataToService(stList);
+                     ////// stList.clear();
+                  ////// }
 
                } // Contents of the points are valid
             } //Three points to work with
