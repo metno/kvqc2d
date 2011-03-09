@@ -39,6 +39,7 @@ class ProcessImpl
     int FlagTester(ReadProgramOptions params);                                                           
     int StressTester(ReadProgramOptions params);                                                           
     int SingleMinMaxAverage(ReadProgramOptions params);                                                           
+    int AkimaTest(ReadProgramOptions params);                                                           
     int SingleLinear(ReadProgramOptions params);                                                           
     int SingleLinear_v32(ReadProgramOptions params);                                                           
     int DipTest(ReadProgramOptions params);                                                           

@@ -165,9 +165,14 @@ select(ReadProgramOptions params)
          LOGINFO("Case 8: Completed");
          break;
      case 9:
+         // std::cout << "Case: " << AlgoCode << std::endl;
+         // LOGINFO("Case 9: Single Min Max Average");
+         // SingleMinMaxAverage(params);
+         // LOGINFO("Case 9: Completed");
+         // break;
          std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 9: Single Min Max Average");
-         SingleMinMaxAverage(params);
+         LOGINFO("Case 9: Akima Test");
+         AkimaTest(params);
          LOGINFO("Case 9: Completed");
          break;
      case 10:

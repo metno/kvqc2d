@@ -56,6 +56,9 @@ kvqc2d_SOURCES = \
 	algorithms/StationSelection.h \
 	algorithms/table_delaunay.cc \
 	algorithms/table_delaunay.h \
+	algorithms/AkimaSpline.cc \
+	algorithms/AkimaSpline.h \
+	algorithms/AkimaTest.cc\
 	algorithms/tround.h 
 
 
