@@ -95,10 +95,15 @@ AkimaTest( ReadProgramOptions params )
 						 xt.push_back(i*1.0);
 						 yt.push_back( xt[i]*xt[i] - xt[i]);
                  }
-				 std::cout << "XX1" << std::endl;
+				 for (int i=8;i<12;i++){
+						 xt.push_back(i*1.0);
+						 yt.push_back( xt[i-1]*xt[i-1] - 7.0);
+                 }
+
                  AkimaSpline AkimaY(xt,yt);
-				 std::cout << "XX2" << std::endl;
 				 AkimaY.AkimaPoints();
+				 std::cout << AkimaY.AkimaPoint(0.5) << std::endl;
+				 std::cout << AkimaY.AkimaPoint(7.0) << std::endl;
 
    return 0;
 
