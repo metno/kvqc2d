@@ -91,14 +91,16 @@ AkimaTest( ReadProgramOptions params )
    std::list<kvalobs::kvData> MinValue;
  
 				 std::vector<double> xt,yt;
-				 for (int i=0;i<5;i++){
+				 for (int i=0;i<7;i++){
 						 xt.push_back(i*1.0);
 						 yt.push_back( xt[i]*xt[i] - xt[i]);
                  }
+				 std::cout << "XX1" << std::endl;
                  AkimaSpline AkimaY(xt,yt);
+				 std::cout << "XX2" << std::endl;
 				 AkimaY.AkimaPoints();
 
-
+   return 0;
 
    GetStationList(StationList);  /// StationList is all the possible stations ... Check
    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
