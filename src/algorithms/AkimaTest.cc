@@ -91,21 +91,23 @@ AkimaTest( ReadProgramOptions params )
    std::list<kvalobs::kvData> MinValue;
  
 				 std::vector<double> xt,yt;
-				 for (int i=0;i<7;i++){
-						 xt.push_back(i*1.0);
-						 yt.push_back( xt[i]*xt[i] - xt[i]);
-                 }
-				 for (int i=8;i<12;i++){
-						 xt.push_back(i*1.0);
-						 yt.push_back( xt[i-1]*xt[i-1] - 7.0);
-                 }
+				 //for (int i=0;i<7;i++){
+						 //xt.push_back(i*1.0);
+						 //yt.push_back( xt[i]*xt[i] - xt[i]);
+                 //}
+				 //for (int i=8;i<12;i++){
+						 //xt.push_back(i*1.0);
+						 //yt.push_back( xt[i-1]*xt[i-1] - 7.0);
+                 //}
+//
+                 //AkimaSpline AkimaY(xt,yt);
+				 //AkimaY.AkimaPoints();
+				 //std::cout << "0.5 " << AkimaY.AkimaPoint(0.5) << std::endl;
+				 //std::cout << "7.0 " << AkimaY.AkimaPoint(7.0) << std::endl;
+				 xt.clear();
+				 yt.clear();
 
-                 AkimaSpline AkimaY(xt,yt);
-				 AkimaY.AkimaPoints();
-				 std::cout << "0.5 " << AkimaY.AkimaPoint(0.5) << std::endl;
-				 std::cout << "7.0 " << AkimaY.AkimaPoint(7.0) << std::endl;
-
-   return 0;
+   //return 0;
 
    GetStationList(StationList);  /// StationList is all the possible stations ... Check
    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
@@ -115,7 +117,7 @@ AkimaTest( ReadProgramOptions params )
    while (ProcessTime >= stime) 
    {
       XTime=ProcessTime;
-      XTime.addHour(-2);
+      XTime.addHour(-3);
       YTime=ProcessTime;
       YTime.addHour(2);
       Tseries.clear();
@@ -152,46 +154,51 @@ AkimaTest( ReadProgramOptions params )
                 //CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                         << " " <<
                 //CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)  << " " << std::endl;
 
-            if (Tseries.size()==5                                                            &&
-                Tseries[2].corrected() == params.missing                                     &&
+				// Need 5 points for AKima. One point in the t-series is missing so use
+				// three in the past and two in the future. Therefore need a good run of
+				// 6 points.
+				//
+				//  x  x  x  M  x x
+				//
+				//
+
+            if (Tseries.size()==6                                                            &&
+                Tseries[3].corrected() == params.missing                                     &&
                 Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
                 Tseries[2].obstime().hour() == (Tseries[1].obstime().hour() + 1) % 24        &&
                 Tseries[3].obstime().hour() == (Tseries[2].obstime().hour() + 1) % 24        &&
                 Tseries[4].obstime().hour() == (Tseries[3].obstime().hour() + 1) % 24        &&
+                Tseries[5].obstime().hour() == (Tseries[4].obstime().hour() + 1) % 24        &&
                 Tseries[1].typeID() == Tseries[0].typeID()                                   &&
                 Tseries[2].typeID() == Tseries[1].typeID()                                   &&
                 Tseries[3].typeID() == Tseries[2].typeID()                                   &&
                 Tseries[4].typeID() == Tseries[3].typeID()                                   &&
+                Tseries[5].typeID() == Tseries[4].typeID()                                   &&
                 CheckFlags.condition(Tseries[0].useinfo(),params.Uflag)                  &&
                 CheckFlags.condition(Tseries[1].useinfo(),params.Uflag)                  &&
-                CheckFlags.condition(Tseries[3].useinfo(),params.Uflag)                  &&
-                CheckFlags.condition(Tseries[4].useinfo(),params.Uflag) ) {
+                CheckFlags.condition(Tseries[2].useinfo(),params.Uflag)                  &&
+                CheckFlags.condition(Tseries[4].useinfo(),params.Uflag)                  &&
+                CheckFlags.condition(Tseries[5].useinfo(),params.Uflag) ) {
+				xt.clear();
+				yt.clear();;
                 if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
 
-                 NewCorrected=-99999.0;
-                 LinInterpolated=0.5*(Tseries[1].original()+Tseries[3].original() );
+                 LinInterpolated=0.5*(Tseries[2].original()+Tseries[4].original() );
+				 std::cout << "3" << Tseries[3].obstime() << " : " << LinInterpolated << std::endl;
 				 std::vector<double> xt,yt;
-				 for (int i=0;i<5;i++){
-						 xt.push_back(i*1.0);
-						 yt.push_back( Tseries[i].original() );
+				 for (int i=0;i<6;i++){
+						 if (i != 3 ) {
+						   xt.push_back(i*1.0);
+						   yt.push_back( Tseries[i].original() );
+						   std::cout << i << ": "<< Tseries[i].obstime() << " " << Tseries[i].original() << std::endl;
+						 }
                  }
                  AkimaSpline AkimaX(xt,yt);
 				 AkimaX.AkimaPoints();
+				 AkimaX.AkimaPoint(3.0);
 				 // first argument only needs to be 1,2,3,4,5 ... maybe do not need
-                 if (params.maxpid>0 and params.minpid>0) {
-                    resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
-                    resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
-                    if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
-                       if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
-                       if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
-                    }
-		    if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
-                       //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                       NewCorrected=Tseries[1].corrected(); 
-                    }
-                 }
                  // If NewCorrected has not been set then use the LinInerpolated Result
-                 if (NewCorrected == -99999.0) NewCorrected=LinInterpolated;
+
                  ////// try{
                      ////// if (Tseries[1].corrected() != NewCorrected && NewCorrected != -99999.0 && CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  
                         ////// fixflags=Tseries[1].controlinfo();

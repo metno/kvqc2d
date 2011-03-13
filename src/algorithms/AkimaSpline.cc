@@ -39,7 +39,7 @@ AkimaSpline::AkimaSpline(std::vector<double> xt, std::vector<double> yt)
   npoints=xt.size();
   std::cout << "npoints " << npoints << std::endl;
 
-  std::cout << "Input Data" << std::endl;
+  std::cout << "Input Data ****************************" << std::endl;
 
   for (int j=0; j<xt.size();++j){
      tt[j]=xt[j];
