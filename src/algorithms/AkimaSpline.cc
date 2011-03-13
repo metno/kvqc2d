@@ -39,10 +39,12 @@ AkimaSpline::AkimaSpline(std::vector<double> xt, std::vector<double> yt)
   npoints=xt.size();
   std::cout << "npoints " << npoints << std::endl;
 
+  std::cout << "Input Data" << std::endl;
+
   for (int j=0; j<xt.size();++j){
      tt[j]=xt[j];
      pp[j]=yt[j];
-     std::cout << tt[j] << " " << pp[j] << std::endl;
+	 std::cout << tt[j] << " " << pp[j] << std::endl;
   }
 
   //gsl_interp_accel *acc = gsl_interp_accel_alloc ();
@@ -84,10 +86,12 @@ int AkimaSpline::AkimaPoints()
  gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
  gsl_spline_init (spline, tt, pp, npoints);
 
- for (int i = 0; i < npoints; i++)  {
-     xi = tt[i]; 
+ std::cout << "FIT *******************" << std::endl;
+
+ for (int i = 0; i < 101; i++)  {
+     xi = tt[0] + (tt[npoints-1] - tt[0])*i/100.0; 
      yi = gsl_spline_eval(spline, xi, acc);
-	 std::cout << xi << " " << yi << " " << tt[i] << " " << pp[i] << std::endl; 
+	 std::cout <<  xi << " " << yi << std::endl; 
   }
 
   gsl_spline_free (spline);

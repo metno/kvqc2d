@@ -102,8 +102,8 @@ AkimaTest( ReadProgramOptions params )
 
                  AkimaSpline AkimaY(xt,yt);
 				 AkimaY.AkimaPoints();
-				 std::cout << AkimaY.AkimaPoint(0.5) << std::endl;
-				 std::cout << AkimaY.AkimaPoint(7.0) << std::endl;
+				 std::cout << "0.5 " << AkimaY.AkimaPoint(0.5) << std::endl;
+				 std::cout << "7.0 " << AkimaY.AkimaPoint(7.0) << std::endl;
 
    return 0;
 
