@@ -181,10 +181,15 @@ AkimaTest( ReadProgramOptions params )
                 CheckFlags.condition(Tseries[5].useinfo(),params.Uflag) ) {
 				xt.clear();
 				yt.clear();;
-                if (Tseries[0].original() > params.missing && Tseries[1].original()==params.missing && Tseries[2].original() > params.missing){
-
+                if (Tseries[0].original() > params.missing && 
+                    Tseries[1].original() > params.missing && 
+                    Tseries[2].original() > params.missing && 
+                    Tseries[4].original() > params.missing && 
+                    Tseries[5].original() > params.missing && 
+					Tseries[3].original()==params.missing ){
+                 std::cout << Tseries[3].obstime() << " " << Tseries[3].stationID() << " " << Tseries[3].paramID() << "********************************" << std::endl;
                  LinInterpolated=0.5*(Tseries[2].original()+Tseries[4].original() );
-				 std::cout << "3" << Tseries[3].obstime() << " : " << LinInterpolated << std::endl;
+				 std::cout << "LinearInterpolated for point 3: " << Tseries[3].obstime() << " : " << LinInterpolated << std::endl;
 				 std::vector<double> xt,yt;
 				 for (int i=0;i<6;i++){
 						 if (i != 3 ) {

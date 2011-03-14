@@ -72,6 +72,7 @@ double AkimaSpline::AkimaPoint(double xp)
   gsl_spline_init (spline, tt, pp, npoints);
 
   yp = gsl_spline_eval(spline, xp, acc);
+  std::cout << "Akima: " << xp << " " << yp << std::endl;
 
   gsl_spline_free (spline);
   gsl_interp_accel_free (acc);
