@@ -42,7 +42,6 @@
 #include <memory>
 #include <stdexcept>
 //#include <maths.h>
-
 #include "ProcessControl.h"
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
