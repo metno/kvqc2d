@@ -48,6 +48,7 @@
 #include "CheckedDataHelper.h"
 
 #include "tround.h"
+#include "AkimaSpline.h"
 
 using namespace kvalobs;
 using namespace std;
@@ -58,6 +59,7 @@ ProcessImpl::
 DipTest( ReadProgramOptions params )
 {
    LOGINFO("Dip Test");
+   float Interpolated;
    float LinInterpolated;
    float AkimaInterpolated;
    float ABS20, ABS10, ABS21;
@@ -75,6 +77,7 @@ DipTest( ReadProgramOptions params )
    std::list<kvalobs::kvData> Qc2Data;
    std::list<kvalobs::kvData> Qc2SeriesData;
    bool result;
+   bool AkimaPresent=false;
    bool HOLDING=false;
  
    ProcessControl CheckFlags;
@@ -91,6 +94,8 @@ DipTest( ReadProgramOptions params )
    miutil::miTime YTime;
 
    std::vector<kvalobs::kvData> Tseries;
+   std::vector<kvalobs::kvData> Aseries;
+   std::vector<double> xt,yt;
 
    std::map<int, float>  PidValMap; 
 
@@ -163,6 +168,67 @@ DipTest( ReadProgramOptions params )
 				   if (ABS20 < ABS10 && ABS21>delta) {
    
                        LinInterpolated=round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
+
+					   // Now see if we can also do Akima
+					   // Just need some extra points
+					   
+					   // Calculate Akima Block
+					   {
+                         XTime=ProcessTime;
+                         YTime=ProcessTime;
+                         XTime.addHour(-3);
+                         YTime.addHour(2);
+                         Aseries.clear();
+                         result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
+                         for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
+                           Aseries.push_back(*is);
+                         }
+						 // A(0)
+						 // A(1)
+						 // A(2) = T(0)
+						 // A(3) = T(1)
+						 // A(4) = T(2)
+						 // A(5)
+						 AkimaPresent=false;
+                         if (Aseries.size()==6                                                       &&
+							Aseries[3].obstime()==Tseries[1].obstime()           	                 &&
+							Aseries[3].stationID()==Tseries[1].stationID()                            &&
+							Aseries[3].paramID()==Tseries[1].paramID()           	                 &&
+                            Aseries[3].corrected() == params.missing                                 &&
+                            Aseries[1].obstime().hour() == (Aseries[0].obstime().hour() + 1) % 24    &&
+                            Aseries[2].obstime().hour() == (Aseries[1].obstime().hour() + 1) % 24    &&
+                            Aseries[3].obstime().hour() == (Aseries[2].obstime().hour() + 1) % 24    &&
+                            Aseries[4].obstime().hour() == (Aseries[3].obstime().hour() + 1) % 24    &&
+                            Aseries[5].obstime().hour() == (Aseries[4].obstime().hour() + 1) % 24    &&
+                            Aseries[1].typeID() == Aseries[0].typeID()                               &&
+                            Aseries[2].typeID() == Aseries[1].typeID()                               &&
+                            Aseries[3].typeID() == Aseries[2].typeID()                               &&
+                            Aseries[4].typeID() == Aseries[3].typeID()                               &&
+                            Aseries[5].typeID() == Aseries[4].typeID()                               &&
+                            CheckFlags.condition(Aseries[0].useinfo(),params.Uflag)                  &&
+                            CheckFlags.condition(Aseries[1].useinfo(),params.Uflag)                  &&
+                            CheckFlags.condition(Aseries[2].useinfo(),params.Uflag)                  &&
+                            CheckFlags.condition(Aseries[4].useinfo(),params.Uflag)                  &&
+                            CheckFlags.condition(Aseries[5].useinfo(),params.Uflag)                  && 
+                            Aseries[0].original() > params.missing                                   && 
+                            Aseries[1].original() > params.missing                                   && 
+                            Aseries[2].original() > params.missing                                   && 
+                            Aseries[4].original() > params.missing                                   && 
+                            Aseries[5].original() > params.missing                                   && 
+					        Aseries[3].original()==params.missing ){ 
+						      xt.clear();
+						      yt.clear();
+				              for (int i=0;i<6;i++){
+						         if (i != 3 ) {
+						            xt.push_back(i*1.0);
+						            yt.push_back( Aseries[i].original() );
+						         }
+                              }
+                              AkimaSpline AkimaX(xt,yt);
+				              AkimaInterpolated=AkimaX.AkimaPoint(3.0);
+						      AkimaPresent=true;
+					       }
+						}	 
                                        
                        try{
                            if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
@@ -171,7 +237,15 @@ DipTest( ReadProgramOptions params )
 					          fixflags1.set(3,9); // later control this from the config file
                               new_cfailed1=Tseries[1].cfailed();
                               if (new_cfailed1.length() > 0) new_cfailed1 += ",";
-                              new_cfailed1 += "QC2d-1";
+							  Interpolated=LinInterpolated;
+							  if (AkimaPresent) {
+							     Interpolated=AkimaInterpolated;
+                                 new_cfailed1 += "QC2d-1-A";
+                                 new_cfailed1 += ",Linear=";
+                                 new_cfailed1 += StrmConvert(LinInterpolated);
+							  } else {
+                                 new_cfailed1 += "QC2d-1-L";
+							  }
                               if (params.CFAILED_STRING.length() > 0) new_cfailed1 += ","+params.CFAILED_STRING;
                               
 					          fixflags2=Tseries[1].controlinfo(); // later control this from the config file
@@ -183,7 +257,7 @@ DipTest( ReadProgramOptions params )
       
                               dwrite1.clean();
                               dwrite1.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                                    Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),LinInterpolated,fixflags1,Tseries[1].useinfo(),
+                                    Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),Interpolated,fixflags1,Tseries[1].useinfo(),
                                     new_cfailed1 );
                               kvUseInfo ui1 = dwrite1.useinfo();
                               ui1.setUseFlags( dwrite1.controlinfo() );
