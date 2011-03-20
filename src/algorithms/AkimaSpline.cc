@@ -33,36 +33,19 @@
 
 using namespace std;
 
+// --------------------------------------------------------------------
+
 AkimaSpline::AkimaSpline(std::vector<double> xt, std::vector<double> yt)
 {
-
   npoints=xt.size();
-  std::cout << "npoints " << npoints << std::endl;
-
-  std::cout << "Input Data ****************************" << std::endl;
-
   for (int j=0; j<xt.size();++j){
      tt[j]=xt[j];
      pp[j]=yt[j];
 	 std::cout << tt[j] << " " << pp[j] << std::endl;
   }
-
-  //gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-  //gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
-  //gsl_spline_init (spline, tt, pp, npoints);
-
- //double xx,yy;
-
- //for (int i = 0; i < npoints; i++)  {
-     //xx = tt[i]; 
-     //yy = gsl_spline_eval(spline, xx, acc);
-	 //std::cout << xx << " " << yy << " " << tt[i] << " " << pp[i] << std::endl; //This is just a test for now
-  //}
-     //xx=tt[npoints-1]+1.0;
-     //yy = gsl_spline_eval(spline, xx, acc);
-	 //std::cout << xx << " " << yy << std::endl; //This is just a test for now
-
 }
+
+// --------------------------------------------------------------------
 
 double AkimaSpline::AkimaPoint(double xp)
 {
@@ -70,15 +53,13 @@ double AkimaSpline::AkimaPoint(double xp)
   gsl_interp_accel *acc = gsl_interp_accel_alloc ();
   gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
   gsl_spline_init (spline, tt, pp, npoints);
-
   yp = gsl_spline_eval(spline, xp, acc);
-  std::cout << "Akima: " << xp << " " << yp << std::endl;
-
   gsl_spline_free (spline);
   gsl_interp_accel_free (acc);
-
-return yp;
+  return yp;
 }
+
+// --------------------------------------------------------------------
 
 int AkimaSpline::AkimaPoints()
 {
@@ -87,10 +68,10 @@ int AkimaSpline::AkimaPoints()
  gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
  gsl_spline_init (spline, tt, pp, npoints);
 
- std::cout << "FIT *******************" << std::endl;
+ long nmax=npoints*10;  
 
- for (int i = 0; i < 101; i++)  {
-     xi = tt[0] + (tt[npoints-1] - tt[0])*i/100.0; 
+ for (int i = 0; i < nmax +1; i++)  {
+     xi = tt[0] + (tt[npoints-1] - tt[0])*i/nmax; 
      yi = gsl_spline_eval(spline, xi, acc);
 	 std::cout <<  xi << " " << yi << std::endl; 
   }
