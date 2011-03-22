@@ -251,7 +251,11 @@ DipTest( ReadProgramOptions params )
 					          fixflags2.set(3,4); // later control this from the config file
 						      new_cfailed2=Tseries[2].cfailed();
                               if (new_cfailed2.length() > 0) new_cfailed2 += ",";
-                              new_cfailed2 += "QC2d-1";
+							  if (AkimaPresent) {
+                                 new_cfailed2 += "QC2d-1-A";
+							  } else {
+                                 new_cfailed2 += "QC2d-1-L";
+							  }
                               if (params.CFAILED_STRING.length() > 0) new_cfailed2 += ","+params.CFAILED_STRING;
       
                               dwrite1.clean();
