@@ -168,6 +168,8 @@ DipTest( ReadProgramOptions params )
    
                        LinInterpolated=round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
 
+					   std::cout << "Lin" << std::endl;
+
 					   // Now see if we can also do Akima
 					   // Just need some extra points
 					   
@@ -181,6 +183,7 @@ DipTest( ReadProgramOptions params )
                          result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
                          for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
                            Aseries.push_back(*is);
+						   std::cout << is->obstime() << std::endl;
                          }
 						 // A(0)
 						 // A(1)
@@ -188,12 +191,12 @@ DipTest( ReadProgramOptions params )
 						 // A(3) = T(1)
 						 // A(4) = T(2)
 						 // A(5)
+					     std::cout << "ASeries Size: " << Aseries.size() << std::endl;
 						 AkimaPresent=false;
                          if (Aseries.size()==6                                                       &&
 							Aseries[3].obstime()==Tseries[1].obstime()           	                 &&
-							Aseries[3].stationID()==Tseries[1].stationID()                            &&
+							Aseries[3].stationID()==Tseries[1].stationID()                           &&
 							Aseries[3].paramID()==Tseries[1].paramID()           	                 &&
-                            Aseries[3].corrected() == params.missing                                 &&
                             Aseries[1].obstime().hour() == (Aseries[0].obstime().hour() + 1) % 24    &&
                             Aseries[2].obstime().hour() == (Aseries[1].obstime().hour() + 1) % 24    &&
                             Aseries[3].obstime().hour() == (Aseries[2].obstime().hour() + 1) % 24    &&
@@ -206,15 +209,13 @@ DipTest( ReadProgramOptions params )
                             Aseries[5].typeID() == Aseries[4].typeID()                               &&
                             CheckFlags.condition(Aseries[0].useinfo(),params.Uflag)                  &&
                             CheckFlags.condition(Aseries[1].useinfo(),params.Uflag)                  &&
-                            CheckFlags.condition(Aseries[2].useinfo(),params.Uflag)                  &&
-                            CheckFlags.condition(Aseries[4].useinfo(),params.Uflag)                  &&
                             CheckFlags.condition(Aseries[5].useinfo(),params.Uflag)                  && 
                             Aseries[0].original() > params.missing                                   && 
                             Aseries[1].original() > params.missing                                   && 
                             Aseries[2].original() > params.missing                                   && 
                             Aseries[4].original() > params.missing                                   && 
                             Aseries[5].original() > params.missing                                   && 
-					        Aseries[3].original()==params.missing ){ 
+					        Aseries[3].original() > params.missing ){ 
 						      xt.clear();
 						      yt.clear();
 				              for (int i=0;i<6;i++){
@@ -224,7 +225,7 @@ DipTest( ReadProgramOptions params )
 						         }
                               }
                               AkimaSpline AkimaX(xt,yt);
-				              AkimaInterpolated=AkimaX.AkimaPoint(3.0);
+				              AkimaInterpolated=round<float,1>( AkimaX.AkimaPoint(3.0) );
 						      AkimaPresent=true;
 					       }
 						}	 
@@ -251,11 +252,12 @@ DipTest( ReadProgramOptions params )
 					          fixflags2.set(3,4); // later control this from the config file
 						      new_cfailed2=Tseries[2].cfailed();
                               if (new_cfailed2.length() > 0) new_cfailed2 += ",";
-							  if (AkimaPresent) {
-                                 new_cfailed2 += "QC2d-1-A";
-							  } else {
-                                 new_cfailed2 += "QC2d-1-L";
-							  }
+                              new_cfailed2 += "QC2d-1";
+							  //if (AkimaPresent) {                // DO NOT NEED THIS ...  this point is not interpolated
+                                 //new_cfailed2 += "QC2d-1-A";
+							  //} else {
+                                 //new_cfailed2 += "QC2d-1-L";
+							  //}
                               if (params.CFAILED_STRING.length() > 0) new_cfailed2 += ","+params.CFAILED_STRING;
       
                               dwrite1.clean();
