@@ -195,7 +195,8 @@ try{
         ("MinParamId",po::value<int>  (&MinParamId)->default_value(0),  "Parameter ID for a minimum value")     //DOCME
         ("TypeId",po::value<int>  (&TypeId),  "Type ID")     //DOCME
         ("TypeIds",po::value<std::vector<int> >  (&TypeIds),  "One of many Type IDs")     //DOCME
-        ("AlgoCode",po::value<int>  (&AlgoCode)->default_value(-1),  "Algoritham Code")     //DOCME
+        ("AlgoCode",po::value<int>  (&AlgoCode)->default_value(-1),  "Algorithm Code")     //DOCME
+        ("Algorithm",po::value<std::string>  (&Algorithm)->default_value("NotSet"),  "Algorithm Name")     //DOCME
         ("InterpCode",po::value<int>  (&InterpCode)->default_value(-1),  "Code to determine method of interpolation")     //DOCME
         ("ControlString",po::value<std::string>  (&ControlString),  "Control Info (not used)")     //DOCME
         ("ControlVector",po::value<std::vector<int> > (&ControlVector),  "Control Vector (not used)")     //DOCME
@@ -691,6 +692,7 @@ miutil::miTime UT1(1900,1,1,0,0,0);
 StepD=0;
 StepH=0;
 AlgoCode=-1;
+Algorithm="NotSet";
 InterpCode=-1;
 LastN=0;
 std::string ControlInfoString;       ///Check these are cleared correctly

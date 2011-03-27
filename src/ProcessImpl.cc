@@ -112,7 +112,35 @@ int
 ProcessImpl::
 select(ReadProgramOptions params)
 {
+     std::map<std::string,int> ALG;
+	 ALG["Redistribute"]=1;
+	 ALG["SingleLinear"]=10;
+	 ALG["DipTest"]=11;
+	 ALG["Dummy"]=12;
+
+
      int AlgoCode = params.AlgoCode;
+	 std::string Algorithm = params.Algorithm;
+
+	 std::cout << "Algorithm ... " << ALG[Algorithm] << std::endl;
+
+     switch (ALG[Algorithm]) {
+     case 1:
+         LOGINFO("Case 1: Redistribute");
+         break;
+     case 10:
+         LOGINFO("Case 10: Single Linear");
+         break;
+     case 11:
+         LOGINFO("Case 11: DipTest");
+         break;
+     case 12:
+         LOGINFO("Case 12: Dummy");
+         break;
+     default:
+         std::cout << "No valid Algorithm Provided. " << Algorithm << std::endl;
+         break;
+     }
 
      switch (AlgoCode) {
      case 1:

@@ -34,6 +34,7 @@ std::vector<int> ControlInfoVector;
 
 bool zbool,Rbool,Ibool,Abool,Notbool,Wbool,Ubool,NotUbool;
 
+std::string Algorithm;                  
 std::string NeighbourFilename;
 std::string ParValFile;
 std::string InFlagFilename;
