@@ -28,19 +28,9 @@ class ProcessImpl
     void GetStationList(std::list<kvalobs::kvStation>& StationList, miutil::miTime ProcessTime);
     int select(ReadProgramOptions params);
     int Redistribute(ReadProgramOptions params);
-    int Variability(ReadProgramOptions params);
-    int locust_alg(ReadProgramOptions params);
+    //int locust_alg(ReadProgramOptions params);
 
     //int Process4D(int pid, int tid, miutil::miTime stime, miutil::miTime etime, std::string CIF);
-    int Process4D(ReadProgramOptions params);                                                           
-    int ProcessUnitT(ReadProgramOptions params);                                                           
-    int Interpolate(ReadProgramOptions params);                                                           
-    int ProcessSpaceCheck(ReadProgramOptions params);                                                           
-    int FlagTester(ReadProgramOptions params);                                                           
-    int StressTester(ReadProgramOptions params);                                                           
-    int SingleMinMaxAverage(ReadProgramOptions params);                                                           
-    int AkimaTest(ReadProgramOptions params);                                                           
-    int SingleLinear(ReadProgramOptions params);                                                           
     int SingleLinear_v32(ReadProgramOptions params);                                                           
     int DipTest(ReadProgramOptions params);                                                           
 

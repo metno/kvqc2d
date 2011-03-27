@@ -31,18 +31,9 @@ kvqc2d_SOURCES = \
 	algorithms/Distribute.cc \
 	algorithms/Distribute.h \
 	algorithms/kvQABaseTypes.h \
-	algorithms/Process4D.cc \
 	algorithms/ProcessRedistribution.cc \
-	algorithms/ProcessUnitT.cc \
-	algorithms/SingleMinMaxAverage.cc \
-	algorithms/SingleLinear.cc \
 	algorithms/SingleLinear_v32.cc \
 	algorithms/DipTest.cc \
-	algorithms/Interpolate.cc \
-	algorithms/ProcessSpaceCheck.cc \
-	algorithms/ProcessVariability.cc \
-	algorithms/FlagTester.cc \
-	algorithms/StressTester.cc \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \
 	algorithms/Qc2D.cc \
@@ -58,7 +49,6 @@ kvqc2d_SOURCES = \
 	algorithms/table_delaunay.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
-	algorithms/AkimaTest.cc\
 	algorithms/tround.h 
 
 
