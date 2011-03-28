@@ -113,11 +113,10 @@ ProcessImpl::
 select(ReadProgramOptions params)
 {
      std::map<std::string,int> ALG;
-	 ALG["Redistribute"]=1;
-	 ALG["SingleLinear"]=10;
-	 ALG["DipTest"]=11;
+	 ALG["SingleLinear"]=1;
+	 ALG["Redistribute"]=2;
+	 ALG["DipTest"]=3;
 	 ALG["Dummy"]=12;
-
 
      int AlgoCode = params.AlgoCode;
 	 std::string Algorithm = params.Algorithm;
@@ -126,50 +125,27 @@ select(ReadProgramOptions params)
 
      switch (ALG[Algorithm]) {
      case 1:
-         LOGINFO("Case 1: Redistribute");
-         break;
-     case 10:
-         LOGINFO("Case 10: Single Linear");
-         break;
-     case 11:
-         LOGINFO("Case 11: DipTest");
-         break;
-     case 12:
-         LOGINFO("Case 12: Dummy");
-         break;
-     default:
-         std::cout << "No valid Algorithm Provided. " << Algorithm << std::endl;
-         break;
-     }
-
-     switch (AlgoCode) {
-     case 1:
-         std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 1: Redistribute");
-         //Redistribute(params.UT0, params.UT1, params.tid);
-         Redistribute(params);
-         LOGINFO("Case 1: Completed");
-         break;
-     case 10:
-         std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 10: Single Linear");
-         //SingleLinear(params);
+         LOGINFO("Case "+Algorithm);
          SingleLinear_v32(params);
-         LOGINFO("Case 10: Completed");
+         LOGINFO(Algorithm+" Completed");
          break;
-     case 11:
-         std::cout << "Case: " << AlgoCode << std::endl;
-         LOGINFO("Case 11: DipTest");
+     case 2:
+         LOGINFO("Case " + Algorithm);
+         Redistribute(params);
+         LOGINFO(Algorithm+" Completed");
+         break;
+     case 3:
+         LOGINFO("Case " + Algorithm);
          DipTest(params);
-         LOGINFO("Case 11: Completed");
+         LOGINFO(Algorithm+" Completed");
          break;
      case 12:
-         std::cout << "Case: " << AlgoCode << std::endl;
+         LOGINFO("Case " + Algorithm);
          LOGINFO("Case 12: Dummy");
          break;
      default:
          std::cout << "No valid Algorithm Code Provided. Case: " << AlgoCode << std::endl;
-         LOGINFO("Case ??: No Valid Code");
+         LOGINFO("Case ??: No Valid Algorithm Specified");
          break;
      }
      return(0);
