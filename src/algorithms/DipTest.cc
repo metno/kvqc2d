@@ -164,7 +164,8 @@ DipTest( ReadProgramOptions params )
                    ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
    
    
-				   if (ABS20 < ABS10 && ABS21>delta) {
+				   //if (ABS20 < ABS10 && ABS21>delta) {
+				   if (ABS20 < ABS10 && ABS20<delta) {
    
                        LinInterpolated=round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
 
