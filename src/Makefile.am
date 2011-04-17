@@ -33,6 +33,7 @@ kvqc2d_SOURCES = \
 	algorithms/kvQABaseTypes.h \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/SingleLinear_v32.cc \
+	algorithms/SingleLinear_v33.cc \
 	algorithms/DipTest.cc \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \

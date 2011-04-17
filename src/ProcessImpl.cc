@@ -127,6 +127,7 @@ select(ReadProgramOptions params)
      case 1:
          LOGINFO("Case "+Algorithm);
          SingleLinear_v32(params);
+         //SingleLinear_v33(params);                                                           
          LOGINFO(Algorithm+" Completed");
          break;
      case 2:

@@ -44,6 +44,7 @@
 #include "ProcessControl.h"
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
+#include "AkimaSpline.h"
 
 #include "tround.h"
 
@@ -53,23 +54,26 @@ using namespace miutil;
 
 int 
 ProcessImpl::
-SingleLinear_v32( ReadProgramOptions params )
+SingleLinear_v33( ReadProgramOptions params )
 {
    LOGINFO("Single Linear");
    int pid=params.pid;
-   int Maxpid=params.maxpid;
-   int Minpid=params.minpid;
    float LinInterpolated;
-   float MaxMinInterpolated;
+   float AkimaInterpolated;
    float NewCorrected;
+   bool AkimaPresent=false;
    miutil::miTime stime=params.UT0;
    miutil::miTime etime=params.UT1;
+                              //For later
+                              //AkimaSpline AkimaX(xt,yt);
+				              //AkimaInterpolated=round<float,1>( AkimaX.AkimaPoint(3.0) );
+						      //AkimaPresent=true;
  
    std::list<kvalobs::kvStation> StationList;
    std::list<int> StationIds;
    std::list<kvalobs::kvData> Qc2Data;
    std::list<kvalobs::kvData> Qc2SeriesData;
-   bool result, resultMin, resultMax;
+   bool result;
  
    ProcessControl CheckFlags;
    kvalobs::kvControlInfo fixflags;
@@ -86,8 +90,6 @@ SingleLinear_v32( ReadProgramOptions params )
    ProcessTime = etime;
 
    std::vector<kvalobs::kvData> Tseries;
-   std::list<kvalobs::kvData> MaxValue;
-   std::list<kvalobs::kvData> MinValue;
 
    std::map<int, std::vector<std::string> > setmissing_chflag;
    std::vector<std::string> setmissing_fmis;
@@ -182,34 +184,10 @@ SingleLinear_v32( ReadProgramOptions params )
                       if (Tseries[1].controlinfo().flag(7) == 0){  
                          LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
                          NewCorrected=round<float,1>(LinInterpolated);
-                         if (params.maxpid>0 and params.minpid>0) {
-                            resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
-                            resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
-                            if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
-                               if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
-                               if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
-                            }
-		            if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
-                            //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                               NewCorrected=-99999.0;  // -99999.0 is the flag to not write
-                            }
-                         }
                       }
                       if (Tseries[1].controlinfo().flag(7) == 1){	
                          LinInterpolated=0.5*(Tseries[0].original()+Tseries[2].original());
                          NewCorrected=round<float,1>(LinInterpolated);
-                         if (params.maxpid>0 and params.minpid>0) {
-                            resultMax = dbGate.select(MaxValue, kvQueries::selectData(id->stationID(),params.maxpid,YTime,YTime));
-                            resultMin = dbGate.select(MinValue, kvQueries::selectData(id->stationID(),params.minpid,YTime,YTime)); 
-                            if (MaxValue.size()==1 && MinValue.size()==1 && MaxValue.begin()->original() > -99.9 && MinValue.begin()->original() > -99.9){
-                               if (LinInterpolated > MaxValue.begin()->original()) NewCorrected=MaxValue.begin()->original(); 
-                               if (LinInterpolated < MinValue.begin()->original()) NewCorrected=MinValue.begin()->original(); 
-                            }
-		            if (Tseries[1].corrected() >= MinValue.begin()->original() && Tseries[1].corrected() <= MaxValue.begin()->original()) {
-                               //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                               NewCorrected=-99999.0; 
-                            }
-                         }
                          if (NewCorrected==Tseries[1].corrected()) {
                             NewCorrected=-99999.0;
                          }
@@ -217,7 +195,7 @@ SingleLinear_v32( ReadProgramOptions params )
                    }
                    else {
                       //NB for ftime=0 ... do nothing
-                     
+
                       //For ftime=1, reset to missing value ...
                       if (Tseries[1].controlinfo().flag(7) == 1){	
                          if (Tseries[1].controlinfo().flag(6)==1 || Tseries[1].controlinfo().flag(6)==3) NewCorrected=params.missing;
@@ -251,7 +229,7 @@ SingleLinear_v32( ReadProgramOptions params )
                         kvUseInfo ui = dwrite.useinfo();
                         ui.setUseFlags( dwrite.controlinfo() );
                         dwrite.useinfo( ui );   
-                        LOGINFO("SingleLinear_v32: "+kvqc2logstring(dwrite) );
+                        LOGINFO("SingleLinear_v33: "+kvqc2logstring(dwrite) );
                         //LOGINFO("ProcessUnitT Writing Data "+StrmConvert(dwrite.corrected())+" " +StrmConvert(Tseries[1].stationID())+" " +StrmConvert(Tseries[1].obstime().year())+"-" +StrmConvert(Tseries[1].obstime().month())+"-" +StrmConvert(Tseries[1].obstime().day())+" " +StrmConvert(Tseries[1].obstime().hour())+":" +StrmConvert(Tseries[1].obstime().min())+":" +StrmConvert(Tseries[1].obstime().sec()) );
                         dbGate.insert( dwrite, "data", true); 
                         kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
