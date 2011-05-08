@@ -242,8 +242,8 @@ DipTest( ReadProgramOptions params )
 							  if (AkimaPresent) {
 							     Interpolated=AkimaInterpolated;
                                  new_cfailed1 += "QC2d-1-A";
-                                 new_cfailed1 += ",Linear=";
-                                 new_cfailed1 += StrmConvert(LinInterpolated);
+                                 //new_cfailed1 += ",Linear=";
+                                 //new_cfailed1 += StrmConvert(LinInterpolated);
 							  } else {
                                  new_cfailed1 += "QC2d-1-L";
 							  }
