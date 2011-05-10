@@ -116,6 +116,7 @@ select(ReadProgramOptions params)
 	 ALG["SingleLinear"]=1;
 	 ALG["Redistribute"]=2;
 	 ALG["DipTest"]=3;
+	 ALG["GapInterpolate"]=4;
 	 ALG["Dummy"]=12;
 
      int AlgoCode = params.AlgoCode;
@@ -138,6 +139,11 @@ select(ReadProgramOptions params)
      case 3:
          LOGINFO("Case " + Algorithm);
          DipTest(params);
+         LOGINFO(Algorithm+" Completed");
+         break;
+     case 4:
+         LOGINFO("Case " + Algorithm);
+         GapInterpolate(params);
          LOGINFO(Algorithm+" Completed");
          break;
      case 12:

@@ -34,6 +34,7 @@ kvqc2d_SOURCES = \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/SingleLinear_v32.cc \
 	algorithms/SingleLinear_v33.cc \
+	algorithms/GapInterpolate.cc \
 	algorithms/DipTest.cc \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \

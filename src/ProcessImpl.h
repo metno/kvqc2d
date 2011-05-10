@@ -33,6 +33,7 @@ class ProcessImpl
     //int Process4D(int pid, int tid, miutil::miTime stime, miutil::miTime etime, std::string CIF);
     int SingleLinear_v32(ReadProgramOptions params);                                                           
     int SingleLinear_v33(ReadProgramOptions params);                                                           
+    int GapInterpolate(ReadProgramOptions params);                                                           
     int DipTest(ReadProgramOptions params);                                                           
 
     //utilities
