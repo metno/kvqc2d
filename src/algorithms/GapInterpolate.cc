@@ -61,6 +61,7 @@ GapInterpolate( ReadProgramOptions params )
   int tid=params.tid;
   miutil::miTime stime=params.UT0;
   miutil::miTime etime=params.UT1;
+  miutil::miTime reftime;
 
 
   std::list<kvalobs::kvStation> StationList;
@@ -74,11 +75,12 @@ GapInterpolate( ReadProgramOptions params )
 
   kvalobs::kvDbGate dbGate( &con );
 
-  miutil::miTime XTime;
-  miutil::miTime YTime;
   double JulDec;
   long StartDay;
   double HourDec;
+
+  int MissingVal;
+  int AfterGap;
 
   std::vector<kvalobs::kvData> Tseries;
 
@@ -89,8 +91,9 @@ GapInterpolate( ReadProgramOptions params )
 
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
+     std::cout << sit->stationID() << std::endl;
      try {
-            result = dbGate.select(Qc2SeriesData, kvQueries::selectData(sit->stationID(),pid,tid,XTime,YTime));
+            result = dbGate.select(Qc2SeriesData, kvQueries::selectData(sit->stationID(),pid,tid,stime,etime));
          }
          catch ( dnmi::db::SQLException & ex ) {
            IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -99,9 +102,16 @@ GapInterpolate( ReadProgramOptions params )
            IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
          }
          /// ANALYSE RESULTS FOR ONE STATIONS
+		 MissingVal=0;
+		 AfterGap=0;
+		 reftime=stime;
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
-		      //
-		      std::cout << id->obstime() << " : " << id->original() << std::endl;
+            if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4) MissingVal=1;
+            if (id->obstime().hour() != ((24 + reftime.hour() - 1)) % 24) AfterGap=1;
+		    std::cout << id->obstime() << " : " << id->original() << " : " << MissingVal << " : " << AfterGap << " : " << id->controlinfo() << std::endl;
+			reftime=id->obstime();
+		    MissingVal=0;
+		    AfterGap=0;
 	     }
   }  
 
