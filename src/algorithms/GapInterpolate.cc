@@ -45,9 +45,10 @@
 
 #include <math.h>
 //GNU Statistical library
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_spline.h>
+//#include <gsl/gsl_errno.h>
+//#include <gsl/gsl_spline.h>
 
+#include "AkimaSpline.h"
 
 using namespace kvalobs;
 using namespace std;
@@ -108,11 +109,19 @@ GapInterpolate( ReadProgramOptions params )
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
             if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4) MissingVal=1;
             if (id->obstime().hour() != ((24 + reftime.hour() - 1)) % 24) AfterGap=1;
-		    std::cout << id->obstime() << " : " << id->original() << " : " << MissingVal << " : " << AfterGap << " : " << id->controlinfo() << std::endl;
+		    std::cout << id->obstime() << " : " << id->original() << " : " << id->controlinfo() << " " << id->useinfo() << " : " << MissingVal << " : " << AfterGap << " : " << id->controlinfo();
 			reftime=id->obstime();
 		    MissingVal=0;
 		    AfterGap=0;
+			if (id->useinfo().flag(2)==0) {
+					Tseries.push_back(*id);
+					std::cout << "<-------------";
+		    }
+			std::cout << std::endl;
 	     }
+         AkimaSpline AkimaX(Tseries[0].obstime().hour(),Tseries[0].original());
+		 Tseries.clear();
+		 
   }  
 
 
