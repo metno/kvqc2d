@@ -71,6 +71,8 @@ GapInterpolate( ReadProgramOptions params )
   PDate.setDate(stime.year(),stime.month(),stime.day());
   StartDay=PDate.julianDay();
 
+  std::vector<double> xt,yt;
+
   std::list<kvalobs::kvStation> StationList;
   std::list<int> StationIds;
   std::list<kvalobs::kvData> Qc2SeriesData;
@@ -109,6 +111,8 @@ GapInterpolate( ReadProgramOptions params )
 		 MissingVal=0;
 		 AfterGap=0;
 		 reftime=stime;
+         xt.clear();
+         yt.clear();
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
             if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4) MissingVal=1;
             if (id->obstime().hour() != ((24 + reftime.hour() - 1)) % 24) AfterGap=1;
@@ -124,10 +128,15 @@ GapInterpolate( ReadProgramOptions params )
                                                            id->obstime().min()/(24.0*60)+id->obstime().sec()/(24.0*60.0*60.0);
                                HourDec=(PDate.julianDay()-StartDay)*24.0 + id->obstime().hour() +
                                                                              id->obstime().min()/60.0+id->obstime().sec()/3600.0;
+                    xt.push_back(HourDec);
+                    yt.push_back(id->original());
 		    }
 			std::cout << std::endl;
 	     }
-         //AkimaSpline AkimaX();
+		 if (xt.size() > 4) {
+            AkimaSpline AkimaX(xt,yt);
+            AkimaX.AkimaPoints();
+		 }
 		 Tseries.clear();
 		 
   }  

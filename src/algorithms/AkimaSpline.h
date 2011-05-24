@@ -17,7 +17,7 @@ class AkimaSpline{
 private:
 
 public:
- double tt[100], pp[100]; 
+ double tt[9999], pp[9999]; 
  int npoints;
 
  AkimaSpline(std::vector<double> xt, std::vector<double> yt);
