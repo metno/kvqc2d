@@ -63,7 +63,13 @@ GapInterpolate( ReadProgramOptions params )
   miutil::miTime stime=params.UT0;
   miutil::miTime etime=params.UT1;
   miutil::miTime reftime;
+  miutil::miDate PDate;
+  double JulDec;
+  long StartDay;
+  double HourDec;
 
+  PDate.setDate(stime.year(),stime.month(),stime.day());
+  StartDay=PDate.julianDay();
 
   std::list<kvalobs::kvStation> StationList;
   std::list<int> StationIds;
@@ -76,9 +82,6 @@ GapInterpolate( ReadProgramOptions params )
 
   kvalobs::kvDbGate dbGate( &con );
 
-  double JulDec;
-  long StartDay;
-  double HourDec;
 
   int MissingVal;
   int AfterGap;
@@ -116,10 +119,15 @@ GapInterpolate( ReadProgramOptions params )
 			if (id->useinfo().flag(2)==0) {
 					Tseries.push_back(*id);
 					std::cout << "<-------------";
+                               PDate.setDate(id->obstime().year(),id->obstime().month(),id->obstime().day() );
+                               JulDec=PDate.julianDay()+id->obstime().hour()/24.0 + 
+                                                           id->obstime().min()/(24.0*60)+id->obstime().sec()/(24.0*60.0*60.0);
+                               HourDec=(PDate.julianDay()-StartDay)*24.0 + id->obstime().hour() +
+                                                                             id->obstime().min()/60.0+id->obstime().sec()/3600.0;
 		    }
 			std::cout << std::endl;
 	     }
-         AkimaSpline AkimaX(Tseries[0].obstime().hour(),Tseries[0].original());
+         //AkimaSpline AkimaX();
 		 Tseries.clear();
 		 
   }  
