@@ -64,6 +64,10 @@ GapInterpolate( ReadProgramOptions params )
   miutil::miTime etime=params.UT1;
   miutil::miTime reftime;
   miutil::miDate PDate;
+  //int ngap=parama.ngaps;
+  int ngap=6;
+  int before_gap=0;
+  int after_gap=0;
   double JulDec;
   long StartDay;
   double HourDec;
@@ -72,6 +76,8 @@ GapInterpolate( ReadProgramOptions params )
   StartDay=PDate.julianDay();
 
   std::vector<double> xt,yt;
+  std::vector<int> status;
+  std::vector<int> distance;
 
   std::list<kvalobs::kvStation> StationList;
   std::list<int> StationIds;
@@ -113,6 +119,8 @@ GapInterpolate( ReadProgramOptions params )
 		 reftime=stime;
          xt.clear();
          yt.clear();
+		 before_gap=0;
+		 after_gap=0;
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
             if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4) MissingVal=1;
             if (id->obstime().hour() != ((24 + reftime.hour() - 1)) % 24) AfterGap=1;
@@ -130,15 +138,35 @@ GapInterpolate( ReadProgramOptions params )
                                                                              id->obstime().min()/60.0+id->obstime().sec()/3600.0;
                     xt.push_back(HourDec);
                     yt.push_back(id->original());
-		    }
-			std::cout << std::endl;
-	     }
+					status.push_back(1);
+		    } else {
+	                status.push_back(0);
+			}
+			std::cout << std::endl;     }
 		 if (xt.size() > 4) {
             AkimaSpline AkimaX(xt,yt);
             AkimaX.AkimaPoints();
 		 }
+         for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
+			std::cout << std::endl;
+		 }
+		 for (int k=1;k<status.size();k++) { ///skip first point here and later ...
+				 std::cout << status[k] << std::endl;
+				  while (status[k+1]==1) {
+
+			      }
+
+		          for (int l=k+1;l<status.size();l++) { 
+						  if (status[l]=0) after_gap=after_gap+1;
+						  if (status[l]=1) break;
+				  }
+		          for (int m=k;m>=0;m--) { 
+						  before_gap=before_gap+1;
+				  }
+
+		 }	
 		 Tseries.clear();
-		 
+		 status.clear();
   }  
 
 
