@@ -47,7 +47,8 @@ public:
   void add_element(int & sid, float & data, float & intp, float & corr, float & newd, miutil::miTime & tbtime, miutil::miTime & time, int & sensor, int & level, int & d_tid, kvalobs::kvControlInfo & d_control, kvalobs::kvUseInfo & d_use, miutil::miString & cfailed);
   void clean_station_entry( int & sid );
 
-  void RedistributeStationData( int & sid , std::list<kvalobs::kvData>& ReturnData );
+ // void RedistributeStationData( int & sid , std::list<kvalobs::kvData>& ReturnData );
+  void RedistributeStationData( int & sid, std::list<kvalobs::kvData>& ReturnData, ReadProgramOptions PPP);
 
   void clear_all();
   

@@ -113,8 +113,9 @@ clean_station_entry(int & sid)
 /// Algorithm to redistribute data based on interpolated model data.  
 void
 Distribute::
-RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
+RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData, ReadProgramOptions PPP)
 {
+		params=PPP;
         kvalobs::kvData ReturnElement;
         miutil::miTime fixtime;
         miutil::miTime d_now;
@@ -171,6 +172,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData)
            }
      
            if (available_data && sumint > 0.0 && dst_time[ stid ][ sindex-irun ] != params.UT0 && continuous) {  // NB if the available data starts at the first time
+				   std::cout << dst_time[ stid ][ sindex-irun ] << " " << params.UT0 << std::endl;
            //if (available_data && sumint > 0.0 && dst_time[ stid ][ sindex-irun ] != params.UT0) {  // NB if the available data starts at the first time
                float normaliser=accval/sumint;                                      // we cannot redistribute since there might be times
                float roundSum=0.0;                                                  // earlier!!!
