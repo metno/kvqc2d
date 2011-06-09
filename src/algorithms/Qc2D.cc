@@ -222,6 +222,7 @@ void
 Qc2D::
 distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvData>& ReturnData,int ClearFlag)
 {
+
  	static Distribute DataForRedistribution(slist,params);	
         if (ClearFlag) DataForRedistribution.clear_all();  //For cleaning up memory when all is done!
  	    

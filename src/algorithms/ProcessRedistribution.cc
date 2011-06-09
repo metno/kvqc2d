@@ -58,8 +58,10 @@ Redistribute( ReadProgramOptions params )
 
   miutil::miTime stime=params.UT0;
   miutil::miTime etime=params.UT1;
+  miutil::miTime PreviousCheck;
   const int pid=params.pid;
   const int tid=params.tid;
+  int ignore_station=0;
   const std::vector<int> tids=params.tids;
 
   ProcessControl CheckFlags;
@@ -68,6 +70,7 @@ Redistribute( ReadProgramOptions params )
   std::list<kvalobs::kvStation> ActualStationList;
   std::list<int> StationIds;
   std::list<kvalobs::kvData> Qc2Data;
+  std::list<kvalobs::kvData> CheckData;
   std::list<kvalobs::kvData> ReturnData;
   bool result;
 
@@ -132,8 +135,15 @@ Redistribute( ReadProgramOptions params )
        if(!ReturnData.empty()) {
           std::cout << "Not Empty" << std::endl;
           for (std::list<kvalobs::kvData>::const_iterator id = ReturnData.begin(); id != ReturnData.end(); ++id) {
+                      PreviousCheck=id->obstime();
+					  PreviousCheck.addDay(-1);
+                      result = dbGate.select(CheckData, kvQueries::selectData(id->stationID(),pid,PreviousCheck,PreviousCheck) ); 
+                      for (std::list<kvalobs::kvData>::const_iterator ic = CheckData.begin(); ic != CheckData.end(); ++ic) {
+							  if (ic->corrected()==params.missing) ignore_station=ic->stationID(); 
+							  std::cout << " CHECK " << ic->corrected() << " " << ic->stationID()<< std::endl;
+                      }
                       try {
-                           if ( CheckFlags.condition(id->controlinfo(),params.Wflag) ) { 
+                           if ( CheckFlags.condition(id->controlinfo(),params.Wflag) && id->stationID() != ignore_station) { 
                            LOGINFO("Redistribution: "+kvqc2logstring(*id) );
                                         ////LOGINFO("Redistribute Precipitation Writing Data "
                                                                             //+StrmConvert(id->corrected())+" "
@@ -162,6 +172,7 @@ Redistribute( ReadProgramOptions params )
                          std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
                        }
           }
+		  ignore_station=0;
           if(!stList.empty()){
               checkedDataHelper.sendDataToService(stList);
               stList.clear();
