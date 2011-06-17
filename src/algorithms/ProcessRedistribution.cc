@@ -139,8 +139,10 @@ Redistribute( ReadProgramOptions params )
 					  PreviousCheck.addDay(-1);
                       result = dbGate.select(CheckData, kvQueries::selectData(id->stationID(),pid,PreviousCheck,PreviousCheck) ); 
                       for (std::list<kvalobs::kvData>::const_iterator ic = CheckData.begin(); ic != CheckData.end(); ++ic) {
-							  if (ic->corrected()==params.missing) ignore_station=ic->stationID(); 
-							  std::cout << " CHECK " << ic->corrected() << " " << ic->stationID()<< std::endl;
+							  if (ic->corrected()==params.missing) {
+									  ignore_station=ic->stationID(); 
+				                      LOGWARN("Incomplete redistribution (skipped): "+ kvqc2logstring(*ic) );
+                              }
                       }
                       try {
                            if ( CheckFlags.condition(id->controlinfo(),params.Wflag) && id->stationID() != ignore_station) { 
