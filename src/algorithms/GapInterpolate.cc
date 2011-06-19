@@ -71,11 +71,14 @@ GapInterpolate( ReadProgramOptions params )
   double JulDec;
   long StartDay;
   double HourDec;
+  double lowHour;
+  double highHour;
 
   PDate.setDate(stime.year(),stime.month(),stime.day());
   StartDay=PDate.julianDay();
 
-  std::vector<double> xt,yt;
+  std::vector<double> xt,yt;           // For holding only good data
+  std::vector<double> xat,yat;         // For holiding all the data series (missing values as well as good)
   std::vector<int> status;
   std::vector<int> distance;
 
@@ -119,13 +122,13 @@ GapInterpolate( ReadProgramOptions params )
 		 reftime=stime;
          xt.clear();
          yt.clear();
+         xat.clear();
+         yat.clear();
 		 before_gap=0;
 		 after_gap=0;
 // Go through the data and fit an Akima Spline to the good points
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
 			if (id->useinfo().flag(2)==0) {
-					Tseries.push_back(*id);
-					std::cout << "<-------------";
                                PDate.setDate(id->obstime().year(),id->obstime().month(),id->obstime().day() );
                                JulDec=PDate.julianDay()+id->obstime().hour()/24.0 + 
                                                            id->obstime().min()/(24.0*60)+id->obstime().sec()/(24.0*60.0*60.0);
@@ -140,10 +143,37 @@ GapInterpolate( ReadProgramOptions params )
             AkimaSpline AkimaX(xt,yt);
             AkimaX.AkimaPoints();
 		 }
-// Find the missing points
+// Find the missing points and their distance from a good point etc ..
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
+				  if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4){
+                     //value is missing so find the time stamp wrt Akima fit
+                     PDate.setDate(id->obstime().year(),id->obstime().month(),id->obstime().day() );
+                     JulDec=PDate.julianDay()+id->obstime().hour()/24.0 + 
+                                             id->obstime().min()/(24.0*60)+id->obstime().sec()/(24.0*60.0*60.0);
+                     HourDec=(PDate.julianDay()-StartDay)*24.0 + id->obstime().hour() +
+                                             id->obstime().min()/60.0+id->obstime().sec()/3600.0;
+                     // Check to see how many hours the point is away from good data ... in the past ... 
+                     for (std::vector<double>::const_iterator iv=xt.begin(); iv !=xt.end(); ++iv) {
+                         if (*iv < HourDec) lowHour=*iv;
+                     }
+					 // ... and in the future
+                     for (std::vector<double>::const_iterator iv=xt.end(); iv !=xt.begin(); --iv) {
+                         if (*iv > HourDec) highHour=*iv;
+                     }
+					 if (
+							 ( std::find(xt.begin(), xt.end(), highHour+1) != xt.end() ) &&
+							 ( std::find(xt.begin(), xt.end(), lowHour-1)  !=xt.end()  ) &&
+							 ( std::find(xt.begin(), xt.end(), lowHour-2)  != xt.end() || std::find(xt.begin(), xt.end(), highHour+2)  != xt.end() ) &&
+							 ( HourDec - lowHour <= ngap ) &&
+							 ( highHour - HourDec  < ngap ) 
+					    ) {
+
+                      // Do Akima Interpolation
+
+		             }
+
+                  }
 		 }
-		 Tseries.clear();
 		 status.clear();
   }  
 return 0;
