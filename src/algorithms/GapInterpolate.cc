@@ -121,13 +121,8 @@ GapInterpolate( ReadProgramOptions params )
          yt.clear();
 		 before_gap=0;
 		 after_gap=0;
+// Go through the data and fit an Akima Spline to the good points
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
-            if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4) MissingVal=1;
-            if (id->obstime().hour() != ((24 + reftime.hour() - 1)) % 24) AfterGap=1;
-		    std::cout << id->obstime() << " : " << id->original() << " : " << id->controlinfo() << " " << id->useinfo() << " : " << MissingVal << " : " << AfterGap << " : " << id->controlinfo();
-			reftime=id->obstime();
-		    MissingVal=0;
-		    AfterGap=0;
 			if (id->useinfo().flag(2)==0) {
 					Tseries.push_back(*id);
 					std::cout << "<-------------";
@@ -138,38 +133,19 @@ GapInterpolate( ReadProgramOptions params )
                                                                              id->obstime().min()/60.0+id->obstime().sec()/3600.0;
                     xt.push_back(HourDec);
                     yt.push_back(id->original());
-					status.push_back(1);
-		    } else {
-	                status.push_back(0);
-			}
-			std::cout << std::endl;     }
+		    } 
+		 }
+// Calculate the Akima Spline if there are enough points
 		 if (xt.size() > 4) {
             AkimaSpline AkimaX(xt,yt);
             AkimaX.AkimaPoints();
 		 }
+// Find the missing points
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
-			std::cout << std::endl;
 		 }
-		 for (int k=1;k<status.size();k++) { ///skip first point here and later ...
-				 std::cout << status[k] << std::endl;
-				  while (status[k+1]==1) {
-
-			      }
-
-		          for (int l=k+1;l<status.size();l++) { 
-						  if (status[l]=0) after_gap=after_gap+1;
-						  if (status[l]=1) break;
-				  }
-		          for (int m=k;m>=0;m--) { 
-						  before_gap=before_gap+1;
-				  }
-
-		 }	
 		 Tseries.clear();
 		 status.clear();
   }  
-
-
 return 0;
 }
 
