@@ -62,12 +62,9 @@ GapInterpolate( ReadProgramOptions params )
   int tid=params.tid;
   miutil::miTime stime=params.UT0;
   miutil::miTime etime=params.UT1;
-  miutil::miTime reftime;
   miutil::miDate PDate;
   //int ngap=parama.ngaps;
-  int ngap=6;
-  int before_gap=0;
-  int after_gap=0;
+  int ngap=3;
   double JulDec;
   long StartDay;
   double HourDec;
@@ -79,8 +76,6 @@ GapInterpolate( ReadProgramOptions params )
 
   std::vector<double> xt,yt;           // For holding only good data
   std::vector<double> xat,yat;         // For holiding all the data series (missing values as well as good)
-  std::vector<int> status;
-  std::vector<int> distance;
 
   std::list<kvalobs::kvStation> StationList;
   std::list<int> StationIds;
@@ -94,8 +89,6 @@ GapInterpolate( ReadProgramOptions params )
   kvalobs::kvDbGate dbGate( &con );
 
 
-  int MissingVal;
-  int AfterGap;
 
   std::vector<kvalobs::kvData> Tseries;
 
@@ -117,15 +110,10 @@ GapInterpolate( ReadProgramOptions params )
            IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
          }
          /// ANALYSE RESULTS FOR ONE STATIONS
-		 MissingVal=0;
-		 AfterGap=0;
-		 reftime=stime;
          xt.clear();
          yt.clear();
          xat.clear();
          yat.clear();
-		 before_gap=0;
-		 after_gap=0;
 // Go through the data and fit an Akima Spline to the good points
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
 			if (id->useinfo().flag(2)==0) {
@@ -145,7 +133,7 @@ GapInterpolate( ReadProgramOptions params )
 		 }
 // Find the missing points and their distance from a good point etc ..
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
-				  if (id->controlinfo().flag(7)==1 || id->controlinfo().flag(7)==2 || id->controlinfo().flag(7)==3 || id->controlinfo().flag(7)==4){
+				  if (id->controlinfo().flag(6)==1 || id->controlinfo().flag(6)==2 || id->controlinfo().flag(6)==3 || id->controlinfo().flag(6)==4){
                      //value is missing so find the time stamp wrt Akima fit
                      PDate.setDate(id->obstime().year(),id->obstime().month(),id->obstime().day() );
                      JulDec=PDate.julianDay()+id->obstime().hour()/24.0 + 
@@ -160,21 +148,22 @@ GapInterpolate( ReadProgramOptions params )
                      for (std::vector<double>::const_iterator iv=xt.end(); iv !=xt.begin(); --iv) {
                          if (*iv > HourDec) highHour=*iv;
                      }
-					 if (
-							 ( std::find(xt.begin(), xt.end(), highHour+1) != xt.end() ) &&
-							 ( std::find(xt.begin(), xt.end(), lowHour-1)  !=xt.end()  ) &&
-							 ( std::find(xt.begin(), xt.end(), lowHour-2)  != xt.end() || std::find(xt.begin(), xt.end(), highHour+2)  != xt.end() ) &&
-							 ( HourDec - lowHour <= ngap ) &&
-							 ( highHour - HourDec  < ngap ) 
-					    ) {
+					 std::cout << lowHour << " :: " << HourDec << " :: " << highHour << std::endl;
+					 if ( ( std::find(xt.begin(), xt.end(), highHour+1) != xt.end() ) &&
+						  ( std::find(xt.begin(), xt.end(), lowHour-1)  !=xt.end()  ) &&
+						  ( std::find(xt.begin(), xt.end(), lowHour-2)  != xt.end() || std::find(xt.begin(), xt.end(), highHour+2)  != xt.end() ) &&
+						  ( HourDec - lowHour <= ngap ) &&
+						  ( highHour - HourDec  < ngap ) ) {
 
                       // Do Akima Interpolation
+					    std::cout << id->obstime() << " " << id->original() << " " << id->corrected() << " Sub Akima " << std::endl;
 
 		             }
 
-                  }
+                  } else {
+					    std::cout << id->obstime() << " " << id->original() << " " << id->corrected() << " --------- " << std::endl;
+				  }
 		 }
-		 status.clear();
   }  
 return 0;
 }
