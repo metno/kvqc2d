@@ -125,6 +125,7 @@ std::string FlagsIn;
 std::string FlagsOut;
 std::string CfailedString;
 float InterpolationDistance;
+int MaxHalfGap;
 // Test control flag paramters
 std::vector<unsigned char> z_fqclevel,z_fr,z_fcc,z_fs,z_fnum,z_fpos,z_fmis,z_ftime,z_fw,z_fstat,z_fcp,z_fclim,z_fd,z_fpre,z_fcombi,z_fhqc;
 // CONTROL FLAGS FOR VARIOUS POSSIBLE FILTERS
@@ -212,6 +213,7 @@ try{
         ("DeltaValue",po::value<float>(&DeltaValue)->default_value(0.0),  "Delta Value for Dip Test (can be Øgland's Parameter for example")      //DOCME
         ("MinValue",po::value<float>(&MinValue)->default_value(-32767.0),  "Minimum Data Value For Some Controls")      //DOCME
         ("InterpolationDistance",po::value<float>(&InterpolationDistance)->default_value(25),  "Nearest Neighbour Limiting Distance")      //DOCME
+        ("MaxHalfGap",po::value<int>(&MaxHalfGap)->default_value(0),  "Maximum distance from a good neighbour for an Akima Interpolation:")      //DOCME
 
         ("z_fqclevel",po::value<std::vector<unsigned char> >  (&z_fqclevel),  "fqclevel [GENERAL FILTER]")     //DOCME
         ("z_fr",po::value<std::vector<unsigned char> >  (&z_fr),  "fr")     //DOCME
@@ -449,6 +451,7 @@ try{
          ControlInfoString=ControlString;
          ControlInfoVector=ControlVector;
          InterpolationLimit=InterpolationDistance;
+         Ngap=MaxHalfGap;
          NeighbourFilename=BestStationFilename;
          ParValFile=ParValFilename;
          InFlagFilename=FlagsIn;

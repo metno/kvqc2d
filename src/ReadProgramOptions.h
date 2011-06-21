@@ -52,6 +52,7 @@ float missing;
 float rejected;
 float MinimumValue;
 float InterpolationLimit;
+int Ngap;
 float delta;
 bool newfile;
 std::map<int, std::vector<unsigned char> > zflag;

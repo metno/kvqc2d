@@ -64,7 +64,8 @@ GapInterpolate( ReadProgramOptions params )
   miutil::miTime etime=params.UT1;
   miutil::miDate PDate;
   //int ngap=parama.ngaps;
-  int ngap=3;
+  int ngap=params.Ngap;
+  std::cout << " ############### " << ngap << std::endl;
   double JulDec;
   long StartDay;
   double HourDec;
