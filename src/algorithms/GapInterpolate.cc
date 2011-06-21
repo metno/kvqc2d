@@ -99,7 +99,7 @@ GapInterpolate( ReadProgramOptions params )
 
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-     std::cout << sit->stationID() << std::endl;
+     //std::cout << sit->stationID() << std::endl;
      try {
             result = dbGate.select(Qc2SeriesData, kvQueries::selectData(sit->stationID(),pid,tid,stime,etime));
          }
@@ -126,11 +126,10 @@ GapInterpolate( ReadProgramOptions params )
                     yt.push_back(id->original());
 		    } 
 		 }
-// Calculate the Akima Spline if there are enough points
+// Calculate the Akima Spline if there are enough points and the fill missing points
 		 if (xt.size() > 4) {
             AkimaSpline AkimaX(xt,yt);
-            AkimaX.AkimaPoints();
-		 }
+            //AkimaX.AkimaPoints();
 // Find the missing points and their distance from a good point etc ..
          for (std::list<kvalobs::kvData>::const_iterator id = Qc2SeriesData.begin(); id != Qc2SeriesData.end(); ++id) {
 				  if (id->controlinfo().flag(6)==1 || id->controlinfo().flag(6)==2 || id->controlinfo().flag(6)==3 || id->controlinfo().flag(6)==4){
@@ -148,7 +147,7 @@ GapInterpolate( ReadProgramOptions params )
                      for (std::vector<double>::const_iterator iv=xt.end(); iv !=xt.begin(); --iv) {
                          if (*iv > HourDec) highHour=*iv;
                      }
-					 std::cout << lowHour << " :: " << HourDec << " :: " << highHour << std::endl;
+					 //std::cout << lowHour << " :: " << HourDec << " :: " << highHour << std::endl;
 					 if ( ( std::find(xt.begin(), xt.end(), highHour+1) != xt.end() ) &&
 						  ( std::find(xt.begin(), xt.end(), lowHour-1)  !=xt.end()  ) &&
 						  ( std::find(xt.begin(), xt.end(), lowHour-2)  != xt.end() || std::find(xt.begin(), xt.end(), highHour+2)  != xt.end() ) &&
@@ -156,14 +155,15 @@ GapInterpolate( ReadProgramOptions params )
 						  ( highHour - HourDec  < ngap ) ) {
 
                       // Do Akima Interpolation
-					    std::cout << id->obstime() << " " << id->original() << " " << id->corrected() << " Sub Akima " << std::endl;
+					    std::cout << id->stationID() << " " << id->obstime() << " " << id->original() << " " << id->corrected() << " Sub Akima " << AkimaX.AkimaPoint(HourDec) << std::endl;
 
 		             }
 
                   } else {
 					    std::cout << id->obstime() << " " << id->original() << " " << id->corrected() << " --------- " << std::endl;
 				  }
-		 }
+        	 }
+         } // end of IF enough points for AKima
   }  
 return 0;
 }
