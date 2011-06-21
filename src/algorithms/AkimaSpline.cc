@@ -41,7 +41,7 @@ AkimaSpline::AkimaSpline(std::vector<double> xt, std::vector<double> yt)
   for (int j=0; j<xt.size();++j){
      tt[j]=xt[j];
      pp[j]=yt[j];
-	 std::cout << tt[j] << " " << pp[j] << std::endl;
+	 //std::cout << tt[j] << " " << pp[j] << std::endl;
   }
 }
 
@@ -73,7 +73,7 @@ int AkimaSpline::AkimaPoints()
  for (int i = 0; i < nmax +1; i++)  {
      xi = tt[0] + (tt[npoints-1] - tt[0])*i/nmax; 
      yi = gsl_spline_eval(spline, xi, acc);
-	 std::cout <<  xi << " " << yi << std::endl; 
+	 //std::cout <<  xi << " " << yi << std::endl; 
   }
 
   gsl_spline_free (spline);
