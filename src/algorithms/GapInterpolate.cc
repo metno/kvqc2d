@@ -40,6 +40,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "ProcessControl.h"
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
 
@@ -49,6 +50,7 @@
 //#include <gsl/gsl_spline.h>
 
 #include "AkimaSpline.h"
+#include "tround.h"
 
 using namespace kvalobs;
 using namespace std;
@@ -71,6 +73,12 @@ GapInterpolate( ReadProgramOptions params )
   double HourDec;
   double lowHour;
   double highHour;
+
+  ProcessControl CheckFlags;
+  kvalobs::kvControlInfo fixflags;
+  kvalobs::kvData dwrite;                                                   
+  miutil::miString new_cfailed;
+  float NewCorrected;
 
   PDate.setDate(stime.year(),stime.month(),stime.day());
   StartDay=PDate.julianDay();
@@ -157,7 +165,27 @@ GapInterpolate( ReadProgramOptions params )
 
                       // Do Akima Interpolation
 					    std::cout << id->stationID() << " " << id->obstime() << " " << id->original() << " " << id->corrected() << " Sub Akima " << AkimaX.AkimaPoint(HourDec) << std::endl;
+						NewCorrected=round<float,1>(AkimaX.AkimaPoint(HourDec));
+                      // Push the data back     
+                        fixflags=id->controlinfo();
+                        CheckFlags.setter(fixflags,params.Sflag);
+                        CheckFlags.conditional_setter(fixflags,params.chflag);
+                        new_cfailed=id->cfailed();
+                        if (new_cfailed.length() > 0) new_cfailed += ",";
+                        new_cfailed += "QC2d-2";
+                        if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
 
+                        dwrite.clean();
+                        dwrite.set(id->stationID(),id->obstime(),id->original(),id->paramID(),id->tbtime(),
+                              id->typeID(),id->sensor(), id->level(),NewCorrected,fixflags,id->useinfo(),
+                              new_cfailed );
+                        kvUseInfo ui = dwrite.useinfo();
+                        ui.setUseFlags( dwrite.controlinfo() );
+                        dwrite.useinfo( ui );   
+                        LOGINFO("Long Akima: "+kvqc2logstring(dwrite) );
+                        dbGate.insert( dwrite, "data", true); 
+                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->typeID());
+                        stList.push_back(DataToWrite);
 		             }
 
                   } else {
