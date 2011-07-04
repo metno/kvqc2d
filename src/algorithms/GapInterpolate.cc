@@ -172,7 +172,8 @@ GapInterpolate( ReadProgramOptions params )
                         CheckFlags.conditional_setter(fixflags,params.chflag);
                         new_cfailed=id->cfailed();
                         if (new_cfailed.length() > 0) new_cfailed += ",";
-                        new_cfailed += "QC2d-2";
+                        //new_cfailed += "QC2d-2";
+                        new_cfailed += "QC2d-2-A";
                         if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
 
                         dwrite.clean();
