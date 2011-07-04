@@ -65,6 +65,7 @@ GapInterpolate( ReadProgramOptions params )
   miutil::miTime stime=params.UT0;
   miutil::miTime etime=params.UT1;
   miutil::miDate PDate;
+  miutil::miString ladle;
   //int ngap=parama.ngaps;
   int ngap=params.Ngap;
   std::cout << " ############### " << ngap << std::endl;
@@ -110,7 +111,10 @@ GapInterpolate( ReadProgramOptions params )
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
      //std::cout << sit->stationID() << std::endl;
      try {
-            result = dbGate.select(Qc2SeriesData, kvQueries::selectData(sit->stationID(),pid,tid,stime,etime));
+			 ladle="WHERE STATIONID="+StrmConvert(sit->stationID())+" AND PARAMID="+StrmConvert(pid)+" AND TYPEID="+StrmConvert(tid)+" AND level=0 AND sensor=\'0\' AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
+			 //std::cout << ladle << std::endl;
+			 result = dbGate.select(Qc2SeriesData, ladle);
+             //result = dbGate.select(Qc2SeriesData, kvQueries::selectData(sit->stationID(),pid,tid,stime,etime));
          }
          catch ( dnmi::db::SQLException & ex ) {
            IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
@@ -190,7 +194,7 @@ GapInterpolate( ReadProgramOptions params )
 		             }
 
                   } else {
-					    std::cout << id->obstime() << " " << id->original() << " " << id->corrected() << " --------- " << std::endl;
+					    //std::cout << id->obstime() << " " << id->original() << " " << id->corrected() << " --------- " << std::endl;
 				  }
         	 }
          } // end of IF enough points for AKima
