@@ -221,6 +221,14 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData, ReadP
                                 new_cfailed);
                   ReturnData.push_back(ReturnElement);
                }
+			   // Check ReturnData
+               // IF VALUES ARE DIFFERENT
+			   std::cout << roundSum << std::endl;
+			   std::cout << accval << std::endl;
+			   //Do SOMETHING HERE
+               for (std::list<kvalobs::kvData>::const_iterator iq=ReturnData.begin(); iq!=ReturnData.end(); ++iq) {
+					   std::cout << iq->corrected() << std::endl;
+			   }
            }
         }
 
