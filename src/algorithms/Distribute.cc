@@ -131,6 +131,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData, ReadP
         int index=dst_data[ stid ].size()-1 ;
         int sindex=index;
         float accval = dst_data[ stid ][ dst_data[ stid ].size() -1 ];
+		float compareSum=0.0;
         float original_accval = accval;   // need this since if it is -1 need to set all redistributed elements
                                           // to -1
         if (accval == -1.0) {
@@ -223,12 +224,20 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData, ReadP
                }
 			   // Check ReturnData
                // IF VALUES ARE DIFFERENT
-			   std::cout << roundSum << std::endl;
-			   std::cout << accval << std::endl;
-			   //Do SOMETHING HERE
-               for (std::list<kvalobs::kvData>::const_iterator iq=ReturnData.begin(); iq!=ReturnData.end(); ++iq) {
-					   std::cout << iq->corrected() << std::endl;
+			   compareSum=round<float,1>(roundSum-accval);
+			   std::cout << roundSum <<  " : " << accval << " : " << compareSum << std::endl;
+			   if (compareSum != 0.0) {
+                  for (std::list<kvalobs::kvData>::reverse_iterator iq=ReturnData.rbegin(); iq!=ReturnData.rend(); ++iq) {
+					      std::cout << iq->corrected() << std::endl;
+						  if ((iq->corrected() - compareSum) > 0.0) {
+                             iq->corrected(iq->corrected() - compareSum);
+							 compareSum=0.0;
+							 //LOGINFO("SPOT: "+kvqc2logstring(*iq) );
+					         std::cout << iq->corrected() <<  " --- " << std::endl;
+						  }
+			      }
 			   }
+			   compareSum=0.0;
            }
         }
 

@@ -135,7 +135,7 @@ Redistribute( ReadProgramOptions params )
        if(!ReturnData.empty()) {
           std::cout << "Not Empty" << std::endl;
           for (std::list<kvalobs::kvData>::const_iterator id = ReturnData.begin(); id != ReturnData.end(); ++id) {
-				      LOGINFO("---------------->: "+ kvqc2logstring(*id) );
+				      //LOGINFO("---------------->: "+ kvqc2logstring(*id) );
                       PreviousCheck=id->obstime();
 					  PreviousCheck.addDay(-1);
                       result = dbGate.select(CheckData, kvQueries::selectData(id->stationID(),pid,PreviousCheck,PreviousCheck) ); 
