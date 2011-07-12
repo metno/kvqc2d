@@ -30,11 +30,14 @@ kvqc2d_SOURCES = \
 	algorithms/BasicStatistics.h \
 	algorithms/Distribute.cc \
 	algorithms/Distribute.h \
+	algorithms/Plumatic.cc \
+	algorithms/Plumatic.h \
 	algorithms/kvQABaseTypes.h \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/SingleLinear_v32.cc \
 	algorithms/SingleLinear_v33.cc \
 	algorithms/GapInterpolate.cc \
+	algorithms/ProcessPlumatic.cc \
 	algorithms/DipTest.cc \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \

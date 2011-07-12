@@ -35,6 +35,7 @@ class ProcessImpl
     int SingleLinear_v33(ReadProgramOptions params);                                                           
     int GapInterpolate(ReadProgramOptions params);                                                           
     int DipTest(ReadProgramOptions params);                                                           
+    int ProcessPlumatic(ReadProgramOptions params);
 
     //utilities
     std::string kvqc2logstring(kvalobs::kvData kd);
