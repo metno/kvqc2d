@@ -23,6 +23,7 @@ private:
 public:
 
   Plumatic( const std::list<kvalobs::kvStation> & slist, ReadProgramOptions params );
+  Plumatic(std::list<kvalobs::kvData> & QD, ReadProgramOptions params );
   ~Plumatic(){}
 
   ReadProgramOptions params;

@@ -94,7 +94,8 @@ ProcessPlumatic( ReadProgramOptions params )
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
      try {
-			 ladle="WHERE STATIONID="+StrmConvert(sit->stationID())+" AND PARAMID="+StrmConvert(pid)+" AND TYPEID="+StrmConvert(tid)+" AND level=0 AND sensor=\'0\' AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
+			 ladle="WHERE STATIONID="+StrmConvert(sit->stationID())+" AND PARAMID="+StrmConvert(pid)+" AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
+			 //std::cout << ladle << std::endl;
 			 result = dbGate.select(PluviData, ladle);
          }
          catch ( dnmi::db::SQLException & ex ) {
@@ -107,6 +108,8 @@ ProcessPlumatic( ReadProgramOptions params )
 
       if(!PluviData.empty()) {
 
+		 Plumatic PL(PluviData,params);
+		 std::cout << " --------------- " << std::endl;
        }
   }
 

@@ -49,6 +49,15 @@ Plumatic::Plumatic(const std::list<kvalobs::kvStation> & slist,ReadProgramOption
     params=PPP;
 } 
 
+Plumatic::Plumatic(std::list<kvalobs::kvData> & QD, ReadProgramOptions PPP)
+{
+    params=PPP;
+	for (std::list<kvalobs::kvData>::const_iterator id = QD.begin(); id != QD.end(); ++id) {
+			std::cout << *id << std::endl;
+	}
+    std::cout << " - - - - - - - - - - - - - - - " << std::endl;
+
+} 
 
 /// Clear all data from the redistribution data object.
 void
