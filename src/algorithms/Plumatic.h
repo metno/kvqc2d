@@ -28,23 +28,19 @@ public:
 
   ReadProgramOptions params;
 
-  std::map<int, std::vector<float> > dst_data;
-  std::map<int, std::vector<float> > dst_intp;
-  std::map<int, std::vector<float> > dst_corr;
-  std::map<int, std::vector<float> > dst_newd;
+  miutil::miTime    Start_Time_Interval;
+  miutil::miTime    Stop_Time_Interval;
 
-  std::map<int, std::vector<miutil::miTime> >    dst_time;
-  std::map<int, std::vector<miutil::miTime> >    dst_tbtime;
+  //std::vector<float> pluvi_data;
+  //std::vector<float> pluvi_time;
 
-  std::map<int, std::vector<int> > d_sensor;
-  std::map<int, std::vector<int> > d_level;
-  
-  std::map<int, std::vector<int> >    d_typeid;
-  std::map<int, std::vector<kvalobs::kvControlInfo> > d_controlinfo;
-  std::map<int, std::vector<kvalobs::kvUseInfo> > d_useinfo;
-  std::map<int, std::vector<miutil::miString> > d_cfailed;
+  std::map<miutil::miTime, float> pluvi_data;
+
+  //std::map<int, std::vector<float> > dst_intp;
 
   void clear_all();
+
+  int aggregate_window();
   
 };
 

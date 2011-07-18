@@ -52,12 +52,51 @@ Plumatic::Plumatic(const std::list<kvalobs::kvStation> & slist,ReadProgramOption
 Plumatic::Plumatic(std::list<kvalobs::kvData> & QD, ReadProgramOptions PPP)
 {
     params=PPP;
-	for (std::list<kvalobs::kvData>::const_iterator id = QD.begin(); id != QD.end(); ++id) {
-			std::cout << *id << std::endl;
-	}
+	//for (std::list<kvalobs::kvData>::const_iterator id = QD.begin(); id != QD.end(); ++id) {
+			//std::cout << *id << std::endl;
+	//}
     std::cout << " - - - - - - - - - - - - - - - " << std::endl;
+	std::list<kvalobs::kvData>::const_iterator id = QD.begin();
+	Start_Time_Interval=id->obstime();
+	id = QD.end();
+	--id;
+	Stop_Time_Interval=id->obstime();
+	std::cout << Start_Time_Interval << std::endl;
+	std::cout << Stop_Time_Interval << std::endl;
 
+    miutil::miTime Tstamp;
+
+    Tstamp=Start_Time_Interval;
+// First write an empty map with all of the time stamps and a "no-measurement" placeholder (i.e. -10.0) for each value
+	while (Tstamp <= Stop_Time_Interval) {
+            pluvi_data[Tstamp]=-10.0;
+			Tstamp.addMin(); // default is to add one minute unless specified
+	}
+// Now add a data value where there is a some data
+	for (std::list<kvalobs::kvData>::const_iterator id = QD.begin(); id != QD.end(); ++id) {
+            pluvi_data[id->obstime()]=id->original();
+	}
+// For now just print out the results 
+    Tstamp=Start_Time_Interval;
+	while (Tstamp <= Stop_Time_Interval) {
+            if (pluvi_data[Tstamp]==-10.0) {
+					std::cout << " . "; 
+			} 
+			else { 
+					std::cout << pluvi_data[Tstamp]; 
+			}
+			Tstamp.addMin(); // default is to add one minute unless specified
+	}
+	std::cout << endl;
 } 
+
+int 
+Plumatic::aggregate_window()
+{
+
+
+return 0;
+}
 
 /// Clear all data from the redistribution data object.
 void
