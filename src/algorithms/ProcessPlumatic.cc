@@ -89,6 +89,29 @@ ProcessPlumatic( ReadProgramOptions params )
      StationIds.push_back( sit->stationID() );
   }
 
+   std::list<kvalobs::kvStationParam> splist;
+   std::ostringstream query;
+
+   int sid=15890;
+   miutil::miTime otime=stime;
+   std::string qcx="QC1-1-211";
+
+       //query << "SELECT metadata FROM station_param WHERE "
+	            //"stationid in (0, " << si.stationID() << ") AND "
+		        //"paramid=(SELECT paramid FROM param WHERE name='" << parameter << "') AND "
+		        //"fromday<=" << dayNumber << " AND " << dayNumber << "<=today AND "
+		        //"qcx='" << qcx << "' AND "
+		        //"level=0 AND sensor='0' AND "
+		        //"fromtime<='" << si.obstime() << "' "
+		        //"ORDER BY stationid DESC, fromtime DESC "
+		        //"LIMIT 1;";
+	//result = dbGate.select(splist , query, "station_param")
+	//kvQueries::selectStationParam( slist, otime, qcx )|
+    result = dbGate.select( splist, kvQueries::selectStationParam( StationIds, otime, qcx ) );
+
+    for (std::list<kvalobs::kvStationParam>::const_iterator lst=splist.begin(); lst!=splist.end(); ++lst) {
+			std::cout << *lst << std::endl;
+    }
 
 
   /// LOOP THROUGH STATIONS
