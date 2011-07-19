@@ -11,6 +11,7 @@
 
 #include "ReadProgramOptions.h"
 #include "ProcessControl.h"
+#include "kvMetadataTable.h"
 
 ///The class manages the redistribution of 24 hour precipitation data. 
 

@@ -108,12 +108,22 @@ ProcessPlumatic( ReadProgramOptions params )
 	//result = dbGate.select(splist , query, "station_param")
 	//kvQueries::selectStationParam( slist, otime, qcx )|
     result = dbGate.select( splist, kvQueries::selectStationParam( StationIds, otime, qcx ) );
-
     for (std::list<kvalobs::kvStationParam>::const_iterator lst=splist.begin(); lst!=splist.end(); ++lst) {
-			std::cout << *lst << std::endl;
+			std::cout << lst->metadata() << std::endl;
+			std::cout << lst->descMetadata() << std::endl;
+			std::cout << "...................." << std::endl;
     }
+	    // // std::ostringstream ost;
+		// ost << kvparam.name() << "&"
+		    // << it->level() << "&"
+		    // << it->sensor();
+//  HERE HERE HERE
+		  // // unpack metadata-string to table-structures
+			    // result &= kvMetadataTable::processString( ost.str(),
+					              // it->metadata(), tables );
+// 
 
-
+    return 0;
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
      try {
