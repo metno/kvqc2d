@@ -107,20 +107,34 @@ ProcessPlumatic( ReadProgramOptions params )
 		        //"LIMIT 1;";
 	//result = dbGate.select(splist , query, "station_param")
 	//kvQueries::selectStationParam( slist, otime, qcx )|
+    std::ostringstream ozst;
+    std::list<kvMetadataTable> tables;
+	std::string data_value;
     result = dbGate.select( splist, kvQueries::selectStationParam( StationIds, otime, qcx ) );
     for (std::list<kvalobs::kvStationParam>::const_iterator lst=splist.begin(); lst!=splist.end(); ++lst) {
 			std::cout << lst->metadata() << std::endl;
 			std::cout << lst->descMetadata() << std::endl;
 			std::cout << "...................." << std::endl;
-    }
-	    // // std::ostringstream ost;
-		// ost << kvparam.name() << "&"
-		    // << it->level() << "&"
-		    // << it->sensor();
+		 //ozst << kvparam.name() << "&"
+		 ozst << "RR_01" << "&"
+		     << 0 << "&"
+		     << 0;
+			 std::string vname= "RR_01";
+
 //  HERE HERE HERE
 		  // // unpack metadata-string to table-structures
-			    // result &= kvMetadataTable::processString( ost.str(),
-					              // it->metadata(), tables );
+			     result &= kvMetadataTable::processString( ozst.str(),
+					               lst->metadata(), tables );
+				 std::list<kvMetadataTable>::iterator mp= tables.begin();
+				       for (; mp != tables.end(); mp++){
+							   	if (mp->findEntry(vname, data_value)){
+										std::cout << ".X." << std::endl;
+												  	}
+													      }
+
+				 //std::cout << tables.value_["RR_01"] << std::endl;
+				 //tables.findEntry("RR_01",&data_value);
+    }
 // 
 
     return 0;
