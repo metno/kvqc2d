@@ -70,6 +70,7 @@ ProcessPlumatic( ReadProgramOptions params )
   std::list<kvalobs::kvStation> StationList;
   std::list<kvalobs::kvStation> ActualStationList;
   std::list<int> StationIds;
+  std::list<int> TestStation;
   std::list<kvalobs::kvData> PluviData;
   std::list<kvalobs::kvData> CheckData;
   std::list<kvalobs::kvData> ReturnData;
@@ -93,6 +94,7 @@ ProcessPlumatic( ReadProgramOptions params )
    std::ostringstream query;
 
    int sid=15890;
+   TestStation.push_back( sid );
    miutil::miTime otime=stime;
    std::string qcx="QC1-1-211";
 
@@ -110,11 +112,32 @@ ProcessPlumatic( ReadProgramOptions params )
     std::ostringstream ozst;
     std::list<kvMetadataTable> tables;
 	std::string data_value;
-    result = dbGate.select( splist, kvQueries::selectStationParam( StationIds, otime, qcx ) );
+    result = dbGate.select( splist, kvQueries::selectStationParam( TestStation, otime, qcx ) );
     for (std::list<kvalobs::kvStationParam>::const_iterator lst=splist.begin(); lst!=splist.end(); ++lst) {
 			std::cout << lst->metadata() << std::endl;
 			std::cout << lst->descMetadata() << std::endl;
+			std::cout << otime << std::endl;
+			std::cout << qcx << std::endl;
 			std::cout << "...................." << std::endl;
+
+       miString dougal=lst->metadata(); 
+	   vector<miString> vs,names,vs2;
+	   vs = dougal.split("\n");
+
+       for (size_t i=0; i<vs.size(); i++){
+         miString t = vs[i];
+		 std::cout << t << std::endl;
+		 std::cout <<  "..."  << std::endl;
+		 vs2=t.split(";");
+         for (size_t j=0; j<vs2.size(); j++){
+				 std::cout << vs2[j] << std::endl;
+	     }
+	   }
+
+
+
+
+
 		 //ozst << kvparam.name() << "&"
 		 ozst << "RR_01" << "&"
 		     << 0 << "&"
@@ -129,8 +152,8 @@ ProcessPlumatic( ReadProgramOptions params )
 				       for (; mp != tables.end(); mp++){
 							   	if (mp->findEntry(vname, data_value)){
 										std::cout << ".X." << std::endl;
-												  	}
-													      }
+						  	    }
+				      }
 
 				 //std::cout << tables.value_["RR_01"] << std::endl;
 				 //tables.findEntry("RR_01",&data_value);
