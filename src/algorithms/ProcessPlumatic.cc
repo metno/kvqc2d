@@ -135,9 +135,6 @@ ProcessPlumatic( ReadProgramOptions params )
 	   }
 
 
-
-
-
 		 //ozst << kvparam.name() << "&"
 		 ozst << "RR_01" << "&"
 		     << 0 << "&"
