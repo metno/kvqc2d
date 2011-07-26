@@ -124,15 +124,47 @@ ProcessPlumatic( ReadProgramOptions params )
 	   vector<miString> vs,names,vs2;
 	   vs = dougal.split("\n");
 
-       for (size_t i=0; i<vs.size(); i++){
-         miString t = vs[i];
-		 std::cout << t << std::endl;
-		 std::cout <<  "..."  << std::endl;
-		 vs2=t.split(";");
-         for (size_t j=0; j<vs2.size(); j++){
-				 std::cout << vs2[j] << std::endl;
-	     }
+       std::map<miString,miString> spMap; 
+
+
+       // just want one table entry
+
+	   if (vs.size() == 2) {
+			  names = vs[0].split(";"); 
+			  vs2 = vs[1].split(";"); 
+              for (size_t j=0; j<names.size(); j++){
+				      spMap[ names[j] ] = vs2[j];
+	          }
 	   }
+	   std::cout << spMap["max"] << std::endl;
+
+       //for (size_t i=0; i<vs.size(); i++){
+         //miString t = vs[i];
+		 //std::cout << t << std::endl;
+		 //std::cout <<  "..."  << std::endl;
+		 //vs2=t.split(";");
+         //for (size_t j=0; j<vs2.size(); j++){
+				 //std::cout << vs2[j] << std::endl;
+	     //}
+	   //}
+
+	   //  max;highest;high;low;lowest;min
+	   //  ...
+	   //  max
+	   //  highest
+	   //  high
+	   //  low
+	   //  lowest
+	   //  min
+	   //  50;24.6;19.6;-24.8;-29.8;-55
+	   //  ...
+	   //  50
+	   //  24.6
+	   //  19.6
+	   //  -24.8
+	   //  -29.8
+	   //  -55
+
 
 
 		 //ozst << kvparam.name() << "&"
