@@ -45,6 +45,7 @@
 #include "CheckedDataHelper.h"
 #include "ProcessControl.h"
 #include "Plumatic.h"
+#include "GetStationParam.h"
 
 using namespace kvalobs;
 using namespace std;
@@ -97,99 +98,13 @@ ProcessPlumatic( ReadProgramOptions params )
    TestStation.push_back( sid );
    miutil::miTime otime=stime;
    std::string qcx="QC1-1-211";
+   result = dbGate.select( splist, kvQueries::selectStationParam( TestStation, otime, qcx ) );
+   GetStationParam Desmond(splist); 
+   std::cout << "Return value: " << Desmond.ValueOf("max") << std::endl;
 
-       //query << "SELECT metadata FROM station_param WHERE "
-	            //"stationid in (0, " << si.stationID() << ") AND "
-		        //"paramid=(SELECT paramid FROM param WHERE name='" << parameter << "') AND "
-		        //"fromday<=" << dayNumber << " AND " << dayNumber << "<=today AND "
-		        //"qcx='" << qcx << "' AND "
-		        //"level=0 AND sensor='0' AND "
-		        //"fromtime<='" << si.obstime() << "' "
-		        //"ORDER BY stationid DESC, fromtime DESC "
-		        //"LIMIT 1;";
-	//result = dbGate.select(splist , query, "station_param")
-	//kvQueries::selectStationParam( slist, otime, qcx )|
-    std::ostringstream ozst;
-    std::list<kvMetadataTable> tables;
-	std::string data_value;
-    result = dbGate.select( splist, kvQueries::selectStationParam( TestStation, otime, qcx ) );
-    for (std::list<kvalobs::kvStationParam>::const_iterator lst=splist.begin(); lst!=splist.end(); ++lst) {
-			std::cout << lst->metadata() << std::endl;
-			std::cout << lst->descMetadata() << std::endl;
-			std::cout << otime << std::endl;
-			std::cout << qcx << std::endl;
-			std::cout << "...................." << std::endl;
-
-       miString dougal=lst->metadata(); 
-	   vector<miString> vs,names,vs2;
-	   vs = dougal.split("\n");
-
-       std::map<miString,miString> spMap; 
+   return 0;
 
 
-       // just want one table entry
-
-	   if (vs.size() == 2) {
-			  names = vs[0].split(";"); 
-			  vs2 = vs[1].split(";"); 
-              for (size_t j=0; j<names.size(); j++){
-				      spMap[ names[j] ] = vs2[j];
-	          }
-	   }
-	   std::cout << spMap["max"] << std::endl;
-
-       //for (size_t i=0; i<vs.size(); i++){
-         //miString t = vs[i];
-		 //std::cout << t << std::endl;
-		 //std::cout <<  "..."  << std::endl;
-		 //vs2=t.split(";");
-         //for (size_t j=0; j<vs2.size(); j++){
-				 //std::cout << vs2[j] << std::endl;
-	     //}
-	   //}
-
-	   //  max;highest;high;low;lowest;min
-	   //  ...
-	   //  max
-	   //  highest
-	   //  high
-	   //  low
-	   //  lowest
-	   //  min
-	   //  50;24.6;19.6;-24.8;-29.8;-55
-	   //  ...
-	   //  50
-	   //  24.6
-	   //  19.6
-	   //  -24.8
-	   //  -29.8
-	   //  -55
-
-
-
-		 //ozst << kvparam.name() << "&"
-		 ozst << "RR_01" << "&"
-		     << 0 << "&"
-		     << 0;
-			 std::string vname= "RR_01";
-
-//  HERE HERE HERE
-		  // // unpack metadata-string to table-structures
-			     result &= kvMetadataTable::processString( ozst.str(),
-					               lst->metadata(), tables );
-				 std::list<kvMetadataTable>::iterator mp= tables.begin();
-				       for (; mp != tables.end(); mp++){
-							   	if (mp->findEntry(vname, data_value)){
-										std::cout << ".X." << std::endl;
-						  	    }
-				      }
-
-				 //std::cout << tables.value_["RR_01"] << std::endl;
-				 //tables.findEntry("RR_01",&data_value);
-    }
-// 
-
-    return 0;
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
      try {

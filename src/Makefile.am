@@ -32,6 +32,8 @@ kvqc2d_SOURCES = \
 	algorithms/Distribute.h \
 	algorithms/Plumatic.cc \
 	algorithms/Plumatic.h \
+	algorithms/GetStationParam.cc \
+	algorithms/GetStationParam.h \
 	algorithms/kvQABaseTypes.h \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/SingleLinear_v32.cc \
