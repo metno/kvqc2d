@@ -159,23 +159,6 @@ DipTest( ReadProgramOptions params )
                result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
   
                  
-///Looking into providing minimum check
-               OneStation.clear();
-               OneStation.push_back( id->stationID() );
-			   if (OneStation.size() == 1)  {
-                  std::string qcx="QC1-1-"+StrmConvert(pid);
-				  std::cout << "qcx " << qcx << std::endl;
-                  result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, ProcessTime, qcx ) ); 
-                  GetStationParam Desmond(splist); 
-			      ParamValue=Desmond.ValueOf("min");
-			      MinimumCheck=ParamValue.toFloat();
-                  std::cout << "Return value: " << MinimumCheck << std::endl;
-			   }
-			   else
-			   {
-			   //failed
-			     MinimumCheck=-32767.0;
-			   }
 
                for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
                         Tseries.push_back(*is);
@@ -269,7 +252,25 @@ DipTest( ReadProgramOptions params )
 						}	 
 
 
+///Looking into providing minimum check
+                       OneStation.clear();
+                       OneStation.push_back( id->stationID() );
+			           if (OneStation.size() == 1)  {
+                          std::string qcx="QC1-1-"+StrmConvert(pid);
+				          std::cout << "qcx " << qcx << std::endl;
+                          result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, ProcessTime, qcx ) ); 
+                          GetStationParam Desmond(splist); 
+			              ParamValue=Desmond.ValueOf("min");
+			              MinimumCheck=ParamValue.toFloat();
+                          std::cout << "Return value: " << MinimumCheck << std::endl;
+			           }
+			           else
+			           {
+			           //failed
+			             MinimumCheck=-32767.0;
+			           }
 					   if (AkimaInterpolated < MinimumCheck) AkimaPresent=false;
+
                                        
                        try{
                            if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
