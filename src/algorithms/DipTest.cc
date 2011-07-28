@@ -63,6 +63,7 @@ DipTest( ReadProgramOptions params )
    float LinInterpolated;
    float AkimaInterpolated;
    float MinimumCheck;
+   float DeltaCheck;
    float ABS20, ABS10, ABS21;
    float delta;
    int pid;
@@ -71,6 +72,7 @@ DipTest( ReadProgramOptions params )
    miutil::miString new_cfailed1;
    miutil::miString new_cfailed2;
    miutil::miString ParamValue;
+   miutil::miString DeltaValue;
    miutil::miTime stime=params.UT0;
    miutil::miTime etime=params.UT1;
  
@@ -122,6 +124,17 @@ DipTest( ReadProgramOptions params )
 	  std::cout << pid << " " << delta << std::endl;
       ProcessTime = etime;
 	  std::cout << "------------------" << std::endl;
+      OneStation.clear();
+      OneStation.push_back( 0 );
+      if (OneStation.size() == 1)  {  
+          std::string qcx="QC1-3a-"+StrmConvert(pid);
+		  std::cout << "qcx " << qcx << std::endl;
+          result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, ProcessTime, qcx ) ); ///XTime may not always be good enough?
+          GetStationParam Desmond(splist); 
+	      DeltaValue=Desmond.ValueOf("max");
+	      DeltaCheck=DeltaValue.toFloat();
+          std::cout << "Delta automatically read from the database (under test!!!):  " << DeltaCheck << std::endl;
+      }
       while (ProcessTime >= stime) 
       {
          XTime=ProcessTime;
@@ -150,7 +163,8 @@ DipTest( ReadProgramOptions params )
                OneStation.clear();
                OneStation.push_back( id->stationID() );
 			   if (OneStation.size() == 1)  {
-                  std::string qcx="QC1-1-81";
+                  std::string qcx="QC1-1-"+StrmConvert(pid);
+				  std::cout << "qcx " << qcx << std::endl;
                   result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, XTime, qcx ) ); ///XTime may not always be good enough?
                   GetStationParam Desmond(splist); 
 			      ParamValue=Desmond.ValueOf("min");
