@@ -165,7 +165,7 @@ DipTest( ReadProgramOptions params )
 			   if (OneStation.size() == 1)  {
                   std::string qcx="QC1-1-"+StrmConvert(pid);
 				  std::cout << "qcx " << qcx << std::endl;
-                  result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, XTime, qcx ) ); ///XTime may not always be good enough?
+                  result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, ProcessTime, qcx ) ); 
                   GetStationParam Desmond(splist); 
 			      ParamValue=Desmond.ValueOf("min");
 			      MinimumCheck=ParamValue.toFloat();
