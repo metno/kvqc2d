@@ -45,6 +45,7 @@
 #include "ProcessControl.h"
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
+#include "GetStationParam.h"
 
 #include "tround.h"
 #include "AkimaSpline.h"
@@ -61,6 +62,7 @@ DipTest( ReadProgramOptions params )
    float Interpolated;
    float LinInterpolated;
    float AkimaInterpolated;
+   float MinimumCheck;
    float ABS20, ABS10, ABS21;
    float delta;
    int pid;
@@ -68,13 +70,16 @@ DipTest( ReadProgramOptions params )
    kvalobs::kvData dwrite2;                                                   
    miutil::miString new_cfailed1;
    miutil::miString new_cfailed2;
+   miutil::miString ParamValue;
    miutil::miTime stime=params.UT0;
    miutil::miTime etime=params.UT1;
  
    std::list<kvalobs::kvStation> StationList;
    std::list<int> StationIds;
+   std::list<int> OneStation;
    std::list<kvalobs::kvData> Qc2Data;
    std::list<kvalobs::kvData> Qc2SeriesData;
+   std::list<kvalobs::kvStationParam> splist;
    bool result;
    bool AkimaPresent=false;
    bool HOLDING=false;
@@ -139,7 +144,25 @@ DipTest( ReadProgramOptions params )
             for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
                Tseries.clear();  
                result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
-   
+  
+                 
+///Looking into providing minimum check
+               OneStation.clear();
+               OneStation.push_back( id->stationID() );
+			   if (OneStation.size() == 1)  {
+                  std::string qcx="QC1-1-81";
+                  result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, XTime, qcx ) ); ///XTime may not always be good enough?
+                  GetStationParam Desmond(splist); 
+			      ParamValue=Desmond.ValueOf("min");
+			      MinimumCheck=ParamValue.toFloat();
+                  std::cout << "Return value: " << MinimumCheck << std::endl;
+			   }
+			   else
+			   {
+			   //failed
+			     MinimumCheck=-32767.0;
+			   }
+
                for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
                         Tseries.push_back(*is);
                }
@@ -230,6 +253,9 @@ DipTest( ReadProgramOptions params )
 						      AkimaPresent=true;
 					       }
 						}	 
+
+
+					   if (AkimaInterpolated < MinimumCheck) AkimaPresent=false;
                                        
                        try{
                            if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already

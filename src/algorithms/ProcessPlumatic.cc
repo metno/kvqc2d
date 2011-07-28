@@ -94,16 +94,13 @@ ProcessPlumatic( ReadProgramOptions params )
    std::list<kvalobs::kvStationParam> splist;
    std::ostringstream query;
 
-   int sid=15890;
-   TestStation.push_back( sid );
-   miutil::miTime otime=stime;
-   std::string qcx="QC1-1-211";
-   result = dbGate.select( splist, kvQueries::selectStationParam( TestStation, otime, qcx ) );
-   GetStationParam Desmond(splist); 
-   std::cout << "Return value: " << Desmond.ValueOf("max") << std::endl;
-
-   return 0;
-
+   //int sid=15890;
+   //TestStation.push_back( sid );
+   //miutil::miTime otime=stime;
+   //std::string qcx="QC1-1-211";
+   //result = dbGate.select( splist, kvQueries::selectStationParam( TestStation, otime, qcx ) );
+   //GetStationParam Desmond(splist); 
+   //std::cout << "Return value: " << Desmond.ValueOf("max") << std::endl;
 
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {

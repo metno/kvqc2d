@@ -15,3 +15,11 @@ template<typename F>std::string StrmConvert( F from )
   return StrmConvert<std::string>( from );
 }
 
+template<class T> T fromString(const std::string& s)
+{
+     std::istringstream stream (s);
+     T t;
+     stream >> t;
+     return t;
+}
+
