@@ -121,6 +121,7 @@ ProcessPlumatic( ReadProgramOptions params )
 
 		 Plumatic PL(PluviData,params);
 		 std::cout << " --------------- " << std::endl;
+		 PL.aggregate_window();
        }
   }
 
