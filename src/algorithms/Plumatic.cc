@@ -107,11 +107,11 @@ Plumatic::aggregate_window()
 	while (Tstamp <= Stop_Time_Interval) {
             pluvi_time.push_back(Tstamp);
             if (pluvi_data[Tstamp]==-10.0) {;
-               pluvi_time.push_back(0.0);
+               pluvi_local.push_back(0.0);
 			}
 			else
 			{
-               pluvi_time.push_back(pluvi_data[Tstamp]);
+               pluvi_local.push_back(pluvi_data[Tstamp]);
 			}
 			Tstamp.addMin(); // default is to add one minute unless specified
 	}
@@ -119,16 +119,17 @@ Plumatic::aggregate_window()
 	int WindowSize=2;
 	long offset;
 
-    std::vector<float>::iterator ipl=pluvi_local.begin();
+    std::vector<float>::const_iterator ipl=pluvi_local.begin();
     //for (offset=0; offset < pluvi_local.size()-WindowSize-1 ; offset++) {
-	   //PluviSum=accumulate(pluvi_local.begin() + offset, pluvi_local.begin() + WindowSize + offset, 0);
-	   PluviSum=accumulate(pluvi_local.begin(), pluvi_local.end(), 0);
+    for (offset=10; offset < pluvi_local.size()-WindowSize-1 ; offset++) {
+	   PluviSum=accumulate(pluvi_local.begin() + offset, pluvi_local.begin() + WindowSize + offset, (float) 0.0);
 	   if (PluviSum > 0.2) {
-	         std::cout <<  PluviSum << std::endl; 
+			 std::cout << *(pluvi_local.begin() + offset - 1) << " _ "  << *(pluvi_local.begin() + offset) << " _ " << *(pluvi_local.begin() + offset + 1)  << " _ " << 
+			               *(pluvi_local.begin() + offset + 2)  << " _ " << *(pluvi_local.begin() + offset + 3) << std::endl;
+	         std::cout << *(pluvi_time.begin() + offset)<< " " <<  PluviSum << std::endl; 
 			 sleep(1);
 	   }
-	//}
-
+	}
 
 
 return 0;
