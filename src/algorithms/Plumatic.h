@@ -41,7 +41,7 @@ public:
 
   void clear_all();
 
-  int aggregate_window();
+  int aggregate_window(ReadProgramOptions params, std::list<miutil::miTime> & TimeList);
   
 };
 

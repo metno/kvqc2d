@@ -72,6 +72,7 @@ ProcessPlumatic( ReadProgramOptions params )
   std::list<kvalobs::kvStation> ActualStationList;
   std::list<int> StationIds;
   std::list<int> TestStation;
+  std::list<miutil::miTime> TimeList;
   std::list<kvalobs::kvData> PluviData;
   std::list<kvalobs::kvData> CheckData;
   std::list<kvalobs::kvData> ReturnData;
@@ -91,7 +92,7 @@ ProcessPlumatic( ReadProgramOptions params )
      StationIds.push_back( sit->stationID() );
   }
 
-   std::list<kvalobs::kvStationParam> splist;
+   std::list<kvalobs::kvStationParam> splist,resultlist;
    std::ostringstream query;
 
    //int sid=15890;
@@ -121,7 +122,26 @@ ProcessPlumatic( ReadProgramOptions params )
 
 		 Plumatic PL(PluviData,params);
 		 std::cout << " --------------- " << std::endl;
-		 PL.aggregate_window();
+		 PL.aggregate_window(params, TimeList);
+		   for (std::list<miutil::miTime>::const_iterator ik=TimeList.begin() ; ik != TimeList.end() ; ++ik) {
+
+                       //index = find( PluviData.obstime(), PluviData.obstime().end(),*ik);
+					   //std::cout << *index << std::endl;
+
+
+                        //new_cfailed=Tseries[1].cfailed();
+                        //if (new_cfailed.length() > 0) new_cfailed += ",";
+                        //new_cfailed += "PLX";
+                        //if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
+                        //dwrite.clean();
+                        //dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                              //Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
+                              //new_cfailed );
+                        //LOGINFO("SingleLinear_v32: "+kvqc2logstring(dwrite) );
+                        //dbGate.insert( dwrite, "data", true); 
+                        //kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
+                        //stList.push_back(DataToWrite);
+		  }
        }
   }
 
