@@ -123,7 +123,7 @@ Plumatic::aggregate_window()
     //for (offset=0; offset < pluvi_local.size()-WindowSize-1 ; offset++) {
     for (offset=10; offset < pluvi_local.size()-WindowSize-1 ; offset++) {
 	   PluviSum=accumulate(pluvi_local.begin() + offset, pluvi_local.begin() + WindowSize + offset, (float) 0.0);
-	   if (PluviSum > 0.2) {
+	   if (PluviSum > 0.21) {
 			 std::cout << *(pluvi_local.begin() + offset - 1) << " _ "  << *(pluvi_local.begin() + offset) << " _ " << *(pluvi_local.begin() + offset + 1)  << " _ " << 
 			               *(pluvi_local.begin() + offset + 2)  << " _ " << *(pluvi_local.begin() + offset + 3) << std::endl;
 	         std::cout << *(pluvi_time.begin() + offset)<< " " <<  PluviSum << std::endl; 
