@@ -1120,7 +1120,7 @@ calculate_intp_temp(unsigned int index)
                    if (original_[i] != params.missing && temp_distance > 0 ){
                                inv_dist += 1.0/(temp_distance*temp_distance*temp_distance*temp_distance);
                                weight += data_point/(temp_distance*temp_distance*temp_distance*temp_distance);
-                               std::cout << data_point << " " << temp_distance << std::endl;
+                               //std::cout << data_point << " " << temp_distance << std::endl;
                        }
               }
           }

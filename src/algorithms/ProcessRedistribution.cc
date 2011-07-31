@@ -91,28 +91,9 @@ Redistribute( ReadProgramOptions params )
 
   ProcessTime = stime;
 
-  //std::cout << "ETIME TIME STAMP: " << etime << std::endl;
-  //std::cout << "STIME TIME STAMP: " << stime << std::endl;
-  //std::cout << "ProcessTIME TIME STAMP: " << ProcessTime << std::endl;
-
-
-
   while (ProcessTime <= etime) {
 
              try {
-
-                //ostringstream ost;    /// later put this back in kvQueries ******************
-                //ost << " WHERE stationid IN (";
-                //for (std::list<int>::const_iterator sp= StationIds.begin(); sp!=StationIds.end(); sp++)
-                    //ost << (sp==StationIds.begin() ? "" : ",") << *sp;
-                //ost << ") and paramid="    << pid
-                    //<< " and typeid IN (";
-                //for (std::vector<int>::const_iterator tp= tids.begin(); tp!=tids.end(); tp++) 
-                    //ost << (tp==tids.begin() ? "" : ",") << *tp;
-                //ost << ") and obstime=\'"  << ProcessTime.isoTime() << "\'"
-                    //<< " order by obstime";
-                //ladle=ost.str();
-                //result = dbGate.select(Qc2Data, ladle);
 
               //result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,tid,ProcessTime,ProcessTime));
               /// TODO: interpolate across all type ids and check for effective duplicates.            
@@ -134,7 +115,7 @@ Redistribute( ReadProgramOptions params )
        }
               
        if(!ReturnData.empty()) {
-          std::cout << "Not Empty" << std::endl;
+          //std::cout << "Not Empty" << std::endl;
           for (std::list<kvalobs::kvData>::const_iterator id = ReturnData.begin(); id != ReturnData.end(); ++id) {
 				      //LOGINFO("---------------->: "+ kvqc2logstring(*id) );
                       PreviousCheck=id->obstime();
