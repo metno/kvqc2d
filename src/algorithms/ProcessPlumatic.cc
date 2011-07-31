@@ -67,6 +67,8 @@ ProcessPlumatic( ReadProgramOptions params )
   const std::vector<int> tids=params.tids;
 
   ProcessControl CheckFlags;
+  miutil::miString new_cfailed;
+  kvalobs::kvControlInfo fixflags;
 
   std::list<kvalobs::kvStation> StationList;
   std::list<kvalobs::kvStation> ActualStationList;
@@ -87,6 +89,7 @@ ProcessPlumatic( ReadProgramOptions params )
   miutil::miTime ProcessTime;
   miutil::miString ladle;
 
+  kvalobs::kvData dwrite;                                                   
 
   GetStationList(StationList);  /// StationList is all the possible stations
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
@@ -96,19 +99,10 @@ ProcessPlumatic( ReadProgramOptions params )
    std::list<kvalobs::kvStationParam> splist,resultlist;
    std::ostringstream query;
 
-   //int sid=15890;
-   //TestStation.push_back( sid );
-   //miutil::miTime otime=stime;
-   //std::string qcx="QC1-1-211";
-   //result = dbGate.select( splist, kvQueries::selectStationParam( TestStation, otime, qcx ) );
-   //GetStationParam Desmond(splist); 
-   //std::cout << "Return value: " << Desmond.ValueOf("max") << std::endl;
-
   /// LOOP THROUGH STATIONS
   for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++sit) {
      try {
 			 ladle="WHERE STATIONID="+StrmConvert(sit->stationID())+" AND PARAMID="+StrmConvert(pid)+" AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
-			 //std::cout << ladle << std::endl;
 			 result = dbGate.select(PluviData, ladle);
          }
          catch ( dnmi::db::SQLException & ex ) {
@@ -117,7 +111,6 @@ ProcessPlumatic( ReadProgramOptions params )
          catch ( ... ) {
            IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
          }
-         /// ANALYSE RESULTS FOR ONE STATIONS
 
       if(!PluviData.empty()) {
 
@@ -126,29 +119,53 @@ ProcessPlumatic( ReadProgramOptions params )
 		 PL.aggregate_window(params, TimeList);
 		 for (std::list<kvalobs::kvData>::const_iterator idata=PluviData.begin(); idata!=PluviData.end(); ++idata)
 		 {
-		    iTime=std::find(TimeList.begin(), TimeList.end(), idata->obstime()); 
-			if (iTime != TimeList.end() && (std::find(iTime, TimeList.end(), idata->obstime()) != TimeList.end() ) ) {
-                 std::cout << "Flag This: " << *idata << std::endl;
-                 //index = find( PluviData.obstime(), PluviData.obstime().end(),*ik);
-			     //std::cout << *index << std::endl;
-                 //new_cfailed=Tseries[1].cfailed();
-                 //if (new_cfailed.length() > 0) new_cfailed += ",";
-                 //new_cfailed += "PLX";
-                 //if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
-                 //dwrite.clean();
-                 //dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                 //Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                 //new_cfailed );
-                 //LOGINFO("SingleLinear_v32: "+kvqc2logstring(dwrite) );
-                 //dbGate.insert( dwrite, "data", true); 
-                 //kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
-                 //stList.push_back(DataToWrite);
-			}
+            try{
+		       iTime=std::find(TimeList.begin(), TimeList.end(), idata->obstime()); 
+			   if (iTime != TimeList.end() && (std::find(iTime, TimeList.end(), idata->obstime()) != TimeList.end() ) ) {
+                    std::cout << "Flag This: " << *idata << std::endl;
+                    // UPDATE FLAG 
+                    fixflags=idata->controlinfo();
+                    CheckFlags.setter(fixflags,params.Sflag);
+                    CheckFlags.conditional_setter(fixflags,params.chflag);
+                    // SET CFAILED
+                    new_cfailed=idata->cfailed();
+                    if (new_cfailed.length() > 0) new_cfailed += ",";
+                    new_cfailed += "PLX";
+                    if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
+                    // PREPARE KVALOBS DATA 
+                    dwrite.clean();
+                    dwrite.set(idata->stationID(),idata->obstime(),idata->original(),idata->paramID(),idata->tbtime(),
+                      idata->typeID(),idata->sensor(), idata->level(),idata->corrected(),fixflags,idata->useinfo(),
+                      new_cfailed );
+                    // UPDATE USEINFO BASED ON NEW CONTROLINFO 
+                    kvUseInfo ui = dwrite.useinfo();
+                    ui.setUseFlags( dwrite.controlinfo() );
+                    dwrite.useinfo( ui );   
+					// WRITE TO LOG, DB  	
+                    LOGINFO("Pluviometer Aggregation Check: "+kvqc2logstring(dwrite) );
+                    dbGate.insert( dwrite, "data", true); 
+					// PREPARE kvServiced SIGNAL
+                    kvalobs::kvStationInfo::kvStationInfo DataToWrite(idata->stationID(),idata->obstime(),idata->typeID());
+                    stList.push_back(DataToWrite);
+			   }
+		    }
 
-		 }
+            catch ( dnmi::db::SQLException & ex ) {
+               IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+               std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
+            }
+            catch ( ... ) {
+               IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+               std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
+            }
+			// SEND kvServiced SIGNAL
+            if(!stList.empty()){
+               checkedDataHelper.sendDataToService(stList);
+               stList.clear();
+		    }
        }
-  }
-
+   }
+}
 return 0;
 }
 
