@@ -73,6 +73,7 @@ ProcessPlumatic( ReadProgramOptions params )
   std::list<int> StationIds;
   std::list<int> TestStation;
   std::list<miutil::miTime> TimeList;
+  std::list<miutil::miTime>::iterator iTime;
   std::list<kvalobs::kvData> PluviData;
   std::list<kvalobs::kvData> CheckData;
   std::list<kvalobs::kvData> ReturnData;
@@ -104,7 +105,7 @@ ProcessPlumatic( ReadProgramOptions params )
    //std::cout << "Return value: " << Desmond.ValueOf("max") << std::endl;
 
   /// LOOP THROUGH STATIONS
-  for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
+  for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++sit) {
      try {
 			 ladle="WHERE STATIONID="+StrmConvert(sit->stationID())+" AND PARAMID="+StrmConvert(pid)+" AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
 			 //std::cout << ladle << std::endl;
@@ -123,25 +124,28 @@ ProcessPlumatic( ReadProgramOptions params )
 		 Plumatic PL(PluviData,params);
 		 std::cout << " --------------- " << std::endl;
 		 PL.aggregate_window(params, TimeList);
-		   for (std::list<miutil::miTime>::const_iterator ik=TimeList.begin() ; ik != TimeList.end() ; ++ik) {
+		 for (std::list<kvalobs::kvData>::const_iterator idata=PluviData.begin(); idata!=PluviData.end(); ++idata)
+		 {
+		    iTime=std::find(TimeList.begin(), TimeList.end(), idata->obstime()); 
+			if (iTime != TimeList.end() && (std::find(iTime, TimeList.end(), idata->obstime()) != TimeList.end() ) ) {
+                 std::cout << "Flag This: " << *idata << std::endl;
+                 //index = find( PluviData.obstime(), PluviData.obstime().end(),*ik);
+			     //std::cout << *index << std::endl;
+                 //new_cfailed=Tseries[1].cfailed();
+                 //if (new_cfailed.length() > 0) new_cfailed += ",";
+                 //new_cfailed += "PLX";
+                 //if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
+                 //dwrite.clean();
+                 //dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
+                 //Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
+                 //new_cfailed );
+                 //LOGINFO("SingleLinear_v32: "+kvqc2logstring(dwrite) );
+                 //dbGate.insert( dwrite, "data", true); 
+                 //kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
+                 //stList.push_back(DataToWrite);
+			}
 
-                       //index = find( PluviData.obstime(), PluviData.obstime().end(),*ik);
-					   //std::cout << *index << std::endl;
-
-
-                        //new_cfailed=Tseries[1].cfailed();
-                        //if (new_cfailed.length() > 0) new_cfailed += ",";
-                        //new_cfailed += "PLX";
-                        //if (params.CFAILED_STRING.length() > 0) new_cfailed += ","+params.CFAILED_STRING;
-                        //dwrite.clean();
-                        //dwrite.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                              //Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),NewCorrected,fixflags,Tseries[1].useinfo(),
-                              //new_cfailed );
-                        //LOGINFO("SingleLinear_v32: "+kvqc2logstring(dwrite) );
-                        //dbGate.insert( dwrite, "data", true); 
-                        //kvalobs::kvStationInfo::kvStationInfo DataToWrite(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
-                        //stList.push_back(DataToWrite);
-		  }
+		 }
        }
   }
 
