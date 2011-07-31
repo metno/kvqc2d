@@ -173,7 +173,7 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData, ReadP
            }
      
            if (available_data && sumint > 0.0 && dst_time[ stid ][ sindex-irun ] != params.UT0 && continuous) {  // NB if the available data starts at the first time
-				   std::cout << dst_time[ stid ][ sindex-irun ] << " " << params.UT0 << std::endl;
+				   //std::cout << dst_time[ stid ][ sindex-irun ] << " " << params.UT0 << std::endl;
            //if (available_data && sumint > 0.0 && dst_time[ stid ][ sindex-irun ] != params.UT0) {  // NB if the available data starts at the first time
                float normaliser=accval/sumint;                                      // we cannot redistribute since there might be times
                float roundSum=0.0;                                                  // earlier!!!
@@ -225,15 +225,15 @@ RedistributeStationData(int & sid, std::list<kvalobs::kvData>& ReturnData, ReadP
 			   // Check ReturnData
                // IF VALUES ARE DIFFERENT
 			   compareSum=round<float,1>(roundSum-accval);
-			   std::cout << roundSum <<  " : " << accval << " : " << compareSum << std::endl;
+			   //std::cout << roundSum <<  " : " << accval << " : " << compareSum << std::endl;
 			   if (compareSum != 0.0) {
                   for (std::list<kvalobs::kvData>::reverse_iterator iq=ReturnData.rbegin(); iq!=ReturnData.rend(); ++iq) {
-					      std::cout << iq->corrected() << std::endl;
+					      //std::cout << iq->corrected() << std::endl;
 						  if ((iq->corrected() - compareSum) > 0.0) {
                              iq->corrected(iq->corrected() - compareSum);
 							 compareSum=0.0;
 							 //LOGINFO("SPOT: "+kvqc2logstring(*iq) );
-					         std::cout << iq->corrected() <<  " --- " << std::endl;
+					         //std::cout << iq->corrected() <<  " --- " << std::endl;
 						  }
 			      }
 			   }
