@@ -62,6 +62,7 @@ Redistribute( ReadProgramOptions params )
   const int pid=params.pid;
   const int tid=params.tid;
   int ignore_station=0;
+  int NibbleIndex=params.nibble_index;
   const std::vector<int> tids=params.tids;
 
   ProcessControl CheckFlags;
@@ -146,7 +147,9 @@ Redistribute( ReadProgramOptions params )
                               }
                       }
                       try {
-                           if ( CheckFlags.condition(id->controlinfo(),params.Wflag) && id->stationID() != ignore_station) { 
+                           //if ( CheckFlags.condition(id->controlinfo(),params.Wflag) && id->stationID() != ignore_station) { 
+                           if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,NibbleIndex,params.Wbool) && 
+								                                   id->stationID() != ignore_station ) {  
                            LOGINFO("Redistribution: "+kvqc2logstring(*id) );
                                         ////LOGINFO("Redistribute Precipitation Writing Data "
                                                                             //+StrmConvert(id->corrected())+" "

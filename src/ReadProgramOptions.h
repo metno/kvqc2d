@@ -46,6 +46,7 @@ int RunAtHour;
 int pid;
 int maxpid,minpid;
 int tid;
+int nibble_index;
 std::vector<int> tids;
 std::map<int,float> parvals;
 float missing;

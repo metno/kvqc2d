@@ -113,6 +113,7 @@ int ParamId;
 int MaxParamId;
 int MinParamId;
 int TypeId;
+int NibbleIndex;
 std::vector<int> TypeIds;
 std::map<int,float> ParVal;
 float MissingValue;
@@ -201,6 +202,7 @@ try{
         ("InterpCode",po::value<int>  (&InterpCode)->default_value(-1),  "Code to determine method of interpolation")     //DOCME
         ("ControlString",po::value<std::string>  (&ControlString),  "Control Info (not used)")     //DOCME
         ("ControlVector",po::value<std::vector<int> > (&ControlVector),  "Control Vector (not used)")     //DOCME
+        ("NibbleIndex",po::value<int>  (&NibbleIndex)->default_value(15),  "Index of the flag to check if data should be written back to the database. By default set to 15 (f_hqc)")     //DOCME
 
         ("BestStationFilename",po::value<std::string> (&BestStationFilename)->default_value("NotSet"),  "Filename containing the best station list")     //DOCME
         ("ParValFilename",po::value<std::string> (&ParValFilename)->default_value("NotSet"),  "Filename containing pairs of paramids and associated values")     //DOCME
@@ -442,6 +444,7 @@ try{
          maxpid=MaxParamId;
          minpid=MinParamId;
          tid=TypeId;
+		 nibble_index=NibbleIndex;
          tids=TypeIds;  // if multiple are required
 		 parvals=ParVal;
          RunAtMinute=RunMinute;
@@ -707,6 +710,7 @@ pid=0;
 maxpid=0;
 minpid=0;
 tid=0;
+nibble_index=15;  // Always set back to HQC by default
 tids.clear();
 parvals.clear();
 
