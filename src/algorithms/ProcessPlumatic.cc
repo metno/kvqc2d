@@ -123,7 +123,7 @@ ProcessPlumatic( ReadProgramOptions params )
 		       iTime=std::find(TimeList.begin(), TimeList.end(), idata->obstime()); 
 			   if (iTime != TimeList.end() && (std::find(iTime, TimeList.end(), idata->obstime()) != TimeList.end() ) ) {
                     std::cout << "Flag This: " << *idata << std::endl;
-                    // UPDATE FLAG 
+                    // UPDATE FLAG (TBD)
                     fixflags=idata->controlinfo();
                     CheckFlags.setter(fixflags,params.Sflag);
                     CheckFlags.conditional_setter(fixflags,params.chflag);
