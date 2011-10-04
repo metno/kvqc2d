@@ -28,74 +28,63 @@
   with KVALOBS; if not, write to the Free Software Foundation Inc., 
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "ProcessImpl.h"
+
 #include "Qc2Thread.h"
+
+#include "ProcessImpl.h"
 #include "Qc2App.h"
 #include "Qc2Connection.h"
 #include "ReadProgramOptions.h"
-#include <sstream>
+
 #include <milog/milog.h>
-#include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
-#include <memory>
-#include <stdexcept>
 
-#include "CheckedDataCommandBase.h"
-#include "CheckedDataHelper.h"
+#include <boost/foreach.hpp>
 
-using namespace kvalobs;
-using namespace std;
-using namespace miutil;
-
-// constructor
 Qc2Work::Qc2Work( Qc2App &app_, const std::string& logpath )
-    : app( app_ ), logpath_( logpath )
+    : app( app_ )
+    , logpath_( logpath )
 {
 }
 
-//operator
 void Qc2Work::operator() ()
 {
-  LOGINFO( "Qc2Work: starting work thread!\n" );
+    LOGINFO( "Qc2Work: starting work thread!\n" );
 
-// Establish The Connection
-  ConnectionHandler connectionHandler( app ); 
-  dnmi::db::Connection * con = connectionHandler.getConnection();
-
-  if ( ! con ) {
+    // Establish The Connection
+    ConnectionHandler connectionHandler( app ); 
+    dnmi::db::Connection * con = connectionHandler.getConnection();
+    
+    if( !con ) {
         LOGERROR( "Could not get connection to database" );
-  }
-
-  IDLOGERROR( "html","%%%%%%%%%%%%%%%%%%%%%%%%" );
-  LOGINFO( "%%%%%%%%%%%%%%%%%%%%%%%%" );
-
-  ProcessImpl Processor( app, *con);
-
-  while ( !app.shutdown() ) {
+        // FIXME just continue if no database connection? will cause sefault when constructing ProcessImpl (*con)
+    }
+    
+    IDLOGERROR( "html","%%%%%%%%%%%%%%%%%%%%%%%%" );
+    LOGINFO( "%%%%%%%%%%%%%%%%%%%%%%%%" );
+    
+    ProcessImpl Processor( app, *con);
+    
+    while( !app.shutdown() ) {
         ReadProgramOptions params;           
-        std::vector<string> config_files;
+        std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files); 
-        std::vector<string>::const_iterator vit = config_files.begin();
-        while ( vit != config_files.end() )  {
-              params.clear(); // very important!!!!!!
-              params.Parse( *vit );
-              ++vit;
-              if ( miutil::miTime::nowTime().min() == params.RunAtMinute &&
-                     miutil::miTime::nowTime().hour() == params.RunAtHour ) {
-                   try {
-                      Processor.select(params);
-                   }
-                   catch ( dnmi::db::SQLException & ex ) {
-                      IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-                   }
-                   catch ( ... ) {
-                      IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-                   }
-              }
+        BOOST_FOREACH(const std::string& cf, config_files) {
+            params.clear(); // very important!!!!!!
+            params.Parse( cf );
+            const miutil::miTime now = miutil::miTime::nowTime();
+            if ( now.min() == params.RunAtMinute && now.hour() == params.RunAtHour ) {
+                try {
+                    Processor.select(params);
+                } catch ( dnmi::db::SQLException & ex ) {
+                    IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+                } catch ( ... ) {
+                    IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+                }
+            }
         }
         sleep(59);   //check config files every minute 
-  }                  //end of app while loop
+    }                //end of app while loop
                      //59 seconds is set to avoid the thread getting trapped on a minute boundary
-  LOGINFO( "Qc2Work: Thread terminating!" );
+    LOGINFO( "Qc2Work: Thread terminating!" );
 }
-

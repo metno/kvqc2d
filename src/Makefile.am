@@ -20,6 +20,7 @@ kvqc2d_SOURCES = \
 	Qc2App.cc \
 	Qc2App.h \
 	Qc2Connection.h \
+	Qc2Connection.cc \
 	Qc2Main.cc \
 	Qc2Thread.cc \
 	Qc2Thread.h \
