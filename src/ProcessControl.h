@@ -1,36 +1,33 @@
+// -*- c++ -*-
+
 #ifndef _PROCESS_CONTROL_
 #define _PROCESS_CONTROL_
-
 
 #include <kvalobs/kvData.h>
 #include <vector>
 #include <map>
-#include <iostream>
 #include <string>
-
-#include "ReadProgramOptions.h"
 
 /// ProcessControl provids methods to set controlinfo flag values and test controlinfo flag values.
 
-class ProcessControl{
+class ProcessControl {
+public:
+    typedef std::map<int, std::vector<unsigned char> > vucflags_t;
+    typedef std::map<int, unsigned char> ucflags_t;
+    typedef std::map<int, std::vector<std::string> > vsflags_t;
 
 public:
+    ProcessControl();
 
-   ProcessControl();
-   bool condition( kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned char> > vlag );
-   int setter( kvalobs::kvControlInfo &controlinfo, std::map<int, unsigned char>  vlag );
-   int conditional_setter( kvalobs::kvControlInfo &controlinfo, std::map<int, std::vector<std::string> > vlag );
-
-   bool true_nibble( kvalobs::kvControlInfo controlinfo, std::map<int, std::vector<unsigned char> > vlag, int vindex, bool flagbool );
-
+    bool condition( kvalobs::kvControlInfo controlinfo, const vucflags_t& vlag );
+    int setter( kvalobs::kvControlInfo &controlinfo, const ucflags_t& vlag );
+    int conditional_setter( kvalobs::kvControlInfo &controlinfo, const vsflags_t& vlag );
+    bool true_nibble( kvalobs::kvControlInfo controlinfo, const vucflags_t& vlag, int vindex, bool flagbool );
+    
 protected:
-
+    
 private:
-
-   std::map<unsigned char,int> HexToInt;
-   std::map<std::string,int> StringToInt;
-
+    static char hexCharToInt(char n);
 };
-
 
 #endif 
