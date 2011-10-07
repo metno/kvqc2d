@@ -89,8 +89,6 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
     std::vector<double> xt,yt;           // For holding only good data
     std::vector<double> xat,yat;         // For holiding all the data series (missing values as well as good)
 
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
     std::list<kvalobs::kvData> Qc2SeriesData;
     std::list<kvalobs::kvData> ReturnData;
     bool result;
@@ -104,10 +102,9 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
 
     std::vector<kvalobs::kvData> Tseries;
 
-    dispatcher()->GetStationList(StationList);  
-    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-        StationIds.push_back( sit->stationID() );
-    }
+    std::list<kvalobs::kvStation> StationList;
+    std::list<int> StationIds;
+    fillStationLists(StationList, StationIds);
 
     /// LOOP THROUGH STATIONS
     for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {

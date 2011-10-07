@@ -78,8 +78,6 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
     miutil::miTime stime=params.UT0;
     miutil::miTime etime=params.UT1;
  
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
     std::list<int> OneStation;
     std::list<kvalobs::kvData> Qc2Data;
     std::list<kvalobs::kvData> Qc2SeriesData;
@@ -107,10 +105,8 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
 
     std::map<int, float>  PidValMap; 
 
-    dispatcher()->GetStationList(StationList);  /// StationList is all the possible stations ... Check
-    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-        StationIds.push_back( sit->stationID() );
-    } 
+    std::list<int> StationIds;
+    fillStationIDList(StationIds);
 
     //int pid=params.pid;
     if (params.ParValFile != "NotSet") {

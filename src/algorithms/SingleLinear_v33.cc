@@ -70,8 +70,6 @@ void SingleLinearV33Algorithm::run(const ReadProgramOptions& params )
     //AkimaInterpolated=round<float,1>( AkimaX.AkimaPoint(3.0) );
     //AkimaPresent=true;
  
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
     std::list<kvalobs::kvData> Qc2Data;
     std::list<kvalobs::kvData> Qc2SeriesData;
     bool result;
@@ -98,10 +96,8 @@ void SingleLinearV33Algorithm::run(const ReadProgramOptions& params )
     setmissing_fmis.push_back("4->2");
     setmissing_chflag[6]=setmissing_fmis;
  
-    dispatcher()->GetStationList(StationList);  /// StationList is all the possible stations ... Check
-    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-        StationIds.push_back( sit->stationID() );
-    } 
+    std::list<int> StationIds;
+    fillStationIDList(StationIds);
 
 // PSEUDO-CODE
 //
@@ -130,20 +126,18 @@ void SingleLinearV33Algorithm::run(const ReadProgramOptions& params )
 // NB code like this first until logic checked ...  
 // and then add in the config file parameters ... 
 
-
-
-    miutil::miString ladle;
     miutil::miString new_cfailed;
 
-    while (ProcessTime >= stime) 
-    {
+    while (ProcessTime >= stime) {
         XTime=ProcessTime;
         XTime.addHour(-1);
         YTime=ProcessTime;
         YTime.addHour(1);
         try {
             //result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
-            ladle="WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID="+StrmConvert(pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
+            const miutil::miString ladle = "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' "
+                "OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') "
+                "AND PARAMID="+StrmConvert(pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
             result = dbGate.select(Qc2Data, ladle);
         }
         catch ( dnmi::db::SQLException & ex ) {

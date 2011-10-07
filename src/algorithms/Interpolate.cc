@@ -111,4 +111,3 @@ Interpolate( ReadProgramOptions params )
      }
 return 0;
 }
-

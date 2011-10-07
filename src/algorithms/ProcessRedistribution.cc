@@ -68,9 +68,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
     ProcessControl CheckFlags;
 
-    std::list<kvalobs::kvStation> StationList;
     std::list<kvalobs::kvStation> ActualStationList;
-    std::list<int> StationIds;
     std::list<kvalobs::kvData> Qc2Data;
     std::list<kvalobs::kvData> CheckData;
     std::list<kvalobs::kvData> ReturnData;
@@ -84,11 +82,9 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
     miutil::miTime ProcessTime;
     miutil::miString ladle;
 
-
-    dispatcher()->GetStationList(StationList);  /// StationList is all the possible stations
-    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-        StationIds.push_back( sit->stationID() );
-    }
+    std::list<kvalobs::kvStation> StationList;
+    std::list<int> StationIds;
+    fillStationLists(StationList, StationIds);
 
     ProcessTime = stime;
 

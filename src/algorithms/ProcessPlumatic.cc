@@ -73,9 +73,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
     miutil::miString new_cfailed;
     kvalobs::kvControlInfo fixflags;
 
-    std::list<kvalobs::kvStation> StationList;
     std::list<kvalobs::kvStation> ActualStationList;
-    std::list<int> StationIds;
     std::list<int> TestStation;
     std::list<miutil::miTime> TimeList;
     std::list<miutil::miTime>::iterator iTime;
@@ -90,14 +88,12 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
     kvalobs::kvDbGate dbGate( &dispatcher()->getConnection() );
 
     miutil::miTime ProcessTime;
-    miutil::miString ladle;
 
     kvalobs::kvData dwrite;                                                   
 
-    dispatcher()->GetStationList(StationList);  /// StationList is all the possible stations
-    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-        StationIds.push_back( sit->stationID() );
-    }
+    std::list<kvalobs::kvStation> StationList;
+    std::list<int> StationIds;
+    fillStationLists(StationList, StationIds);
 
     std::list<kvalobs::kvStationParam> splist,resultlist;
     std::ostringstream query;
@@ -105,7 +101,9 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
     /// LOOP THROUGH STATIONS
     for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++sit) {
         try {
-            ladle="WHERE STATIONID="+StrmConvert(sit->stationID())+" AND PARAMID="+StrmConvert(pid)+" AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
+            const miutil::miString ladle = "WHERE STATIONID="+StrmConvert(sit->stationID())
+                +" AND PARAMID="+StrmConvert(pid)
+                +" AND obstime BETWEEN \'"+stime.isoTime()+"\' AND \'"+etime.isoTime()+"\'";
             result = dbGate.select(PluviData, ladle);
         }
         catch ( dnmi::db::SQLException & ex ) {
@@ -146,7 +144,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
                         dwrite.useinfo( ui );   
                         // WRITE TO LOG, DB  	
                         LOGINFO("Pluviometer Aggregation Check: "+Helpers::kvqc2logstring(dwrite) );
-                        dbGate.insert( dwrite, "data", true); 
+                        dbGate.insert( dwrite, "data", true);
                         // PREPARE kvServiced SIGNAL
                         kvalobs::kvStationInfo::kvStationInfo DataToWrite(idata->stationID(),idata->obstime(),idata->typeID());
                         stList.push_back(DataToWrite);

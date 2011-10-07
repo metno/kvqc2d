@@ -55,6 +55,26 @@ using namespace kvalobs;
 using namespace std;
 using namespace miutil;
 
+namespace {
+
+struct DoSingleLinearV32 {
+    
+    ProcessControl CheckFlags;
+    kvalobs::kvDbGate dbGate;
+    const ReadProgramOptions& params;
+    DoSingleLinearV32(const ReadProgramOptions& p, ProcessImpl* d)
+        : params(p)
+        , dbGate(&d->getConnection())
+        {
+        }
+
+    float calculateCorrectedValue(const std::vector<kvalobs::kvDbGate>& Tseries)
+        { return -99999.0; }
+
+};
+
+} // anonymous namespace
+
 void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Single Linear");
@@ -67,8 +87,6 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
     miutil::miTime stime=params.UT0;
     miutil::miTime etime=params.UT1;
  
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
     std::list<kvalobs::kvData> Qc2Data;
     std::list<kvalobs::kvData> Qc2SeriesData;
     bool result, resultMin, resultMax;
@@ -97,10 +115,8 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
     setmissing_fmis.push_back("4->2");
     setmissing_chflag[6]=setmissing_fmis;
  
-    dispatcher()->GetStationList(StationList);  /// StationList is all the possible stations ... Check
-    for (std::list<kvalobs::kvStation>::const_iterator sit=StationList.begin(); sit!=StationList.end(); ++ sit) {
-        StationIds.push_back( sit->stationID() );
-    } 
+    std::list<int> StationIds;
+    fillStationIDList(StationIds);
 
 // PSEUDO-CODE
 //
@@ -131,29 +147,27 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 
 
 
-    miutil::miString ladle;
     miutil::miString new_cfailed;
 
-    while (ProcessTime >= stime) 
-    {
+    while (ProcessTime >= stime) {
         XTime=ProcessTime;
         XTime.addHour(-1);
         YTime=ProcessTime;
         YTime.addHour(1);
         try {
             //result = dbGate.select(Qc2Data, kvQueries::selectMissingData(params.missing,pid,ProcessTime));
-            ladle="WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') AND PARAMID="+StrmConvert(pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
-            result = dbGate.select(Qc2Data, ladle);
-        }
-        catch ( dnmi::db::SQLException & ex ) {
+            const miutil::miString filter = "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' "
+                "OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') "
+                "AND PARAMID="+StrmConvert(pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
+            result = dbGate.select(Qc2Data, filter);
+        } catch ( dnmi::db::SQLException & ex ) {
             IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-        }
-        catch ( ... ) {
+        } catch ( ... ) {
             IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
         }
         if(!Qc2Data.empty()) { 
             for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
-                Tseries.clear();  
+                Tseries.clear();
                 result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
 
                 for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {

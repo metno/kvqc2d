@@ -11,6 +11,7 @@ public:
         : Qc2Algorithm(p) { }
 
     virtual void run(const ReadProgramOptions& params);
+
 };
 
 #endif
