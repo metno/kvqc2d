@@ -84,8 +84,8 @@ char ProcessControl::hexCharToInt(char n)
         return (n-'0');
     if (n >= 'A' && n <= 'F')
         return (n-'A'+10);
-    if (n >= 'a' && n <= 'f')
-        return (n-'a'+10);
+    // if (n >= 'a' && n <= 'f')
+    //    return (n-'a'+10);
     return 0;
 }
 
