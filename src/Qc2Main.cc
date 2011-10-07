@@ -58,6 +58,9 @@ const char* options[][ 2 ] =
 
 ///The kvalobs Qc2 main program.
 
+// FIXME this is a global variable used in Qc2App.cc : sig_term signal handler
+int qc2thread_pid = 0;
+
 namespace {
 
 ////////////////////////////////////////////////////////////////////////
@@ -168,7 +171,7 @@ int main( int argc, char** argv )
 
     Qc2Work Qc2Work( app, htmlpath );    //commented out while I test program options !!!!
     boost::thread Qc2Thread( Qc2Work );
-
+    qc2thread_pid = Qc2Thread.native_handle(); // FIXME
 
     int exitcode = 0;
     try {

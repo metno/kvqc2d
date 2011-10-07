@@ -13,10 +13,14 @@ kvqc2d_SOURCES = \
 	kvMetadataTable.h \
 	InitLogger.cc \
 	InitLogger.h \
+	Helpers.cc \
+	Helpers.h \
 	ProcessControl.cc \
 	ProcessControl.h \
 	ProcessImpl.cc \
 	ProcessImpl.h \
+	Qc2Algorithm.cc \
+	Qc2Algorithm.h \
 	Qc2App.cc \
 	Qc2App.h \
 	Qc2Connection.h \
@@ -37,11 +41,16 @@ kvqc2d_SOURCES = \
 	algorithms/GetStationParam.h \
 	algorithms/kvQABaseTypes.h \
 	algorithms/ProcessRedistribution.cc \
+	algorithms/ProcessRedistribution.hh \
 	algorithms/SingleLinear_v32.cc \
+	algorithms/SingleLinear_v32.hh \
 	algorithms/SingleLinear_v33.cc \
+	algorithms/SingleLinear_v33.hh \
 	algorithms/GapInterpolate.cc \
 	algorithms/ProcessPlumatic.cc \
+	algorithms/ProcessPlumatic.hh \
 	algorithms/DipTest.cc \
+	algorithms/DipTestAlgorithm.hh \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \
 	algorithms/Qc2D.cc \
@@ -84,7 +93,7 @@ kvqc2d_LDADD = \
         -lnetcdf_c++ \
         -lgsl \
         -lgslcblas \
-     	-ldl \
+	-ldl \
         -lm         
 
 
@@ -104,7 +113,7 @@ kvqc2dTest_SOURCES= \
 
 SETUP_DB = \"$(srcdir)/test/database/setupdb.sql\"
 #SETUP_DB = \"$(top_srcdir)/src/kvalobs_database/kvalobs_schema.sql\"
-	
+
 kvqc2dTest_CPPFLAGS = \
 	-DDBDRIVER=\"$(top_builddir)/src/lib/dbdrivers/.libs/sqlite3driver.so\" \
 	-DSETUPDB_SQL=$(SETUP_DB) \
@@ -112,16 +121,16 @@ kvqc2dTest_CPPFLAGS = \
 	$(kvqc2d_CPPFLAGS) \
 	$(cppunit_CFLAGS) \
 	-DLOG_CHECK_SCRIPT 
-	
+
 kvqc2dTest_LDADD = \
 	$(kvqc2d_LDADD) \
 	$(cppunit_LIBS)
-	
+
 EXTRA_DIST = \
 	test/database/setupdb.sql \
 	test/etc/checkrunnertest.init.sql
 
-                        
+
 #sqldir=$(datadir)/kvsynopd
 #sql_DATA=kvsynopd_schema.sql
 #bin_SCRIPTS = kvsynopd_initdb

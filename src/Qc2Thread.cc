@@ -66,7 +66,7 @@ void Qc2Work::operator() ()
     ProcessImpl Processor( app, *con);
     
     while( !app.shutdown() ) {
-        ReadProgramOptions params;           
+        ReadProgramOptions params;
         std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files); 
         BOOST_FOREACH(const std::string& cf, config_files) {
@@ -83,6 +83,8 @@ void Qc2Work::operator() ()
                 }
             }
         }
+        if( app.shutdown() )
+            break;
         sleep(59);   //check config files every minute 
     }                //end of app while loop
                      //59 seconds is set to avoid the thread getting trapped on a minute boundary

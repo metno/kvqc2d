@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 #ifndef __Distribute_h__
 #define __Distribute_h__
 
@@ -15,43 +17,43 @@
 
 ///The class manages the redistribution of 24 hour precipitation data. 
 
-class Distribute{
+class Distribute {
 
-	
 private:
-  ProcessControl ControlFlag;
+    ProcessControl ControlFlag;
 
 public:
 
-  Distribute( const std::list<kvalobs::kvStation> & slist, ReadProgramOptions params );
-  ~Distribute(){}
+    Distribute( const std::list<kvalobs::kvStation> & slist, const ReadProgramOptions& params);
+    ~Distribute(){}
 
-  ReadProgramOptions params;
+    void add_element(int & sid, float & data, float & intp, float & corr, float & newd, miutil::miTime & tbtime, miutil::miTime & time, int & sensor, int & level, int & d_tid, kvalobs::kvControlInfo & d_control, kvalobs::kvUseInfo & d_use, miutil::miString & cfailed);
+    void clean_station_entry( int & sid );
 
-  std::map<int, std::vector<float> > dst_data;
-  std::map<int, std::vector<float> > dst_intp;
-  std::map<int, std::vector<float> > dst_corr;
-  std::map<int, std::vector<float> > dst_newd;
+    // void RedistributeStationData( int & sid , std::list<kvalobs::kvData>& ReturnData );
+    void RedistributeStationData( int & sid, std::list<kvalobs::kvData>& ReturnData);
 
-  std::map<int, std::vector<miutil::miTime> >    dst_time;
-  std::map<int, std::vector<miutil::miTime> >    dst_tbtime;
-
-  std::map<int, std::vector<int> > d_sensor;
-  std::map<int, std::vector<int> > d_level;
+    void clear_all();
   
-  std::map<int, std::vector<int> >    d_typeid;
-  std::map<int, std::vector<kvalobs::kvControlInfo> > d_controlinfo;
-  std::map<int, std::vector<kvalobs::kvUseInfo> > d_useinfo;
-  std::map<int, std::vector<miutil::miString> > d_cfailed;
+private:
+    const ReadProgramOptions& params;
 
-  void add_element(int & sid, float & data, float & intp, float & corr, float & newd, miutil::miTime & tbtime, miutil::miTime & time, int & sensor, int & level, int & d_tid, kvalobs::kvControlInfo & d_control, kvalobs::kvUseInfo & d_use, miutil::miString & cfailed);
-  void clean_station_entry( int & sid );
+    std::map<int, std::vector<float> > dst_data;
+    std::map<int, std::vector<float> > dst_intp;
+    std::map<int, std::vector<float> > dst_corr;
+    std::map<int, std::vector<float> > dst_newd;
 
- // void RedistributeStationData( int & sid , std::list<kvalobs::kvData>& ReturnData );
-  void RedistributeStationData( int & sid, std::list<kvalobs::kvData>& ReturnData, ReadProgramOptions PPP);
+    std::map<int, std::vector<miutil::miTime> >    dst_time;
+    std::map<int, std::vector<miutil::miTime> >    dst_tbtime;
 
-  void clear_all();
+    std::map<int, std::vector<int> > d_sensor;
+    std::map<int, std::vector<int> > d_level;
   
+    std::map<int, std::vector<int> >    d_typeid;
+    std::map<int, std::vector<kvalobs::kvControlInfo> > d_controlinfo;
+    std::map<int, std::vector<kvalobs::kvUseInfo> > d_useinfo;
+    std::map<int, std::vector<miutil::miString> > d_cfailed;
+
 };
 
 /** @} */

@@ -28,60 +28,84 @@
   with KVALOBS; if not, write to the Free Software Foundation Inc., 
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #include "ProcessImpl.h"
-#include "algorithms/BasicStatistics.h"
+
+#include "algorithms/SingleLinear_v32.h"
+#include "algorithms/ProcessRedistribution.h"
+#include "algorithms/DipTestAlgorithm.h"
+#include "algorithms/GapInterpolationAlgorithm.h"
+#include "algorithms/ProcessPlumatic.h"
+
 #include "Qc2App.h"
 #include "Qc2Connection.h"
-#include "algorithms/Qc2D.h"
 #include "ReadProgramOptions.h"
-#include <sstream>
+#include "scone.h"
+
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
+
+#include <boost/foreach.hpp>
+#include <sstream>
 #include <memory>
 #include <stdexcept>
-
-#include "CheckedDataCommandBase.h"
-#include "CheckedDataHelper.h"
-
-
 
 using namespace kvalobs;
 using namespace std;
 using namespace miutil;
 
+class DummyAlgorithm : public Qc2Algorithm {
+public:
+    DummyAlgorithm(ProcessImpl* p)
+        : Qc2Algorithm(p) { }
+
+    virtual void run(const ReadProgramOptions&) {
+        LOGINFO("Dummy algorithm.");
+    }
+};
+
+// ########################################################################
+
 ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
     : app( app_ ), con( con_ )
 {
+    mAlgorithms["SingleLinear"]   = new SingleLinearV32Algorithm(this);
+    mAlgorithms["Redistribute"]   = new RedistributionAlgorithm(this);
+    mAlgorithms["DipTest"]        = new DipTestAlgorithm(this);
+    mAlgorithms["GapInterpolate"] = new GapInterpolationAlgorithm(this);
+    mAlgorithms["Plumatic"]       = new PlumaticAlgorithm(this);
+    mAlgorithms["Dummy"]          = new DummyAlgorithm(this);
 }
 
-void 
-ProcessImpl::
-GetStationList(std::list<kvalobs::kvStation>& StationList)
+ProcessImpl::~ProcessImpl()
 {
+    BOOST_FOREACH(algorithms_t::value_type algo, mAlgorithms) {
+        delete algo.second;
+    }
+}
 
-   bool result;
-   kvalobs::kvDbGate dbGate( &con );
-   std::list<kvalobs::kvStation> SL;
+void ProcessImpl::GetStationList(std::list<kvalobs::kvStation>& StationList)
+{
+    kvalobs::kvDbGate dbGate( &con );
+    std::list<kvalobs::kvStation> SL;
 
-   try {
-        //result = dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" );
-        result = dbGate.select( SL, kvQueries::selectAllStations("stationid"), "station" );
-     }
-     catch ( dnmi::db::SQLException & ex ) {
+    try {
+        //bool result = dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" );
+        bool result = dbGate.select( SL, kvQueries::selectAllStations("stationid"), "station" );
+    } catch ( dnmi::db::SQLException & ex ) {
         IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-     }
-     catch ( ... ) {
+    } catch ( ... ) {
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-     }
+    }
 
-// Make Qc2 specific selection on the StationList here
-// Only use stations less than 100000 i.e. only Norwegian stations
-// Also remove stations that are moving, e.g. ships.
-    for ( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
-			if (it->stationID() < 100000  &&  it->maxspeed()==0.0) {
-			    StationList.push_back(*it);
-			}
+    // Make Qc2 specific selection on the StationList here
+    // Only use stations less than 100000 i.e. only Norwegian stations
+    // Also remove stations that are moving, e.g. ships.
+    for( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
+        if (it->stationID() < 100000  &&  it->maxspeed()==0.0) {
+            StationList.push_back(*it);
+        }
     }
     //for ( std::list<kvalobs::kvStation>::const_iterator iq = StationList.begin(); iq != StationList.end(); ++iq ) {
     //     std::cout << iq->stationID() << std::endl;
@@ -89,101 +113,30 @@ GetStationList(std::list<kvalobs::kvStation>& StationList)
 
 }
 
-void 
-ProcessImpl::
-GetStationList(std::list<kvalobs::kvStation>& StationList, miutil::miTime ProcessTime)
+void ProcessImpl::GetStationList(std::list<kvalobs::kvStation>& StationList, miutil::miTime ProcessTime)
 {
-
-   bool result;
-   kvalobs::kvDbGate dbGate( &con );
-
-   try {
-        result = dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" );
-     }
-     catch ( dnmi::db::SQLException & ex ) {
+    kvalobs::kvDbGate dbGate( &con );
+    try {
+        bool result = dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" );
+    } catch ( dnmi::db::SQLException & ex ) {
         IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-     }
-     catch ( ... ) {
+    } catch ( ... ) {
         IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-     }
+    }
 }
 
-int 
-ProcessImpl::
-select(ReadProgramOptions params)
+int ProcessImpl::select(const ReadProgramOptions& params)
 {
-     std::map<std::string,int> ALG;
-	 ALG["SingleLinear"]=1;
-	 ALG["Redistribute"]=2;
-	 ALG["DipTest"]=3;
-	 ALG["GapInterpolate"]=4;
-	 ALG["Plumatic"]=5;
-	 ALG["Dummy"]=12;
-
-     int AlgoCode = params.AlgoCode;
-	 std::string Algorithm = params.Algorithm;
-
-	 std::cout << "Algorithm ... " << ALG[Algorithm] << std::endl;
-
-     switch (ALG[Algorithm]) {
-     case 1:
-         LOGINFO("Case "+Algorithm);
-         SingleLinear_v32(params);
-         //SingleLinear_v33(params);                                                           
-         LOGINFO(Algorithm+" Completed");
-         break;
-     case 2:
-         LOGINFO("Case " + Algorithm);
-         Redistribute(params);
-         LOGINFO(Algorithm+" Completed");
-         break;
-     case 3:
-         LOGINFO("Case " + Algorithm);
-         DipTest(params);
-         LOGINFO(Algorithm+" Completed");
-         break;
-     case 4:
-         LOGINFO("Case " + Algorithm);
-         GapInterpolate(params);
-         LOGINFO(Algorithm+" Completed");
-         break;
-     case 5:
-         LOGINFO("Case " + Algorithm);
-         ProcessPlumatic(params);
-         LOGINFO(Algorithm+" Completed");
-         break;
-     case 12:
-         LOGINFO("Case " + Algorithm);
-         LOGINFO("Case 12: Dummy");
-         break;
-     default:
-         std::cout << "No valid Algorithm Code Provided. Case: " << AlgoCode << std::endl;
-         LOGINFO("Case ??: No Valid Algorithm Specified");
-         break;
-     }
-     return(0);
-}
-
-std::string   
-ProcessImpl::
-kvqc2logstring(kvalobs::kvData kd)
-{
-  std::string logstring;
-
-  logstring=
-      StrmConvert(kd.stationID())+" "
-      +StrmConvert(kd.obstime().year())+"-"
-      +StrmConvert(kd.obstime().month())+"-"
-      +StrmConvert(kd.obstime().day())+" "
-      +StrmConvert(kd.obstime().hour())+":"
-      +StrmConvert(kd.obstime().min())+":"
-      +StrmConvert(kd.obstime().sec())+" "
-      +StrmConvert(kd.original())+" "
-      +StrmConvert(kd.paramID())+" "
-      +StrmConvert(kd.typeID())+" "
-      +StrmConvert(kd.sensor())+" "
-      +StrmConvert(kd.level())+" "
-      +StrmConvert(kd.corrected());
-
-return(logstring);
+    const std::string& algorithm = params.Algorithm;
+    std::cout << "Algorithm setting is '" << algorithm << "'" << std::endl;
+    algorithms_t::iterator a = mAlgorithms.find(algorithm);
+    if( a != mAlgorithms.end() ) {
+        LOGINFO("Case " + algorithm);
+        a->second->run(params);
+        LOGINFO(algorithm + " Completed");
+    } else {
+        std::cout << "Algorithm '" << algorithm << " not known." << std::endl;
+        LOGINFO("Case ??: no valid algorithm specified");
+    }
+    return 0;
 }

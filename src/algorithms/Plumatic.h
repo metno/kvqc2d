@@ -1,49 +1,48 @@
-#ifndef __Distribute_h__
-#define __Distribute_h__
+// -*- c++ -*-
 
-#include <kvalobs/kvDbBase.h>
-#include <kvalobs/kvDataFlag.h>
-#include <kvalobs/kvStation.h>
-#include <kvalobs/kvData.h>
-#include <vector>
-#include <map>
-
+#ifndef Plumatic_H
+#define Plumatic_H
 
 #include "ReadProgramOptions.h"
 #include "ProcessControl.h"
-#include "kvMetadataTable.h"
+
+#include <kvalobs/kvStation.h>
+#include <kvalobs/kvData.h>
+#include <puTools/miTime.h>
+
+#include <list>
+#include <map>
 
 ///The class manages the redistribution of 24 hour precipitation data. 
 
-class Plumatic{
+class Plumatic {
 
-	
 private:
-  ProcessControl ControlFlag;
+    ProcessControl ControlFlag;
 
 public:
 
-  Plumatic( const std::list<kvalobs::kvStation> & slist, ReadProgramOptions params );
-  Plumatic(std::list<kvalobs::kvData> & QD, ReadProgramOptions params );
-  ~Plumatic(){}
+    Plumatic( const std::list<kvalobs::kvStation> & slist, const ReadProgramOptions& params );
+    Plumatic(std::list<kvalobs::kvData> & QD, const ReadProgramOptions& params );
+    ~Plumatic(){}
 
-  ReadProgramOptions params;
+    void clear_all();
 
-  miutil::miTime    Start_Time_Interval;
-  miutil::miTime    Stop_Time_Interval;
-
-  //std::vector<float> pluvi_data;
-  //std::vector<float> pluvi_time;
-
-  std::map<miutil::miTime, float> pluvi_data;
-
-  //std::map<int, std::vector<float> > dst_intp;
-
-  void clear_all();
-
-  int aggregate_window(ReadProgramOptions params, std::list<miutil::miTime> & TimeList);
+    int aggregate_window(const ReadProgramOptions& params, std::list<miutil::miTime> & TimeList);
   
+private:
+    const ReadProgramOptions& params;
+
+    miutil::miTime    Start_Time_Interval;
+    miutil::miTime    Stop_Time_Interval;
+
+    //std::vector<float> pluvi_data;
+    //std::vector<float> pluvi_time;
+
+    std::map<miutil::miTime, float> pluvi_data;
+
+    //std::map<int, std::vector<float> > dst_intp;
 };
 
 /** @} */
-#endif
+#endif /* Plumatic_H */
