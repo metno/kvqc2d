@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
@@ -42,21 +44,21 @@ class CheckedDataCommandBase;
 
 class CheckedDataHelper
 {
-  Qc2App  &app;
-  dnmi::db::Connection *con;
+    Qc2App  &app;
+    dnmi::db::Connection *con;
 
-  friend class  CheckedDataCommandBase;
-  bool  serviceAlive_;
+    friend class  CheckedDataCommandBase;
+    bool  serviceAlive_;
 
- public:
-  CheckedDataHelper(Qc2App &app_)
-    :app(app_), con(0)
-    {}
+public:
+    CheckedDataHelper(Qc2App &app_)
+        :app(app_), con(0)
+        {}
   
-  bool                  serviceAlive()const{ return serviceAlive_;}
-  void                  connection(dnmi::db::Connection *con_){con=con_;}
-  dnmi::db::Connection* connection()const{ return con;}
-  bool sendDataToService(const kvalobs::kvStationInfoList &si);
+    bool                  serviceAlive()const{ return serviceAlive_;}
+    void                  connection(dnmi::db::Connection *con_){con=con_;}
+    dnmi::db::Connection* connection()const{ return con;}
+    bool sendDataToService(const kvalobs::kvStationInfoList &si);
 };
 
 

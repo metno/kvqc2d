@@ -32,25 +32,20 @@
 #include "CheckedDataHelper.h"
 
 
-bool 
-CheckedDataHelper::
-sendDataToService(const kvalobs::kvStationInfoList &si)
+bool CheckedDataHelper::sendDataToService(const kvalobs::kvStationInfoList &si)
 {
-  bool serviceOk=true;
-  bool bussy=true;
-  
-  while(serviceOk && bussy && !app.shutdown()){
-    serviceOk=app.sendDataToKvService(si, bussy);
+    bool serviceOk=true;
+    bool bussy=true;
     
-    if(bussy){
-      LOGDEBUG("sendData: kvServiced is BUSSY!");
-      sleep(1);
+    while(serviceOk && bussy && !app.shutdown()) {
+        serviceOk = app.sendDataToKvService(si, bussy);
+        
+        if( bussy ) {
+            LOGDEBUG("sendData: kvServiced is BUSSY!");
+            sleep(1);
+        }
     }
-  }
-
-  serviceAlive_=serviceOk;
-  return serviceOk;
-
+    
+    serviceAlive_=serviceOk;
+    return serviceOk;
 }
-
-
