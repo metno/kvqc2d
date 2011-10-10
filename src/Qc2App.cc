@@ -216,7 +216,7 @@ bool Qc2App::shutdown()
     return shutdown_ || sigTerm;
 }
 
-extern int qc2thread_pid;
+extern pthread_t qc2thread_pid;
 
 namespace {
 
