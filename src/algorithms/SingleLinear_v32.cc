@@ -172,6 +172,7 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
         if( flag7 == 0 || flag7 == 1 ) {
             const float interpolated = (before.original()+after.original())/2;
             NewCorrected = round<float,1>( interpolated );
+#if 0 // not used according to paule@met.no (20111009-0230) (also removed in v33)
             if( params.maxpid>0 && params.minpid>0 ) {
                 std::list<kvalobs::kvData> MaxValue, MinValue;
                 // FIXME why twice timeAfter ? how does this find the max/min ???
@@ -191,6 +192,7 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
                         NewCorrected = NO_UPDATE; 
                 }
             }
+#endif
         }
     } else {
         //NB for ftime=0 ... do nothing
