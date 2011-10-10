@@ -59,7 +59,7 @@ const char* options[][ 2 ] =
 ///The kvalobs Qc2 main program.
 
 // FIXME this is a global variable used in Qc2App.cc : sig_term signal handler
-pthread_t qc2thread_pid = 0;
+extern pthread_t qc2thread_pid;
 
 namespace {
 

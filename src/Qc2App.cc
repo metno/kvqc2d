@@ -216,7 +216,8 @@ bool Qc2App::shutdown()
     return shutdown_ || sigTerm;
 }
 
-extern pthread_t qc2thread_pid;
+// FIXME this is a global variable also used in Qc2Main.cc : main
+pthread_t qc2thread_pid = 0;
 
 namespace {
 

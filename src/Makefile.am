@@ -1,11 +1,15 @@
-AM_CPPFLAGS = -D_REENTRANT \
+AM_CPPFLAGS = -Wall -W -g -D_REENTRANT \
 	$(kvcpp_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
-	$(omniORB4_CFLAGS)  
+	$(omniORB4_CFLAGS)
 
 bin_PROGRAMS = kvqc2d
 
-kvqc2d_SOURCES = \
+kvqc2d_SOURCES = Qc2Main.cc
+
+noinst_LIBRARIES = libkvqc2d.a
+
+libkvqc2d_a_SOURCES = \
 	CheckedDataCommandBase.h \
 	CheckedDataHelper.cc \
 	CheckedDataHelper.h \
@@ -25,7 +29,6 @@ kvqc2d_SOURCES = \
 	Qc2App.h \
 	Qc2Connection.h \
 	Qc2Connection.cc \
-	Qc2Main.cc \
 	Qc2Thread.cc \
 	Qc2Thread.h \
 	ReadProgramOptions.cc \
@@ -68,18 +71,17 @@ kvqc2d_SOURCES = \
 	algorithms/AkimaSpline.h \
 	algorithms/tround.h 
 
-
-
-kvqc2d_CPPFLAGS = \
+libkvqc2d_a_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniDynamic4_CFLAGS) \
-	$(putools_CFLAGS) \
-	$(perl_CFLAGS)
+	$(putools_CFLAGS)
+
+kvqc2d_CPPFLAGS = $(libkvqc2d_a_CPPFLAGS)
 
 kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 
-kvqc2d_LDADD = \
+kvqc2d_LDADD = libkvqc2d.a \
 	$(kvcpp_LIBS) \
 	$(putools_LIBS) \
 	$(BOOST_THREAD_LIB) \
@@ -106,8 +108,7 @@ check_PROGRAMS = kvqc2dTest
 
 kvqc2dTest_SOURCES= \
         test/Test.cc \
-        test/TestQc2D.cc \
-	$(kvqc2d_SOURCES:kvqc2d.cc=)
+        test/TestQc2D.cc
 
 #	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"
 
@@ -119,12 +120,12 @@ kvqc2dTest_CPPFLAGS = \
 	-DSETUPDB_SQL=$(SETUP_DB) \
 	-DCHECKRUNNERTEST_INIT_SQL=\"$(srcdir)/test/etc/checkrunnertest.init.sql\" \
 	$(kvqc2d_CPPFLAGS) \
-	$(cppunit_CFLAGS) \
+	@CPPUNIT_CFLAGS@ \
 	-DLOG_CHECK_SCRIPT 
 
-kvqc2dTest_LDADD = \
+kvqc2dTest_LDADD = libkvqc2d.a \
 	$(kvqc2d_LDADD) \
-	$(cppunit_LIBS)
+	@CPPUNIT_LIBS@
 
 EXTRA_DIST = \
 	test/database/setupdb.sql \

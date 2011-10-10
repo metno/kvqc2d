@@ -18,7 +18,7 @@ AC_PROG_LIBTOOL
 #AC_PROG_YACC
 AC_PROG_CXX
 AC_PROG_INSTALL
-
+AC_PROG_RANLIB
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -32,7 +32,9 @@ PKG_CHECK_MODULES(kvcpp, libkvcpp)
 PKG_CHECK_MODULES(sqlite3, sqlite3)
 PKG_CHECK_MODULES(libxml2, libxml-2.0)
 PKG_CHECK_MODULES(libxmlpp, libxml++-2.6)
-PKG_CHECK_MODULES(cppunit, cppunit)
+
+AM_PATH_CPPUNIT([1.12.1])
+
 #KV_PERL
 AX_BOOST_BASE([1.33.1])
 AX_BOOST_THREAD
