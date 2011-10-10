@@ -35,49 +35,42 @@ using namespace std;
 
 // --------------------------------------------------------------------
 
-AkimaSpline::AkimaSpline(std::vector<double> xt, std::vector<double> yt)
+AkimaSpline::AkimaSpline(const std::vector<double>& xt, const std::vector<double>& yt)
 {
-  npoints=xt.size();
-  for (int j=0; j<xt.size();++j){
-     tt[j]=xt[j];
-     pp[j]=yt[j];
-	 //std::cout << tt[j] << " " << pp[j] << std::endl;
-  }
+    const int npoints = xt.size();
+    double xx[npoints], yy[npoints];
+    std::copy(xt.begin(), xt.end(), xx);
+    std::copy(xt.begin(), xt.end(), xx);
+    acc = gsl_interp_accel_alloc();
+    spline = gsl_spline_alloc(gsl_interp_akima, npoints);
+    gsl_spline_init(spline, xx, yy, npoints);
+}
+
+// --------------------------------------------------------------------
+
+AkimaSpline::~AkimaSpline()
+{
+    gsl_spline_free(spline);
+    gsl_interp_accel_free(acc);
 }
 
 // --------------------------------------------------------------------
 
 double AkimaSpline::AkimaPoint(double xp)
 {
-  double yp;
-  gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-  gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
-  gsl_spline_init (spline, tt, pp, npoints);
-  yp = gsl_spline_eval(spline, xp, acc);
-  gsl_spline_free (spline);
-  gsl_interp_accel_free (acc);
-  return yp;
+    return gsl_spline_eval(spline, xp, acc);
 }
 
 // --------------------------------------------------------------------
 
-int AkimaSpline::AkimaPoints()
-{
- double xi,yi;
- gsl_interp_accel *acc = gsl_interp_accel_alloc ();
- gsl_spline *spline = gsl_spline_alloc (gsl_interp_akima, npoints);
- gsl_spline_init (spline, tt, pp, npoints);
-
- long nmax=npoints*10;  
-
- for (int i = 0; i < nmax +1; i++)  {
-     xi = tt[0] + (tt[npoints-1] - tt[0])*i/nmax; 
-     yi = gsl_spline_eval(spline, xi, acc);
-	 //std::cout <<  xi << " " << yi << std::endl; 
-  }
-
-  gsl_spline_free (spline);
-  gsl_interp_accel_free (acc);
-
-return 0;
-}
+// int AkimaSpline::AkimaPoints()
+// {
+//     long nmax=npoints*10;  
+// 
+//     for (int i = 0; i < nmax +1; i++)  {
+//         xi = tt[0] + (tt[npoints-1] - tt[0])*i/nmax; 
+//         yi = AkimaPoint(xi);
+//     }
+// 
+//     return 0;
+// }

@@ -1,3 +1,4 @@
+// -*- c++ -*-
 
 #include <iostream>
 #include <sstream>
@@ -9,23 +10,18 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 
-
 using namespace std;
 
 class AkimaSpline{
 
-private:
-
 public:
- double tt[9999], pp[9999]; 
- int npoints;
+    AkimaSpline(const std::vector<double>& xt, const std::vector<double>& yt);
+    ~AkimaSpline();
 
- AkimaSpline(std::vector<double> xt, std::vector<double> yt);
+    double AkimaPoint(double y);
+    //int AkimaPoints();
 
- double AkimaPoint(double y);
- int AkimaPoints();
-
- ~AkimaSpline(){};
-
+private:
+    gsl_interp_accel *acc;
+    gsl_spline *spline;
 };
-
