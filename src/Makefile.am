@@ -1,7 +1,3 @@
-AM_CPPFLAGS = -Wall -W -g -D_REENTRANT \
-	$(kvcpp_CFLAGS) \
-	$(BOOST_CPPFLAGS) \
-	$(omniORB4_CFLAGS)
 
 bin_PROGRAMS = kvqc2d
 
@@ -71,70 +67,30 @@ libkvqc2d_a_SOURCES = \
 	algorithms/AkimaSpline.h \
 	algorithms/tround.h 
 
-libkvqc2d_a_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
+libkvqc2d_a_CPPFLAGS = -Wall -W \
+	$(PROG_DEPS_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
-	$(omniDynamic4_CFLAGS) \
-	$(putools_CFLAGS)
+	$(omniORB4_CFLAGS)
+	$(omniDynamic4_CFLAGS)
 
 kvqc2d_CPPFLAGS = $(libkvqc2d_a_CPPFLAGS)
 
 kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 
 kvqc2d_LDADD = libkvqc2d.a \
-	$(kvcpp_LIBS) \
-	$(putools_LIBS) \
+	$(PROG_DEPS_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	$(omniDynamic4_LIBS) \
-	$(perl_LIBS) \
-        -lproj \
-        -lnetcdf \
-        -lnetcdf_c++ \
-        -lgsl \
-        -lgslcblas \
-	-ldl \
-        -lm         
+        -lnetcdf_c++
 
 
 clean-local:
 	rm -rf test/var
 
-TESTS = kvqc2dTest
-
-check_PROGRAMS = kvqc2dTest
-
-kvqc2dTest_SOURCES= \
-        test/Test.cc \
-        test/TestQc2D.cc
-
-#	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"
-
-SETUP_DB = \"$(srcdir)/test/database/setupdb.sql\"
-#SETUP_DB = \"$(top_srcdir)/src/kvalobs_database/kvalobs_schema.sql\"
-
-kvqc2dTest_CPPFLAGS = \
-	-DDBDRIVER=\"$(top_builddir)/src/lib/dbdrivers/.libs/sqlite3driver.so\" \
-	-DSETUPDB_SQL=$(SETUP_DB) \
-	-DCHECKRUNNERTEST_INIT_SQL=\"$(srcdir)/test/etc/checkrunnertest.init.sql\" \
-	$(kvqc2d_CPPFLAGS) \
-	@CPPUNIT_CFLAGS@ \
-	-DLOG_CHECK_SCRIPT 
-
-kvqc2dTest_LDADD = libkvqc2d.a \
-	$(kvqc2d_LDADD) \
-	@CPPUNIT_LIBS@
-
-EXTRA_DIST = \
-	test/database/setupdb.sql \
-	test/etc/checkrunnertest.init.sql
-
 
 #sqldir=$(datadir)/kvsynopd
 #sql_DATA=kvsynopd_schema.sql
 #bin_SCRIPTS = kvsynopd_initdb
-
-include test/make.mk
-
