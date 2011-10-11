@@ -1,3 +1,4 @@
+#if 0
 #include "TestQc2D.h"
 
 #include "ReadProgramOptions.h"
@@ -40,3 +41,4 @@ void TestQc2D::TestTest(void)
     Qc2D QV(Qc2Data,StationList, params);
 
 }
+#endif

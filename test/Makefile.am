@@ -3,7 +3,7 @@ TESTS = kvqc2dTest
 check_PROGRAMS = kvqc2dTest
 
 kvqc2dTest_SOURCES= \
-        Test.cc \
+        test_main.cc \
         TestQc2D.cc \
 	algorithms/AkimaSplineTest.cc
 
@@ -14,6 +14,7 @@ SETUP_DB = \"$(srcdir)/test/database/setupdb.sql\"
 
 kvqc2dTest_CPPFLAGS = \
 	$(TEST_DEPS_CFLAGS) \
+	$(gtest_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniORB4_CFLAGS)
 	$(omniDynamic4_CFLAGS) \
@@ -24,6 +25,7 @@ kvqc2dTest_CPPFLAGS = \
 
 kvqc2dTest_LDADD = ../src/libkvqc2d.a \
 	$(TEST_DEPS_LIBS) \
+	$(gtest_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_REGEX_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \

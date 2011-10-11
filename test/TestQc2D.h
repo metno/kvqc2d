@@ -1,5 +1,6 @@
 // -*- c++ -*-
 
+#if 0
 #ifndef TESTQC2D_H
 #define TESTQC2D_H
 
@@ -29,4 +30,5 @@ private:
     Qc2D *Qc2DVehicle;
 };
 
+#endif
 #endif
