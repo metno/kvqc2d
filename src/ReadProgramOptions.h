@@ -5,6 +5,7 @@
 
 #include <puTools/miTime.h>
 
+#include <boost/filesystem/path.hpp>
 #include <vector>
 #include <map>
 #include <string>
@@ -69,10 +70,16 @@ public:
     vector_uchar Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
 
     int Parse(const std::string& filename);
-    int SelectConfigFiles(std::vector<std::string>& config_files);
+    bool SelectConfigFiles(std::vector<std::string>& config_files);
     int clear();
 
     vector_uchar Vfull;
+
+public:
+    void setConfigPath(const boost::filesystem::path& path);
+
+private:
+    boost::filesystem::path mConfigPath;
 
 };
 

@@ -43,7 +43,6 @@
 #include <vector>
 
 #include <boost/program_options.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -66,42 +65,44 @@ bool string_endswith(const std::string& text, const std::string& tail)
 
 ReadProgramOptions::ReadProgramOptions()
 {
+    fs::initial_path();
+    setConfigPath( fs::path(kvPath("sysconfdir")) / "Qc2Config" );
 }
 
+void ReadProgramOptions::setConfigPath(const fs::path& path)
+{
+    // this will throw an exception in some unusual cases on Windows systems
+    mConfigPath = fs::complete( path );
+}
 
 ///Scans $KVALOBS/Qc2Config and searched for configuration files "*.cfg". 
 
-int ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
+bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
 {
+    config_files.clear();
+    if( !fs::exists( mConfigPath ) && !fs::is_directory( mConfigPath )) {
+        std::cout << "Not a directory: '" << mConfigPath.file_string() << "'" << std::endl;
+        return false;
+    }
+
+    std::cout << "Scanning For Files" << std::endl;   
     try {
-        //fs::path config_path(string(pKv)+"/Qc2Config/");
-        fs::path config_path(kvPath("sysconfdir")+"/Qc2Config/");
-        
-        // scan for files
-        std::cout << "Scanning For Files" << std::endl;   
-        fs::path full_path( fs::initial_path() );
-        full_path = fs::system_complete( config_path );
-        
-        if( !fs::exists( full_path ) ) {
-            //std::cout << "Does not exist: " << full_path.native_file_string() <<std::endl; //ETCH
-            std::cout << "Does not exist: " << full_path.file_string() <<std::endl; //HARDY
-        } else {
-            fs::directory_iterator end_iter; // By default this is after the end of a directory !
-            for ( fs::directory_iterator dit( full_path ); dit != end_iter; ++dit ) {
-                std::string filename = dit->path().native_file_string(); //HARDY
-                //filename=dit->native_file_string(); // ETCH
-                if ( string_endswith(filename, "cfg") ) {
-                    config_files.push_back(filename);
-                    std::cout << "Configuration File Found: " << filename << std::endl; 
-                } 
+        const fs::directory_iterator end_iter;
+        for( fs::directory_iterator dit( mConfigPath ); dit != end_iter; ++dit ) {
+            if( !fs::exists( dit->path()) )
+                continue;
+            const std::string& filename = dit->leaf();
+            if( string_endswith(filename, ".cfg") && !fs::is_directory(*dit) ) {
+                config_files.push_back(filename);
+                std::cout << "Configuration File Found: " << filename << std::endl; 
             }
         }
     } catch( std::exception& ecfg ) {
         std::cout << "Problem with configuration files for Qc2" << std::endl
                   << ecfg.what() << std::endl;
-        return 1;
+        return false;
     } 
-    return 0;
+    return true;
 }
 
 
