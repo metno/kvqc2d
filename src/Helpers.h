@@ -9,7 +9,9 @@
 
 namespace Helpers {
 
-    std::string kvqc2logstring(const kvalobs::kvData& kd);
+std::string kvqc2logstring(const kvalobs::kvData& kd);
+
+bool string_endswith(const std::string& text, const std::string& tail);
 
 };
 

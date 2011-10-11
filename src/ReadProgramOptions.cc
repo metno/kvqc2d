@@ -31,8 +31,15 @@
 
 #include "ReadProgramOptions.h"
 
+#include "Helpers.h"
+
 #include <kvalobs/kvPath.h>
 
+#include <boost/program_options.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <iostream>
 #include <math.h>
 #include <sstream>
@@ -42,26 +49,10 @@
 #include <time.h>
 #include <vector>
 
-#include <boost/program_options.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-
 using namespace std;
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-
-namespace {
-
-bool string_endswith(const std::string& text, const std::string& tail)
-{
-    int lText = text.length(), lTail = tail.length();
-    return ( lText >= lTail && text.substr(lText-lTail) == tail );
-}
-
-} // anonymous namespace
 
 ReadProgramOptions::ReadProgramOptions()
 {
@@ -92,7 +83,7 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
             if( !fs::exists( dit->path()) )
                 continue;
             const std::string& filename = dit->leaf();
-            if( string_endswith(filename, ".cfg") && !fs::is_directory(*dit) ) {
+            if( Helpers::string_endswith(filename, ".cfg") && !fs::is_directory(*dit) ) {
                 config_files.push_back(filename);
                 std::cout << "Configuration File Found: " << filename << std::endl; 
             }

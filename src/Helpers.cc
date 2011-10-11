@@ -25,4 +25,10 @@ std::string kvqc2logstring(const kvalobs::kvData& kd)
     return logstring;
 }
 
+bool string_endswith(const std::string& text, const std::string& tail)
+{
+    int lText = text.length(), lTail = tail.length();
+    return ( lText >= lTail && text.substr(lText-lTail) == tail );
+}
+
 } // namespace Helpers
