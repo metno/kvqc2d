@@ -6,6 +6,7 @@ kvqc2dTest_SOURCES= \
         test_main.cc \
         TestQc2D.cc \
 	HelpersTest.cc \
+	ReadProgramOptionsTest.cc \
 	algorithms/AkimaSplineTest.cc
 
 #	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"

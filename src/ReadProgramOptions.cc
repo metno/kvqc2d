@@ -34,6 +34,7 @@
 #include "Helpers.h"
 
 #include <kvalobs/kvPath.h>
+#include <milog/milog.h>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -72,27 +73,31 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
 {
     config_files.clear();
     if( !fs::exists( mConfigPath ) && !fs::is_directory( mConfigPath )) {
-        std::cout << "Not a directory: '" << mConfigPath.file_string() << "'" << std::endl;
+        LOGWARN("Not a directory: '" << mConfigPath.native_file_string() << "'");
         return false;
     }
 
-    std::cout << "Scanning For Files" << std::endl;   
+    LOGINFO("Scanning for files in '" << mConfigPath.native_file_string() << "'");
     try {
-        const fs::directory_iterator end_iter;
-        for( fs::directory_iterator dit( mConfigPath ); dit != end_iter; ++dit ) {
+        const fs::directory_iterator end;
+        for( fs::directory_iterator dit( mConfigPath ); dit != end; ++dit ) {
             if( !fs::exists( dit->path()) )
                 continue;
-            const std::string& filename = dit->leaf();
-            if( Helpers::string_endswith(filename, ".cfg") && !fs::is_directory(*dit) ) {
-                config_files.push_back(filename);
-                std::cout << "Configuration File Found: " << filename << std::endl; 
+            if( fs::is_directory(*dit) )
+                continue;
+            if( Helpers::string_endswith(dit->path().filename(), ".cfg") ) {
+                const std::string& n = dit->path().native_file_string();
+                config_files.push_back(n);
+                LOGINFO("Found configuration file '" << n << "'");
             }
         }
-    } catch( std::exception& ecfg ) {
-        std::cout << "Problem with configuration files for Qc2" << std::endl
-                  << ecfg.what() << std::endl;
+
+        // ordering of files listed from directory_iterator is not defined
+        std::sort(config_files.begin(), config_files.end());
+    } catch( fs::filesystem_error& e ) {
+        LOGERROR("Error scanning configuration files for Qc2:" << e.what());
         return false;
-    } 
+    }
     return true;
 }
 
