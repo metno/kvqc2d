@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 #ifndef TESTQC2D_H
 #define TESTQC2D_H
 
@@ -11,21 +13,20 @@ using namespace std;
 
 class TestQc2D : public CPPUNIT_NS :: TestFixture
 {
-        CPPUNIT_TEST_SUITE (TestQc2D);
-        CPPUNIT_TEST (TestTest);
-        CPPUNIT_TEST_SUITE_END ();
+    CPPUNIT_TEST_SUITE (TestQc2D);
+    CPPUNIT_TEST (TestTest);
+    CPPUNIT_TEST_SUITE_END ();
 
-        public:
-                void setUp (void);
-                void tearDown (void);
+public:
+    void setUp (void);
+    void tearDown (void);
 
-        protected:
-                void TestTest (void);
+protected:
+    void TestTest (void);
 
-        private:
+private:
                                            
-                Qc2D *Qc2DVehicle;
+    Qc2D *Qc2DVehicle;
 };
 
 #endif
-

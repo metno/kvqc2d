@@ -40,7 +40,7 @@ AkimaSpline::AkimaSpline(const std::vector<double>& xt, const std::vector<double
     const int npoints = xt.size();
     double xx[npoints], yy[npoints];
     std::copy(xt.begin(), xt.end(), xx);
-    std::copy(xt.begin(), xt.end(), xx);
+    std::copy(yt.begin(), yt.end(), yy);
     acc = gsl_interp_accel_alloc();
     spline = gsl_spline_alloc(gsl_interp_akima, npoints);
     gsl_spline_init(spline, xx, yy, npoints);
@@ -56,7 +56,7 @@ AkimaSpline::~AkimaSpline()
 
 // --------------------------------------------------------------------
 
-double AkimaSpline::AkimaPoint(double xp)
+double AkimaSpline::AkimaPoint(double xp) const
 {
     return gsl_spline_eval(spline, xp, acc);
 }

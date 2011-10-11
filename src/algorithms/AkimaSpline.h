@@ -1,5 +1,8 @@
 // -*- c++ -*-
 
+#ifndef AkimaSpline_H
+#define AkimaSpline_H 1
+
 #include <iostream>
 #include <sstream>
 #include <memory>
@@ -12,16 +15,22 @@
 
 using namespace std;
 
+// TODO maybe use template+iterators instead of std::vector
 class AkimaSpline{
 
 public:
     AkimaSpline(const std::vector<double>& xt, const std::vector<double>& yt);
     ~AkimaSpline();
 
-    double AkimaPoint(double y);
+    double operator() (double x) const
+        { return AkimaPoint(x); }
+
+    double AkimaPoint(double x) const;
     //int AkimaPoints();
 
 private:
     gsl_interp_accel *acc;
     gsl_spline *spline;
 };
+
+#endif

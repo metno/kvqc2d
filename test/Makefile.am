@@ -4,7 +4,8 @@ check_PROGRAMS = kvqc2dTest
 
 kvqc2dTest_SOURCES= \
         Test.cc \
-        TestQc2D.cc
+        TestQc2D.cc \
+	algorithms/AkimaSplineTest.cc
 
 #	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"
 
