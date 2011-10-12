@@ -71,6 +71,7 @@ void ReadProgramOptions::setConfigPath(const fs::path& path)
 
 bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
 {
+    // TODO this has little to do with qc2 configuration files, move it elsewhere
     config_files.clear();
     if( !fs::exists( mConfigPath ) && !fs::is_directory( mConfigPath )) {
         LOGWARN("Not a directory: '" << mConfigPath.native_file_string() << "'");
@@ -370,22 +371,22 @@ int ReadProgramOptions::Parse(const std::string& filename)
 
             ("Wbool",po::value<bool>  (&Wbool)->default_value(true),  "Option to change logic of all flag controls")     //DOCME
 
-            ("S_fqclevel",po::value<unsigned char>  (&S_fqclevel)->default_value(0x3F),  "fqclevel [Controlinfo to set for the controlled datum]")     //DOCME
-            ("S_fr",po::value<unsigned char>  (&S_fr)->default_value(0x3F),  "fr")     //DOCME
-            ("S_fcc",po::value<unsigned char>  (&S_fcc)->default_value(0x3F),  "fcc")     //DOCME
-            ("S_fs",po::value<unsigned char>  (&S_fs)->default_value(0x3F),  "fs")     //DOCME
-            ("S_fnum",po::value<unsigned char>  (&S_fnum)->default_value(0x3F),  "fnum")     //DOCME
-            ("S_fpos",po::value<unsigned char>  (&S_fpos)->default_value(0x3F),  "fpos")     //DOCME
-            ("S_fmis",po::value<unsigned char>  (&S_fmis)->default_value(0x3F),  "fmis")     //DOCME
-            ("S_ftime",po::value<unsigned char>  (&S_ftime)->default_value(0x3F),  "ftime")     //DOCME
-            ("S_fw",po::value<unsigned char>  (&S_fw)->default_value(0x3F),  "fw")     //DOCME
-            ("S_fstat",po::value<unsigned char>  (&S_fstat)->default_value(0x3F),  "fstat")     //DOCME
-            ("S_fcp",po::value<unsigned char>  (&S_fcp)->default_value(0x3F),  "fcp")     //DOCME
-            ("S_fclim",po::value<unsigned char>  (&S_fclim)->default_value(0x3F),  "fclim")     //DOCME
-            ("S_fd",po::value<unsigned char>  (&S_fd)->default_value(0x3F),  "fd")     //DOCME
-            ("S_fpre",po::value<unsigned char>  (&S_fpre)->default_value(0x3F),  "fpre")     //DOCME
-            ("S_fcombi",po::value<unsigned char>  (&S_fcombi)->default_value(0x3F),  "fcombi")     //DOCME
-            ("S_fhqc",po::value<unsigned char>  (&S_fhqc)->default_value(0x3F),  "fhqc")     //DOCME
+            ("S_fqclevel",po::value<unsigned char>  (&S_fqclevel)->default_value('?'),  "fqclevel [Controlinfo to set for the controlled datum]")     //DOCME
+            ("S_fr",po::value<unsigned char>  (&S_fr)->default_value('?'),  "fr")     //DOCME
+            ("S_fcc",po::value<unsigned char>  (&S_fcc)->default_value('?'),  "fcc")     //DOCME
+            ("S_fs",po::value<unsigned char>  (&S_fs)->default_value('?'),  "fs")     //DOCME
+            ("S_fnum",po::value<unsigned char>  (&S_fnum)->default_value('?'),  "fnum")     //DOCME
+            ("S_fpos",po::value<unsigned char>  (&S_fpos)->default_value('?'),  "fpos")     //DOCME
+            ("S_fmis",po::value<unsigned char>  (&S_fmis)->default_value('?'),  "fmis")     //DOCME
+            ("S_ftime",po::value<unsigned char>  (&S_ftime)->default_value('?'),  "ftime")     //DOCME
+            ("S_fw",po::value<unsigned char>  (&S_fw)->default_value('?'),  "fw")     //DOCME
+            ("S_fstat",po::value<unsigned char>  (&S_fstat)->default_value('?'),  "fstat")     //DOCME
+            ("S_fcp",po::value<unsigned char>  (&S_fcp)->default_value('?'),  "fcp")     //DOCME
+            ("S_fclim",po::value<unsigned char>  (&S_fclim)->default_value('?'),  "fclim")     //DOCME
+            ("S_fd",po::value<unsigned char>  (&S_fd)->default_value('?'),  "fd")     //DOCME
+            ("S_fpre",po::value<unsigned char>  (&S_fpre)->default_value('?'),  "fpre")     //DOCME
+            ("S_fcombi",po::value<unsigned char>  (&S_fcombi)->default_value('?'),  "fcombi")     //DOCME
+            ("S_fhqc",po::value<unsigned char>  (&S_fhqc)->default_value('?'),  "fhqc")     //DOCME
 
 
             ("change_fqclevel",po::value<std::vector<std::string> >  (&change_fqclevel),  "Conditional change to fqclevel")     //DOCME
@@ -612,22 +613,22 @@ int ReadProgramOptions::Parse(const std::string& filename)
         Wflag[14] = W_fcombi;
         Wflag[15] = W_fhqc;
 
-        if(S_fqclevel != 0x3F) Sflag[0 ] = S_fqclevel;
-        if(S_fr       != 0x3F) Sflag[1 ] = S_fr;
-        if(S_fcc      != 0x3F) Sflag[2 ] = S_fcc;
-        if(S_fs       != 0x3F) Sflag[3 ] = S_fs;
-        if(S_fnum     != 0x3F) Sflag[4 ] = S_fnum;
-        if(S_fpos     != 0x3F) Sflag[5 ] = S_fpos;
-        if(S_fmis     != 0x3F) Sflag[6 ] = S_fmis;
-        if(S_ftime    != 0x3F) Sflag[7 ] = S_ftime;
-        if(S_fw       != 0x3F) Sflag[8 ] = S_fw;
-        if(S_fstat    != 0x3F) Sflag[9 ] = S_fstat;
-        if(S_fcp      != 0x3F) Sflag[10] = S_fcp;
-        if(S_fclim    != 0x3F) Sflag[11] = S_fclim;
-        if(S_fd       != 0x3F) Sflag[12] = S_fd;
-        if(S_fpre     != 0x3F) Sflag[13] = S_fpre;
-        if(S_fcombi   != 0x3F) Sflag[14] = S_fcombi;
-        if(S_fhqc     != 0x3F) Sflag[15] = S_fhqc;
+        if(S_fqclevel != '?') Sflag[0 ] = S_fqclevel;
+        if(S_fr       != '?') Sflag[1 ] = S_fr;
+        if(S_fcc      != '?') Sflag[2 ] = S_fcc;
+        if(S_fs       != '?') Sflag[3 ] = S_fs;
+        if(S_fnum     != '?') Sflag[4 ] = S_fnum;
+        if(S_fpos     != '?') Sflag[5 ] = S_fpos;
+        if(S_fmis     != '?') Sflag[6 ] = S_fmis;
+        if(S_ftime    != '?') Sflag[7 ] = S_ftime;
+        if(S_fw       != '?') Sflag[8 ] = S_fw;
+        if(S_fstat    != '?') Sflag[9 ] = S_fstat;
+        if(S_fcp      != '?') Sflag[10] = S_fcp;
+        if(S_fclim    != '?') Sflag[11] = S_fclim;
+        if(S_fd       != '?') Sflag[12] = S_fd;
+        if(S_fpre     != '?') Sflag[13] = S_fpre;
+        if(S_fcombi   != '?') Sflag[14] = S_fcombi;
+        if(S_fhqc     != '?') Sflag[15] = S_fhqc;
 
          
         Vfqclevel  = V_fqclevel;
