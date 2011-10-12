@@ -1,7 +1,7 @@
 AC_PREREQ([2.61])
 AC_INIT([kvqc2d], [1.2.1], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE
-AM_SILENT_RULES([yes])
+#AM_SILENT_RULES([yes])
 #METNO_SET_VERSION_INFO
 
 
@@ -33,7 +33,7 @@ PKG_CHECK_MODULES(libxml2, libxml-2.0)
 PKG_CHECK_MODULES(libxmlpp, libxml++-2.6)
 PKG_CHECK_MODULES(cppunit, cppunit)
 #KV_PERL
-AX_BOOST_BASE([1.33.1])
+AX_BOOST_BASE([1.35.0])
 AX_BOOST_THREAD
 if test -z $BOOST_THREAD_LIB; then AC_MSG_ERROR([Unable to find boost thread library]); fi 
 AX_BOOST_REGEX
