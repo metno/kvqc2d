@@ -5,6 +5,7 @@ check_PROGRAMS = kvqc2dTest
 kvqc2dTest_SOURCES= \
         test_main.cc \
         TestQc2D.cc \
+	ConfigParserTest.cc \
 	HelpersTest.cc \
 	ReadProgramOptionsTest.cc \
 	algorithms/AkimaSplineTest.cc

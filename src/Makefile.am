@@ -11,6 +11,8 @@ libkvqc2d_a_SOURCES = \
 	CheckedDataHelper.h \
 	kvMetadataTable.cc \
 	kvMetadataTable.h \
+	ConfigParser.h \
+	ConfigParser.cc \
 	InitLogger.cc \
 	InitLogger.h \
 	Helpers.cc \
