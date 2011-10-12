@@ -154,7 +154,9 @@ main( int argc, char** argv )
 
   Qc2Work Qc2Work( app, htmlpath );    //commented out while I test program options !!!!
   boost::thread Qc2Thread( Qc2Work );
+#if BOOST_VERSION >= 103500
   qc2thread_pid = Qc2Thread.native_handle(); // FIXME
+#endif
   
   try {
 // This is where all the *InputImpl(app) and AdminImpl( App ) can be reinstalled if ti is needed

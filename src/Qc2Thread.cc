@@ -95,7 +95,12 @@ void Qc2Work::operator() ()
         }
         if( app.shutdown() )
             break;
+#if BOOST_VERSION >= 103500
         sleep(59);   //check config files every minute 
+#else
+        for(int i=0; i<59 && !app.shutdown(); ++i)
+            sleep(1);
+#endif
   }                  //end of app while loop
                      //59 seconds is set to avoid the thread getting trapped on a minute boundary
   LOGINFO( "Qc2Work: Thread terminating!" );

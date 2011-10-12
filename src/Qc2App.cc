@@ -290,8 +290,10 @@ void
 sig_term(int i)
 {
   //CERR("sig_term("<<i<<"): called!\n");
+#if BOOST_VERSION >= 103500
     if( sigTerm == 0 && qc2thread_pid != 0 )
         pthread_kill(qc2thread_pid, i);
+#endif
   sigTerm=1;
 }
 };
