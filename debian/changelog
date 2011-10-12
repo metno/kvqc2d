@@ -1,6 +1,11 @@
-kvqc2 (0.9.0-1) unstable; urgency=low
+kvqc2d (1.2.1-1) unstable; urgency=low
 
-  * Initial release of kvqc2 as a standalone packaga.                    
+  * Faster shutdown of kvqc2d.
 
- -- emilssen <pak@pak>  Sun, 25 Apr 2010 17:21:34 +0200
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 07 Oct 2011 12:14:27 +0200
 
+kvqc2d (1.2.0) unstable; urgency=low
+
+  * Long time gaps, pluviometer, and various bug fixes.
+
+ -- Paul Emils Eglitis <paule@met.no>  Tue, 31 Jul 2011 01:59:09 +0200

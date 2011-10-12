@@ -93,6 +93,8 @@ void Qc2Work::operator() ()
                    }
               }
         }
+        if( app.shutdown() )
+            break;
         sleep(59);   //check config files every minute 
   }                  //end of app while loop
                      //59 seconds is set to avoid the thread getting trapped on a minute boundary

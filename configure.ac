@@ -1,7 +1,7 @@
 AC_PREREQ([2.61])
-#AC_INIT([kvalobs], [2.0.6], [kvoss@met.no])
-AC_INIT([kvqc2], [2.0.7], [kvoss@met.no])
+AC_INIT([kvqc2d], [1.2.1], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE
+AM_SILENT_RULES([yes])
 #METNO_SET_VERSION_INFO
 
 
@@ -32,8 +32,8 @@ PKG_CHECK_MODULES(sqlite3, sqlite3)
 PKG_CHECK_MODULES(libxml2, libxml-2.0)
 PKG_CHECK_MODULES(libxmlpp, libxml++-2.6)
 PKG_CHECK_MODULES(cppunit, cppunit)
-KV_PERL
-AX_BOOST_BASE
+#KV_PERL
+AX_BOOST_BASE([1.33.1])
 AX_BOOST_THREAD
 if test -z $BOOST_THREAD_LIB; then AC_MSG_ERROR([Unable to find boost thread library]); fi 
 AX_BOOST_REGEX
@@ -45,6 +45,6 @@ if test -z $BOOST_PROGRAM_OPTIONS_LIB; then AC_MSG_ERROR([Unable to find boost p
  
 KV_MODEL2KV
 
-AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects)
+AM_INIT_AUTOMAKE(-W -Wall -Werror subdir-objects)
 
 AC_OUTPUT

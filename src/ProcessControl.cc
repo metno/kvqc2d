@@ -123,7 +123,7 @@ conditional_setter( kvalobs::kvControlInfo &controlinfo, std::map<int, std::vect
 
   for (int inib = 0; inib < 16; ++inib) {
      for (std::vector<std::string>::iterator it = vFlag[inib].begin(); it!=vFlag[inib].end(); ++it) {
-       if (it->substr(1,2)=="->" & it->size() == 4) {
+       if (it->size() == 4 && it->substr(1,2)=="->") {
              //std::cout << *it << std::endl;
              OldFlagValue=StringToInt[ it->substr(0,1) ];
              NewFlagValue=StringToInt[ it->substr(3,1) ];

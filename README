@@ -7,7 +7,5 @@ make
 For development, typically built locally thus:
 
 autoreconf -i 
-./configure --prefix=/metno/kvalobs
+./configure --prefix=/some/where/kvalobs
 make
-
-

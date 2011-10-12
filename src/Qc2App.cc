@@ -256,6 +256,7 @@ Qc2App::shutdown()
   return shutdown_ || sigTerm;
 }
 
+extern pthread_t qc2thread_pid;
 
 namespace{
 
@@ -289,6 +290,8 @@ void
 sig_term(int i)
 {
   //CERR("sig_term("<<i<<"): called!\n");
+    if( sigTerm == 0 && qc2thread_pid != 0 )
+        pthread_kill(qc2thread_pid, i);
   sigTerm=1;
 }
 };

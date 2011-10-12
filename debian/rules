@@ -9,7 +9,7 @@
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
-CFLAGS = -Wall -g
+CFLAGS = -W -Wall -g
 CXXFLAGS=$(CFLAGS)
 CXX=g++-4.1
 CC=gcc-4.1
@@ -20,32 +20,22 @@ CC=gcc-4.1
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	# Add here commands to configure the package.
 	autoreconf -i
 	./configure --prefix=/usr  --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info  --localstatedir=/var --sysconfdir=/etc CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
 	touch configure-stamp
-
-	
 
 build: build-stamp
 
 build-stamp: configure-stamp 
 	dh_testdir
-
-	# Add here commands to compile the package.
 	$(MAKE)
-	#docbook-to-man debian/kvqc2.sgml > kvqc2.1
-
 	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
 	-$(MAKE) clean
-
 	dh_clean 
 
 install: build
@@ -53,9 +43,7 @@ install: build
 	dh_testroot
 	dh_clean -k 
 	dh_installdirs
-
-	# Add here commands to install the package into debian/kvqc2.
-	$(MAKE) DESTDIR=$(CURDIR)/debian/kvqc2 install
+	$(MAKE) DESTDIR=$(CURDIR)/debian/kvqc2d install
 
 
 # Build architecture-independent files here.
@@ -66,7 +54,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs ChangeLog
+	dh_installchangelogs changelog
 	dh_installdocs
 	dh_installexamples
 #	dh_install
@@ -80,7 +68,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman
+	dh_installman kvqc2d.1
 	dh_link
 	dh_strip
 	dh_compress

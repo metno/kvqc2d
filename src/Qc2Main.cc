@@ -60,6 +60,9 @@ const char* options[][ 2 ] =
 using namespace std;
 using namespace boost;
 
+// FIXME this is a global variable used in Qc2App.cc : sig_term signal handler
+pthread_t qc2thread_pid = 0;
+
 int
 main( int argc, char** argv )
 {
@@ -151,7 +154,7 @@ main( int argc, char** argv )
 
   Qc2Work Qc2Work( app, htmlpath );    //commented out while I test program options !!!!
   boost::thread Qc2Thread( Qc2Work );
-
+  qc2thread_pid = Qc2Thread.native_handle(); // FIXME
   
   try {
 // This is where all the *InputImpl(app) and AdminImpl( App ) can be reinstalled if ti is needed
@@ -182,6 +185,7 @@ main( int argc, char** argv )
     app.deletePidFile();
     exit( 1 );
   }
+  Qc2Thread.join();
 
 
   CERR( "kvqc2d: exit ....\n" );
@@ -189,4 +193,3 @@ main( int argc, char** argv )
 
   return 0;
 }
-
