@@ -6,6 +6,8 @@ kvqc2d_SOURCES = Qc2Main.cc
 noinst_LIBRARIES = libkvqc2d.a
 
 libkvqc2d_a_SOURCES = \
+    DBInterface.cc \
+    DBInterface.h \
 	CheckedDataCommandBase.h \
 	CheckedDataHelper.cc \
 	CheckedDataHelper.h \
@@ -33,6 +35,8 @@ libkvqc2d_a_SOURCES = \
 	Qc2Thread.h \
 	ReadProgramOptions.cc \
 	ReadProgramOptions.h \
+	StandardDB.cc \
+	StandardDB.h \
 	StopWatch.cc \
 	StopWatch.h \
 	algorithms/BasicStatistics.h \

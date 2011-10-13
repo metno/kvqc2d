@@ -46,31 +46,24 @@
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
+#include "foreach.h"
 
-namespace {
-
-float getDeltaCheck(kvalobs::kvDbGate& dbGate, int stationID, const miutil::miTime& time, const std::string& qcx, bool max)
+float DipTestAlgorithm::getDeltaCheck(int stationID, const miutil::miTime& time, const std::string& qcx, bool max)
 {
-    std::list<int> OneStation;
-    OneStation.push_back( stationID );
-    std::list<kvalobs::kvStationParam> splist;
-    if( !dbGate.select( splist, kvQueries::selectStationParam( OneStation, time, qcx ) ) ) {
+    DBInterface::kvStationParamList_t splist;
+    if( !database()->queryStationparams(splist, stationID, time, qcx ) ) {
         LOGERROR("Failed to select station_params for qcx='" << qcx << "'");
         return -1e6;
     }
 
-    GetStationParam Desmond(splist);
-    return Desmond.ValueOf(max ? "max" : "min").toFloat();
+    return GetStationParam(splist).ValueOf(max ? "max" : "min").toFloat();
 }
-
-} // anonymous namespace
 
 void DipTestAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Dip Test");
  
     ProcessControl CheckFlags;
-    kvalobs::kvDbGate dbGate( &dispatcher()->getConnection() );
 
     if( params.ParValFile == "NotSet")
         return;
@@ -87,27 +80,30 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
         std::cout << pid << " " << delta << std::endl;
         std::cout << "------------------" << std::endl;
 
-        const float DeltaCheck = getDeltaCheck(dbGate, 0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid), true); /// FIXME what time to use here?
+        const float DeltaCheck = getDeltaCheck(0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid), true); /// FIXME what time to use here?
         std::cout << "Delta automatically read from the database (under test!!!):  " << DeltaCheck << std::endl;
 
         for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
             miutil::miTime linearStart = ProcessTime, linearStop = ProcessTime;
             linearStart.addHour(-1);
             linearStop.addHour(1);
+            miutil::miTime akimaStart = ProcessTime, akimaStop = ProcessTime;
+            akimaStart.addHour(-3);
+            akimaStop.addHour(2);
 
             /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
             //********* Change this to select the appropriate data
             std::list<kvalobs::kvData> Qc2Data;
-            if( !dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime)) ) {
+            if( !database()->dataForStationsParamTimerange(Qc2Data, StationIds, pid, ProcessTime, ProcessTime) ) {
                 LOGERROR("Failed to select data for DipTest at t=" << ProcessTime);
                 continue;
             }
             if( Qc2Data.empty() )
                 continue;
 
-            for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
+            foreach( const kvalobs::kvData& d, Qc2Data) {
                 std::list<kvalobs::kvData> Qc2SeriesData;
-                if( !dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid, linearStart, linearStop)) ) {
+                if( !database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), pid, linearStart, linearStop) ) {
                     LOGERROR("Could not select time neighbors for DipTest " << linearStart << ".." << linearStop);
                     continue;
                 }
@@ -131,8 +127,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                 const float ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
                 const float ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
 
-                if (ABS20 < ABS10 && ABS20 < delta) {
-
+                if( ABS20 < ABS10 && ABS20 < delta ) {
                     const float LinInterpolated = round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
                     float AkimaInterpolated = LinInterpolated;
                     bool AkimaPresent = false;
@@ -141,10 +136,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     // Just need some extra points
 
                     // Calculate Akima Block
-                    miutil::miTime akimaStart = ProcessTime, akimaStop = ProcessTime;
-                    akimaStart.addHour(-3);
-                    akimaStop.addHour(2);
-                    if( dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid, akimaStart, akimaStop)) ) {
+                    if( database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(),pid, akimaStart, akimaStop) ) {
                         const std::vector<kvalobs::kvData> Aseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
                         // A(0)
                         // A(1)
@@ -184,7 +176,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     if( AkimaPresent ) {
                         // FIXME Looking into providing minimum check
                         // FIXME what time to use here?
-                        const float MinimumCheck = getDeltaCheck(dbGate, 0, miutil::miTime::nowTime(), "QC1-1-"+StrmConvert(pid), false);
+                        const float MinimumCheck = getDeltaCheck(d.stationID(), miutil::miTime::nowTime(), "QC1-1-"+StrmConvert(pid), false);
                         if( MinimumCheck == -1e6 ) {
                             LOGERROR("Failed to select data for MinimumCheck at " << ProcessTime << ". Assuming no akima interpolation.");
                             AkimaPresent = false;
@@ -192,7 +184,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                             AkimaPresent = false;
                     }
 
-                    if( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
+                    if( CheckFlags.true_nibble(d.controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
 
                         kvalobs::kvControlInfo fixflags1 = Tseries[1].controlinfo(); // later control this from the config file
                         fixflags1.set(3,9); // later control this from the config file
@@ -216,7 +208,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                         std::list<kvalobs::kvData> toWrite;
                         toWrite.push_back(dwrite1);
                         toWrite.push_back(dwrite2);
-                        dbGate.insert( toWrite, true, "data");
+                        database()->insert( toWrite, true, "data" );
 
                         broadcaster()->queueChanged(Tseries[1]);
                         broadcaster()->queueChanged(Tseries[2]);

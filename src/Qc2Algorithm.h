@@ -3,6 +3,7 @@
 #ifndef Qc2Algorithm_H
 #define Qc2Algorithm_H
 
+#include "DBInterface.h"
 #include "ProcessImpl.h"
 #include "ReadProgramOptions.h"
 
@@ -10,6 +11,11 @@
 #include <kvalobs/kvData.h>
 #include <list>
 
+// #######################################################################
+
+/**
+ * Implementations will broadcast changes submitted to the kvalobs database.
+ */
 class Broadcaster {
 public:
     virtual ~Broadcaster() { }
@@ -17,8 +23,11 @@ public:
     virtual void sendChanges() { }
 };
 
-/// Interface implemented by the different QC2 algorithms.
+// #######################################################################
 
+/**
+ * Interface to be implemented by the different QC2 algorithms.
+ */
 class Qc2Algorithm  
 {
 public:
@@ -28,17 +37,27 @@ public:
     virtual void run(const ReadProgramOptions& params) = 0;
 
     ProcessImpl* dispatcher() const
-        { return mDispatcher; }
+        { return 0; /* FIXME */ }
+
+    void setBroadcaster(Broadcaster* b)
+        { mBroadcaster = b; }
 
     Broadcaster* broadcaster() const
-        { return mBroadcaster.get(); }
+        { return mBroadcaster; }
+
+    void setDatabase(DBInterface* db)
+        { mDatabase = db; }
+
+    DBInterface* database() const
+        { return mDatabase; }
 
     void fillStationLists(std::list<kvalobs::kvStation> stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
 private:
     ProcessImpl* mDispatcher;
-    std::auto_ptr<Broadcaster> mBroadcaster;
+    Broadcaster* mBroadcaster;
+    DBInterface* mDatabase;
 };
 
 #endif

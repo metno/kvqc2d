@@ -3,7 +3,6 @@
 #ifndef SingleLinear_v32_H
 #define SingleLinear_v32_H 1
 
-#include "CheckedDataHelper.h"
 #include "ProcessControl.h"
 #include "Qc2Algorithm.h"
 #include <kvalobs/kvData.h>
@@ -33,7 +32,6 @@ private:
     void storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected);
 
 private:
-    CheckedDataHelper checkedDataHelper;
     ProcessControl CheckFlags;
     std::map<int, std::vector<std::string> > setmissing_chflag;
 };

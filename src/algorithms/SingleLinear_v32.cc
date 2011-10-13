@@ -38,7 +38,6 @@
 #include "scone.h"
 
 #include <milog/milog.h>
-#include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
 
 #include "foreach.h"
@@ -53,7 +52,6 @@ const float NO_UPDATE = -99999.0;
 
 SingleLinearV32Algorithm::SingleLinearV32Algorithm(ProcessImpl* p)
     : Qc2Algorithm(p)
-    , checkedDataHelper(dispatcher()->getApp())
 {
     std::vector<std::string> setmissing_fmis;
     setmissing_fmis.push_back("1->3");
@@ -81,8 +79,6 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
     std::list<kvalobs::kvData> Qc2Data;
     std::list<kvalobs::kvData> Qc2SeriesData;
  
-    kvalobs::kvDbGate dbGate( &dispatcher()->getConnection() );
-
     // TODO station ids do not change very often, need not update list for each test and every minute
     std::list<int> StationIds;
     fillStationIDList(StationIds);
@@ -96,8 +92,8 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
         const miutil::miString filter = "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' "
             "OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') "
             "AND PARAMID="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
-        if( !dbGate.select(Qc2Data, filter) ) {
-            IDLOGERROR( "html", "Database error finding middle points for linear interpolation: " << dbGate.getErrorStr() );
+        if( !database()->data(Qc2Data, filter) ) {
+            IDLOGERROR( "html", "Database error finding middle points for linear interpolation");
             continue;
         }
         if( Qc2Data.empty() )
@@ -108,8 +104,8 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
         timeAfter.addHour(1);
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
-            if( !dbGate.select(Qc2SeriesData, kvQueries::selectData(d.stationID(), params.pid, timeBefore, timeAfter)) ) {
-                IDLOGERROR( "html", "Database error finding neighbours for linear interpolation: " << dbGate.getErrorStr() );
+            if( !database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), params.pid, timeBefore, timeAfter) ) {
+                IDLOGERROR( "html", "Database error finding neighbours for linear interpolation");
                 continue;
             }
             if( Qc2SeriesData.size() != 3 )
@@ -137,7 +133,6 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
                                                    const int stationID, const miutil::miTime& timeAfter)
 {
     float NewCorrected = NO_UPDATE;
-    kvalobs::kvDbGate dbGate;
     const kvalobs::kvData &before = Tseries[0], &middle = Tseries[1], &after = Tseries[2];
 
     // check that the neighbours are good
@@ -150,8 +145,8 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
             if( params.maxpid>0 && params.minpid>0 ) {
                 std::list<kvalobs::kvData> MaxValue, MinValue;
                 // FIXME why twice timeAfter ? how does this find the max/min ???
-                if( dbGate   .select(MaxValue, kvQueries::selectData(stationID, params.maxpid, timeAfter, timeAfter))
-                    && dbGate.select(MinValue, kvQueries::selectData(stationID, params.minpid, timeAfter, timeAfter))
+                if( database()->dataForStationParamTimerange(MaxValue, stationID, params.maxpid, timeAfter, timeAfter)
+                    && database()->dataForStationParamTimerange(MinValue, stationID, params.minpid, timeAfter, timeAfter)
                     && MaxValue.size()==1 && MinValue.size()==1 )
                 {
                     const float maxi = MaxValue.begin()->original(), mini = MinValue.begin()->original();
@@ -202,9 +197,8 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
     Helpers::updateUseInfo(dwrite);
 
     LOGINFO( "SingleLinear_v32: " + Helpers::kvqc2logstring(dwrite) );
-    kvalobs::kvDbGate dbGate;
-    if( !dbGate.insert( dwrite, "data", true) ) {
-        IDLOGERROR( "html", "Error updating database with interpolated value: " << dbGate.getErrorStr() );
+    if( !database()->insert(dwrite, true, "data") ) {
+        IDLOGERROR( "html", "Error updating database with interpolated value");
         return; // FIXME what should be done here, actually?
     }
         

@@ -31,139 +31,78 @@
 
 #include "ProcessRedistribution.h"
 
-#include "CheckedDataCommandBase.h"
-#include "CheckedDataHelper.h"
-#include "BasicStatistics.h"
+#include "AlgorithmHelpers.h"
 #include "Helpers.h"
 #include "ProcessControl.h"
 #include "ProcessImpl.h"
-#include "Qc2App.h"
-#include "Qc2Connection.h"
 #include "Qc2D.h"
 #include "ReadProgramOptions.h"
 
 #include <milog/milog.h>
-#include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
-#include <memory>
-#include <stdexcept>
-#include <sstream>
-
-using namespace kvalobs;
-using namespace std;
-using namespace miutil;
+#include "foreach.h"
 
 void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Redistribute Accumulations");
 
-    miutil::miTime stime=params.UT0;
-    miutil::miTime etime=params.UT1;
-    miutil::miTime PreviousCheck;
-    const int pid=params.pid;
-    const int tid=params.tid;
-    int ignore_station=0;
-    int NibbleIndex=params.nibble_index;
-    const std::vector<int> tids=params.tids;
-
-    ProcessControl CheckFlags;
-
-    std::list<kvalobs::kvStation> ActualStationList;
     std::list<kvalobs::kvData> Qc2Data;
-    std::list<kvalobs::kvData> CheckData;
     std::list<kvalobs::kvData> ReturnData;
-    bool result;
-
-    kvalobs::kvStationInfoList  stList;
-    CheckedDataHelper checkedDataHelper(dispatcher()->getApp());
-
-    kvalobs::kvDbGate dbGate( &dispatcher()->getConnection() );
-
-    miutil::miTime ProcessTime;
-    miutil::miString ladle;
 
     std::list<kvalobs::kvStation> StationList;
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
-    ProcessTime = stime;
+    for(miutil::miTime ProcessTime = params.UT0; ProcessTime <= params.UT1; ProcessTime.addDay()) {
 
-    while (ProcessTime <= etime) {
-
-        try {
-
-            //result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,tid,ProcessTime,ProcessTime));
-            /// TODO: interpolate across all type ids and check for effective duplicates.            
-            result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));  // Choose all the data
-        }
-        catch ( dnmi::db::SQLException & ex ) {
-            IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-        }
-        catch ( ... ) {
-            IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+        if( !database()->dataForStationsParamTimerange(Qc2Data, StationIds, params.pid, ProcessTime, ProcessTime) ) {
+            LOGERROR("Problem with query in ProcessRedistribution");
+            continue;
         }
 
-        if(!Qc2Data.empty()) {
+        if( Qc2Data.empty() )
+            continue;
 
-            Qc2D GSW(Qc2Data,StationList, params,"Generate Missing Rows");
-            GSW.Qc2_interp(); 
-            GSW.distributor(StationList,ReturnData,0);
-            //GSW.write_cdf(StationList);
-        }
+        Qc2D GSW(Qc2Data,StationList, params,"Generate Missing Rows");
+        GSW.Qc2_interp();
+        GSW.distributor(StationList,ReturnData,0);
+        //GSW.write_cdf(StationList);
               
-        if(!ReturnData.empty()) {
-            //std::cout << "Not Empty" << std::endl;
-            for (std::list<kvalobs::kvData>::const_iterator id = ReturnData.begin(); id != ReturnData.end(); ++id) {
-                //LOGINFO("---------------->: "+ kvqc2logstring(*id) );
-                PreviousCheck=id->obstime();
-                PreviousCheck.addDay(-1);
-                result = dbGate.select(CheckData, kvQueries::selectData(id->stationID(),pid,PreviousCheck,PreviousCheck) ); 
-                for (std::list<kvalobs::kvData>::const_iterator ic = CheckData.begin(); ic != CheckData.end(); ++ic) {
-                    if (ic->corrected()==params.missing) {
-                        ignore_station=ic->stationID(); 
-                        LOGWARN("Incomplete redistribution (skipped): "+ Helpers::kvqc2logstring(*ic) );
-                    }
-                }
-                try {
-                    //if ( CheckFlags.condition(id->controlinfo(),params.Wflag) && id->stationID() != ignore_station) { 
-                    if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,NibbleIndex,params.Wbool) && 
-                         id->stationID() != ignore_station ) {  
-                        LOGINFO("Redistribution: "+Helpers::kvqc2logstring(*id) );
-                        ////LOGINFO("Redistribute Precipitation Writing Data "
-                        //+StrmConvert(id->corrected())+" "
-                        //+StrmConvert(id->stationID())+" "
-                        //+StrmConvert(id->obstime().year())+"-"
-                        //+StrmConvert(id->obstime().month())+"-"
-                        //+StrmConvert(id->obstime().day())+" "
-                        //+StrmConvert(id->obstime().hour())+":"
-                        //+StrmConvert(id->obstime().min())+":"
-                        //+StrmConvert(id->obstime().sec()) );
-                        kvData d = *id;
-                        kvUseInfo ui = d.useinfo();
-                        ui.setUseFlags( d.controlinfo() );
-                        d.useinfo( ui );   
-                        dbGate.insert( d, "data", true); 
-                        kvalobs::kvStationInfo::kvStationInfo DataToWrite(id->stationID(),id->obstime(),id->typeID());
-                        stList.push_back(DataToWrite);
-                    }
-                }
-                catch ( dnmi::db::SQLException & ex ) {
-                    IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-                    std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
-                }
-                catch ( ... ) {
-                    IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-                    std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
+        //std::cout << "Not Empty" << std::endl;
+        foreach(const kvalobs::kvData& d, ReturnData) {
+            //LOGINFO("---------------->: "+ kvqc2logstring(*id) );
+            miutil::miTime PreviousCheck = d.obstime();
+            PreviousCheck.addDay(-1);
+            std::list<kvalobs::kvData> CheckData;
+            if( !database()->dataForStationParamTimerange(CheckData, d.stationID(), params.pid, PreviousCheck, PreviousCheck) ) {
+                LOGERROR("Problem with station data query in ProcessRedistribution");
+                continue;
+            }
+            int ignore_station = 0;
+            foreach(const kvalobs::kvData& c, CheckData) {
+                if (c.corrected()==params.missing) {
+                    ignore_station = c.stationID();
+                    LOGWARN("Incomplete redistribution (skipped): "+ Helpers::kvqc2logstring(c) );
                 }
             }
-            ignore_station=0;
-            if(!stList.empty()){
-                checkedDataHelper.sendDataToService(stList);
-                stList.clear();
+            ProcessControl CheckFlags;
+            if( CheckFlags.true_nibble(d.controlinfo(), params.Wflag, params.nibble_index, params.Wbool) &&
+                d.stationID() != ignore_station )
+            {
+                LOGINFO("Redistribution: "+Helpers::kvqc2logstring(d) );
+
+                kvalobs::kvData dwrite(d);
+                Helpers::updateUseInfo(dwrite);
+                if( !database()->insert(dwrite, true, "data") ) {
+                    LOGERROR("Could not write to database");
+                    continue;
+                }
+
+                broadcaster()->queueChanged(d);
+                broadcaster()->sendChanges();
             }
-            ReturnData.clear();
         }
-        ProcessTime.addDay();
+        ReturnData.clear();
 
     }
     Qc2D GSW(Qc2Data,StationList,params);
