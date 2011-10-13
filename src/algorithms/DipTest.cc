@@ -32,6 +32,7 @@
 #include "DipTestAlgorithm.h"
 
 #include "AkimaSpline.h"
+#include "AlgorithmHelpers.h"
 #include "GetStationParam.h"
 #include "Helpers.h"
 #include "Qc2App.h"
@@ -47,37 +48,6 @@
 #include <puTools/miTime.h>
 
 namespace {
-
-bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series)
-{
-    if( series.size() < 2 )
-        return false;
-    for(unsigned int i=1; i<series.size(); ++i) {
-        if( series[i].obstime().hour() != ((series[i-1].obstime().hour() + 1)%24) )
-            return false;
-        if( series[i].typeID() == series[i-1].typeID() )
-            return false;
-    }
-    return true;
-}
-
-void updateCfailed(kvalobs::kvData& data, const miutil::miString& add, const miutil::miString& extra)
-{
-    miutil::miString new_cfailed = data.cfailed();
-    if( new_cfailed.length() > 0 )
-        new_cfailed += ",";
-    new_cfailed += add;
-    if( extra.length() > 0)
-        new_cfailed += ","+extra;
-    data.cfailed(new_cfailed);
-}
-
-void updateUseInfo(kvalobs::kvData& data)
-{
-    kvalobs::kvUseInfo ui = data.useinfo();
-    ui.setUseFlags( data.controlinfo() );
-    data.useinfo( ui );
-}
 
 float getDeltaCheck(kvalobs::kvDbGate& dbGate, int stationID, const miutil::miTime& time, const std::string& qcx, bool max)
 {
@@ -145,7 +115,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                 const std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
 
                 // Check that we have three valid data points and no mixing of typeids
-                if( Tseries.size()!= 3 || checkContinuousHourAndSameTypeID(Tseries)
+                if( Tseries.size()!= 3 || Helpers::checkContinuousHourAndSameTypeID(Tseries)
                         || Tseries[0].controlinfo().flag(3) != 1
                         || Tseries[1].controlinfo().flag(3) != 2
                         || Tseries[2].controlinfo().flag(3) != 2 )
@@ -187,7 +157,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                             Aseries[3].obstime()==Tseries[1].obstime()           	  &&
                             Aseries[3].stationID()==Tseries[1].stationID()            &&
                             Aseries[3].paramID()==Tseries[1].paramID()           	  &&
-                            checkContinuousHourAndSameTypeID(Aseries)                 &&
+                            Helpers::checkContinuousHourAndSameTypeID(Aseries)        &&
                             CheckFlags.condition(Aseries[0].useinfo(),params.Uflag)   &&
                             CheckFlags.condition(Aseries[1].useinfo(),params.Uflag)   &&
                             CheckFlags.condition(Aseries[5].useinfo(),params.Uflag)   &&
@@ -235,13 +205,13 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                         kvalobs::kvData dwrite1(Tseries[1]);
                         dwrite1.corrected(Interpolated);
                         dwrite1.controlinfo(fixflags1);
-                        updateCfailed(dwrite1, AkimaPresent ? "QC2d-1-A" : "QC2d-1-L", params.CFAILED_STRING);
-                        updateUseInfo(dwrite1);
+                        Helpers::updateCfailed(dwrite1, AkimaPresent ? "QC2d-1-A" : "QC2d-1-L", params.CFAILED_STRING);
+                        Helpers::updateUseInfo(dwrite1);
 
                         kvalobs::kvData dwrite2(Tseries[2]);
                         dwrite2.controlinfo(fixflags2);
-                        updateCfailed(dwrite2, "QC2d-1", params.CFAILED_STRING);
-                        updateUseInfo(dwrite2);
+                        Helpers::updateCfailed(dwrite2, "QC2d-1", params.CFAILED_STRING);
+                        Helpers::updateUseInfo(dwrite2);
 
                         std::list<kvalobs::kvData> toWrite;
                         toWrite.push_back(dwrite1);

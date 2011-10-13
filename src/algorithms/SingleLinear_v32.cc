@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  $Id$                                                       
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -31,6 +29,7 @@
 
 #include "SingleLinear_v32.h"
 
+#include "AlgorithmHelpers.h"
 #include "Helpers.h"
 #include "ProcessImpl.h"
 #include "Qc2App.h"
@@ -42,14 +41,7 @@
 #include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
 
-#include <boost/foreach.hpp>
-#include <memory>
-#include <stdexcept>
-#include <sstream>
-
-using namespace kvalobs;
-using namespace std;
-using namespace miutil;
+#include "foreach.h"
 
 namespace {
 
@@ -115,7 +107,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
         timeBefore.addHour(-1);
         timeAfter.addHour(1);
 
-        BOOST_FOREACH(const kvalobs::kvData& d, Qc2Data) {
+        foreach(const kvalobs::kvData& d, Qc2Data) {
             if( !dbGate.select(Qc2SeriesData, kvQueries::selectData(d.stationID(), params.pid, timeBefore, timeAfter)) ) {
                 IDLOGERROR( "html", "Database error finding neighbours for linear interpolation: " << dbGate.getErrorStr() );
                 continue;
@@ -123,36 +115,30 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
             if( Qc2SeriesData.size() != 3 )
                 continue;
 
-            std::list<kvalobs::kvData>::const_iterator iter = Qc2SeriesData.begin();
-            const kvalobs::kvData& before = *iter++, middle = *iter++, after = *iter;
+            std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
             
             // Check that the 3 data points are valid
-            if( middle.obstime().hour() != (before.obstime().hour() + 1) % 24
-                || middle.obstime().hour() != (24 + (after.obstime().hour() - 1)) % 24
-                || middle.typeID() != before.typeID()
-                || middle.typeID() != after.typeID() )
-            {
+            if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) )
                 continue;
-            }
 
-            const float NewCorrected = calculateCorrected(params, before, middle, after, d.stationID(), timeAfter);
+            const float NewCorrected = calculateCorrected(params, Tseries, d.stationID(), timeAfter);
             if( NewCorrected == NO_UPDATE )
                 continue;
 
             if( CheckFlags.true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) )
-                storeUpdate(params, middle, NewCorrected);
+                storeUpdate(params, Tseries[1], NewCorrected);
         }
     }
 }
 
 // ------------------------------------------------------------------------
             
-float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& params, const kvalobs::kvData& before,
-                                                   const kvalobs::kvData& middle, const kvalobs::kvData& after,
+float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries,
                                                    const int stationID, const miutil::miTime& timeAfter)
 {
     float NewCorrected = NO_UPDATE;
     kvalobs::kvDbGate dbGate;
+    const kvalobs::kvData &before = Tseries[0], &middle = Tseries[1], &after = Tseries[2];
 
     // check that the neighbours are good
     const int flag7 = middle.controlinfo().flag(7);
@@ -208,20 +194,13 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
     CheckFlags.conditional_setter(fixflags,params.chflag);
     if( NewCorrected == params.missing || NewCorrected == params.rejected )
         CheckFlags.conditional_setter(fixflags, setmissing_chflag);
-    miutil::miString new_cfailed = middle.cfailed();
-    if( new_cfailed.length() > 0 )
-        new_cfailed += ",";
-    new_cfailed += "QC2d-2";
-    if( params.CFAILED_STRING.length() > 0 )
-        new_cfailed += ","+params.CFAILED_STRING;
         
-    kvalobs::kvData dwrite;
-    dwrite.set(middle.stationID(), middle.obstime(), middle.original(), middle.paramID(),
-               middle.tbtime(), middle.typeID(), middle.sensor(), middle.level(),
-               NewCorrected, fixflags, middle.useinfo(), new_cfailed );
-    kvUseInfo ui = dwrite.useinfo();
-    ui.setUseFlags( dwrite.controlinfo() );
-    dwrite.useinfo( ui );   
+    kvalobs::kvData dwrite(middle);
+    dwrite.corrected(NewCorrected);
+    dwrite.controlinfo(fixflags);
+    Helpers::updateCfailed(dwrite, "QC2d-2", params.CFAILED_STRING);
+    Helpers::updateUseInfo(dwrite);
+
     LOGINFO( "SingleLinear_v32: " + Helpers::kvqc2logstring(dwrite) );
     kvalobs::kvDbGate dbGate;
     if( !dbGate.insert( dwrite, "data", true) ) {
@@ -230,8 +209,6 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
     }
         
     // TODO why not accumlate a long list and send several updates at once?
-    kvalobs::kvStationInfo::kvStationInfo DataToWrite(middle.stationID(), middle.obstime(), middle.typeID());
-    kvalobs::kvStationInfoList stList;
-    stList.push_back(DataToWrite);
-    checkedDataHelper.sendDataToService(stList);
+    broadcaster()->queueChanged(middle);
+    broadcaster()->sendChanges();
 }

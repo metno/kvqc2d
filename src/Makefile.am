@@ -15,6 +15,8 @@ libkvqc2d_a_SOURCES = \
 	ConfigParser.cc \
 	InitLogger.cc \
 	InitLogger.h \
+	AlgorithmHelpers.cc \
+	AlgorithmHelpers.h \
 	Helpers.cc \
 	Helpers.h \
 	ProcessControl.cc \
