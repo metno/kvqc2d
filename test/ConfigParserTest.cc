@@ -98,3 +98,40 @@ TEST(ConfigParserTest, testConvertError)
     ASSERT_EQ( "ab", c.get("chars").value(0) );
     ASSERT_EQ( '?', c.get("chars").convert<char>(0, '?') );
 }
+
+// ------------------------------------------------------------------------
+
+TEST(ConfigParserTest, testConvertList)
+{
+    std::stringstream io;
+    io << "int=1" << std::endl
+       << "int=2" << std::endl
+       << "int=3" << std::endl;
+
+    ConfigParser c;
+    ASSERT_TRUE( c.load(io) );
+
+    ASSERT_TRUE( c.has("int") );
+    std::vector<int> v = c.get("int").convert<int>();
+    ASSERT_EQ( 3, v.size() );
+    ASSERT_EQ( 1, v[0] );
+    ASSERT_EQ( 2, v[1] );
+    ASSERT_EQ( 3, v[2] );
+}
+
+// ------------------------------------------------------------------------
+
+TEST(ConfigParserTest, testConvertListFail)
+{
+    std::stringstream io;
+    io << "int=1" << std::endl
+       << "int=2" << std::endl
+       << "int=no number" << std::endl;
+
+    ConfigParser c;
+    ASSERT_TRUE( c.load(io) );
+
+    ASSERT_TRUE( c.has("int") );
+    std::vector<int> v = c.get("int").convert<int>();
+    ASSERT_TRUE( v.empty() );
+}

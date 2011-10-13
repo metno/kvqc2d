@@ -44,7 +44,7 @@ public:
   std::vector<float>                  ht_;
   std::vector<float>                  CP_;      // A confidence paramter (e.g. standard deviation from the interpolation)
 
-  ReadProgramOptions                  params;
+  const ReadProgramOptions&           params;
 
   std::map<int, int>                  stindex; //use this to lookup index based on station id.
   void istindex(int stid)             {stindex[ stid ] = stid_.size()-1;}
@@ -80,10 +80,10 @@ public:
 
   int stationID() const { return stid_[0]; }
 
-  Qc3D(){clean();}
+  //Qc3D(){clean();}
   ~Qc3D(){};
 
-  Qc3D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, ReadProgramOptions params);
+  Qc3D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params);
 
   void clean();
  

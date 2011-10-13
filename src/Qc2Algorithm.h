@@ -7,7 +7,15 @@
 #include "ReadProgramOptions.h"
 
 #include <kvalobs/kvStation.h>
+#include <kvalobs/kvData.h>
 #include <list>
+
+class Broadcaster {
+public:
+    virtual ~Broadcaster() { }
+    virtual void queueChanged(const kvalobs::kvData&) { }
+    virtual void sendChanges() { }
+};
 
 /// Interface implemented by the different QC2 algorithms.
 
@@ -22,11 +30,15 @@ public:
     ProcessImpl* dispatcher() const
         { return mDispatcher; }
 
+    Broadcaster* broadcaster() const
+        { return mBroadcaster.get(); }
+
     void fillStationLists(std::list<kvalobs::kvStation> stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
 private:
     ProcessImpl* mDispatcher;
+    std::auto_ptr<Broadcaster> mBroadcaster;
 };
 
 #endif

@@ -53,6 +53,8 @@ private:
     std::vector<std::string> mErrors;
 };
 
+// ########################################################################
+
 class ConfigParser {
 public:
     class Item {
@@ -69,11 +71,17 @@ public:
 
         const std::string& value(unsigned int idx, const std::string& dflt) const;
 
+        const std::vector<std::string>& values() const
+            { return mValues; }
+
         template<class T>
         T convert(unsigned int idx) const;
 
         template<class T>
         T convert(unsigned int idx, const T& dflt) const;
+
+        template<class T>
+        std::vector<T> convert() const;
 
     private:
         std::vector<std::string> mValues;
@@ -124,6 +132,22 @@ T ConfigParser::Item::convert(unsigned int idx, const T& dflt) const
             return t;
     }
     return dflt;
+}
+
+template<class T>
+std::vector<T> ConfigParser::Item::convert() const
+{
+    std::vector<T> out;
+    for(unsigned int i=0; i<mValues.size(); ++i ) {
+        T t;
+        const std::string v = mValues[i];
+        std::istringstream i(v);
+        i >> t;
+        if( i.fail() || i.tellg() != v.size() )
+            return std::vector<T>();
+        out.push_back(t);
+    }
+    return out;
 }
 
 #endif // ConfigParser_H

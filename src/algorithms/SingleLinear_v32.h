@@ -12,6 +12,14 @@
 #include <string>
 #include <vector>
 
+/**
+ * Specification:
+ * https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:requirements
+ * section "Simple Interpolations" links to specification article
+ * https://kvalobs.wiki.met.no/lib/exe/fetch.php?media=kvoss:system:qc2:qc2-d2_flagg_08_2010_v32.pdf
+ *
+ * Also see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:test:algorithms:singlemissingpoint2
+ */
 class SingleLinearV32Algorithm : public Qc2Algorithm {
 public:
     SingleLinearV32Algorithm(ProcessImpl* p);

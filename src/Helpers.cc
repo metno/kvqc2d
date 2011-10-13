@@ -31,4 +31,15 @@ bool string_endswith(const std::string& text, const std::string& tail)
     return ( lText >= lTail && text.substr(lText-lTail) == tail );
 }
 
+int hexCharToInt(char n)
+{
+    if (n >= '0' && n <= '9')
+        return (n-'0');
+    if (n >= 'A' && n <= 'F')
+        return (n-'A'+10);
+    // if (n >= 'a' && n <= 'f')
+    //    return (n-'a'+10);
+    return 0;
+}
+
 } // namespace Helpers

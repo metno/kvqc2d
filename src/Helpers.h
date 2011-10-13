@@ -13,6 +13,8 @@ std::string kvqc2logstring(const kvalobs::kvData& kd);
 
 bool string_endswith(const std::string& text, const std::string& tail);
 
+int hexCharToInt(char n);
+
 };
 
 #endif

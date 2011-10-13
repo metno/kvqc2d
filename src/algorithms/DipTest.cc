@@ -32,17 +32,12 @@
 #include "DipTestAlgorithm.h"
 
 #include "AkimaSpline.h"
-#include "CheckedDataCommandBase.h"
-#include "CheckedDataHelper.h"
-#include "BasicStatistics.h"
 #include "GetStationParam.h"
 #include "Helpers.h"
 #include "Qc2App.h"
 #include "Qc2Connection.h"
-#include "Qc2D.h"
 #include "ParseParValFile.h"
 #include "ProcessControl.h"
-#include "ProcessImpl.h"
 #include "ReadProgramOptions.h"
 #include "scone.h"
 #include "tround.h"
@@ -50,300 +45,218 @@
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
-#include <memory>
-#include <stdexcept>
-#include <sstream>
 
-using namespace kvalobs;
-using namespace std;
-using namespace miutil;
+namespace {
+
+bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series)
+{
+    if( series.size() < 2 )
+        return false;
+    for(unsigned int i=1; i<series.size(); ++i) {
+        if( series[i].obstime().hour() != ((series[i-1].obstime().hour() + 1)%24) )
+            return false;
+        if( series[i].typeID() == series[i-1].typeID() )
+            return false;
+    }
+    return true;
+}
+
+void updateCfailed(kvalobs::kvData& data, const miutil::miString& add, const miutil::miString& extra)
+{
+    miutil::miString new_cfailed = data.cfailed();
+    if( new_cfailed.length() > 0 )
+        new_cfailed += ",";
+    new_cfailed += add;
+    if( extra.length() > 0)
+        new_cfailed += ","+extra;
+    data.cfailed(new_cfailed);
+}
+
+void updateUseInfo(kvalobs::kvData& data)
+{
+    kvalobs::kvUseInfo ui = data.useinfo();
+    ui.setUseFlags( data.controlinfo() );
+    data.useinfo( ui );
+}
+
+float getDeltaCheck(kvalobs::kvDbGate& dbGate, int stationID, const miutil::miTime& time, const std::string& qcx, bool max)
+{
+    std::list<int> OneStation;
+    OneStation.push_back( stationID );
+    std::list<kvalobs::kvStationParam> splist;
+    if( !dbGate.select( splist, kvQueries::selectStationParam( OneStation, time, qcx ) ) ) {
+        LOGERROR("Failed to select station_params for qcx='" << qcx << "'");
+        return -1e6;
+    }
+
+    GetStationParam Desmond(splist);
+    return Desmond.ValueOf(max ? "max" : "min").toFloat();
+}
+
+} // anonymous namespace
 
 void DipTestAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Dip Test");
-    float Interpolated;
-    float LinInterpolated;
-    float AkimaInterpolated;
-    float MinimumCheck;
-    float DeltaCheck;
-    float ABS20, ABS10, ABS21;
-    float delta;
-    int pid;
-    kvalobs::kvData dwrite1;                                                   
-    kvalobs::kvData dwrite2;                                                   
-    miutil::miString new_cfailed1;
-    miutil::miString new_cfailed2;
-    miutil::miString ParamValue;
-    miutil::miString DeltaValue;
-    miutil::miTime stime=params.UT0;
-    miutil::miTime etime=params.UT1;
- 
-    std::list<int> OneStation;
-    std::list<kvalobs::kvData> Qc2Data;
-    std::list<kvalobs::kvData> Qc2SeriesData;
-    std::list<kvalobs::kvStationParam> splist;
-    bool result;
-    bool AkimaPresent=false;
-    bool HOLDING=false;
  
     ProcessControl CheckFlags;
-    kvalobs::kvControlInfo fixflags1;
-    kvalobs::kvControlInfo fixflags2;
-
-    kvalobs::kvStationInfoList  stList;
-    CheckedDataHelper checkedDataHelper(dispatcher()->getApp());
-
     kvalobs::kvDbGate dbGate( &dispatcher()->getConnection() );
 
-    miutil::miTime ProcessTime;
-    miutil::miTime XTime;
-    miutil::miTime YTime;
-
-    std::vector<kvalobs::kvData> Tseries;
-    std::vector<kvalobs::kvData> Aseries;
-    std::vector<double> xt,yt;
-
-    std::map<int, float>  PidValMap; 
+    if( params.ParValFile == "NotSet")
+        return;
+    ParseParValFile ParValues(params.ParValFile);
+    const std::map<int, float>  PidValMap = ParValues.ReturnMap();
 
     std::list<int> StationIds;
     fillStationIDList(StationIds);
 
-    //int pid=params.pid;
-    if (params.ParValFile != "NotSet") {
-        ParseParValFile ParValues(params.ParValFile);   
-        PidValMap=ParValues.ReturnMap(); 
-    }
- 
- 
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         std::cout << (*it).first << " " << (*it).second << std::endl;
-        pid=(*it).first;
-        delta=(*it).second;
+        const float pid=(*it).first;
+        const float delta=(*it).second;
         std::cout << pid << " " << delta << std::endl;
-        ProcessTime = etime;
         std::cout << "------------------" << std::endl;
-        OneStation.clear();
-        OneStation.push_back( 0 );
-        if (OneStation.size() == 1)  {  
-            std::string qcx="QC1-3a-"+StrmConvert(pid);
-            std::cout << "qcx " << qcx << std::endl;
-            result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, ProcessTime, qcx ) ); ///XTime may not always be good enough?
-            GetStationParam Desmond(splist); 
-            DeltaValue=Desmond.ValueOf("max");
-            DeltaCheck=DeltaValue.toFloat();
-            std::cout << "Delta automatically read from the database (under test!!!):  " << DeltaCheck << std::endl;
-        }
-        while (ProcessTime >= stime) 
-        {
-            XTime=ProcessTime;
-            XTime.addHour(-1);
-            YTime=ProcessTime;
-            YTime.addHour(1);
-            Tseries.clear();
-            try {
-                /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
-                result = dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime));
-                //********* Change this to select the appropriate data
+
+        const float DeltaCheck = getDeltaCheck(dbGate, 0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid), true); /// FIXME what time to use here?
+        std::cout << "Delta automatically read from the database (under test!!!):  " << DeltaCheck << std::endl;
+
+        for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
+            miutil::miTime linearStart = ProcessTime, linearStop = ProcessTime;
+            linearStart.addHour(-1);
+            linearStop.addHour(1);
+
+            /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
+            //********* Change this to select the appropriate data
+            std::list<kvalobs::kvData> Qc2Data;
+            if( !dbGate.select(Qc2Data, kvQueries::selectData(StationIds,pid,ProcessTime,ProcessTime)) ) {
+                LOGERROR("Failed to select data for DipTest at t=" << ProcessTime);
+                continue;
             }
-            catch ( dnmi::db::SQLException & ex ) {
-                IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-            }
-            catch ( ... ) {
-                IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-            }
-            if(!Qc2Data.empty()) { 
-                for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
-                    Tseries.clear();  
-                    result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
-  
-                 
+            if( Qc2Data.empty() )
+                continue;
 
-                    for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
-                        Tseries.push_back(*is);
-                    }
-               
-                    if  (Tseries.size()==3 &&  // Check that we have three valid data points and no mixing of typeids
-                         Tseries[1].obstime().hour() == (Tseries[0].obstime().hour() + 1) % 24        &&
-                         Tseries[1].obstime().hour() == (24 + (Tseries[2].obstime().hour() - 1)) % 24 &&      
-                         Tseries[1].typeID() == Tseries[0].typeID()                                   &&
-                         Tseries[1].typeID() == Tseries[2].typeID()                                   &&
-                         Tseries[0].controlinfo().flag(3) == 1	                                    &&
-                         Tseries[1].controlinfo().flag(3) == 2	                                    &&
-                         Tseries[2].controlinfo().flag(3) == 2 ) {
-   
-                        //            x
-                        //             
-                        //      x           x     -> time
-                        //
-                        //     A(0)  A(1)  A(2)
-                        //
-                        ABS20 = fabs( Tseries[2].original()-Tseries[0].original() );
-                        ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
-                        ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
-   
-   
-                        //if (ABS20 < ABS10 && ABS21>delta) {
-                        if (ABS20 < ABS10 && ABS20<delta) {
-   
-                            LinInterpolated=round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
+            for (std::list<kvalobs::kvData>::const_iterator id = Qc2Data.begin(); id != Qc2Data.end(); ++id) {
+                std::list<kvalobs::kvData> Qc2SeriesData;
+                if( !dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid, linearStart, linearStop)) ) {
+                    LOGERROR("Could not select time neighbors for DipTest " << linearStart << ".." << linearStop);
+                    continue;
+                }
 
-                            std::cout << "Lin" << std::endl;
+                const std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
 
-                            // Now see if we can also do Akima
-                            // Just need some extra points
-					   
-                            // Calculate Akima Block
-                            {
-                                XTime=ProcessTime;
-                                YTime=ProcessTime;
-                                XTime.addHour(-3);
-                                YTime.addHour(2);
-                                Aseries.clear();
-                                result = dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid,XTime,YTime));
-                                for (std::list<kvalobs::kvData>::const_iterator is = Qc2SeriesData.begin(); is != Qc2SeriesData.end(); ++is) {
-                                    Aseries.push_back(*is);
-                                    std::cout << is->obstime() << std::endl;
-                                }
-                                // A(0)
-                                // A(1)
-                                // A(2) = T(0)
-                                // A(3) = T(1)
-                                // A(4) = T(2)
-                                // A(5)
-                                std::cout << "ASeries Size: " << Aseries.size() << std::endl;
-                                AkimaPresent=false;
-                                if (Aseries.size()==6                                                       &&
-                                    Aseries[3].obstime()==Tseries[1].obstime()           	                 &&
-                                    Aseries[3].stationID()==Tseries[1].stationID()                           &&
-                                    Aseries[3].paramID()==Tseries[1].paramID()           	                 &&
-                                    Aseries[1].obstime().hour() == (Aseries[0].obstime().hour() + 1) % 24    &&
-                                    Aseries[2].obstime().hour() == (Aseries[1].obstime().hour() + 1) % 24    &&
-                                    Aseries[3].obstime().hour() == (Aseries[2].obstime().hour() + 1) % 24    &&
-                                    Aseries[4].obstime().hour() == (Aseries[3].obstime().hour() + 1) % 24    &&
-                                    Aseries[5].obstime().hour() == (Aseries[4].obstime().hour() + 1) % 24    &&
-                                    Aseries[1].typeID() == Aseries[0].typeID()                               &&
-                                    Aseries[2].typeID() == Aseries[1].typeID()                               &&
-                                    Aseries[3].typeID() == Aseries[2].typeID()                               &&
-                                    Aseries[4].typeID() == Aseries[3].typeID()                               &&
-                                    Aseries[5].typeID() == Aseries[4].typeID()                               &&
-                                    CheckFlags.condition(Aseries[0].useinfo(),params.Uflag)                  &&
-                                    CheckFlags.condition(Aseries[1].useinfo(),params.Uflag)                  &&
-                                    CheckFlags.condition(Aseries[5].useinfo(),params.Uflag)                  && 
-                                    Aseries[0].original() > params.missing                                   && 
-                                    Aseries[1].original() > params.missing                                   && 
-                                    Aseries[2].original() > params.missing                                   && 
-                                    Aseries[4].original() > params.missing                                   && 
-                                    Aseries[5].original() > params.missing                                   && 
-                                    Aseries[3].original() > params.missing ){ 
-                                    xt.clear();
-                                    yt.clear();
-                                    for (int i=0;i<6;i++){
-                                        if (i != 3 ) {
-                                            xt.push_back(i*1.0);
-                                            yt.push_back( Aseries[i].original() );
-                                        }
-                                    }
-                                    AkimaSpline AkimaX(xt,yt);
-                                    AkimaInterpolated=round<float,1>( AkimaX.AkimaPoint(3.0) );
-                                    AkimaPresent=true;
-                                }
-                            }	 
+                // Check that we have three valid data points and no mixing of typeids
+                if( Tseries.size()!= 3 || checkContinuousHourAndSameTypeID(Tseries)
+                        || Tseries[0].controlinfo().flag(3) != 1
+                        || Tseries[1].controlinfo().flag(3) != 2
+                        || Tseries[2].controlinfo().flag(3) != 2 )
+                    continue;
 
+                //            x
+                //
+                //      x           x     -> time
+                //
+                //     A(0)  A(1)  A(2)
+                //
+                const float ABS20 = fabs( Tseries[2].original()-Tseries[0].original() );
+                const float ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
+                const float ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
 
-///Looking into providing minimum check
-                            OneStation.clear();
-                            OneStation.push_back( id->stationID() );
-                            if (OneStation.size() == 1)  {
-                                std::string qcx="QC1-1-"+StrmConvert(pid);
-                                std::cout << "qcx " << qcx << std::endl;
-                                result = dbGate.select( splist, kvQueries::selectStationParam( OneStation, ProcessTime, qcx ) ); 
-                                GetStationParam Desmond(splist); 
-                                ParamValue=Desmond.ValueOf("min");
-                                MinimumCheck=ParamValue.toFloat();
-                                std::cout << "Return value: " << MinimumCheck << std::endl;
-                            }
-                            else
-                            {
-                                //failed
-                                MinimumCheck=-32767.0;
-                            }
-                            if (AkimaInterpolated < MinimumCheck) AkimaPresent=false;
+                if (ABS20 < ABS10 && ABS20 < delta) {
 
-                                       
-                            try{
-                                if ( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
-                             
-                                    fixflags1=Tseries[1].controlinfo(); // later control this from the config file
-                                    fixflags1.set(3,9); // later control this from the config file
-                                    new_cfailed1=Tseries[1].cfailed();
-                                    if (new_cfailed1.length() > 0) new_cfailed1 += ",";
-                                    Interpolated=LinInterpolated;
-                                    if (AkimaPresent) {
-                                        Interpolated=AkimaInterpolated;
-                                        new_cfailed1 += "QC2d-1-A";
-                                        //new_cfailed1 += ",Linear=";
-                                        //new_cfailed1 += StrmConvert(LinInterpolated);
-                                    } else {
-                                        new_cfailed1 += "QC2d-1-L";
-                                    }
-                                    if (params.CFAILED_STRING.length() > 0) new_cfailed1 += ","+params.CFAILED_STRING;
-                              
-                                    fixflags2=Tseries[1].controlinfo(); // later control this from the config file
-                                    fixflags2.set(3,4); // later control this from the config file
-                                    new_cfailed2=Tseries[2].cfailed();
-                                    if (new_cfailed2.length() > 0) new_cfailed2 += ",";
-                                    new_cfailed2 += "QC2d-1";
-                                    //if (AkimaPresent) {                // DO NOT NEED THIS ...  this point is not interpolated
-                                    //new_cfailed2 += "QC2d-1-A";
-                                    //} else {
-                                    //new_cfailed2 += "QC2d-1-L";
-                                    //}
-                                    if (params.CFAILED_STRING.length() > 0) new_cfailed2 += ","+params.CFAILED_STRING;
-      
-                                    dwrite1.clean();
-                                    dwrite1.set(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].original(),Tseries[1].paramID(),Tseries[1].tbtime(),
-                                                Tseries[1].typeID(),Tseries[1].sensor(), Tseries[1].level(),Interpolated,fixflags1,Tseries[1].useinfo(),
-                                                new_cfailed1 );
-                                    kvUseInfo ui1 = dwrite1.useinfo();
-                                    ui1.setUseFlags( dwrite1.controlinfo() );
-                                    dwrite1.useinfo( ui1 );   
-                                    dbGate.insert( dwrite1, "data", true); 
-      
-                                    dwrite2.clean();
-                                    dwrite2.set(Tseries[2].stationID(),Tseries[2].obstime(),Tseries[2].original(),Tseries[2].paramID(),Tseries[2].tbtime(),
-                                                Tseries[2].typeID(),Tseries[2].sensor(), Tseries[2].level(),Tseries[2].corrected(),fixflags2,Tseries[2].useinfo(),
-                                                new_cfailed2 );
-                                    kvUseInfo ui2 = dwrite2.useinfo();
-                                    ui2.setUseFlags( dwrite2.controlinfo() );
-                                    dwrite2.useinfo( ui2 );   
-                                    dbGate.insert( dwrite2, "data", true); 
-      
-                                    kvalobs::kvStationInfo::kvStationInfo DataToWrite1(Tseries[1].stationID(),Tseries[1].obstime(),Tseries[1].typeID());
-                                    stList.push_back(DataToWrite1);
-                                    kvalobs::kvStationInfo::kvStationInfo DataToWrite2(Tseries[2].stationID(),Tseries[2].obstime(),Tseries[2].typeID());
-                                    stList.push_back(DataToWrite2);
-      
-                                    LOGINFO("DipTest: "+Helpers::kvqc2logstring(dwrite1) );
-                                    LOGINFO("DipTest: "+Helpers::kvqc2logstring(dwrite2) );
+                    const float LinInterpolated = round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
+                    float AkimaInterpolated = LinInterpolated;
+                    bool AkimaPresent = false;
+
+                    // Now see if we can also do Akima
+                    // Just need some extra points
+
+                    // Calculate Akima Block
+                    miutil::miTime akimaStart = ProcessTime, akimaStop = ProcessTime;
+                    akimaStart.addHour(-3);
+                    akimaStop.addHour(2);
+                    if( dbGate.select(Qc2SeriesData, kvQueries::selectData(id->stationID(),pid, akimaStart, akimaStop)) ) {
+                        const std::vector<kvalobs::kvData> Aseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
+                        // A(0)
+                        // A(1)
+                        // A(2) = T(0)
+                        // A(3) = T(1)
+                        // A(4) = T(2)
+                        // A(5)
+                        std::cout << "ASeries Size: " << Aseries.size() << std::endl;
+                        if( Aseries.size()==6                                         &&
+                            Aseries[3].obstime()==Tseries[1].obstime()           	  &&
+                            Aseries[3].stationID()==Tseries[1].stationID()            &&
+                            Aseries[3].paramID()==Tseries[1].paramID()           	  &&
+                            checkContinuousHourAndSameTypeID(Aseries)                 &&
+                            CheckFlags.condition(Aseries[0].useinfo(),params.Uflag)   &&
+                            CheckFlags.condition(Aseries[1].useinfo(),params.Uflag)   &&
+                            CheckFlags.condition(Aseries[5].useinfo(),params.Uflag)   &&
+                            Aseries[0].original() > params.missing                    &&
+                            Aseries[1].original() > params.missing                    &&
+                            Aseries[2].original() > params.missing                    &&
+                            Aseries[4].original() > params.missing                    &&
+                            Aseries[5].original() > params.missing                    &&
+                            Aseries[3].original() > params.missing )
+                        {
+                            std::vector<double> xt,yt;
+                            for( int i=0;i<6;i++ ) {
+                                if( i != 3 ) {
+                                    xt.push_back(i*1.0);
+                                    yt.push_back( Aseries[i].original() );
                                 }
                             }
-                            catch ( dnmi::db::SQLException & ex ) {
-                                IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
-                                std::cout<<"INSERTO> CATCH ex" << result <<std::endl;
-                            }
-                            catch ( ... ) {
-                                IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
-                                std::cout<<"INSERTO> CATCH ..." << result <<std::endl;
-                            }
-                            if(!stList.empty()){
-                                checkedDataHelper.sendDataToService(stList);
-                                stList.clear();
-                            }
+                            AkimaSpline AkimaX(xt,yt);
+                            AkimaInterpolated=round<float,1>( AkimaX.AkimaPoint(3.0) );
+                            AkimaPresent = true;
                         }
-                    } // Three points to work with   
-                } // Loopthrough all stations at the given time
-            } // There is Qc2Data Loop
-            ProcessTime.addHour(-1);
+                    }
+
+                    if( AkimaPresent ) {
+                        // FIXME Looking into providing minimum check
+                        // FIXME what time to use here?
+                        const float MinimumCheck = getDeltaCheck(dbGate, 0, miutil::miTime::nowTime(), "QC1-1-"+StrmConvert(pid), false);
+                        if( MinimumCheck == -1e6 ) {
+                            LOGERROR("Failed to select data for MinimumCheck at " << ProcessTime << ". Assuming no akima interpolation.");
+                            AkimaPresent = false;
+                        } else if( AkimaInterpolated < MinimumCheck )
+                            AkimaPresent = false;
+                    }
+
+                    if( CheckFlags.true_nibble(id->controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
+
+                        kvalobs::kvControlInfo fixflags1 = Tseries[1].controlinfo(); // later control this from the config file
+                        fixflags1.set(3,9); // later control this from the config file
+
+                        kvalobs::kvControlInfo fixflags2 = Tseries[1].controlinfo(); // later control this from the config file
+                        fixflags2.set(3,4); // later control this from the config file
+
+                        const float Interpolated = AkimaPresent ? AkimaInterpolated : LinInterpolated;
+
+                        kvalobs::kvData dwrite1(Tseries[1]);
+                        dwrite1.corrected(Interpolated);
+                        dwrite1.controlinfo(fixflags1);
+                        updateCfailed(dwrite1, AkimaPresent ? "QC2d-1-A" : "QC2d-1-L", params.CFAILED_STRING);
+                        updateUseInfo(dwrite1);
+
+                        kvalobs::kvData dwrite2(Tseries[2]);
+                        dwrite2.controlinfo(fixflags2);
+                        updateCfailed(dwrite2, "QC2d-1", params.CFAILED_STRING);
+                        updateUseInfo(dwrite2);
+
+                        std::list<kvalobs::kvData> toWrite;
+                        toWrite.push_back(dwrite1);
+                        toWrite.push_back(dwrite2);
+                        dbGate.insert( toWrite, true, "data");
+
+                        broadcaster()->queueChanged(Tseries[1]);
+                        broadcaster()->queueChanged(Tseries[2]);
+                        broadcaster()->sendChanges();
+
+                        LOGINFO("DipTest: "+Helpers::kvqc2logstring(dwrite1) );
+                        LOGINFO("DipTest: "+Helpers::kvqc2logstring(dwrite2) );
+                    }
+                }
+            } // Loopthrough all stations at the given time
         } // TimeLoop
     } // parameter loop
 }

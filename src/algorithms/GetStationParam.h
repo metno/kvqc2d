@@ -1,35 +1,21 @@
-/****************************************************************
-**
-** Definition of a simple Get Station Paramters class
-**
-****************************************************************/
 
-#ifndef _GET_STATION_PARAM_
-#define _GET_STATION_PARAM_
+#ifndef GET_STATION_PARAM_
+#define GET_STATION_PARAM_
 
-#include <vector>
+#include <kvalobs/kvStationParam.h>
+#include <puTools/miString.h>
 #include <list>
 #include <map>
-#include <kvalobs/kvStationParam.h>
-
-#include <puTools/miTime.h>
-#include <puTools/miString.h>
-
 
 class GetStationParam 
 {
 public:
-
-    std::map<miutil::miString,miutil::miString> spMap; 
-
-    GetStationParam(std::list<kvalobs::kvStationParam> splist);
-    ~GetStationParam(){};
-	miutil::miString ValueOf(miutil::miString name);
-
-protected:
+    GetStationParam(const std::list<kvalobs::kvStationParam>& splist);
+    ~GetStationParam() {};
+	miutil::miString ValueOf(const miutil::miString& name);
 
 private:
-
+    std::map<miutil::miString,miutil::miString> spMap; 
 };
 
 

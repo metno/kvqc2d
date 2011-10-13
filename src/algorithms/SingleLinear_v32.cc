@@ -55,18 +55,6 @@ namespace {
 
 const float NO_UPDATE = -99999.0;
 
-// struct Helper {
-//     
-//     kvalobs::kvDbGate dbGate;
-//     const ReadProgramOptions& params;
-// 
-//     Helper(const ReadProgramOptions& p, ProcessImpl* d)
-//         : params(p) , dbGate(&d->getConnection())
-//         { }
-// 
-//     miutil::miTime timeBefore, timeAfter;
-// };
-
 } // anonymous namespace
 
 // ########################################################################
@@ -148,7 +136,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
             }
 
             const float NewCorrected = calculateCorrected(params, before, middle, after, d.stationID(), timeAfter);
-            if( NewCorrected == middle.corrected() || NewCorrected == NO_UPDATE )
+            if( NewCorrected == NO_UPDATE )
                 continue;
 
             if( CheckFlags.true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) )
@@ -193,6 +181,8 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
                 }
             }
 #endif
+            if( flag7 == 1 && NewCorrected == middle.corrected() )
+                NewCorrected = NO_UPDATE;
         }
     } else {
         //NB for ftime=0 ... do nothing

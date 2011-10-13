@@ -1,10 +1,39 @@
 
 #include "Qc2Algorithm.h"
 
-#include <boost/foreach.hpp>
+#include "CheckedDataHelper.h"
+#include "foreach.h"
+
+class RealBroadcaster : public Broadcaster {
+public:
+    RealBroadcaster(Qc2App& app)
+        : checkedDataHelper(app) { }
+    virtual void queueChanged(const kvalobs::kvData& d);
+    virtual void sendChanges();
+private:
+    CheckedDataHelper checkedDataHelper;
+    kvalobs::kvStationInfoList stList;
+};
+
+void RealBroadcaster::queueChanged(const kvalobs::kvData& d)
+{
+    stList.push_back(kvalobs::kvStationInfo(d.stationID(), d.obstime(), d.typeID()));
+}
+
+void RealBroadcaster::sendChanges()
+{
+    if( stList.empty() )
+        return;
+
+    checkedDataHelper.sendDataToService(stList);
+    stList.clear();
+}
+
+// #######################################################################
 
 Qc2Algorithm::Qc2Algorithm(ProcessImpl* dispatcher)
     : mDispatcher(dispatcher)
+    , mBroadcaster(new RealBroadcaster(dispatcher->getApp()))
 {
 }
 
@@ -18,7 +47,7 @@ void Qc2Algorithm::fillStationLists(std::list<kvalobs::kvStation> stations, std:
     mDispatcher->GetStationList(stations);
 
     idList.clear();
-    BOOST_FOREACH(const kvalobs::kvStation& s, stations) {
+    foreach(const kvalobs::kvStation& s, stations) {
         idList.push_back( s.stationID() );
     }
 }

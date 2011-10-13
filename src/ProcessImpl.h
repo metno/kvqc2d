@@ -14,13 +14,6 @@ class Qc2Algorithm;
 
 class ProcessImpl  
 {
-    Qc2App & app;
-    std::string logpath_; 
-    dnmi::db::Connection & con;
-
-    typedef std::map<std::string, Qc2Algorithm*> algorithms_t;
-    algorithms_t mAlgorithms;
-
 public:
     ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ );
     ~ProcessImpl();
@@ -35,6 +28,16 @@ public:
 
     dnmi::db::Connection& getConnection()
         { return con; }
+
+private:
+    Qc2App & app;
+    std::string logpath_; 
+    dnmi::db::Connection & con;
+
+    typedef std::map<std::string, Qc2Algorithm*> algorithms_t;
+    algorithms_t mAlgorithms;
+
+    std::map<int,std::string> mCode2Name; // TODO this is static
 };
 
 #endif

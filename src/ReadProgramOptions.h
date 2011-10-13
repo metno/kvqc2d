@@ -49,7 +49,6 @@ public:
     int tid;
     int nibble_index;
     std::vector<int> tids;
-    std::map<int,float> parvals;
     float missing;
     float rejected;
     float MinimumValue;
@@ -73,14 +72,12 @@ public:
     bool SelectConfigFiles(std::vector<std::string>& config_files);
     int clear();
 
-    vector_uchar Vfull;
-
 public:
     void setConfigPath(const boost::filesystem::path& path);
 
 private:
     boost::filesystem::path mConfigPath;
-
+    const vector_uchar Vfull; // TODO could also be static
 };
 
 /** @} */

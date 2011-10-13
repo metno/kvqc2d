@@ -28,6 +28,7 @@
   with KVALOBS; if not, write to the Free Software Foundation Inc., 
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #include <list>
 #include <stdlib.h>
 #include <stdio.h>
@@ -83,9 +84,9 @@ void Qc3D::clean()
 }
 
 Qc3D::
-Qc3D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, ReadProgramOptions PPP)
+Qc3D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& PPP)
+    : params(PPP)
 {
-  params=PPP;
   std::map<int, kvalobs::kvStation> Gsid;
   for ( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
        Gsid[ it->stationID() ] = *it;
