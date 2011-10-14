@@ -92,12 +92,12 @@ DebugDB::~DebugDB()
 bool DebugDB::selectData(kvDataList_t& d, const miutil::miString& where)
 {
     d.clear();
-    const miutil::miString& sql = "SELECT * from 'data'" + where;
+    const miutil::miString& sql = "SELECT * FROM data " + where + ";";
     sqlite3_stmt *stmt;
-    if( !sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) )
+    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
         return false;
     int step;
-    while( (step = sqlite3_step(stmt)) == SQLITE_OK ) {
+    while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
         const int stationid = sqlite3_column_int(stmt, col++);
         const miutil::miTime obstime((const char*)(sqlite3_column_text(stmt, col++)));
@@ -105,14 +105,14 @@ bool DebugDB::selectData(kvDataList_t& d, const miutil::miString& where)
         const int paramid = sqlite3_column_int(stmt, col++);
         const miutil::miTime tbtime((const char*)(sqlite3_column_text(stmt, col++)));
         const int type_id = sqlite3_column_int(stmt, col++);
-        const int sensor = std::atoi((const char*)sqlite3_column_text(stmt, col++));
+        const int sensor = sqlite3_column_int(stmt, col++);
         const int level = sqlite3_column_int(stmt, col++);
         const float corrected = sqlite3_column_double(stmt, col++);
         const kvalobs::kvControlInfo controlinfo(sqlite3_column_text(stmt, col++));
         const kvalobs::kvUseInfo useinfo(sqlite3_column_text(stmt, col++));
         const miutil::miString cfailed = (const char*)sqlite3_column_text(stmt, col++);
 
-        kvalobs::kvData data(stationid, obstime, original, paramid, tbtime, 0, type_id, sensor, level, controlinfo, useinfo, cfailed);
+        kvalobs::kvData data(stationid, obstime, original, paramid, tbtime, type_id, sensor, level, corrected, controlinfo, useinfo, cfailed);
         d.push_back(data);
     }
     sqlite3_finalize(stmt);
@@ -124,12 +124,12 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
     d.clear();
     const std::list<int> station(1, stationID);
     std::ostringstream sql;
-    sql << "SELECT * from 'station_params' WHERE " << kvQueries::selectStationParam(station, time, qcx );
+    sql << "SELECT * FROM station_params WHERE " << kvQueries::selectStationParam(station, time, qcx ) << ";";
     sqlite3_stmt *stmt;
-    if( !sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) )
+    if( sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) != SQLITE_OK )
         return false;
     int step;
-    while( (step = sqlite3_step(stmt)) == SQLITE_OK ) {
+    while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
         const int stationid = sqlite3_column_int(stmt, col++);
         const int paramid = sqlite3_column_int(stmt, col++);
@@ -154,12 +154,13 @@ bool DebugDB::selectStations(kvStationList_t& stations)
 {
     stations.clear();
     std::ostringstream sql;
-    sql << "SELECT * from 'station'";
+    sql << "SELECT * FROM station;";
     sqlite3_stmt *stmt;
-    if( !sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) )
+    const char* tail;
+    if( sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, &tail) != SQLITE_OK )
         return false;
     int step;
-    while( (step = sqlite3_step(stmt)) == SQLITE_OK ) {
+    while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
 
         const int stationid = sqlite3_column_int(stmt, col++);
@@ -189,9 +190,9 @@ bool DebugDB::insertData(const kvDataList_t& dl, bool replace)
     std::ostringstream sql;
     foreach(const kvalobs::kvData& d, dl) {
         if( replace ) {
-            sql << "UPDATE 'data' " << d.toUpdate() << ";" << std::endl;
+            sql << "UPDATE data " << d.toUpdate() << ";" << std::endl;
         } else {
-            sql << "INSERT INTO 'data' VALUES(" << d.toUpload() << ");" << std::endl;
+            sql << "INSERT INTO data VALUES(" << d.toUpload() << ");" << std::endl;
         }
     }
     return exec(sql.str());
@@ -202,6 +203,7 @@ bool DebugDB::exec(const std::string& statement)
     char *zErrMsg = 0;
     int rc = sqlite3_exec(db, statement.c_str(), 0, 0, &zErrMsg);
     if( rc!=SQLITE_OK ){
+        std::cerr << "DB error: " << zErrMsg << std::endl;
         sqlite3_free(zErrMsg);
         return false;
     }

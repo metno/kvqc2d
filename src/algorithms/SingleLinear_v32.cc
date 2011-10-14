@@ -86,11 +86,10 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
         // TODO maybe just run one query and update ProcessTime according to the results (obstime>=a and obstime<=b)?
         // TODO maybe use substr(controlinfo,7,1) IN ('1','2','3','4')?
         // substr counts from 1
-        const miutil::miString filter = "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' "
-            "OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') "
-            "AND PARAMID="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
+        const miutil::miString filter = "WHERE (substr(controlinfo,7,1) IN ('1', '2', '3', '4')) "
+            "AND paramid="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
         if( !database()->selectData(Qc2Data, filter) ) {
-            IDLOGERROR( "html", "Database error finding middle points for linear interpolation");
+            LOGERROR( "Database error finding middle points for linear interpolation");
             continue;
         }
         if( Qc2Data.empty() )
@@ -102,15 +101,13 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
             if( !database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), params.pid, timeBefore, timeAfter) ) {
-                IDLOGERROR( "html", "Database error finding neighbours for linear interpolation");
+                LOGERROR( "Database error finding neighbours for linear interpolation");
                 continue;
             }
             if( Qc2SeriesData.size() != 3 )
                 continue;
 
             std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
-            
-            // Check that the 3 data points are valid
             if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) )
                 continue;
 
@@ -136,8 +133,7 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
     const int flag7 = middle.controlinfo().flag(7);
     if( isNeighborOk(params, before) && isNeighborOk(params, after) ) {
         if( flag7 == 0 || flag7 == 1 ) {
-            const float interpolated = (before.original()+after.original())/2;
-            NewCorrected = round<float,1>( interpolated );
+            NewCorrected = round<float,1>( 0.5*(before.original()+after.original()) );
 #if 0 // not used according to paule@met.no (20111009-0230) (also removed in v33)
             if( params.maxpid>0 && params.minpid>0 ) {
                 std::list<kvalobs::kvData> MaxValue, MinValue;
@@ -170,8 +166,11 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
             const int flag6 = middle.controlinfo().flag(6);
             if( flag6 == 1 || flag6 == 3 )
                 NewCorrected = params.missing;
-            if( flag6 == 2 || flag6 == 4 )
+            else if( flag6 == 2 || flag6 == 4 )
                 NewCorrected = params.rejected;
+            else {
+                NewCorrected = round<float,1>( (before.original()+after.original())/2 );
+            }
         }
     }
     return NewCorrected;
@@ -182,8 +181,8 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
 void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected)
 {
     kvalobs::kvControlInfo fixflags = middle.controlinfo();
-    checkFlags().setter(fixflags,params.Sflag);
-    checkFlags().conditional_setter(fixflags,params.chflag);
+    checkFlags().setter(fixflags, params.Sflag);
+    checkFlags().conditional_setter(fixflags, params.chflag);
     if( NewCorrected == params.missing || NewCorrected == params.rejected )
         checkFlags().conditional_setter(fixflags, setmissing_chflag);
         
@@ -195,7 +194,7 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
 
     LOGINFO( "SingleLinear_v32: " + Helpers::kvqc2logstring(dwrite) );
     if( !database()->insertData(dwrite, true) ) {
-        IDLOGERROR( "html", "Error updating database with interpolated value");
+        LOGERROR( "Error updating database with interpolated value");
         return; // FIXME what should be done here, actually?
     }
         

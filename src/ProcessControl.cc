@@ -16,11 +16,14 @@ ProcessControl::ProcessControl()
 {
 }
 
-/// If any of the members of the flag group zflag match the controlinfo TRUE is returned.
 bool ProcessControl::condition(const kvalobs::kvControlInfo& controlinfo, const vucflags_t& zflag)
 {
+    // If any of the members of the flag group zflag match the controlinfo TRUE is returned.
     foreach(vucflags_t::value_type v, zflag) {
-        if( std::find(v.second.begin(), v.second.end(), controlinfo.cflag(v.first)) != v.second.end() )
+        if( v.second.empty() )
+            continue;
+        const unsigned char ci_flag = controlinfo.cflag(v.first);
+        if( std::find(v.second.begin(), v.second.end(), ci_flag) != v.second.end() )
             return true;
     }
     return false;
@@ -56,14 +59,14 @@ int ProcessControl::setter( kvalobs::kvControlInfo& controlinfo, const ucflags_t
     return 0; // FIXME why always return 0?
 }
 
-/////////////
-/// Conditional Setter
-
 int ProcessControl::conditional_setter( kvalobs::kvControlInfo& controlinfo, const vsflags_t& vFlag )
 {
     for(int flagIndex = 0; flagIndex < kvalobs::kvControlInfo::size; ++flagIndex) {
         const int flag = controlinfo.flag(flagIndex);
-        const std::vector<std::string>& vec = vFlag.find(flagIndex)->second; // FIXME check if found
+        const vsflags_t::const_iterator it = vFlag.find(flagIndex);
+        if( it == vFlag.end() )
+            continue;
+        const std::vector<std::string>& vec = it->second;
         foreach(const std::string& s, vec) {
             if( s.size() == 4 && s.substr(1,2) == "->" ) {
                 //std::cout << *it << std::endl;

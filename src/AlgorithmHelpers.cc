@@ -42,7 +42,7 @@ bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series
     for(unsigned int i=1; i<series.size(); ++i) {
         if( series[i].obstime().hour() != ((series[i-1].obstime().hour() + 1)%24) )
             return false;
-        if( series[i].typeID() == series[i-1].typeID() )
+        if( series[i].typeID() != series[i-1].typeID() )
             return false;
     }
     return true;
@@ -74,8 +74,9 @@ void GetNorwegianFixedStations(DBInterface* db, std::list<kvalobs::kvStation>& s
     // Make Qc2 specific selection on the StationList here
     // Only use stations less than 100000 i.e. only Norwegian stations
     // Also remove stations that are moving, e.g. ships.
+    stations.clear();
     foreach( const kvalobs::kvStation& s, tempStations ) {
-        if( s.stationID() >= 60 && s.stationID() < 100000 &&  s.maxspeed()==0.0 )
+        if( s.stationID() >= 60 && s.stationID() <= 99999 &&  s.maxspeed()==0.0 )
             stations.push_back(s);
     }
 }
