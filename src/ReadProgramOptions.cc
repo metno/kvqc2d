@@ -39,7 +39,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -128,15 +128,20 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
     return true;
 }
 
-///Parses the configuration files.
 int ReadProgramOptions::Parse(const std::string& filename)
 {
+    std::ifstream input(filename.c_str());
+    return Parse(input);
+}
+
+int ReadProgramOptions::Parse(std::istream& input)
+{
     ConfigParser c;
-    if( !c.load(filename) ) {
+    if( !c.load(input) ) {
         std::ostringstream errors;
         for(int i=0; i<c.errors().size(); ++i)
             errors << c.errors().get(i) << std::endl;
-        LOGWARN("Problems parsing kvqc2d algorithm configuration '" << filename << "':" << std::endl
+        LOGWARN("Problems parsing kvqc2d algorithm configuration:" << std::endl
                 << errors.str() 
                 << "Continuing anyhow... good luck!");
     }
@@ -247,8 +252,6 @@ int ReadProgramOptions::Parse(const std::string& filename)
         for (int i=0; i<16; i++)
             Uflag[i] = Vfull;
     }
-    
-    std::cout << now << ": " << UT0 << " -> " << UT1 << "  " << filename << std::endl;
     
     return 0;
 }

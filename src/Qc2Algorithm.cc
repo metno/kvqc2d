@@ -33,7 +33,7 @@ void RealBroadcaster::sendChanges()
 
 Qc2Algorithm::Qc2Algorithm(ProcessImpl* dispatcher)
     : mDispatcher(dispatcher)
-    , mBroadcaster(new RealBroadcaster(dispatcher->getApp()))
+    , mBroadcaster(0)
 {
 }
 
@@ -44,7 +44,8 @@ Qc2Algorithm::~Qc2Algorithm()
 void Qc2Algorithm::fillStationLists(std::list<kvalobs::kvStation> stations, std::list<int>& idList)
 {
     // TODO this list is not updated very often; maybe cache the results somewhere else
-    mDispatcher->GetStationList(stations);
+    if( mDispatcher )
+        mDispatcher->GetStationList(stations);
 
     idList.clear();
     foreach(const kvalobs::kvStation& s, stations) {

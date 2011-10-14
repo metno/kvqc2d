@@ -4,6 +4,7 @@
 #define Qc2Algorithm_H
 
 #include "DBInterface.h"
+#include "ProcessControl.h"
 #include "ProcessImpl.h"
 #include "ReadProgramOptions.h"
 
@@ -19,8 +20,8 @@
 class Broadcaster {
 public:
     virtual ~Broadcaster() { }
-    virtual void queueChanged(const kvalobs::kvData&) { }
-    virtual void sendChanges() { }
+    virtual void queueChanged(const kvalobs::kvData&) = 0;
+    virtual void sendChanges() = 0;
 };
 
 // #######################################################################
@@ -51,6 +52,9 @@ public:
     DBInterface* database() const
         { return mDatabase; }
 
+    ProcessControl checkFlags()
+        { return mCheckFlags; }
+
     void fillStationLists(std::list<kvalobs::kvStation> stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
@@ -58,6 +62,7 @@ private:
     ProcessImpl* mDispatcher;
     Broadcaster* mBroadcaster;
     DBInterface* mDatabase;
+    ProcessControl mCheckFlags;
 };
 
 #endif

@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  $Id$                                                       
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -63,9 +61,9 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         if( Qc2Data.empty() )
             continue;
 
-        Qc2D GSW(Qc2Data,StationList, params,"Generate Missing Rows");
+        Qc2D GSW(Qc2Data, StationList, params, "Generate Missing Rows");
         GSW.Qc2_interp();
-        GSW.distributor(StationList,ReturnData,0);
+        GSW.distributor(StationList, ReturnData, 0);
         //GSW.write_cdf(StationList);
               
         //std::cout << "Not Empty" << std::endl;
@@ -93,7 +91,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
                 kvalobs::kvData dwrite(d);
                 Helpers::updateUseInfo(dwrite);
-                if( !database()->insert(dwrite, true, "data") ) {
+                if( !database()->insertData(dwrite, true) ) {
                     LOGERROR("Could not write to database");
                     continue;
                 }
@@ -105,6 +103,6 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         ReturnData.clear();
 
     }
-    Qc2D GSW(Qc2Data,StationList,params);
-    GSW.distributor(StationList,ReturnData,1); /// solution for memory cleanup ... maybe needs to be improved.
+    Qc2D GSW(Qc2Data, StationList, params);
+    GSW.distributor(StationList, ReturnData, 1); /// solution for memory cleanup ... maybe needs to be improved.
 }

@@ -31,6 +31,7 @@
 #define DBINTERFACE_H_
 
 #include <kvalobs/kvData.h>
+#include <kvalobs/kvQueries.h>
 #include <kvalobs/kvStationParam.h>
 
 /**
@@ -44,7 +45,8 @@ public:
     typedef std::list<kvalobs::kvStationParam> kvStationParamList_t;
     typedef std::list<int> StationList_t;
 
-    virtual bool dataForStationsParamTimerange(kvDataList_t&, const StationList_t&, int paramID, const miutil::miTime& first, const miutil::miTime& last) = 0;
+    bool dataForStationsParamTimerange(kvDataList_t& d, const StationList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last)
+        { return selectData(d, kvQueries::selectData(s, paramID, first, last)); }
 
     /**
      * Select station data for one parameter id in the specified time range.
@@ -58,20 +60,20 @@ public:
      */
     bool dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter);
 
-    virtual bool data(kvDataList_t&, const miutil::miString& where) = 0;
+    virtual bool selectData(kvDataList_t&, const miutil::miString& where) = 0;
 
-    virtual bool queryStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) = 0;
+    virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) = 0;
 
     /**
      * Insert data to table tblName (or main table), replacing existing data if replace is true.
      */
-    virtual bool insert(const kvDataList_t&, bool replace=false, const miutil::miString &tblName="") = 0;
+    virtual bool insertData(const kvDataList_t&, bool replace=false) = 0;
 
     /**
      * Insert single data item to table tblName (or main table), replacing existing data if replace is true.
      * Calls insert.
      */
-    bool insert(const kvalobs::kvData&, bool replace=false, const miutil::miString &tblName="");
+    bool insertData(const kvalobs::kvData&, bool replace=false);
 
 };
 

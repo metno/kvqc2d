@@ -51,7 +51,7 @@
 float DipTestAlgorithm::getDeltaCheck(int stationID, const miutil::miTime& time, const std::string& qcx, bool max)
 {
     DBInterface::kvStationParamList_t splist;
-    if( !database()->queryStationparams(splist, stationID, time, qcx ) ) {
+    if( !database()->selectStationparams(splist, stationID, time, qcx ) ) {
         LOGERROR("Failed to select station_params for qcx='" << qcx << "'");
         return -1e6;
     }
@@ -208,7 +208,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                         std::list<kvalobs::kvData> toWrite;
                         toWrite.push_back(dwrite1);
                         toWrite.push_back(dwrite2);
-                        database()->insert( toWrite, true, "data" );
+                        database()->insertData(toWrite, true);
 
                         broadcaster()->queueChanged(Tseries[1]);
                         broadcaster()->queueChanged(Tseries[2]);

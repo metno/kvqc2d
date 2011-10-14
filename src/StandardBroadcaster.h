@@ -27,20 +27,23 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FOREACH_H_
-#define FOREACH_H_
+#ifndef STANDARBROADCASTER_H_
+#define STANDARBROADCASTER_H_
 
-// this is just to help the eclipse cdt parser "understand" BOOST_FOREACH
+#include "Qc2Algorithm.h"
+#include "CheckedDataHelper.h"
+#include <kvalobs/kvData.h>
+#include <kvalobs/kvStation.h>
+class Qc2App;
 
-#ifdef __CDT_PARSER__
-#define foreach(a, b) for(a : b)
-#define foreach_r(a, b) for(a : b)
-#error "foreach_r is defined wrongly for the cdt parser"
-#else
-#include <boost/foreach.hpp>
-// FIXME defining foreach like this is not good, according to http://www.boost.org/doc/libs/1_40_0/doc/html/foreach.html (bottom)
-#define foreach(a, b) BOOST_FOREACH(a, b)
-#define foreach_r(a, b) BOOST_REVERSE_FOREACH(a, b)
-#endif
+class StandardBroadcaster : public Broadcaster {
+public:
+    StandardBroadcaster(Qc2App& app);
+    virtual void queueChanged(const kvalobs::kvData& d);
+    virtual void sendChanges();
+private:
+    CheckedDataHelper checkedDataHelper;
+    kvalobs::kvStationInfoList stList;
+};
 
-#endif /* FOREACH_H_ */
+#endif /* STANDARBROADCASTER_H_ */

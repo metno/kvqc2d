@@ -6,9 +6,10 @@
 #include <puTools/miTime.h>
 
 #include <boost/filesystem/path.hpp>
-#include <vector>
+#include <istream>
 #include <map>
 #include <string>
+#include <vector>
 
 ///Selects and reads the configuration files driving each of the Qc2 algorithms.
 
@@ -69,6 +70,7 @@ public:
     vector_uchar Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
 
     int Parse(const std::string& filename);
+    int Parse(std::istream& input);
     bool SelectConfigFiles(std::vector<std::string>& config_files);
     int clear();
 

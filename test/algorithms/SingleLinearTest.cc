@@ -27,20 +27,36 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FOREACH_H_
-#define FOREACH_H_
+#include "AlgorithmTestBase.h"
+#include "algorithms/SingleLinear_v32.h"
 
-// this is just to help the eclipse cdt parser "understand" BOOST_FOREACH
+class SingleLinearTest : public AlgorithmTestBase {
+public:
+    void SetUp();
+    void TearDown();
+protected:
+};
 
-#ifdef __CDT_PARSER__
-#define foreach(a, b) for(a : b)
-#define foreach_r(a, b) for(a : b)
-#error "foreach_r is defined wrongly for the cdt parser"
-#else
-#include <boost/foreach.hpp>
-// FIXME defining foreach like this is not good, according to http://www.boost.org/doc/libs/1_40_0/doc/html/foreach.html (bottom)
-#define foreach(a, b) BOOST_FOREACH(a, b)
-#define foreach_r(a, b) BOOST_REVERSE_FOREACH(a, b)
-#endif
+void SingleLinearTest::SetUp()
+{
+    AlgorithmTestBase::SetUp();
+}
 
-#endif /* FOREACH_H_ */
+void SingleLinearTest::TearDown()
+{
+    AlgorithmTestBase::TearDown();
+}
+
+TEST_F(SingleLinearTest, test1)
+{
+    std::auto_ptr<SingleLinearV32Algorithm> algo(new SingleLinearV32Algorithm(0));
+    algo->setDatabase(db);
+    algo->setBroadcaster(bc);
+
+    std::stringstream cfg;
+    cfg << "Start_YY=2036" << std::endl;
+    ReadProgramOptions params;
+    params.Parse(cfg);
+
+    algo->run(params);
+}

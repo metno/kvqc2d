@@ -40,23 +40,18 @@ StandardDB::~StandardDB()
 {
 }
 
-bool StandardDB::dataForStationsParamTimerange(kvDataList_t& d, const StationList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last)
-{
-    return mDbGate.select(d, kvQueries::selectData(s, paramID, first, last));
-}
-
-bool StandardDB::data(kvDataList_t& d, const miutil::miString& where)
+bool StandardDB::selectData(kvDataList_t& d, const miutil::miString& where)
 {
     return mDbGate.select(d, where);
 }
 
-bool StandardDB::queryStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx)
+bool StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx)
 {
     const std::list<int> station(1, stationID);
     return mDbGate.select(s, kvQueries::selectStationParam(station, time, qcx ));
 }
 
-bool StandardDB::insert(const kvDataList_t& d, bool replace, const miutil::miString &tblName)
+bool StandardDB::insertData(const kvDataList_t& d, bool replace)
 {
-    return mDbGate.insert(d, replace, tblName);
+    return mDbGate.insert(d, replace, "data");
 }

@@ -32,7 +32,6 @@ private:
     void storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected);
 
 private:
-    ProcessControl CheckFlags;
     std::map<int, std::vector<std::string> > setmissing_chflag;
 };
 

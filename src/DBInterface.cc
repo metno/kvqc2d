@@ -44,8 +44,8 @@ bool DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, i
     return dataForStationsParamTimerange(r, stations, paramID, first, last);
 }
 
-bool DBInterface::insert(const kvalobs::kvData& d, bool replace, const miutil::miString &tblName)
+bool DBInterface::insertData(const kvalobs::kvData& d, bool replace)
 {
     const kvDataList_t datalist(1, d);
-    return insert(datalist, replace, tblName);
+    return insertData(datalist, replace);
 }

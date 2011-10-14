@@ -31,9 +31,6 @@
 
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
-#include "ProcessImpl.h"
-#include "Qc2App.h"
-#include "Qc2Connection.h"
 #include "tround.h"
 #include "scone.h"
 
@@ -63,10 +60,10 @@ SingleLinearV32Algorithm::SingleLinearV32Algorithm(ProcessImpl* p)
 
 bool SingleLinearV32Algorithm::isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n)
 {
-    return !CheckFlags.condition(n.controlinfo(), params.Notflag)
-        &&  CheckFlags.condition(n.controlinfo(), params.Aflag)
-        && !CheckFlags.condition(n.useinfo(),     params.NotUflag)
-        &&  CheckFlags.condition(n.useinfo(),     params.Uflag)
+    return !checkFlags().condition(n.controlinfo(), params.Notflag)
+        &&  checkFlags().condition(n.controlinfo(), params.Aflag)
+        && !checkFlags().condition(n.useinfo(),     params.NotUflag)
+        &&  checkFlags().condition(n.useinfo(),     params.Uflag)
         && n.original() != params.missing
         && n.original() != params.rejected;
 }
@@ -92,7 +89,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
         const miutil::miString filter = "WHERE (substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' "
             "OR substr(controlinfo,7,1)='3' OR substr(controlinfo,7,1)='4') "
             "AND PARAMID="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
-        if( !database()->data(Qc2Data, filter) ) {
+        if( !database()->selectData(Qc2Data, filter) ) {
             IDLOGERROR( "html", "Database error finding middle points for linear interpolation");
             continue;
         }
@@ -121,7 +118,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
             if( NewCorrected == NO_UPDATE )
                 continue;
 
-            if( CheckFlags.true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) )
+            if( checkFlags().true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) )
                 storeUpdate(params, Tseries[1], NewCorrected);
         }
     }
@@ -130,7 +127,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 // ------------------------------------------------------------------------
             
 float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries,
-                                                   const int stationID, const miutil::miTime& timeAfter)
+                                                   const int /*stationID*/, const miutil::miTime& /*timeAfter*/)
 {
     float NewCorrected = NO_UPDATE;
     const kvalobs::kvData &before = Tseries[0], &middle = Tseries[1], &after = Tseries[2];
@@ -185,10 +182,10 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
 void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected)
 {
     kvalobs::kvControlInfo fixflags = middle.controlinfo();
-    CheckFlags.setter(fixflags,params.Sflag);
-    CheckFlags.conditional_setter(fixflags,params.chflag);
+    checkFlags().setter(fixflags,params.Sflag);
+    checkFlags().conditional_setter(fixflags,params.chflag);
     if( NewCorrected == params.missing || NewCorrected == params.rejected )
-        CheckFlags.conditional_setter(fixflags, setmissing_chflag);
+        checkFlags().conditional_setter(fixflags, setmissing_chflag);
         
     kvalobs::kvData dwrite(middle);
     dwrite.corrected(NewCorrected);
@@ -197,7 +194,7 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
     Helpers::updateUseInfo(dwrite);
 
     LOGINFO( "SingleLinear_v32: " + Helpers::kvqc2logstring(dwrite) );
-    if( !database()->insert(dwrite, true, "data") ) {
+    if( !database()->insertData(dwrite, true) ) {
         IDLOGERROR( "html", "Error updating database with interpolated value");
         return; // FIXME what should be done here, actually?
     }

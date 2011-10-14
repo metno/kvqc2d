@@ -35,6 +35,8 @@ libkvqc2d_a_SOURCES = \
 	Qc2Thread.h \
 	ReadProgramOptions.cc \
 	ReadProgramOptions.h \
+	StandardBroadcaster.cc \
+	StandardBrodacaster.h \
 	StandardDB.cc \
 	StandardDB.h \
 	StopWatch.cc \

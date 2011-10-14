@@ -33,17 +33,18 @@
 #include "DBInterface.h"
 
 #include <kvalobs/kvDbGate.h>
-class QC2App;
 
 class StandardDB: public DBInterface {
 public:
     StandardDB(dnmi::db::Connection* connection);
     virtual ~StandardDB();
 
-    virtual bool dataForStationsParamTimerange(kvDataList_t&, const StationList_t&, int paramID, const miutil::miTime& first, const miutil::miTime& last);
-    virtual bool data(kvDataList_t&, const miutil::miString& where);
-    virtual bool queryStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx);
-    virtual bool insert(const kvDataList_t&, bool replace=false, const miutil::miString &tblName="");
+    void setConnection(dnmi::db::Connection* connection)
+        { mDbGate.set(connection); }
+
+    virtual bool selectData(kvDataList_t&, const miutil::miString& where);
+    virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx);
+    virtual bool insertData(const kvDataList_t&, bool replace=false);
 
 private:
     kvalobs::kvDbGate mDbGate;
