@@ -32,13 +32,10 @@ public:
 class Qc2Algorithm  
 {
 public:
-    Qc2Algorithm(ProcessImpl* dispatcher);
+    Qc2Algorithm();
     virtual ~Qc2Algorithm();
 
     virtual void run(const ReadProgramOptions& params) = 0;
-
-    ProcessImpl* dispatcher() const
-        { return 0; /* FIXME */ }
 
     void setBroadcaster(Broadcaster* b)
         { mBroadcaster = b; }
@@ -59,9 +56,8 @@ public:
     void fillStationIDList(std::list<int>& idList);
 
 private:
-    ProcessImpl* mDispatcher;
-    Broadcaster* mBroadcaster;
     DBInterface* mDatabase;
+    Broadcaster* mBroadcaster;
     ProcessControl mCheckFlags;
 };
 

@@ -29,6 +29,10 @@
 
 #include "AlgorithmHelpers.h"
 
+#include "DBInterface.h"
+#include <milog/milog.h>
+#include "foreach.h"
+
 namespace Helpers {
 
 bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series)
@@ -60,6 +64,29 @@ void updateUseInfo(kvalobs::kvData& data)
     kvalobs::kvUseInfo ui = data.useinfo();
     ui.setUseFlags( data.controlinfo() );
     data.useinfo( ui );
+}
+
+void GetNorwegianFixedStations(DBInterface* db, std::list<kvalobs::kvStation>& stations)
+{
+    std::list<kvalobs::kvStation> tempStations;
+    GetAllStations(db, tempStations);
+
+    // Make Qc2 specific selection on the StationList here
+    // Only use stations less than 100000 i.e. only Norwegian stations
+    // Also remove stations that are moving, e.g. ships.
+    foreach( const kvalobs::kvStation& s, tempStations ) {
+        if( s.stationID() >= 60 && s.stationID() < 100000 &&  s.maxspeed()==0.0 )
+            stations.push_back(s);
+    }
+}
+
+void GetAllStations(DBInterface* db, std::list<kvalobs::kvStation>& stations)
+{
+    stations.clear();
+    if( !db->selectStations( stations ) ) {
+        LOGERROR("Could not get station list from database.");
+        return;
+    }
 }
 
 } // namespace Helpers

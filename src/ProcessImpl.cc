@@ -40,22 +40,16 @@
 #include "Qc2App.h"
 #include "Qc2Connection.h"
 #include "ReadProgramOptions.h"
-#include "scone.h"
 
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
-#include <puTools/miTime.h>
 
 #include "foreach.h"
 
-using namespace kvalobs;
-using namespace std;
-using namespace miutil;
-
 class DummyAlgorithm : public Qc2Algorithm {
 public:
-    DummyAlgorithm(ProcessImpl* p)
-        : Qc2Algorithm(p) { }
+    DummyAlgorithm()
+        : Qc2Algorithm() { }
 
     virtual void run(const ReadProgramOptions&) {
         LOGINFO("Dummy algorithm.");
@@ -74,12 +68,12 @@ ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
     mCode2Name[5] = "Plumatic";
     mCode2Name[12] = "Dummy";
 
-    mAlgorithms["SingleLinear"]   = new SingleLinearV32Algorithm(this);
-    mAlgorithms["Redistribute"]   = new RedistributionAlgorithm(this);
-    mAlgorithms["DipTest"]        = new DipTestAlgorithm(this);
-    mAlgorithms["GapInterpolate"] = new GapInterpolationAlgorithm(this);
-    mAlgorithms["Plumatic"]       = new PlumaticAlgorithm(this);
-    mAlgorithms["Dummy"]          = new DummyAlgorithm(this);
+    mAlgorithms["SingleLinear"]   = new SingleLinearV32Algorithm();
+    mAlgorithms["Redistribute"]   = new RedistributionAlgorithm();
+    mAlgorithms["DipTest"]        = new DipTestAlgorithm();
+    mAlgorithms["GapInterpolate"] = new GapInterpolationAlgorithm();
+    mAlgorithms["Plumatic"]       = new PlumaticAlgorithm();
+    mAlgorithms["Dummy"]          = new DummyAlgorithm();
 
 }
 
@@ -87,36 +81,6 @@ ProcessImpl::~ProcessImpl()
 {
     foreach(algorithms_t::value_type algo, mAlgorithms) {
         delete algo.second;
-    }
-}
-
-void ProcessImpl::GetStationList(std::list<kvalobs::kvStation>& StationList)
-{
-    StationList.clear();
-
-    kvalobs::kvDbGate dbGate( &con );
-    std::list<kvalobs::kvStation> SL;
-
-    if( !dbGate.select( SL, kvQueries::selectAllStations("stationid"), "station" ) ) {
-        LOGERROR("Could not get station list from database.");
-        return;
-    }
-
-    // Make Qc2 specific selection on the StationList here
-    // Only use stations less than 100000 i.e. only Norwegian stations
-    // Also remove stations that are moving, e.g. ships.
-    for( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
-        if( it->stationID() >= 60 && it->stationID() < 100000 &&  it->maxspeed()==0.0 )
-            StationList.push_back(*it);
-    }
-}
-
-void ProcessImpl::GetStationList(std::list<kvalobs::kvStation>& StationList, miutil::miTime ProcessTime)
-{
-    StationList.clear();
-    kvalobs::kvDbGate dbGate( &con );
-    if( !dbGate.select( StationList, kvQueries::selectAllStations("stationid"), "station" ) ) {
-        LOGERROR("Could not get station list from database.");
     }
 }
 

@@ -7,8 +7,8 @@
 
 class DipTestAlgorithm : public Qc2Algorithm {
 public:
-    DipTestAlgorithm(ProcessImpl* p)
-        : Qc2Algorithm(p) { }
+    DipTestAlgorithm()
+        : Qc2Algorithm() { }
 
     virtual void run(const ReadProgramOptions& params);
 

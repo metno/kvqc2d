@@ -18,9 +18,6 @@ public:
     ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ );
     ~ProcessImpl();
 
-    void GetStationList(std::list<kvalobs::kvStation>& StationList);
-    void GetStationList(std::list<kvalobs::kvStation>& StationList, miutil::miTime ProcessTime);
-
     int select(const ReadProgramOptions& params);
 
     Qc2App& getApp()

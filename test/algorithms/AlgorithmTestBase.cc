@@ -66,6 +66,22 @@ DebugDB::DebugDB()
         "desc_metadata TEXT DEFAULT NULL, "
         "fromtime TIMESTAMP NOT NULL);");
 
+    exec("CREATE TABLE station ("
+        "stationid INTEGER NOT NULL, "
+        "lat FLOAT DEFAULT NULL, "
+        "lon FLOAT DEFAULT NULL, "
+        "height FLOAT DEFAULT NULL, "
+        "maxspeed FLOAT DEFAULT NULL, "
+        "name       TEXT DEFAULT NULL, "
+        "wmonr      INTEGER DEFAULT NULL, "
+        "nationalnr INTEGER DEFAULT NULL, "
+        "ICAOid     CHAR(4) DEFAULT NULL, "
+        "call_sign  CHAR(7) DEFAULT NULL, "
+        "stationstr TEXT DEFAULT NULL, "
+        "environmentid  INTEGER DEFAULT NULL, "
+        "static    BOOLEAN DEFAULT FALSE, "
+        "fromtime TIMESTAMP NOT NULL);");
+
 }
 
 DebugDB::~DebugDB()
@@ -129,6 +145,40 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
 
         kvalobs::kvStationParam sp(stationid, paramid, level, sensor, fromday, today, hour, qcx, metadata, desc_metadata, fromtime);
         d.push_back(sp);
+    }
+    sqlite3_finalize(stmt);
+    return (step == SQLITE_DONE);
+}
+
+bool DebugDB::selectStations(kvStationList_t& stations)
+{
+    stations.clear();
+    std::ostringstream sql;
+    sql << "SELECT * from 'station'";
+    sqlite3_stmt *stmt;
+    if( !sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) )
+        return false;
+    int step;
+    while( (step = sqlite3_step(stmt)) == SQLITE_OK ) {
+        int col = 0;
+
+        const int stationid = sqlite3_column_int(stmt, col++);
+        const float lat = sqlite3_column_double(stmt, col++);
+        const float lon = sqlite3_column_double(stmt, col++);
+        const float height = sqlite3_column_double(stmt, col++);
+        const float maxspeed = sqlite3_column_double(stmt, col++);
+        const miutil::miString name = (const char*)sqlite3_column_text(stmt, col++);
+        const int wmonr = sqlite3_column_int(stmt, col++);
+        const int nationalnr = sqlite3_column_int(stmt, col++);
+        const miutil::miString ICAOid = (const char*)sqlite3_column_text(stmt, col++);
+        const miutil::miString call_sign = (const char*)sqlite3_column_text(stmt, col++);
+        const miutil::miString stationstr = (const char*)sqlite3_column_text(stmt, col++);
+        const int environmentid = sqlite3_column_int(stmt, col++);
+        const bool is_static = sqlite3_column_int(stmt, col++);
+        const miutil::miTime fromtime = (const char*)sqlite3_column_text(stmt, col++);
+
+        kvalobs::kvStation station(stationid, lat, lon, height, maxspeed, name, wmonr, nationalnr, ICAOid, call_sign, stationstr, environmentid, is_static, fromtime);
+        stations.push_back(station);
     }
     sqlite3_finalize(stmt);
     return (step == SQLITE_DONE);

@@ -31,8 +31,12 @@
 #define ALGORITHMHELPERS_H_
 
 #include <kvalobs/kvData.h>
+#include <kvalobs/kvStation.h>
 #include <puTools/miString.h>
+#include <list>
 #include <vector>
+
+class DBInterface;
 
 namespace Helpers {
 
@@ -51,6 +55,9 @@ void updateCfailed(kvalobs::kvData& data, const miutil::miString& add, const miu
  * Updates data's useinfo.
  */
 void updateUseInfo(kvalobs::kvData& data);
+
+void GetNorwegianFixedStations(DBInterface* db, std::list<kvalobs::kvStation>& stations);
+void GetAllStations(DBInterface* db, std::list<kvalobs::kvStation>& stations);
 
 } // namespace Helpers
 

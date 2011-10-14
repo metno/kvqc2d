@@ -31,13 +31,13 @@
 
 bool DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last)
 {
-    StationList_t stations(1, stationID);
+    const kvStationIDList_t stations(1, stationID);
     return dataForStationsParamTimerange(r, stations, paramID, first, last);
 }
 
 bool DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter)
 {
-    const StationList_t stations(1, stationID);
+    const kvStationIDList_t stations(1, stationID);
     miutil::miTime first=middle, last=middle;
     first.addHour( hoursBefore );
     last.addHour( hoursAfter );

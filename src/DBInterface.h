@@ -32,6 +32,7 @@
 
 #include <kvalobs/kvData.h>
 #include <kvalobs/kvQueries.h>
+#include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
 
 /**
@@ -43,9 +44,10 @@ public:
 
     typedef std::list<kvalobs::kvData> kvDataList_t;
     typedef std::list<kvalobs::kvStationParam> kvStationParamList_t;
-    typedef std::list<int> StationList_t;
+    typedef std::list<int> kvStationIDList_t;
+    typedef std::list<kvalobs::kvStation> kvStationList_t;
 
-    bool dataForStationsParamTimerange(kvDataList_t& d, const StationList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last)
+    bool dataForStationsParamTimerange(kvDataList_t& d, const kvStationIDList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last)
         { return selectData(d, kvQueries::selectData(s, paramID, first, last)); }
 
     /**
@@ -63,6 +65,8 @@ public:
     virtual bool selectData(kvDataList_t&, const miutil::miString& where) = 0;
 
     virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) = 0;
+
+    virtual bool selectStations(kvStationList_t&) = 0;
 
     /**
      * Insert data to table tblName (or main table), replacing existing data if replace is true.

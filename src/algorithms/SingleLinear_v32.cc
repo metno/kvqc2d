@@ -47,8 +47,8 @@ const float NO_UPDATE = -99999.0;
 
 // ########################################################################
 
-SingleLinearV32Algorithm::SingleLinearV32Algorithm(ProcessImpl* p)
-    : Qc2Algorithm(p)
+SingleLinearV32Algorithm::SingleLinearV32Algorithm()
+    : Qc2Algorithm()
 {
     std::vector<std::string> setmissing_fmis;
     setmissing_fmis.push_back("1->3");

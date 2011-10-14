@@ -7,8 +7,8 @@
 
 class GapInterpolationAlgorithm : public Qc2Algorithm {
 public:
-    GapInterpolationAlgorithm(ProcessImpl* p)
-        : Qc2Algorithm(p) { }
+    GapInterpolationAlgorithm()
+        : Qc2Algorithm() { }
 
     virtual void run(const ReadProgramOptions& params);
 };

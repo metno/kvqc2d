@@ -7,8 +7,8 @@
 
 class RedistributionAlgorithm : public Qc2Algorithm {
 public:
-    RedistributionAlgorithm(ProcessImpl* p)
-        : Qc2Algorithm(p) { }
+    RedistributionAlgorithm()
+        : Qc2Algorithm() { }
 
     virtual void run(const ReadProgramOptions& params);
 };

@@ -29,6 +29,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#if 0
 #include "SingleLinear_v33.h"
 
 #include "AkimaSpline.h"
@@ -251,3 +252,4 @@ void SingleLinearV33Algorithm::run(const ReadProgramOptions& params )
         ProcessTime.addHour(-1);
     } // TimeLoop
 }
+#endif

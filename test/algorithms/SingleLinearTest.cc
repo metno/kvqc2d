@@ -49,7 +49,7 @@ void SingleLinearTest::TearDown()
 
 TEST_F(SingleLinearTest, test1)
 {
-    std::auto_ptr<SingleLinearV32Algorithm> algo(new SingleLinearV32Algorithm(0));
+    std::auto_ptr<SingleLinearV32Algorithm> algo(new SingleLinearV32Algorithm());
     algo->setDatabase(db);
     algo->setBroadcaster(bc);
 

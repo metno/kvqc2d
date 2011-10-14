@@ -21,7 +21,7 @@
  */
 class SingleLinearV32Algorithm : public Qc2Algorithm {
 public:
-    SingleLinearV32Algorithm(ProcessImpl* p);
+    SingleLinearV32Algorithm();
 
     virtual void run(const ReadProgramOptions& params);
 
