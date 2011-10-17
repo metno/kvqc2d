@@ -48,17 +48,6 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
-float DipTestAlgorithm::getDeltaCheck(int stationID, const miutil::miTime& time, const std::string& qcx, bool max)
-{
-    DBInterface::kvStationParamList_t splist;
-    if( !database()->selectStationparams(splist, stationID, time, qcx ) ) {
-        LOGERROR("Failed to select station_params for qcx='" << qcx << "'");
-        return -1e6;
-    }
-
-    return GetStationParam(splist).ValueOf(max ? "max" : "min").toFloat();
-}
-
 void DipTestAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Dip Test");
@@ -80,7 +69,12 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
         std::cout << pid << " " << delta << std::endl;
         std::cout << "------------------" << std::endl;
 
-        const float DeltaCheck = getDeltaCheck(0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid), true); /// FIXME what time to use here?
+        DBInterface::kvStationParamList_t splist;
+        if( !database()->selectStationparams(splist, 0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid) ) ) { /// FIXME what time to use here?
+            LOGERROR("Failed to select station_params");
+            continue;
+        }
+        const float DeltaCheck = GetStationParam(splist).ValueOf("max").toFloat();
         std::cout << "Delta automatically read from the database (under test!!!):  " << DeltaCheck << std::endl;
 
         for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
@@ -176,12 +170,16 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     if( AkimaPresent ) {
                         // FIXME Looking into providing minimum check
                         // FIXME what time to use here?
-                        const float MinimumCheck = getDeltaCheck(d.stationID(), miutil::miTime::nowTime(), "QC1-1-"+StrmConvert(pid), false);
-                        if( MinimumCheck == -1e6 ) {
+
+                        DBInterface::kvStationParamList_t splist;
+                        if( !database()->selectStationparams(splist, d.stationID(), ProcessTime, "QC1-1-"+StrmConvert(pid) ) ) {
                             LOGERROR("Failed to select data for MinimumCheck at " << ProcessTime << ". Assuming no akima interpolation.");
                             AkimaPresent = false;
-                        } else if( AkimaInterpolated < MinimumCheck )
-                            AkimaPresent = false;
+                        } else {
+                            const float MinimumCheck = GetStationParam(splist).ValueOf("min").toFloat();
+                            if( AkimaInterpolated < MinimumCheck )
+                                AkimaPresent = false;
+                        }
                     }
 
                     if( CheckFlags.true_nibble(d.controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
