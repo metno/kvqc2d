@@ -135,3 +135,21 @@ TEST(ConfigParserTest, testConvertListFail)
     std::vector<int> v = c.get("int").convert<int>();
     ASSERT_TRUE( v.empty() );
 }
+
+// ------------------------------------------------------------------------
+
+TEST(ConfigParserTest, testWSAroundValue)
+{
+    std::stringstream io;
+    io << "int = 12" << std::endl
+       << "int =24 " << std::endl;
+
+    ConfigParser c;
+    ASSERT_TRUE( c.load(io) );
+
+    ASSERT_TRUE( c.has("int") );
+    std::vector<int> v = c.get("int").convert<int>();
+    ASSERT_EQ( 2, v.size() );
+    ASSERT_EQ( 12, v[0] );
+    ASSERT_EQ( 24, v[1] );
+}

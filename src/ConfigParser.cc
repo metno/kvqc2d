@@ -73,9 +73,14 @@ bool ConfigParser::load(std::istream& input)
             mErrors.add() << "Line " << lineno << ": empty value";
             continue;
         }
+        size_t value_len = line.substr(value_start).find_last_not_of(WS);
+        if( value_len != std::string::npos )
+            value_len += 1;
+        else
+            value_len = line.size() - value_start;
         
         const std::string key = line.substr(key_start, key_len);
-        const std::string value = line.substr(value_start);
+        const std::string value = line.substr(value_start, value_len);
 
         if( key.find("#") != std::string::npos ) {
             mErrors.add() << "Line " << lineno << ": key contains #";
