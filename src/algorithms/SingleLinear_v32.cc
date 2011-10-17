@@ -73,19 +73,14 @@ bool SingleLinearV32Algorithm::isNeighborOk(const ReadProgramOptions& params, co
 void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Single Linear");
-    std::list<kvalobs::kvData> Qc2Data;
-    std::list<kvalobs::kvData> Qc2SeriesData;
- 
-    // TODO station ids do not change very often, need not update list for each test and every minute
-    std::list<int> StationIds;
-    fillStationIDList(StationIds);
-
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
 
+        // TODO query for flags, too (e.g., Wflag)
         // TODO maybe just run one query and update ProcessTime according to the results (obstime>=a and obstime<=b)?
         // substr counts from 1
         const miutil::miString filter = "WHERE (substr(controlinfo,7,1) IN ('1', '2', '3', '4')) "
-            "AND paramid="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
+            "AND paramid="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'"; // TODO AND stationid BETWEEN 60 and 99999"?
+        std::list<kvalobs::kvData> Qc2Data;
         if( !database()->selectData(Qc2Data, filter) ) {
             LOGERROR( "Database error finding middle points for linear interpolation");
             continue;
@@ -98,6 +93,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
         timeAfter.addHour(1);
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
+            std::list<kvalobs::kvData> Qc2SeriesData;
             if( !database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), params.pid, timeBefore, timeAfter) ) {
                 LOGERROR( "Database error finding neighbours for linear interpolation");
                 continue;
@@ -106,7 +102,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
                 continue;
 
             std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
-            if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) )
+            if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) || Tseries[1] != d )
                 continue;
 
             const float NewCorrected = calculateCorrected(params, Tseries, d.stationID(), timeAfter);

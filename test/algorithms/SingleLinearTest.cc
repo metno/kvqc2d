@@ -44,8 +44,6 @@ void SingleLinearTest::SetUp()
     AlgorithmTestBase::SetUp();
 
     std::ostringstream sql;
-    sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');" << std::endl;
-
     sql << "INSERT INTO data VALUES (180, '2011-10-01 09:00:00', 9.40,  211, '2011-10-01 08:55:41', 330, '0', 0, 9.40,  '0111100000100010', '7000000000000000','');" << std::endl
         << "INSERT INTO data VALUES (180, '2011-10-01 10:00:00', 14.00, 211, '2011-10-01 09:55:40', 330, '0', 0, 14.90, '0111100000100010', '7000000000000000', '');" << std::endl
         << "INSERT INTO data VALUES (180, '2011-10-01 11:00:00', 17.50, 211, '2011-10-01 10:55:39', 330, '0', 0, 17.50, '0111102100100010', '7000000000000000', '');" << std::endl
@@ -78,15 +76,20 @@ TEST_F(SingleLinearTest, testInterpolation)
 {
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
-            << "A_fmis=0" << std::endl
-            << "U_0=3" << std::endl
-            << "U_0=7" << std::endl
+//            << "A_fmis=0" << std::endl
+//            << "U_0=3" << std::endl
+//            << "U_0=7" << std::endl
+            << "Start_YYYY = 2011" << std::endl
+            << "Start_MM   =   09" << std::endl
+            << "Start_DD   =   10" << std::endl
+            << "Start_hh   =   22" << std::endl
+            << "End_YYYY   = 2011" << std::endl
+            << "End_MM     =   10" << std::endl
+            << "End_DD     =    1" << std::endl
+            << "End_hh     =   21" << std::endl
             << "ParamId=211" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
-    params.UT0 = miutil::miTime("2011-10-01 21:00:00");
-    params.UT1 = params.UT0;
-    params.UT0.addDay(-3);
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
