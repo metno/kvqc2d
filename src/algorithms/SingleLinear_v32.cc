@@ -197,7 +197,7 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
         LOGERROR( "Error updating database with interpolated value");
         return; // FIXME what should be done here, actually?
     }
-        
+
     // TODO why not accumlate a long list and send several updates at once?
     broadcaster()->queueChanged(middle);
     broadcaster()->sendChanges();

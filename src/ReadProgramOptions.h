@@ -21,43 +21,29 @@ public:
 
     typedef std::vector<unsigned char> vector_uchar;
 
-    //std::vector<miutil::miTime> UT0;
-    //std::vector<miutil::miTime> UT1;
     miutil::miTime UT0;
     miutil::miTime UT1;
 
-    int StepD;
-    int StepH;
     int AlgoCode;
     int InterpCode;
-    int LastN;
-    std::string ControlInfoString;
-    std::vector<int> ControlInfoVector;
 
-    bool zbool,Rbool,Ibool,Abool,Notbool,Wbool,Ubool,NotUbool;
+    bool Wbool;
 
     std::string Algorithm;                  
     std::string NeighbourFilename;
     std::string ParValFile;
-    std::string InFlagFilename;
-    std::string OutFlagFilename;
     std::string CFAILED_STRING;
 
     int RunAtMinute;
     int RunAtHour;
     int pid;
-    int maxpid,minpid;
     int tid;
     int nibble_index;
     std::vector<int> tids;
     float missing;
     float rejected;
-    float MinimumValue;
     float InterpolationLimit;
     int Ngap;
-    float delta;
-    std::map<int, vector_uchar> zflag;
-    std::map<int, vector_uchar> Rflag;    //Requirements for reading 
     std::map<int, vector_uchar> Iflag;    //Requirements for interpolation
     std::map<int, vector_uchar> Aflag;    //Requirements for analysis
     std::map<int, vector_uchar> Notflag;  //Restrictions for analysis
@@ -66,8 +52,6 @@ public:
     std::map<int, vector_uchar> NotUflag; //Requirements for not User flag 
     std::map<int, unsigned char> Sflag;                  //Flags to set
     std::map<int, std::vector<std::string> > chflag;
-
-    vector_uchar Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
 
     int Parse(const std::string& filename);
     int Parse(std::istream& input);
@@ -80,6 +64,21 @@ public:
 private:
     boost::filesystem::path mConfigPath;
     const vector_uchar Vfull; // TODO could also be static
+
+    // FIXME what are these used for?
+    int StepD;
+    int StepH;
+    bool zbool,Rbool,Ibool,Abool,Notbool,Ubool,NotUbool;
+    std::string InFlagFilename;
+    std::string OutFlagFilename;
+    int maxpid,minpid;
+    float MinimumValue;
+    float delta;
+    std::string ControlInfoString;
+    std::vector<int> ControlInfoVector;
+    std::map<int, vector_uchar> zflag;
+    std::map<int, vector_uchar> Rflag;    //Requirements for reading
+    vector_uchar Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
 };
 
 /** @} */
