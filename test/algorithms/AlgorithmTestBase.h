@@ -65,7 +65,7 @@ public:
     void TearDown();
 protected:
     DebugDB* db;
-    DebugBroadcaster* bc;
+    Broadcaster* bc;
 };
 
 #endif /* ALGORITHMTESTBASE_H_ */

@@ -74,6 +74,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Single Linear");
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
+        LOGDEBUG("time=" << ProcessTime);
 
         // TODO query for flags, too (e.g., Wflag)
         // TODO maybe just run one query and update ProcessTime according to the results (obstime>=a and obstime<=b)?
@@ -102,15 +103,21 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
                 continue;
 
             std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
-            if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) || Tseries[1] != d )
+            if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) || Tseries[1] != d ) {
+                LOGDEBUG("cancel continuous");
                 continue;
+            }
 
             const float NewCorrected = calculateCorrected(params, Tseries, d.stationID(), timeAfter);
-            if( NewCorrected == NO_UPDATE )
+            if( NewCorrected == NO_UPDATE ) {
+                LOGDEBUG("cancel no update");
                 continue;
+            }
 
-            if( checkFlags().true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) )
+            if( checkFlags().true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) ) {
+                LOGDEBUG("about to store");
                 storeUpdate(params, Tseries[1], NewCorrected);
+            }
         }
     }
 }
@@ -125,8 +132,11 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
 
     // check that the neighbours are good
     const int flag7 = middle.controlinfo().flag(7);
+    LOGDEBUG("before.use=" << before.useinfo().flagstring() << " after.use=" << after.useinfo().flagstring());
     if( isNeighborOk(params, before) && isNeighborOk(params, after) ) {
+        LOGDEBUG("ok neighbours");
         if( flag7 == 0 || flag7 == 1 ) {
+            LOGDEBUG("ok flag7=" << flag7);
             NewCorrected = round<float,1>( 0.5*(before.original()+after.original()) );
 #if 0 // not used according to paule@met.no (20111009-0230) (also removed in v33)
             if( params.maxpid>0 && params.minpid>0 ) {
@@ -149,20 +159,30 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
                 }
             }
 #endif
-            if( flag7 == 1 && NewCorrected == middle.corrected() )
+            LOGDEBUG("corrected old=" << middle.corrected() << " new=" << NewCorrected);
+            if( flag7 == 1 && NewCorrected == middle.corrected() ) {
+                LOGDEBUG("same as old corrected");
                 NewCorrected = NO_UPDATE;
+            }
         }
     } else {
+        LOGDEBUG("bad neighbours");
         //NB for ftime=0 ... do nothing
         
         //For ftime=1, reset to missing value ...
         if( flag7 == 1 ) {
+            LOGDEBUG("flag7=1");
             const int flag6 = middle.controlinfo().flag(6);
-            if( flag6 == 1 || flag6 == 3 )
-                NewCorrected = params.missing;
-            else if( flag6 == 2 || flag6 == 4 )
-                NewCorrected = params.rejected;
-            else {
+            if( flag6 == 1 || flag6 == 3 ) {
+                LOGDEBUG("flag6=" << flag6 << " => missing");
+                if( middle.corrected() != params.missing ) // XXX this is new compared to Paul's version, but necessary to pass his test
+                    NewCorrected = params.missing;
+            } else if( flag6 == 2 || flag6 == 4 ) {
+                LOGDEBUG("flag6=" << flag6 << " =>  rejected");
+                if( middle.corrected() != params.rejected ) // XXX this is new compared to Paul's version, but necessary to pass his test
+                    NewCorrected = params.rejected;
+            } else {
+                LOGDEBUG("flag6=" << flag6 << " => interpolating");
                 NewCorrected = round<float,1>( (before.original()+after.original())/2 );
             }
         }

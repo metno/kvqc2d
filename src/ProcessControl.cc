@@ -18,13 +18,14 @@ ProcessControl::ProcessControl()
 
 bool ProcessControl::condition(const kvalobs::kvControlInfo& controlinfo, const vucflags_t& zflag)
 {
+    // FIXME this is also used for kvUseInfo
     // If any of the members of the flag group zflag match the controlinfo TRUE is returned.
     foreach(vucflags_t::value_type v, zflag) {
-        if( v.second.empty() )
-            continue;
         const unsigned char ci_flag = controlinfo.cflag(v.first);
-        if( std::find(v.second.begin(), v.second.end(), ci_flag) != v.second.end() )
-            return true;
+        foreach(const unsigned char zf, v.second) {
+            if( zf == ci_flag )
+                return true;
+        }
     }
     return false;
 }
@@ -56,8 +57,8 @@ int ProcessControl::setter( kvalobs::kvControlInfo& controlinfo, const ucflags_t
 {
     foreach(ucflags_t::value_type f, zflag) {
         const int CC = f.first;
-        const char II = Helpers::hexCharToInt( f.second );
-        controlinfo.set( CC, II ); 
+        const int II = Helpers::hexCharToInt( f.second );
+        controlinfo.set( CC, II );
     }
     return 0; // FIXME why always return 0?
 }
