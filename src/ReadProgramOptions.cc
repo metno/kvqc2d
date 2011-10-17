@@ -248,7 +248,7 @@ int ReadProgramOptions::Parse(std::istream& input)
     bool Uflag_all_empty = true;
     for (int i=0; Uflag_all_empty && i<16; i++)
         Uflag_all_empty &= Uflag[i].empty();
-    if( Aflag_all_empty ) {
+    if( Uflag_all_empty ) {
         for (int i=0; i<16; i++)
             Uflag[i] = Vfull;
     }
