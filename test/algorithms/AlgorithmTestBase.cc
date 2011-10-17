@@ -134,14 +134,14 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
         const int stationid = sqlite3_column_int(stmt, col++);
         const int paramid = sqlite3_column_int(stmt, col++);
         const int level = sqlite3_column_int(stmt, col++);
-        const int sensor = std::atoi((const char*)sqlite3_column_text(stmt, col++));
+        const int sensor = sqlite3_column_int(stmt, col++);
         const int fromday = sqlite3_column_int(stmt, col++);
         const int today = sqlite3_column_int(stmt, col++);
         const int hour = sqlite3_column_int(stmt, col++);
         const miutil::miString qcx = (const char*)sqlite3_column_text(stmt, col++);
         const miutil::miString metadata = (const char*)sqlite3_column_text(stmt, col++);
         const miutil::miString desc_metadata = (const char*)sqlite3_column_text(stmt, col++);
-        const miutil::miTime fromtime = (const char*)sqlite3_column_text(stmt, col++);
+        const miutil::miTime fromtime((const char*)sqlite3_column_text(stmt, col++));
 
         kvalobs::kvStationParam sp(stationid, paramid, level, sensor, fromday, today, hour, qcx, metadata, desc_metadata, fromtime);
         d.push_back(sp);
@@ -171,11 +171,13 @@ bool DebugDB::selectStations(kvStationList_t& stations)
         const miutil::miString name = (const char*)sqlite3_column_text(stmt, col++);
         const int wmonr = sqlite3_column_int(stmt, col++);
         const int nationalnr = sqlite3_column_int(stmt, col++);
-        const miutil::miString ICAOid = (const char*)sqlite3_column_text(stmt, col++);
+        miutil::miString ICAOid = (const char*)sqlite3_column_text(stmt, col++);
+        if( ICAOid.length() != 4 )
+            ICAOid = "";
         const miutil::miString call_sign = (const char*)sqlite3_column_text(stmt, col++);
         const miutil::miString stationstr = (const char*)sqlite3_column_text(stmt, col++);
         const int environmentid = sqlite3_column_int(stmt, col++);
-        const bool is_static = sqlite3_column_int(stmt, col++);
+        const bool is_static = miutil::miString((const char*)sqlite3_column_text(stmt, col++)) == "t";
         const miutil::miTime fromtime = (const char*)sqlite3_column_text(stmt, col++);
 
         kvalobs::kvStation station(stationid, lat, lon, height, maxspeed, name, wmonr, nationalnr, ICAOid, call_sign, stationstr, environmentid, is_static, fromtime);
