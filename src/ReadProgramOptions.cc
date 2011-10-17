@@ -218,7 +218,7 @@ int ReadProgramOptions::Parse(std::istream& input)
     for(int i=0; i<16; ++i) {
         std::string key = std::string("S_") + flagnames[i];
         if( c.has(key) )
-            Sflag[i] = c.get(key).convert<unsigned char>(i, '?');
+            Sflag[i] = c.get(key).convert<unsigned char>(0, '?');
     }
 
     for(int i=0; i<16; ++i) {
