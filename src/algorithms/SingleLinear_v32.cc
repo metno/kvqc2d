@@ -80,11 +80,9 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
     std::list<int> StationIds;
     fillStationIDList(StationIds);
 
-    const miutil::miTime earlyTime = params.UT0, lateTime = params.UT1;
-    for(miutil::miTime ProcessTime = lateTime; ProcessTime >= earlyTime; ProcessTime.addHour(-1)) {
+    for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
 
         // TODO maybe just run one query and update ProcessTime according to the results (obstime>=a and obstime<=b)?
-        // TODO maybe use substr(controlinfo,7,1) IN ('1','2','3','4')?
         // substr counts from 1
         const miutil::miString filter = "WHERE (substr(controlinfo,7,1) IN ('1', '2', '3', '4')) "
             "AND paramid="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'";
@@ -198,7 +196,7 @@ void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, con
         return; // FIXME what should be done here, actually?
     }
 
-    // TODO why not accumlate a long list and send several updates at once?
+    // TODO why not accumulate a long list and send several updates at once?
     broadcaster()->queueChanged(middle);
     broadcaster()->sendChanges();
 }

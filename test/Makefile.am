@@ -8,8 +8,10 @@ kvqc2dTest_SOURCES= \
 	ConfigParserTest.cc \
 	HelpersTest.cc \
 	ReadProgramOptionsTest.cc \
+	algorithms/AlgorithmHelpersTest.cc \
 	algorithms/AlgorithmTestBase.cc \
 	algorithms/AkimaSplineTest.cc \
+	algorithms/DipTestTest.cc \
 	algorithms/SingleLinearTest.cc
 
 #	-DSETUPDB_SQL=\"$(srcdir)/test/database/setupdb.sql\"

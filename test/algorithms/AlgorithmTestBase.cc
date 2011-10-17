@@ -81,7 +81,6 @@ DebugDB::DebugDB()
         "environmentid  INTEGER DEFAULT NULL, "
         "static    BOOLEAN DEFAULT FALSE, "
         "fromtime TIMESTAMP NOT NULL);");
-
 }
 
 DebugDB::~DebugDB()
@@ -126,7 +125,7 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
     std::ostringstream sql;
     sql << "SELECT * FROM station_params WHERE " << kvQueries::selectStationParam(station, time, qcx ) << ";";
     sqlite3_stmt *stmt;
-    if( sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) != SQLITE_OK )
+    if( sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) != SQLITE_OK || !stmt )
         return false;
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {

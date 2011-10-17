@@ -32,7 +32,10 @@ bool ProcessControl::condition(const kvalobs::kvControlInfo& controlinfo, const 
 bool ProcessControl::true_nibble(const kvalobs::kvControlInfo& controlinfo, const vucflags_t& vlag, int vindex, bool flagbool )
 {
     const unsigned char cflag = controlinfo.cflag(vindex);
-    const std::vector<unsigned char>& v = vlag.find(vindex)->second; // FIXME check if found
+    const vucflags_t::const_iterator it = vlag.find(vindex);
+    if( it == vlag.end() )
+        return false;
+    const std::vector<unsigned char>& v = it->second;
     for( unsigned int i=0; i<v.size(); i++ ) {
         const unsigned char zindex = v[i];
         if( flagbool ) {
