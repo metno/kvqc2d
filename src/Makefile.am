@@ -51,8 +51,8 @@ libkvqc2d_a_SOURCES = \
 	algorithms/kvQABaseTypes.h \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/ProcessRedistribution.hh \
-	algorithms/SingleLinear_v32.cc \
-	algorithms/SingleLinear_v32.hh \
+	algorithms/SingleLinearAlgorithm.cc \
+	algorithms/SingleLinearAlgorithm.hh \
 	algorithms/GapInterpolate.cc \
 	algorithms/ProcessPlumatic.cc \
 	algorithms/ProcessPlumatic.hh \

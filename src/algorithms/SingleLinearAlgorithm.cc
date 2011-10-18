@@ -27,7 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "SingleLinear_v32.h"
+#include "SingleLinearAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
@@ -47,7 +47,7 @@ const float NO_UPDATE = -99999.0;
 
 // ########################################################################
 
-SingleLinearV32Algorithm::SingleLinearV32Algorithm()
+SingleLinearAlgorithm::SingleLinearAlgorithm()
     : Qc2Algorithm()
 {
     std::vector<std::string> setmissing_fmis;
@@ -58,7 +58,7 @@ SingleLinearV32Algorithm::SingleLinearV32Algorithm()
 
 // ------------------------------------------------------------------------
 
-bool SingleLinearV32Algorithm::isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n)
+bool SingleLinearAlgorithm::isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n)
 {
     return !checkFlags().condition(n.controlinfo(), params.Notflag)
         &&  checkFlags().condition(n.controlinfo(), params.Aflag)
@@ -70,7 +70,7 @@ bool SingleLinearV32Algorithm::isNeighborOk(const ReadProgramOptions& params, co
 
 // ------------------------------------------------------------------------
 
-void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
+void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Single Linear");
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
@@ -124,7 +124,7 @@ void SingleLinearV32Algorithm::run(const ReadProgramOptions& params)
 
 // ------------------------------------------------------------------------
             
-float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries,
+float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries,
                                                    const int /*stationID*/, const miutil::miTime& /*timeAfter*/)
 {
     float NewCorrected = NO_UPDATE;
@@ -192,7 +192,7 @@ float SingleLinearV32Algorithm::calculateCorrected(const ReadProgramOptions& par
 
 // ------------------------------------------------------------------------
             
-void SingleLinearV32Algorithm::storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected)
+void SingleLinearAlgorithm::storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected)
 {
     kvalobs::kvControlInfo fixflags = middle.controlinfo();
     checkFlags().setter(fixflags, params.Sflag);

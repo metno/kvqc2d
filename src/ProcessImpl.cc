@@ -31,7 +31,7 @@
 
 #include "ProcessImpl.h"
 
-#include "algorithms/SingleLinear_v32.h"
+#include "algorithms/SingleLinearAlgorithm.h"
 #include "algorithms/ProcessRedistribution.h"
 #include "algorithms/DipTestAlgorithm.h"
 #include "algorithms/GapInterpolationAlgorithm.h"
@@ -68,7 +68,7 @@ ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
     mCode2Name[5] = "Plumatic";
     mCode2Name[12] = "Dummy";
 
-    mAlgorithms["SingleLinear"]   = new SingleLinearV32Algorithm();
+    mAlgorithms["SingleLinear"]   = new SingleLinearAlgorithm();
     mAlgorithms["Redistribute"]   = new RedistributionAlgorithm();
     mAlgorithms["DipTest"]        = new DipTestAlgorithm();
     mAlgorithms["GapInterpolate"] = new GapInterpolationAlgorithm();

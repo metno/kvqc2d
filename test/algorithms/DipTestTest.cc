@@ -27,9 +27,10 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#if 0
 #include "AlgorithmTestBase.h"
 #include "AlgorithmHelpers.h"
-#include "algorithms/SingleLinear_v32.h"
+#include "algorithms/SingleLinearAlgorithm.h"
 
 class DipTestTest : public AlgorithmTestBase {
 public:
@@ -99,7 +100,6 @@ void DipTestTest::TearDown()
     AlgorithmTestBase::TearDown();
 }
 
-#if 0
 TEST_F(DipTestTest, test1)
 {
     ReadProgramOptions params;
@@ -132,4 +132,3 @@ TEST_F(DipTestTest, test1)
     ASSERT_FLOAT_EQ(16.0, series.begin()->corrected());
 }
 #endif
-

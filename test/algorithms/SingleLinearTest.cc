@@ -29,20 +29,20 @@
 
 #include "AlgorithmTestBase.h"
 #include "AlgorithmHelpers.h"
-#include "algorithms/SingleLinear_v32.h"
+#include "algorithms/SingleLinearAlgorithm.h"
 
 class SingleLinearTest : public AlgorithmTestBase {
 public:
     void SetUp();
     void TearDown();
 protected:
-    SingleLinearV32Algorithm* algo;
+    SingleLinearAlgorithm* algo;
 };
 
 void SingleLinearTest::SetUp()
 {
     AlgorithmTestBase::SetUp();
-    algo = new SingleLinearV32Algorithm();
+    algo = new SingleLinearAlgorithm();
     algo->setDatabase(db);
     algo->setBroadcaster(bc);
 }

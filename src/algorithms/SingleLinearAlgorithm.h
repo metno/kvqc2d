@@ -1,7 +1,7 @@
 // -*- c++ -*-
 
-#ifndef SingleLinear_v32_H
-#define SingleLinear_v32_H 1
+#ifndef SingleLinearAlgorithm_H
+#define SingleLinearAlgorithm_H 1
 
 #include "ProcessControl.h"
 #include "Qc2Algorithm.h"
@@ -19,9 +19,9 @@
  *
  * Also see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:test:algorithms:singlemissingpoint2
  */
-class SingleLinearV32Algorithm : public Qc2Algorithm {
+class SingleLinearAlgorithm : public Qc2Algorithm {
 public:
-    SingleLinearV32Algorithm();
+    SingleLinearAlgorithm();
 
     virtual void run(const ReadProgramOptions& params);
 
