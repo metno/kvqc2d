@@ -51,10 +51,12 @@ private:
 
 // #######################################################################
 
-class DebugBroadcaster : public Broadcaster {
+class TestBroadcaster : public Broadcaster {
 public:
-    virtual void queueChanged(const kvalobs::kvData&) { }
-    virtual void sendChanges() { }
+    TestBroadcaster() : count(0) { }
+    virtual void queueChanged(const kvalobs::kvData&) { count += 1; }
+    virtual void sendChanges() { };
+    int count;
 };
 
 // #######################################################################
@@ -65,7 +67,7 @@ public:
     void TearDown();
 protected:
     DebugDB* db;
-    Broadcaster* bc;
+    TestBroadcaster* bc;
 };
 
 #endif /* ALGORITHMTESTBASE_H_ */

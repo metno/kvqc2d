@@ -149,6 +149,7 @@ int ReadProgramOptions::Parse(std::istream& input)
     const miutil::miTime now = miutil::miTime::nowTime();
 
     // see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:config_summary (bottom) for some hints
+    // also https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:configuration
 
     RunAtMinute = c.get("RunAtMinute").convert<int>(0, 0); // Minute at which to run the algorithm
     RunAtHour   = c.get("RunAtHour")  .convert<int>(0, 2); // Hour at which to run the algorithm

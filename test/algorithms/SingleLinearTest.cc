@@ -139,23 +139,10 @@ TEST_F(SingleLinearTest, test2)
     ASSERT_EQ("0111102100100010", series.begin()->controlinfo().flagstring());
 }
 
-// see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:test:slv32
-
-namespace {
-class TestBroadcaster : public Broadcaster {
-public:
-    TestBroadcaster() : count(0) { }
-    virtual void queueChanged(const kvalobs::kvData&) { count += 1; }
-    virtual void sendChanges() { };
-    int count;
-};
-
-} // anonymous namespace
 
 TEST_F(SingleLinearTest, testFromWiki)
 {
-    delete bc;
-    bc = new TestBroadcaster();
+    // see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:test:slv32
 
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES(87120,'2025-09-16 06:00:00',11.3,211,'2010-09-16 06:03:18',330,'0',0,11.3,'0111000000000010','7000000000000000','');"
@@ -222,7 +209,7 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 3
     algo->run(params);
-    ASSERT_EQ(2, static_cast<const TestBroadcaster*>(bc)->count);
+    ASSERT_EQ(2, bc->count);
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2025-09-16 12:00:00"), t1("2025-09-17 10:00:00");
@@ -239,9 +226,9 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("QC2d-2", series.begin()->cfailed());
 
     // wiki step 4, run again, no more updates allowed
-    static_cast<const TestBroadcaster*>(bc)->count = 0;
+    bc->count = 0;
     algo->run(params);
-    ASSERT_EQ(0, static_cast<const TestBroadcaster*>(bc)->count);
+    ASSERT_EQ(0, bc->count);
 
     // wiki step 5
     sql.str("");
@@ -249,9 +236,9 @@ TEST_F(SingleLinearTest, testFromWiki)
            "UPDATE data SET corrected=7.2, original=7.2 WHERE stationid=87120 AND  obstime='2025-09-16 11:00:00' AND paramid=211;";
     ASSERT_TRUE( db->exec(sql.str()) );
 
-    static_cast<const TestBroadcaster*>(bc)->count = 0;
+    bc->count = 0;
     algo->run(params);
-    ASSERT_EQ(2, static_cast<const TestBroadcaster*>(bc)->count);
+    ASSERT_EQ(2, bc->count);
 
     ASSERT_TRUE( db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0) );
     ASSERT_EQ(1, series.size());
@@ -271,9 +258,9 @@ TEST_F(SingleLinearTest, testFromWiki)
            "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and  obstime='2025-09-16 11:00:00' and paramid=211;";
     ASSERT_TRUE( db->exec(sql.str()) );
 
-    static_cast<const TestBroadcaster*>(bc)->count = 0;
+    bc->count = 0;
     algo->run(params);
-    ASSERT_EQ(2, static_cast<const TestBroadcaster*>(bc)->count);
+    ASSERT_EQ(2, bc->count);
 
     ASSERT_TRUE( db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0) );
     ASSERT_EQ(1, series.size());
@@ -288,7 +275,71 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("QC2d-2,QC2d-2,QC2d-2", series.begin()->cfailed());
 
     // wiki step 8, run again, no more updates allowed
-    static_cast<const TestBroadcaster*>(bc)->count = 0;
+    bc->count = 0;
     algo->run(params);
-    ASSERT_EQ(0, static_cast<const TestBroadcaster*>(bc)->count);
+    ASSERT_EQ(0, bc->count);
+}
+
+TEST_F(SingleLinearTest, testFromKro)
+{
+    // \copy ( select stationid,obstime,original,paramid,tbtime,message_formatid,sensor,hlevel,corrected,controlinfo,useinfo,cfailed from kvalobs_data where stationid = 93000 and obstime between '2011-10-09 12:00' and '2011-10-10 20:00' and paramid = 211 ) to /tmp/ababa.out DELIMITER '|'
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES(93000,'2011-10-09 12:00:00',-0.7,211,'2011-10-09 11:52:17',330,'0',0,-0.7,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 13:00:00',-0.9,211,'2011-10-09 12:52:23',330,'0',0,-0.9,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 14:00:00',-1.5,211,'2011-10-09 13:52:20',330,'0',0,-1.5,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 15:00:00',-1.5,211,'2011-10-09 14:52:19',330,'0',0,-1.5,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 16:00:00',-1.8,211,'2011-10-09 15:52:23',330,'0',0,-1.8,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 17:00:00',-32767.0,211,'2011-10-09 17:30:12',330,'0',0,0.2,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 18:00:00',-32767.0,211,'2011-10-09 18:38:30',330,'0',0,0.3,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 19:00:00',-32767.0,211,'2011-10-09 19:30:13',330,'0',0,0.2,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 20:00:00',-32767.0,211,'2011-10-09 20:30:12',330,'0',0,0.3,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 21:00:00',-32767.0,211,'2011-10-09 21:30:12',330,'0',0,0.4,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 22:00:00',-32767.0,211,'2011-10-09 22:30:13',330,'0',0,0.6,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-09 23:00:00',-32767.0,211,'2011-10-09 23:30:13',330,'0',0,0.9,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 00:00:00',-32767.0,211,'2011-10-10 00:37:48',330,'0',0,1.6,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 01:00:00',-32767.0,211,'2011-10-10 01:30:12',330,'0',0,2.0,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 02:00:00',-32767.0,211,'2011-10-10 02:30:10',330,'0',0,2.3,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 03:00:00',-32767.0,211,'2011-10-10 03:30:12',330,'0',0,2.4,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 04:00:00',-32767.0,211,'2011-10-10 04:30:46',330,'0',0,2.5,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 05:00:00',-32767.0,211,'2011-10-10 05:31:04',330,'0',0,2.6,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 06:00:00',-32767.0,211,'2011-10-10 08:21:47',330,'0',0,3.1,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 07:00:00',-32767.0,211,'2011-10-10 08:41:09',330,'0',0,3.4,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 08:00:00',-32767.0,211,'2011-10-10 08:48:08',330,'0',0,3.6,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 09:00:00',-32767.0,211,'2011-10-10 09:42:19',330,'0',0,3.8,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 10:00:00',-32767.0,211,'2011-10-10 10:30:43',330,'0',0,4.1,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 11:00:00',-32767.0,211,'2011-10-10 11:30:09',330,'0',0,4.2,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 12:00:00',-32767.0,211,'2011-10-10 12:32:30',330,'0',0,4.5,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 13:00:00',-32767.0,211,'2011-10-10 13:31:01',330,'0',0,4.6,'0000601000000000','7894700000000001','QC1-4-211');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 14:00:00',1.7,211,'2011-10-10 13:52:20',330,'0',0,1.7,'0110100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 15:00:00',1.6,211,'2011-10-10 14:52:19',330,'0',0,1.6,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 16:00:00',1.4,211,'2011-10-10 15:52:21',330,'0',0,1.4,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 17:00:00',1.4,211,'2011-10-10 16:52:20',330,'0',0,1.4,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 18:00:00',1.4,211,'2011-10-10 17:52:23',330,'0',0,1.4,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 19:00:00',1.6,211,'2011-10-10 18:52:24',330,'0',0,1.6,'0111100000100010','7000000000000000','');"
+        << "INSERT INTO data VALUES(93000,'2011-10-10 20:00:00',1.3,211,'2011-10-10 19:52:18',330,'0',0,1.3,'0111100000100010','7000000000000000','');";
+
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    std::stringstream config;
+    config  << "Start_YYYY=2011" << std::endl
+            << "Start_MM=10" << std::endl
+            << "Start_DD=09  " << std::endl
+            << "Start_hh=6" << std::endl
+            << "Start_mm=0" << std::endl
+            << "Start_ss=0" << std::endl
+            << "End_YYYY=2011" << std::endl
+            << "End_MM=10" << std::endl
+            << "End_DD=11 " << std::endl
+            << "End_hh=6" << std::endl
+            << "End_mm=0" << std::endl
+            << "End_ss=0" << std::endl
+            << "ParamId=211" << std::endl
+            << "W_fhqc=0" << std::endl
+            << "S_ftime=1" << std::endl;
+    ReadProgramOptions params;
+    params.Parse(config);
+
+    // wiki step 3
+    algo->run(params);
+    ASSERT_EQ(0, bc->count);
 }

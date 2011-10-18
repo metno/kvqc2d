@@ -216,7 +216,7 @@ bool DebugDB::exec(const std::string& statement)
 void AlgorithmTestBase::SetUp()
 {
     db = new DebugDB();
-    bc = new DebugBroadcaster();
+    bc = new TestBroadcaster();
 }
 
 void AlgorithmTestBase::TearDown()
