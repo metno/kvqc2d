@@ -187,7 +187,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                         kvalobs::kvControlInfo fixflags1 = Tseries[1].controlinfo(); // later control this from the config file
                         fixflags1.set(3,9); // later control this from the config file
 
-                        kvalobs::kvControlInfo fixflags2 = Tseries[1].controlinfo(); // later control this from the config file
+                        kvalobs::kvControlInfo fixflags2 = Tseries[2].controlinfo(); // later control this from the config file
                         fixflags2.set(3,4); // later control this from the config file
 
                         const float Interpolated = AkimaPresent ? AkimaInterpolated : LinInterpolated;
