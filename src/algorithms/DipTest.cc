@@ -290,7 +290,7 @@ DipTest( ReadProgramOptions params )
 							  }
                               if (params.CFAILED_STRING.length() > 0) new_cfailed1 += ","+params.CFAILED_STRING;
                               
-					          fixflags2=Tseries[1].controlinfo(); // later control this from the config file
+					          fixflags2=Tseries[2].controlinfo(); // later control this from the config file
 					          fixflags2.set(3,4); // later control this from the config file
 						      new_cfailed2=Tseries[2].cfailed();
                               if (new_cfailed2.length() > 0) new_cfailed2 += ",";
