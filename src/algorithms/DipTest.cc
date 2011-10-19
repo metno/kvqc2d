@@ -134,9 +134,9 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                 //
                 const float ABS20 = fabs( Tseries[2].original()-Tseries[0].original() );
                 const float ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
-                const float ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
+                //const float ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
 
-                if( ABS20 >= ABS10 || ABS20 >= delta ) {
+                if( !(ABS20 < ABS10 && ABS20 < delta) ) { // FIXME which delta -- DeltaCheck or delta?
                     LOGINFO("not a dip/spike");
                     continue;
                 }
@@ -158,13 +158,11 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     // A(4) = T(2)
                     // A(5)
                     if( Aseries.size()==6                                         &&
-                        Aseries[3].obstime()==Tseries[1].obstime()           	  &&
-                        Aseries[3].stationID()==Tseries[1].stationID()            &&
-                        Aseries[3].paramID()==Tseries[1].paramID()           	  &&
+                        Aseries[3] == Tseries[1]                                  &&
                         Helpers::checkContinuousHourAndSameTypeID(Aseries)        &&
-                        checkFlags().condition(Aseries[0].useinfo(),params.Uflag)   &&
-                        checkFlags().condition(Aseries[1].useinfo(),params.Uflag)   &&
-                        checkFlags().condition(Aseries[5].useinfo(),params.Uflag)   &&
+                        checkFlags().condition(Aseries[0].useinfo(),params.Uflag) &&
+                        checkFlags().condition(Aseries[1].useinfo(),params.Uflag) &&
+                        checkFlags().condition(Aseries[5].useinfo(),params.Uflag) &&
                         Aseries[0].original() > params.missing                    &&
                         Aseries[1].original() > params.missing                    &&
                         Aseries[2].original() > params.missing                    &&
@@ -202,7 +200,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     }
                 }
 
-                if( checkFlags().true_nibble(d.controlinfo(),params.Wflag,15,params.Wbool) ) {  // check for HQC action already
+                if( checkFlags().true_nibble(d.controlinfo(),params.Wflag,15,params.Wbool) ) { // check for HQC action already
 
                     kvalobs::kvControlInfo fixflags1 = Tseries[1].controlinfo(); // later control this from the config file
                     fixflags1.set(3,9); // later control this from the config file
