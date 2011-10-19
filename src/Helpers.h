@@ -12,7 +12,12 @@ namespace Helpers {
 
 std::string kvqc2logstring(const kvalobs::kvData& kd);
 
-bool string_endswith(const std::string& text, const std::string& tail);
+bool endsWith(const std::string& text, const std::string& tail);
+
+inline bool string_endswith(const std::string& text, const std::string& tail)
+    { return endsWith(text, tail); }
+
+bool startsWith(const std::string& text, const std::string& head);
 
 int hexCharToInt(char n);
 

@@ -25,10 +25,16 @@ std::string kvqc2logstring(const kvalobs::kvData& kd)
     return logstring;
 }
 
-bool string_endswith(const std::string& text, const std::string& tail)
+bool endsWith(const std::string& text, const std::string& tail)
 {
     int lText = text.length(), lTail = tail.length();
     return ( lText >= lTail && text.substr(lText-lTail) == tail );
+}
+
+bool startsWith(const std::string& text, const std::string& head)
+{
+    int lText = text.length(), lHead = head.length();
+    return ( lText >= lHead && text.substr(0, lHead) == head );
 }
 
 int hexCharToInt(char n)
