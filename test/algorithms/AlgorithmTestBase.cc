@@ -122,10 +122,10 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
 {
     d.clear();
     const std::list<int> station(1, stationID);
-    std::ostringstream sql;
-    sql << "SELECT * FROM station_params WHERE " << kvQueries::selectStationParam(station, time, qcx ) << ";";
+    kvalobs::kvStationParam sp;
+    std::string sql = sp.selectAllQuery() + kvQueries::selectStationParam(station, time, qcx ) + ";";
     sqlite3_stmt *stmt;
-    if( sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, 0) != SQLITE_OK || !stmt )
+    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK || !stmt )
         return false;
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
