@@ -35,19 +35,20 @@ GetStationParam::GetStationParam(const std::list<kvalobs::kvStationParam>& splis
 {
     // see https://kvalobs.wiki.met.no/doku.php?id=kvalobs:tabeller_i_kvalobsdatabasen_forklaring&s[]=metadata table station_param
     foreach(const kvalobs::kvStationParam& p, splist) {
+#if 0
         std::cout << p.metadata() << std::endl;
         std::cout << p.descMetadata() << std::endl;
         std::cout << "...................." << std::endl;
-        miutil::miString dougal=p.metadata();
-        std::vector<miutil::miString> vs,names,vs2;
-        vs = dougal.split("\n");
+#endif
+        const miutil::miString& dougal = p.metadata();
+        const std::vector<miutil::miString> vs = dougal.split("\n");
 
         // just want one table entry
 
         if (vs.size() == 2) {
-            names = vs[0].split(";");
-            vs2 = vs[1].split(";");
-            for (size_t j=0; j<names.size(); j++) {
+            const std::vector<miutil::miString> names = vs[0].split(";");
+            const std::vector<miutil::miString> vs2   = vs[1].split(";");
+            for(size_t j=0; j<names.size(); j++) {
                 spMap[ names[j] ] = vs2[j];
             }
         }
@@ -56,7 +57,8 @@ GetStationParam::GetStationParam(const std::list<kvalobs::kvStationParam>& splis
 
 miutil::miString GetStationParam::ValueOf(const miutil::miString& name)
 {
-    std::cout << spMap[name] << std::endl;
+    // std::cout << spMap[name] << std::endl;
+    // FIXME what if name is not in the map?
     return spMap[name];
 }
 
