@@ -122,8 +122,7 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
 {
     d.clear();
     const std::list<int> station(1, stationID);
-    kvalobs::kvStationParam sp;
-    std::string sql = sp.selectAllQuery() + kvQueries::selectStationParam(station, time, qcx ) + ";";
+    const std::string sql = kvalobs::kvStationParam().selectAllQuery() + kvQueries::selectStationParam(station, time, qcx ) + ";";
     sqlite3_stmt *stmt;
     if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK || !stmt )
         return false;
@@ -152,11 +151,9 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
 bool DebugDB::selectStations(kvStationList_t& stations)
 {
     stations.clear();
-    std::ostringstream sql;
-    sql << "SELECT * FROM station;";
+    const std::string sql = kvalobs::kvStation().selectAllQuery();
     sqlite3_stmt *stmt;
-    const char* tail;
-    if( sqlite3_prepare_v2(db, sql.str().c_str(), sql.str().length(), &stmt, &tail) != SQLITE_OK )
+    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
         return false;
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
