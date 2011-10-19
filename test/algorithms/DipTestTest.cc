@@ -129,6 +129,10 @@ TEST_F(DipTestTest, test1)
     EXPECT_EQ("0114000000000000", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
     EXPECT_FLOAT_EQ(2, it->corrected());
+
+    bc->count = 0;
+    algo->run(params);
+    ASSERT_EQ(0, bc->count);
 }
 
 TEST_F(DipTestTest, FromWikiSpecLinear)
@@ -197,6 +201,10 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     it++;
     EXPECT_EQ("1104000000000000", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
+
+    bc->count = 0;
+    algo->run(params);
+    ASSERT_EQ(0, bc->count);
 }
 
 TEST_F(DipTestTest, FromWikiSpecAkima)
@@ -259,6 +267,10 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     it++;
     EXPECT_EQ("1104000000100100", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1"));
+
+    bc->count = 0;
+    algo->run(params);
+    ASSERT_EQ(0, bc->count);
 }
 
 TEST_F(DipTestTest, BadNeighboursForAkima)
@@ -317,6 +329,10 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     it++;
     EXPECT_EQ("1104000000100100", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1"));
+
+    bc->count = 0;
+    algo->run(params);
+    ASSERT_EQ(0, bc->count);
 }
 
 #if 0
@@ -365,6 +381,49 @@ TEST_F(DipTestTest, DipTooSmall)
     ASSERT_EQ(0, bc->count);
 }
 #endif
+
+TEST_F(DipTestTest, JumpTooMuch)
+{
+    // in this test, no changes should be performed; jump of neighbours is too big
+
+    std::ostringstream sql;
+
+    sql << "INSERT INTO data VALUES (12320, '2018-09-25 17:00:00', 381.8, 104, '2018-09-25 16:00:00', 330, 0, 0, 381.8, '1101000000100100', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (12320, '2018-09-25 18:00:00', 381.7, 104, '2018-09-25 17:54:15', 330, 0, 0, 381.7, '1101000000100100', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (12320, '2018-09-25 19:00:00', 381.6, 104, '2018-09-25 18:53:50', 330, 0, 0, 381.6, '1101000000100100', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (12320, '2018-09-25 20:00:00', 351.6, 104, '2018-09-25 19:54:35', 330, 0, 0, 351.6, '1102000000100100', '5033300000000001', 'QC1-3a-104:1');"
+        << "INSERT INTO data VALUES (12320, '2018-09-25 21:00:00', 321.6, 104, '2018-09-25 20:54:44', 330, 0, 0, 321.6, '1102000000100100', '5000000000000001', 'QC1-3a-104:1');"
+        << "INSERT INTO data VALUES (12320, '2018-09-25 22:00:00', 321.6, 104, '2018-09-25 21:53:48', 330, 0, 0, 321.6, '1101000000100100', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (12320, '2018-09-25 23:00:00', 321.6, 104, '2018-09-25 22:53:46', 330, 0, 0, 321.6, '1101000000100100', '7000000000000000', '');";
+
+    sql << "INSERT INTO station VALUES(12320, 60.818, 11.0696, 221, 0, 'HAMAR - STAVSBERG', 1385, 12320, NULL, NULL, NULL, 8, 't', '2005-10-21 00:00:00');";
+
+    sql << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500.0;500.0;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 104, 0, 0, 0, 365, -1, 'QC1-3a-104', 'max\n30.0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 104, 0, 0, 0, 365, -1, 'QC1-3b-104', 'no\n48', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(12320, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500;500;50.0;0.0;-3.0', '', '2005-11-04 00:00:00');";
+
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    std::stringstream config;
+    config << "W_fhqc=0" << std::endl
+            << "Start_YYYY = 2018" << std::endl
+            << "Start_MM   =   09" << std::endl
+            << "Start_DD   =   24" << std::endl
+            << "Start_hh   =   12" << std::endl
+            << "End_YYYY   = 2018" << std::endl
+            << "End_MM     =   09" << std::endl
+            << "End_DD     =   26" << std::endl
+            << "End_hh     =   22" << std::endl
+            << "U_2        =   0"  << std::endl
+            << "ParValFilename = list: 104 50" << std::endl;
+    ReadProgramOptions params;
+    params.Parse(config);
+
+    algo->run(params);
+    ASSERT_EQ(0, bc->count);
+}
 
 TEST_F(DipTestTest, AfterHQC)
 {
