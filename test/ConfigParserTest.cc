@@ -9,7 +9,8 @@ TEST(ConfigParserTest, testOk)
     io << "key1 = 123" << std::endl
        << "# comment" << std::endl
        << "key2= salmon" << std::endl
-       << "key2 =dolphin" << std::endl;
+       << "key2 =dolphin" << std::endl
+       << "key3 =====" << std::endl;
 
     ConfigParser c;
     ASSERT_TRUE( c.load(io) );
@@ -23,6 +24,9 @@ TEST(ConfigParserTest, testOk)
     ASSERT_EQ( 2, c.get("key2").count() );
     ASSERT_EQ( "salmon", c.get("key2").value(0) );
     ASSERT_EQ( "dolphin", c.get("key2").value(1) );
+
+    ASSERT_EQ( 1, c.get("key3").count() );
+    ASSERT_EQ( "====", c.get("key3").value(0) );
 }
 
 // ------------------------------------------------------------------------
