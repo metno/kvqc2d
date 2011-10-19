@@ -27,69 +27,24 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#if 0
+
 #include "AlgorithmTestBase.h"
+#include "algorithms/DipTestAlgorithm.h"
 #include "AlgorithmHelpers.h"
-#include "algorithms/SingleLinearAlgorithm.h"
+#include "Helpers.h"
 
 class DipTestTest : public AlgorithmTestBase {
 public:
     void SetUp();
     void TearDown();
 protected:
-    SingleLinearV32Algorithm* algo;
+    DipTestAlgorithm* algo;
 };
 
 void DipTestTest::SetUp()
 {
     AlgorithmTestBase::SetUp();
-
-    std::ostringstream sql;
-    sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');" << std::endl;
-
-    sql << "INSERT INTO station_param VALUES (180, 211, 0, 0,   1,  31, -1, 'QC1-4-211', 'highest;high;low;lowest\n16.50;15.50;-16.50;-17.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,   1,  31, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;12.4;7.4;-41.8;-46.8;-55',  '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,  32,  59, -1, 'QC1-4-211', 'highest;high;low;lowest\n16.50;15.50;-16.50;-17.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,  32,  59, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;14.9;9.9;-40.9;-45.9;-55',  '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,  60,  90, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;20.9;15.9;-35.6;-40.6;-55', '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,  60,  90, -1, 'QC1-4-211', 'highest;high;low;lowest\n16.50;15.50;-16.50;-17.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,  91, 120, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;27.7;22.7;-21.7;-26.7;-55', '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0,  91, 120, -1, 'QC1-4-211', 'highest;high;low;lowest\n15.04;13.76;-14.40;-15.68',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 121, 151, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;33;28;-10.7;-15.7;-55',     '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 121, 151, -1, 'QC1-4-211', 'highest;high;low;lowest\n14.00;13.50;-14.50;-15.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 152, 181, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;38.3;33.3;-5.9;-10.9;-55',  '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 152, 181, -1, 'QC1-4-211', 'highest;high;low;lowest\n14.00;13.50;-14.50;-15.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 182, 212, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;38.8;33.8;-3.4;-8.4;-55',   '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 182, 212, -1, 'QC1-4-211', 'highest;high;low;lowest\n14.00;12.81;-14.25;-15.48',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 213, 243, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;37.3;32.3;-3.9;-8.9;-55',   '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 213, 243, -1, 'QC1-4-211', 'highest;high;low;lowest\n11.61;10.58;-12.08;-13.11',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 244, 273, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;31.1;26.1;-12.7;-17.7;-55', '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 244, 273, -1, 'QC1-4-211', 'highest;high;low;lowest\n9.58;8.72;-10.20;-11.06',              '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 274, 304, -1, 'QC1-4-211', 'highest;high;low;lowest\n11.66;10.65;-11.57;-12.58',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 274, 304, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;23.1;18.1;-18.5;-23.5;-55', '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 305, 334, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;16.4;11.4;-29.7;-34.7;-55', '',    '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 305, 334, -1, 'QC1-4-211', 'highest;high;low;lowest\n14.00;13.50;-14.50;-15.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 335, 365, -1, 'QC1-4-211', 'highest;high;low;lowest\n16.50;15.50;-16.50;-17.50',            '\\N', '1500-01-01 00:00:00' );" << std::endl
-        << "INSERT INTO station_param VALUES (180, 211, 0, 0, 335, 365, -1, 'QC1-1-211', 'max;highest;high;low;lowest;min\n50;13.2;8.2;-39.7;-44.7;-55',  '',    '1500-01-01 00:00:00' );" << std::endl;
-
-    sql << "INSERT INTO data VALUES (180, '2011-10-01 09:00:00', 9.40,  211, '2011-10-01 08:55:41', 330, '0', 0, 9.40,  '0111100000100010', '7000000000000000','');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 10:00:00', 14.00, 211, '2011-10-01 09:55:40', 330, '0', 0, 14.90, '0111100000100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 11:00:00', 17.50, 211, '2011-10-01 10:55:39', 330, '0', 0, 17.50, '0111102100100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 12:00:00', 18.00, 211, '2011-10-01 11:55:57', 330, '0', 0, 18.60, '0211100000100012', '3000000000000051', 'QC1-1-211,hqc');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 13:00:00', 19.60, 211, '2011-10-01 12:55:42', 330, '0', 0, 19.60, '0211100000100012', '3000000000000051', 'QC1-1-211,hqc');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 14:00:00', 19.80, 211, '2011-10-01 13:55:55', 330, '0', 0, 19.80, '0211100000100012', '3000000000000051', 'QC1-1-211,hqc');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 15:00:00', 19.10, 211, '2011-10-01 14:55:40', 330, '0', 0, 19.10, '0211100000100012', '3000000000000051', 'QC1-1-211,hqc');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 16:00:00', 16.20, 211, '2011-10-01 15:55:34', 330, '0', 0, 16.20, '0111100000100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 17:00:00', 12.60, 211, '2011-10-01 16:55:34', 330, '0', 0, 12.60, '0111100000100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 18:00:00', 10.60, 211, '2011-10-01 17:55:42', 330, '0', 0, 10.60, '0111100000100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 19:00:00', 10.70, 211, '2011-10-01 18:55:42', 330, '0', 0, 10.70, '0111100000100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 20:00:00', 12.50, 211, '2011-10-01 19:55:35', 330, '0', 0, 12.50, '0111100000100010', '7000000000000000', '');" << std::endl
-        << "INSERT INTO data VALUES (180, '2011-10-01 21:00:00', 12.50, 211, '2011-10-01 20:55:41', 330, '0', 0, 12.50, '0111100000100010', '7000000000000000', '');" << std::endl;
-
-    if( !db->exec(sql.str()) )
-        throw std::runtime_error("could not populate db");
-
-    algo = new SingleLinearV32Algorithm();
+    algo = new DipTestAlgorithm();
     algo->setDatabase(db);
     algo->setBroadcaster(bc);
 }
@@ -102,33 +57,72 @@ void DipTestTest::TearDown()
 
 TEST_F(DipTestTest, test1)
 {
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES(90800, '2011-08-13 12:00:00', 3.2, 90, '2011-08-13 11:56:01.916558', 330, 0, 0, 3.2, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 13:00:00', 3.0, 90, '2011-08-13 12:56:03.835825', 330, 0, 0, 3,   '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 14:00:00', 3.7, 90, '2011-08-13 13:56:04.3525',   330, 0, 0, 3.7, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 15:00:00', 4.1, 90, '2011-08-13 14:56:04.557816', 330, 0, 0, 4.1, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 16:00:00', 4.3, 90, '2011-08-13 15:56:00.973292', 330, 0, 0, 4.3, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 17:00:00', 64,  90, '2011-08-13 16:56:04.387755', 330, 0, 0, 64,  '0412000000000000', '7020300000000002','QC1-1-90,QC1-3a-90');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 18:00:00', 2,   90, '2011-08-13 17:56:02.55036',  330, 0, 0, 2,   '0112000000000000', '7010300000000001','QC1-3a-90');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 19:00:00', 2.9, 90, '2011-08-13 18:56:01.775408', 330, 0, 0, 2.9, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 20:00:00', 2,   90, '2011-08-13 19:55:59.784935', 330, 0, 0, 2,   '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 21:00:00', 3.3, 90, '2011-08-13 20:55:59.73048',  330, 0, 0, 3.3, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 22:00:00', 2.7, 90, '2011-08-13 21:56:01.502523', 330, 0, 0, 2.7, '0111000000000000', '7000000000000000','');";
+
+    sql << "INSERT INTO station VALUES(90800, 70.2457, 19.5005, 21, 0, 'TORSVÅG FYR', 1033, 90800, NULL, NULL, NULL, 8, 't', '1933-01-01 00:00:00');";
+
+    sql << "INSERT INTO station_param VALUES(90800, 90, 0, 0,   1,  31, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;35.5;32.3;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0,  32,  59, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;37.6;34.2;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0,  60,  90, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;38.6;35.1;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0,  91, 120, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;27.3;24.8;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 121, 151, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;23.2;21.1;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 152, 181, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;30.9;28.0;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 182, 212, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;45.3;41.0;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 213, 243, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;21.6;19.7;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 244, 273, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;34.0;30.8;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 274, 304, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;39.1;35.5;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 305, 334, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;40.1;36.3;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 335, 365, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;37.0;33.7;0.0;0.0;0', NULL, '1500-01-01 00:00:00');";
+
+    sql << "INSERT INTO station_param VALUES (0, 90, 0, 0, 0, 365, -1, 'QC1-3a-90', 'max\n12.5', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (0, 90, 0, 0, 0, 365, -1, 'QC1-3b-90', 'no\n5', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;93;93;0;0;0', 'DEFAULT MAX-MIN RANGE', '1500-01-01 00:00:00');";
+
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    std::stringstream config;
+    config << "W_fhqc=0" << std::endl
+            << "Start_YYYY = 2011" << std::endl
+            << "Start_MM   =   08" << std::endl
+            << "Start_DD   =   13" << std::endl
+            << "Start_hh   =   12" << std::endl
+            << "End_YYYY   = 2011" << std::endl
+            << "End_MM     =   08" << std::endl
+            << "End_DD     =   13" << std::endl
+            << "End_hh     =   22" << std::endl
+            << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
+               "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
+               "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
+               " 221 15.0, 222 15.0" << std::endl;
     ReadProgramOptions params;
-    params.UT0 = miutil::miTime("2011-10-01 21:00:00");
-    params.UT1 = params.UT0;
-    params.UT0.addDay(-3);
-    params.pid = 211;
-    params.Aflag[6].push_back('0');
-    params.Uflag[0].push_back('3');
-    params.Uflag[0].push_back('7');
-    params.missing  = -12345;
-    params.rejected = -23456;
-
-    std::list<kvalobs::kvData> series;
-    miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
-    tb.addHour(-1);
-    ta.addHour(+1);
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 180, params.pid, tb, tb) );
-    ASSERT_EQ(1, series.size());
-    ASSERT_FLOAT_EQ(14.0, series.begin()->original());
-
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 180, params.pid, ta, ta) );
-    ASSERT_EQ(1, series.size());
-    ASSERT_FLOAT_EQ(18.0, series.begin()->original());
+    params.Parse(config);
 
     algo->run(params);
 
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 180, params.pid, t, t) );
-    ASSERT_EQ(1, series.size());
-    ASSERT_FLOAT_EQ(16.0, series.begin()->corrected());
+    std::list<kvalobs::kvData> series;
+    miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
+    t2.addHour(1);
+
+    ASSERT_EQ(2, bc->count);
+
+    ASSERT_TRUE( db->dataForStationParamTimerange(series, 90800, 90, t1, t2) );
+    ASSERT_EQ(2, series.size());
+    std::list<kvalobs::kvData>::const_iterator it = series.begin();
+    EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
+    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1-A") || Helpers::endsWith(it->cfailed(), "QC2d-1-L"));
+    it++;
+    EXPECT_EQ("0114000000000000", it->controlinfo().flagstring());
+    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
 }
-#endif
