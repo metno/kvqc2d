@@ -94,6 +94,8 @@ kvqc2d_LDADD = libkvqc2d.a \
 	$(omniDynamic4_LIBS) \
         -lnetcdf_c++
 
+#libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
+#kvqc2d_LDFLAGS += -fprofile-arcs
 
 clean-local:
 	rm -rf test/var

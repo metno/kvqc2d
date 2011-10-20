@@ -19,7 +19,7 @@ kvqc2dTest_SOURCES= \
 SETUP_DB = \"$(srcdir)/test/database/setupdb.sql\"
 #SETUP_DB = \"$(top_srcdir)/src/kvalobs_database/kvalobs_schema.sql\"
 
-kvqc2dTest_CPPFLAGS = \
+kvqc2dTest_CPPFLAGS = -Wall -W \
 	$(TEST_DEPS_CFLAGS) \
 	$(gtest_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
@@ -29,6 +29,9 @@ kvqc2dTest_CPPFLAGS = \
 	-DSETUPDB_SQL=$(SETUP_DB) \
 	-DCHECKRUNNERTEST_INIT_SQL=\"$(srcdir)/test/etc/checkrunnertest.init.sql\" \
 	-DLOG_CHECK_SCRIPT 
+
+#kvqc2dTest_CPPFLAGS += -ftest-coverage -fprofile-arcs
+#kvqc2dTest_LDFLAGS  += -fprofile-arcs
 
 kvqc2dTest_LDADD = ../src/libkvqc2d.a \
 	$(TEST_DEPS_LIBS) \
