@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  $Id$                                                       
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -219,7 +217,7 @@ std::ostream& operator<<(std::ostream& stm, const Qc2D &Q)
 /// Method to pass Qc2D data for redistribution of accumulated values. ((Needs to be reworked!! Encapsulate!))
 void Qc2D::distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvData>& ReturnData,int ClearFlag)
 {
-    static Distribute DataForRedistribution(slist,params); // TODO why is this static?
+    static Distribute DataForRedistribution(slist,params); // TODO why is this static? FIXME this is wrong, station list is never updated
     if (ClearFlag)
         DataForRedistribution.clear_all();  //For cleaning up memory when all is done!
  	    

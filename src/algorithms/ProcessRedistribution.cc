@@ -83,9 +83,8 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
                     LOGWARN("Incomplete redistribution (skipped): "+ Helpers::kvqc2logstring(c) );
                 }
             }
-            ProcessControl CheckFlags;
-            if( CheckFlags.true_nibble(d.controlinfo(), params.Wflag, params.nibble_index, params.Wbool) &&
-                d.stationID() != ignore_station )
+            if( checkFlags().true_nibble(d.controlinfo(), params.Wflag, params.nibble_index, params.Wbool)
+                && d.stationID() != ignore_station )
             {
                 LOGINFO("Redistribution: "+Helpers::kvqc2logstring(d) );
 

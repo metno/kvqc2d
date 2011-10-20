@@ -46,7 +46,7 @@ public:
     std::vector<float>                  ht_;
     std::vector<float>                  CP_;      // A confidence paramter (e.g. standard deviation from the interpolation)
 
-    ReadProgramOptions                  params;
+    const ReadProgramOptions&                 params;
 
     std::map<int, int>                  stindex; //use this to lookup index based on station id.
     void istindex(int stid)             {stindex[ stid ] = stid_.size()-1;}
@@ -82,7 +82,6 @@ public:
 
     int stationID() const { return stid_[0]; }
 
-    Qc2D(){clean();}
     ~Qc2D(){};
 
     Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params);
@@ -114,8 +113,12 @@ public:
     int write_cdf(const std::list<kvalobs::kvStation> & slist); // write the data record to a CDF file
   
     void filter(std::vector<float>& fdata, float Min, float Max, float IfMod, float Mod);
+
 private:
     ProcessControl ControlFlag;
+
+    Qc2D();
+    Qc2D& operator=(const Qc2D&);
 };
 
 
