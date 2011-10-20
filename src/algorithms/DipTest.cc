@@ -35,8 +35,6 @@
 #include "AlgorithmHelpers.h"
 #include "GetStationParam.h"
 #include "Helpers.h"
-#include "Qc2App.h"
-#include "Qc2Connection.h"
 #include "ParseParValFile.h"
 #include "ProcessControl.h"
 #include "ReadProgramOptions.h"
@@ -44,7 +42,6 @@
 #include "tround.h"
 
 #include <milog/milog.h>
-#include <kvalobs/kvDbGate.h>
 #include <puTools/miTime.h>
 #include "foreach.h"
 

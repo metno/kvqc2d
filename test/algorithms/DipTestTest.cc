@@ -55,7 +55,7 @@ void DipTestTest::TearDown()
     AlgorithmTestBase::TearDown();
 }
 
-TEST_F(DipTestTest, test1)
+TEST_F(DipTestTest, Bugzilla1327)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES(90800, '2011-08-13 12:00:00', 3.2, 90, '2011-08-13 11:56:01.916558', 330, 0, 0, 3.2, '0111000000000000', '7000000000000000','');"
@@ -466,5 +466,77 @@ TEST_F(DipTestTest, AfterHQC)
 
     algo->run(params);
 
+    ASSERT_EQ(0, bc->count);
+}
+
+TEST_F(DipTestTest, Bugzilla1320)
+{
+    // Akima interpolation for a series 1 0 X 0 1 should not go below 0 for things like wind which are physically restricted to >0
+    std::ostringstream sql;
+    sql // these data are fake
+        << "INSERT INTO data VALUES(90800, '2011-08-13 14:00:00',  2, 90, '2011-08-13 13:56:04.3525',   330, 0, 0,  2, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 15:00:00',  1, 90, '2011-08-13 14:56:04.557816', 330, 0, 0,  1, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 16:00:00',  0, 90, '2011-08-13 15:56:00.973292', 330, 0, 0,  0, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 17:00:00', 64, 90, '2011-08-13 16:56:04.387755', 330, 0, 0, 64, '0412000000000000', '7020300000000002','QC1-1-90,QC1-3a-90');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 18:00:00',  0, 90, '2011-08-13 17:56:02.55036',  330, 0, 0,  0, '0112000000000000', '7010300000000001','QC1-3a-90');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 19:00:00',  1, 90, '2011-08-13 18:56:01.775408', 330, 0, 0,  1, '0111000000000000', '7000000000000000','');"
+        << "INSERT INTO data VALUES(90800, '2011-08-13 20:00:00',  2, 90, '2011-08-13 19:55:59.784935', 330, 0, 0,  2, '0111000000000000', '7000000000000000','');";
+
+    sql << "INSERT INTO station VALUES(90800, 70.2457, 19.5005, 21, 0, 'TORSVÅG FYR', 1033, 90800, NULL, NULL, NULL, 8, 't', '1933-01-01 00:00:00');";
+
+    sql << "INSERT INTO station_param VALUES(90800, 90, 0, 0,   1,  31, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;35.5;32.3;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0,  32,  59, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;37.6;34.2;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0,  60,  90, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;38.6;35.1;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0,  91, 120, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;27.3;24.8;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 121, 151, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;23.2;21.1;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 152, 181, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;30.9;28.0;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 182, 212, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;45.3;41.0;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 213, 243, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;21.6;19.7;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 244, 273, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;34.0;30.8;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 274, 304, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;39.1;35.5;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 305, 334, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;40.1;36.3;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(90800, 90, 0, 0, 335, 365, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;37.0;33.7;0.0;0.0;0', NULL, '1500-01-01 00:00:00');";
+
+    sql << "INSERT INTO station_param VALUES (0, 90, 0, 0, 0, 365, -1, 'QC1-3a-90', 'max\n12.5', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (0, 90, 0, 0, 0, 365, -1, 'QC1-3b-90', 'no\n5', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;93;93;0;0;0', 'DEFAULT MAX-MIN RANGE', '1500-01-01 00:00:00');";
+
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    std::stringstream config;
+    config << "W_fhqc=0" << std::endl
+            << "Start_YYYY = 2011" << std::endl
+            << "Start_MM   =   08" << std::endl
+            << "Start_DD   =   13" << std::endl
+            << "Start_hh   =   12" << std::endl
+            << "End_YYYY   = 2011" << std::endl
+            << "End_MM     =   08" << std::endl
+            << "End_DD     =   13" << std::endl
+            << "End_hh     =   22" << std::endl
+            << "U_2        =   0"  << std::endl
+            << "ParValFilename = list: 90 12.5" << std::endl;
+    ReadProgramOptions params;
+    params.Parse(config);
+
+    algo->run(params);
+    ASSERT_EQ(2, bc->count);
+
+    std::list<kvalobs::kvData> series;
+    miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
+    t2.addHour(1);
+
+    ASSERT_TRUE( db->dataForStationParamTimerange(series, 90800, 90, t1, t2) );
+    ASSERT_EQ(2, series.size());
+    std::list<kvalobs::kvData>::const_iterator it = series.begin();
+    EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
+    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1-L"));
+    EXPECT_LE(0, it->corrected());
+    it++;
+    EXPECT_EQ("0114000000000000", it->controlinfo().flagstring());
+    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
+
+    bc->count = 0;
+    algo->run(params);
     ASSERT_EQ(0, bc->count);
 }
