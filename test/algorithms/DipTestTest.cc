@@ -112,7 +112,7 @@ TEST_F(DipTestTest, Bugzilla1327)
 
     algo->run(params);
 
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
@@ -130,9 +130,9 @@ TEST_F(DipTestTest, Bugzilla1327)
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
     EXPECT_FLOAT_EQ(2, it->corrected());
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(DipTestTest, FromWikiSpecLinear)
@@ -185,8 +185,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     params.Parse(config);
 
     algo->run(params);
-
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t1("2018-09-09 03:00:00"), t2 = t1;
@@ -202,9 +201,9 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     EXPECT_EQ("1104000000000000", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(DipTestTest, FromWikiSpecAkima)
@@ -251,8 +250,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     params.Parse(config);
 
     algo->run(params);
-
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
@@ -268,9 +266,9 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     EXPECT_EQ("1104000000100100", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1"));
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(DipTestTest, BadNeighboursForAkima)
@@ -313,8 +311,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     params.Parse(config);
 
     algo->run(params);
-
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
@@ -330,9 +327,9 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     EXPECT_EQ("1104000000100100", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1"));
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 #if 0
@@ -422,7 +419,7 @@ TEST_F(DipTestTest, JumpTooMuch)
     params.Parse(config);
 
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(DipTestTest, AfterHQC)
@@ -465,8 +462,7 @@ TEST_F(DipTestTest, AfterHQC)
     params.Parse(config);
 
     algo->run(params);
-
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(DipTestTest, Bugzilla1320)
@@ -520,7 +516,7 @@ TEST_F(DipTestTest, Bugzilla1320)
     params.Parse(config);
 
     algo->run(params);
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
@@ -536,7 +532,7 @@ TEST_F(DipTestTest, Bugzilla1320)
     EXPECT_EQ("0114000000000000", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }

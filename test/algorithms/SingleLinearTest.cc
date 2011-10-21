@@ -101,6 +101,7 @@ TEST_F(SingleLinearTest, test1)
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
     algo->run(params);
+    ASSERT_EQ(1, bc->count());
 
     ASSERT_TRUE( db->dataForStationParamTimerange(series, 180, params.pid, t, t) );
     ASSERT_EQ(1, series.size());
@@ -130,6 +131,7 @@ TEST_F(SingleLinearTest, test2)
     params.Parse(config);
 
     algo->run(params);
+    ASSERT_EQ(1, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
@@ -209,7 +211,7 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 3
     algo->run(params);
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2025-09-16 12:00:00"), t1("2025-09-17 10:00:00");
@@ -226,9 +228,9 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("QC2d-2", series.begin()->cfailed());
 
     // wiki step 4, run again, no more updates allowed
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 
     // wiki step 5
     sql.str("");
@@ -236,9 +238,9 @@ TEST_F(SingleLinearTest, testFromWiki)
            "UPDATE data SET corrected=7.2, original=7.2 WHERE stationid=87120 AND  obstime='2025-09-16 11:00:00' AND paramid=211;";
     ASSERT_TRUE( db->exec(sql.str()) );
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     ASSERT_TRUE( db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0) );
     ASSERT_EQ(1, series.size());
@@ -258,9 +260,9 @@ TEST_F(SingleLinearTest, testFromWiki)
            "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and  obstime='2025-09-16 11:00:00' and paramid=211;";
     ASSERT_TRUE( db->exec(sql.str()) );
 
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(2, bc->count);
+    ASSERT_EQ(2, bc->count());
 
     ASSERT_TRUE( db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0) );
     ASSERT_EQ(1, series.size());
@@ -275,9 +277,9 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("QC2d-2,QC2d-2,QC2d-2", series.begin()->cfailed());
 
     // wiki step 8, run again, no more updates allowed
-    bc->count = 0;
+    bc->clear();
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(SingleLinearTest, testFromKro)
@@ -339,7 +341,6 @@ TEST_F(SingleLinearTest, testFromKro)
     ReadProgramOptions params;
     params.Parse(config);
 
-    // wiki step 3
     algo->run(params);
-    ASSERT_EQ(0, bc->count);
+    ASSERT_EQ(0, bc->count());
 }

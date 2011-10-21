@@ -34,7 +34,7 @@
 #include <cstdlib>
 #include <stdexcept>
 
-DebugDB::DebugDB()
+SqliteTestDB::SqliteTestDB()
 {
     if( sqlite3_open("", &db) )
         throw std::runtime_error("could not create db");
@@ -83,12 +83,12 @@ DebugDB::DebugDB()
         "fromtime TIMESTAMP NOT NULL);");
 }
 
-DebugDB::~DebugDB()
+SqliteTestDB::~SqliteTestDB()
 {
     sqlite3_close(db);
 }
 
-bool DebugDB::selectData(kvDataList_t& d, const miutil::miString& where)
+bool SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where)
 {
     d.clear();
     const miutil::miString& sql = "SELECT * FROM data " + where + ";";
@@ -118,7 +118,7 @@ bool DebugDB::selectData(kvDataList_t& d, const miutil::miString& where)
     return (step == SQLITE_DONE);
 }
 
-bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const miutil::miTime& time, const std::string& qcx)
+bool SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, const miutil::miTime& time, const std::string& qcx)
 {
     d.clear();
     const std::list<int> station(1, stationID);
@@ -148,7 +148,7 @@ bool DebugDB::selectStationparams(kvStationParamList_t& d, int stationID, const 
     return (step == SQLITE_DONE);
 }
 
-bool DebugDB::selectStations(kvStationList_t& stations)
+bool SqliteTestDB::selectStations(kvStationList_t& stations)
 {
     stations.clear();
     const std::string sql = kvalobs::kvStation().selectAllQuery();
@@ -183,7 +183,7 @@ bool DebugDB::selectStations(kvStationList_t& stations)
     return (step == SQLITE_DONE);
 }
 
-bool DebugDB::insertData(const kvDataList_t& dl, bool replace)
+bool SqliteTestDB::insertData(const kvDataList_t& dl, bool replace)
 {
     std::ostringstream sql;
     foreach(const kvalobs::kvData& d, dl) {
@@ -196,7 +196,7 @@ bool DebugDB::insertData(const kvDataList_t& dl, bool replace)
     return exec(sql.str());
 }
 
-bool DebugDB::exec(const std::string& statement)
+bool SqliteTestDB::exec(const std::string& statement)
 {
     char *zErrMsg = 0;
     int rc = sqlite3_exec(db, statement.c_str(), 0, 0, &zErrMsg);
@@ -212,7 +212,7 @@ bool DebugDB::exec(const std::string& statement)
 
 void AlgorithmTestBase::SetUp()
 {
-    db = new DebugDB();
+    db = new SqliteTestDB();
     bc = new TestBroadcaster();
 }
 
