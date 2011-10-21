@@ -1,5 +1,5 @@
 /*
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
   Copyright (C) 2011 met.no
 
@@ -13,17 +13,17 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -184,7 +184,7 @@ Qc2D::Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, co
         }
     }
 }
-                          
+
 std::ostream& operator<<(std::ostream& stm, const Qc2D &Q)
 {
     stm << "Qc2 Data:";
@@ -215,33 +215,33 @@ std::ostream& operator<<(std::ostream& stm, const Qc2D &Q)
 
 
 /// Method to pass Qc2D data for redistribution of accumulated values. ((Needs to be reworked!! Encapsulate!))
-void Qc2D::distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvData>& ReturnData,int ClearFlag)
+void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData,int ClearFlag)
 {
-    static Distribute DataForRedistribution(slist,params); // TODO why is this static? FIXME this is wrong, station list is never updated
+    static Distribute DataForRedistribution; // TODO why is this static?
     if (ClearFlag)
         DataForRedistribution.clear_all();  //For cleaning up memory when all is done!
- 	    
+
     for (unsigned int i=0 ; i<original_.size() ; i++) {
         if ( ControlFlag.condition(controlinfo_[i],params.Aflag)
              && ( find(params.tids.begin(),params.tids.end(),typeid_[i])!=params.tids.end() ) )
         {
             ///Only redistribute typeids specified in the configuration file
             DataForRedistribution.add_element(stid_[i],original_[i],intp_[i],corrected_[i],redis_[i],
-                                              tbtime_[i],obstime_[i], sensor_[i], level_[i], typeid_[i], 
+                                              tbtime_[i],obstime_[i], sensor_[i], level_[i], typeid_[i],
                                               controlinfo_[i], useinfo_[i], cfailed_[i]);
-            
+
             if (original_[i] != params.missing) {        // This condition means the
                 // value is no longer missing
                 // This is data to Redistribute
                 if (original_[i] != params.rejected)
-                    DataForRedistribution.RedistributeStationData(stid_[i],ReturnData /*TODO check ,params*/);
+                    DataForRedistribution.RedistributeStationData(stid_[i],ReturnData ,params);
                 // Add also a check for the case where the value is rejected
                 // Then do not redistribute
-                DataForRedistribution.clean_station_entry(stid_[i]);   
+                DataForRedistribution.clean_station_entry(stid_[i]);
 
             }
         }
-    }        
+    }
 }
 
 /// Interface to the interpolation method. Replace later with interpolation algorithm strategy ?!?!
@@ -262,18 +262,18 @@ void Qc2D::Qc2_interp()
             break;
         case 4:
             if (params.NeighbourFilename != "NotSet") {
-                StationSelection Adjacent(params.NeighbourFilename);   
+                StationSelection Adjacent(params.NeighbourFilename);
                 std::map<int, std::list<int> > Neighbours=Adjacent.ReturnMap(); /// Rework this later ...
-                calculate_intp_sl(i,Neighbours[ stid_[i] ]);  // Perform the interpolation over a station list 
+                calculate_intp_sl(i,Neighbours[ stid_[i] ]);  // Perform the interpolation over a station list
             }
             break;
         case 5:
             if (params.NeighbourFilename != "NotSet") {
-                StationSelection Adjacent(params.NeighbourFilename);   
+                StationSelection Adjacent(params.NeighbourFilename);
                 std::map<int, std::list<int> > Neighbours=Adjacent.ReturnMap(); /// Rework this later ...
-                calculate_trintp_sl(i,Neighbours[ stid_[i] ]); // Perform the interpolation over a station list 
+                calculate_trintp_sl(i,Neighbours[ stid_[i] ]); // Perform the interpolation over a station list
                 // and performs linear gradient interpolation
-            }                                                      
+            }
             break;
         case 6:
             calculate_intp_wet_dry(i);
@@ -293,10 +293,10 @@ void Qc2D::Qc2_interp()
         default:
             std::cout << "No valid Interpolation Code Provided. Case: " << InterpCode << std::endl;
             break;
-        }     
+        }
     }
 }
- 
+
 /// Inverse distance weighting interpolation prototype.
 /// Algorithm to construct a model value by inverse distance weighting from neighbouring stations.
 /// This optionincludes experimental investigation of various uniformity tests.
@@ -314,17 +314,17 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
     ProcessControl CheckFlags;
 
     bool first_station;
- 	  
+
     typedef pair <float,int> id_pair;
- 	  
+
     // pindex will hold the "station_distance" and the index in the
     // original data array.
- 	  
+
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
 
     for (unsigned int i=0 ; i<original_.size() ; i++) {
- 	  	
+
         delta_lon=(lon_[index]-lon_[i])*radish;
         delta_lat=(lat_[index]-lat_[i])*radish;
         a        = sin(delta_lat/2)*sin(delta_lat/2) +
@@ -332,31 +332,31 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
             sin(delta_lon/2)*sin(delta_lon/2);
         c        =2.0 * atan2(sqrt(a),sqrt(1-a));
 
-        temp_distance = RADIUS*c;                
-            
+        temp_distance = RADIUS*c;
+
         pindex.push_back( id_pair(temp_distance,i) );
-    }	
-       
+    }
+
     //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
-       
+    //the value in the second part of the pair is the index in the original array
+
     sort(pindex.begin(),pindex.end());
- 	  	  
+
     //Find index for stations < max_distance km distant
- 	  
+
     int imax=0;
     float max_distance=params.InterpolationLimit;
- 	  
+
     for (unsigned int i=0 ; i<original_.size() ; i++) {
         if (pindex[i].first < max_distance) imax=i;
     }
- 	   	  
+
 
 
     inv_dist = 0.0;
     weight   = 0.0;
     bool DoInt=false;
-          
+
     float sumPP=0.0;     ///   MP | PP
     float sumPM=0.0;     ///   _ _|_ _
     float sumMM=0.0;     ///      |
@@ -368,7 +368,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
     float mPP=-999.0;
     float mPM=-999.0;
     float mMM=-999.0;
-    float mMP=-999.0;  	
+    float mMP=-999.0;
 
     int NumWetQ=0;
     int NumDryQ=0;
@@ -389,21 +389,21 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 
     for (int i=1 ; i<imax+1 ; i++) { //implement a uniformity check
         data_point=original_[pindex[i].second];
-        if (data_point == -1) data_point = 0; 
+        if (data_point == -1) data_point = 0;
         //if (imax > 1 && data_point > -1 && pindex[i].first > 0  && CheckFlags.condition(controlinfo_[i],params.Iflag) ){
         if (imax > 1 && data_point > -1 && pindex[i].first > 0  && CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag) ){
 
             if (lat_[pindex[i].second] >  lat_[index] &&
                 lon_[pindex[i].second] >  lon_[index]) {
-                sumPP += data_point;                      
-                nPP += 1; 
+                sumPP += data_point;
+                nPP += 1;
                 mPP =sumPP/nPP;
                 if (data_point>0.0) {++nPPwet;}
                 else                {++nPPdry;}
             }
             if (lat_[pindex[i].second] <= lat_[index] &&
                 lon_[pindex[i].second] >  lon_[index]) {
-                sumPM += data_point;                      
+                sumPM += data_point;
                 nPM += 1;
                 mPM =sumPM/nPM;
                 if (data_point>0.0) {++nPMwet;}
@@ -411,7 +411,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
             }
             if (lat_[pindex[i].second] <= lat_[index] &&
                 lon_[pindex[i].second] <= lon_[index]) {
-                sumMM += data_point;                      
+                sumMM += data_point;
                 nMM += 1;
                 mMM =sumMM/nMM;
                 if (data_point>0.0) {++nMMwet;}
@@ -419,7 +419,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
             }
             if (lat_[pindex[i].second] >  lat_[index] &&
                 lon_[pindex[i].second] <= lon_[index]) {
-                sumMP += data_point;                      
+                sumMP += data_point;
                 nMP += 1;
                 mMP =sumMP/nMP;
                 if (data_point>0.0) {++nMPwet;}
@@ -430,13 +430,13 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 
     // only interpolate if all surrounding data is all wet
     if (nPP==nPPwet && nPM==nPMwet && nMM==nMMwet && nMP==nMPwet) {
-        DoInt=true; 
+        DoInt=true;
         //std::cout << "WET ..." << std::endl;
     }
-          
+
     // ...or dry
-    if (nPP==nPPdry && nPM==nPMdry && nMM==nMMdry && nMP==nMPdry) { 
-        DoInt=true; 
+    if (nPP==nPPdry && nPM==nPMdry && nMM==nMMdry && nMP==nMPdry) {
+        DoInt=true;
         //std::cout << "DRY ..." << std::endl;
     }
 
@@ -449,7 +449,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 
     NumWetQ=((sumPP>0.0) ? 1 : 0)  + ((sumPM>0.0) ? 1 : 0)+ ((sumMM>0.0) ? 1 : 0)+ ((sumMP>0.0) ? 1 : 0);
     NumDryQ=((sumPP==0.0 && nPP>0) ? 1 : 0) + ((sumPM==0.0 && nPM>0) ? 1 : 0) + ((sumMM==0.0 && nMM>0) ? 1 : 0) +
-        ((sumMP==0.0 && nMP>0) ? 1 : 0); 
+        ((sumMP==0.0 && nMP>0) ? 1 : 0);
 
     //std::cout << "Wet Regions : " << NumWetQ << std::endl;
     //std::cout << "Dry Regions : " << NumDryQ << std::endl;
@@ -458,7 +458,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 
     int Biggies=0;
     for (std::vector<float>::const_iterator jj=Difs.begin(); jj<Difs.end();++jj){
-        ftemp = *jj; 
+        ftemp = *jj;
         if (ftemp > 20.0) Biggies += 1;
     }
 
@@ -476,7 +476,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
     //}
 
 
-    //if one neighbour (quadrant) is very different to the others, do not interpolate 
+    //if one neighbour (quadrant) is very different to the others, do not interpolate
 
     //if (Biggies == 3) {
     //       DoInt=false;
@@ -498,22 +498,22 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
     //std::cout << "Stations : " <<stid_[index];
     first_station=true;
     for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
- 	  	  
+
         data_point=original_[pindex[i].second];
- 	  	  
+
         if (data_point == -1) data_point = 0; // These are bone dry measurments
         // as opposed to days when there
         // may have been rain but none
         // was measurable
- 	  	  
+
         //if (imax > 1 && data_point > -1 && pindex[i].first > 0 && data_point < 40 &&
-        if (DoInt && imax > 1 && data_point > -1 && pindex[i].first > 0 && 
+        if (DoInt && imax > 1 && data_point > -1 && pindex[i].first > 0 &&
             //controlinfo_[pindex[i].second].flag( 12 ) == 1  ) {
             //CheckFlags.condition(controlinfo_[i],params.Iflag)) {
             CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag)) {
-                        
+
             //std::cout << "Interpolatig ... " << std::endl;
-            inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
+            inv_dist += 1.0/(pindex[i].first*pindex[i].first);
             weight += data_point/(pindex[i].first*pindex[i].first);
             if (first_station) {
                 if (cfailed_[index].length() > 0) cfailed_[index] += ",";
@@ -526,11 +526,11 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
     }
 
     if (inv_dist > 0.0) {
-        intp_[index] = weight/inv_dist; 
+        intp_[index] = weight/inv_dist;
         //std::cout << "RESULTS "<< intp_[index] << " " << original_[index] << std::endl;
         //std::cout << "Interpolatig ... " << std::endl;
-              
-    }  
+
+    }
 }
 
 ///Inverse distance weighting interpolation prototype.
@@ -538,118 +538,66 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 /// This optionincludes experimental investigation of various uniformity tests.
 void Qc2D::idw_intp_limit(unsigned int index)
 {
-    const double RADIUS=6371.0;
-    float temp_distance;
-    float data_point;
-    float weight;
-    float inv_dist;
-    float delta_lat;
-    float delta_lon;
-    double a, c;
-    const double radish = 0.01745329251994329509;
-
-    bool first_station;
     ProcessControl CheckFlags;
 
     std::vector<float> NeighboursUsed;
-    NeighboursUsed.clear();
-    double sum, mean, var, dev, skew, kurt;
 
- 	  
+    // pindex will hold the "station_distance" and the index in the  original data array.
     typedef pair <float,int> id_pair;
- 	  
-    // pindex will hold the "station_distance" and the index in the
-    // original data array.
- 	  
     std::vector<id_pair> pindex;
-    std::vector<id_pair>::const_iterator ip;
 
-    for (unsigned int i=0 ; i<original_.size() ; i++) {
- 	  	
-        delta_lon=(lon_[index]-lon_[i])*radish;
-        delta_lat=(lat_[index]-lat_[i])*radish;
-        a        = sin(delta_lat/2)*sin(delta_lat/2) +
+    for(unsigned int i=0 ; i<original_.size() ; i++) {
+        const double radish = M_PI/180;
+        const double RADIUS=6371.0;
+        const double delta_lon=(lon_[index]-lon_[i])*radish;
+        const double delta_lat=(lat_[index]-lat_[i])*radish;
+        const double a = sin(delta_lat/2)*sin(delta_lat/2) +
             cos(lat_[i]*radish)*cos(lat_[index]*radish)*
             sin(delta_lon/2)*sin(delta_lon/2);
-        c        =2.0 * atan2(sqrt(a),sqrt(1-a));
+        const double c =2.0 * atan2(sqrt(a),sqrt(1-a));
 
-        temp_distance = RADIUS*c;                
-            
-        pindex.push_back( id_pair(temp_distance,i) );
-    }	
-       
-    //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
-       
-    sort(pindex.begin(),pindex.end());
- 	  	  
-    //Find index for stations < max_distance km distant
- 	  
-    int imax=0;
-    float max_distance=params.InterpolationLimit;
- 	  
-    for (unsigned int i=0 ; i<original_.size() ; i++) {
-        if (pindex[i].first < max_distance) imax=i;
+        const double temp_distance = RADIUS*c;
+        if( temp_distance < params.InterpolationLimit )
+            pindex.push_back( id_pair(temp_distance,i) );
     }
- 	   	  
+    if( pindex.size() < 2 )
+        return;
 
+    float sumWeights = 0.0;
+    float sumWeightedValues = 0.0;
 
-    inv_dist = 0.0;
-    weight   = 0.0;
+    bool first_station = true;
+    for( int i=1; i<pindex.size(); i++ ) { //NB i=0 corresponds to the station for which we do an interpolation
 
-    //bool DoInt=false;
+        float data_point = original_[pindex[i].second];
+        if (data_point == -1)
+            data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
 
-
-    //FOR NEIGHBOURS//std::cout << stid_[index] << " {" << original_[index] << "}|";
-    //std::cout << "Stationid: "<< stid_[index] << " Nearest neighbours: ";
-
-    first_station=true;
-    for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
- 	  	  
-        data_point=original_[pindex[i].second];
- 	  	  
-        if (data_point == -1) data_point = 0; // These are bone dry measurments
-        // as opposed to days when there
-        // may have been rain but none
-        // was measurable
- 	  	  
-        //std::cout << stid_[pindex[i].second] << " ";
-
-        if (imax > 1 && data_point > -1 && pindex[i].first > 0 && 
-            //CheckFlags.condition(controlinfo_[i],params.Iflag)) {
-            CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag)) {
-
-            inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
-            weight += data_point/(pindex[i].first*pindex[i].first);
-            if (first_station) {
-                if (cfailed_[index].length() > 0) cfailed_[index] += ",";
-                cfailed_[index]+="QC2N_"+StrmConvert(stid_[pindex[i].second]);
+        if( data_point > -1
+            && pindex[i].first > 0
+            && CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag) )
+        {
+            sumWeights += 1.0/(pindex[i].first*pindex[i].first);
+            sumWeightedValues += data_point/(pindex[i].first*pindex[i].first);
+            if( first_station ) {
+                if (cfailed_[index].length() > 0)
+                    cfailed_[index] += ",";
                 first_station=false;
-            } else {
-                cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+                cfailed_[index]+="QC2N";
             }
+            cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
             NeighboursUsed.push_back(data_point);
-            /// Code to extract neighbour statistics ...
-            //FOR NEIGHBOURS//std::cout << stid_[pindex[i].second] << " {" << original_[pindex[i].second] << "};";
         }
     }
 
-    if (NeighboursUsed.size() > 0) {
-        computeStats(NeighboursUsed.begin( ), NeighboursUsed.end( ), sum, mean, var, dev, skew, kurt);
-    }
+    if( sumWeights > 0.0 ) {
+        double sum, mean, var, dev, skew, kurt;
+        computeStats(NeighboursUsed.begin(), NeighboursUsed.end(), sum, mean, var, dev, skew, kurt);
 
-    /// How many neighbours to use is an open question.
-    /// Best option is to do the triangulation !!!!!!!!!!!!!!!!!!! ??????????????+
-    /// if (inv_dist > 0.0 && NeighboursUsed.size() > 0 && NeighboursUsed.size() < 7) {
-    if (inv_dist > 0.0) {
-        intp_[index] = weight/inv_dist; 
+        intp_[index] = sumWeightedValues/sumWeights;
         CP_[index]=dev;
-        //FOR NEIGHBOURS//std::cout << " # Model Value = " <<  intp_[index] << " +/-" << CP_[index] << " (" <<  NeighboursUsed.size() << " pts)";
-    }  
-    //FOR NEIGHBOURS//std::cout << std::endl;
-    //std::cout << std::endl;
- 
-} 
+    }
+}
 
 
 /// Inverse distance weighting interpolation prototype.
@@ -672,22 +620,22 @@ void Qc2D::calculate_intp_h(unsigned int index)
     bool first_station;
     ProcessControl CheckFlags;
 
-    int steps;                         
-    float rfac;                         
+    int steps;
+    float rfac;
     float TV;
     float height;
 
- 	  
+
     typedef pair <float,int> id_pair;
- 	  
+
     // pindex will hold the "station_distance" and the index in the
     // original data array.
- 	  
+
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
 
     for (unsigned int i=0 ; i<original_.size() ; i++) {
- 	  	
+
         delta_lon=(lon_[index]-lon_[i])*radish;
         delta_lat=(lat_[index]-lat_[i])*radish;
         a        = sin(delta_lat/2)*sin(delta_lat/2) +
@@ -695,19 +643,19 @@ void Qc2D::calculate_intp_h(unsigned int index)
             sin(delta_lon/2)*sin(delta_lon/2);
         c        =2.0 * atan2(sqrt(a),sqrt(1-a));
 
-        temp_distance = RADIUS*c;                
-            
+        temp_distance = RADIUS*c;
+
         pindex.push_back( id_pair(temp_distance,i) );
-    }	
-       
+    }
+
     //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
-       
+    //the value in the second part of the pair is the index in the original array
+
     sort(pindex.begin(),pindex.end());
- 	  	  
- 	  
+
+
     int imax=0;
-    float max_distance=params.InterpolationLimit;  	  
+    float max_distance=params.InterpolationLimit;
 
     for (unsigned int i=0 ; i<original_.size() ; i++) {
         if (pindex[i].first < max_distance) imax=i;
@@ -717,12 +665,12 @@ void Qc2D::calculate_intp_h(unsigned int index)
     inv_dist = 0.0;
     weight   = 0.0;
     //int idog=0;
- 	 
-    first_station=true; 
+
+    first_station=true;
     for (int i=1 ; i<imax+1 ; i++) {
- 	  	  
+
         data_point=original_[pindex[i].second];
- 	  	  
+
         if (data_point == -1) data_point = 0; // These are bone dry measurments
         // as opposed to days when there
         // may have been rain but none
@@ -733,9 +681,9 @@ void Qc2D::calculate_intp_h(unsigned int index)
         height=ht_[pindex[i].second];
         steps= height/100;
         rfac =(height-100.0*steps)/100.0;
- 
-                                                
-        if (imax > 1 && data_point > -1 && pindex[i].first > 0 && 
+
+
+        if (imax > 1 && data_point > -1 && pindex[i].first > 0 &&
             //CheckFlags.condition(controlinfo_[i],params.Iflag)  ) {
             CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag)  ) {
             data_point_h = data_point;
@@ -754,7 +702,7 @@ void Qc2D::calculate_intp_h(unsigned int index)
             data_point=TV;
 
 
-            inv_dist += 1.0/(pindex[i].first*pindex[i].first); 
+            inv_dist += 1.0/(pindex[i].first*pindex[i].first);
             weight += data_point/(pindex[i].first*pindex[i].first);
             if (first_station) {
                 if (cfailed_[index].length() > 0) cfailed_[index] += ",";
@@ -768,8 +716,8 @@ void Qc2D::calculate_intp_h(unsigned int index)
 
 
     if (inv_dist > 0.0) {
- 	  
-        intp_[index] = weight/inv_dist; 
+
+        intp_[index] = weight/inv_dist;
         TV=intp_[index];
         height=ht_[index];
         steps= height/100;
@@ -793,17 +741,17 @@ void Qc2D::calculate_intp_h(unsigned int index)
         //intp_[index] = intp_[index]+intp_[index]*(ht_[index]/1000.0); // put back to correct altitude
         //}
         //if (ht_[index] > 1000.0){
-        //intp_[index] = 2.0*intp_[index]; // the bit up to 1000 km !!!!!!!! 
+        //intp_[index] = 2.0*intp_[index]; // the bit up to 1000 km !!!!!!!!
         //intp_[index] = (intp_[index]+intp_[index]*(ht_[index]/2000.0)); // put back to correct altitude
         //}
-        //std::cout << intp_[index] << std::endl; 
-    }  
+        //std::cout << intp_[index] << std::endl;
+    }
     //std::cout << "Number of points used in interpolation = " << idog << std::endl;
- 
+
 }
 
 /// perform an interpolation based on a list of allowed stations (sl).
-void Qc2D::calculate_intp_sl(unsigned int index, std::list<int> BestStations) 
+void Qc2D::calculate_intp_sl(unsigned int index, std::list<int> BestStations)
 {
     const double RADIUS=6371.0;
     float temp_distance;
@@ -816,9 +764,9 @@ void Qc2D::calculate_intp_sl(unsigned int index, std::list<int> BestStations)
     const double radish = 0.01745329251994329509;
 
     unsigned int i;
- 	  
-    // For the given station there is a list of station ids which we can use!!! 
-    // therefore do not need this complicated sorting algorithms as in the nearest neighbours 
+
+    // For the given station there is a list of station ids which we can use!!!
+    // therefore do not need this complicated sorting algorithms as in the nearest neighbours
     // approach ...
     // for now recode to analyse all neighbours!!!
     // this can be easily updated to manage a fixed station list
@@ -832,7 +780,7 @@ void Qc2D::calculate_intp_sl(unsigned int index, std::list<int> BestStations)
     //std::cout << *ist << " ";
     //}
     //std::cout << std::endl;
-          
+
 
     for (std::list<int>::const_iterator ist=BestStations.begin(); ist != BestStations.end(); ++ist){
 
@@ -847,31 +795,31 @@ void Qc2D::calculate_intp_sl(unsigned int index, std::list<int> BestStations)
                 cos(lat_[i]*radish)*cos(lat_[index]*radish)*
                 sin(delta_lon/2)*sin(delta_lon/2);
             c        =2.0 * atan2(sqrt(a),sqrt(1-a));
-  
-            temp_distance = RADIUS*c;                
+
+            temp_distance = RADIUS*c;
 
             data_point=original_[i];
-            if (data_point == -1) data_point = 0; 
+            if (data_point == -1) data_point = 0;
 
             if (data_point > -1 && temp_distance > 0 && controlinfo_[i].flag( 12 ) == 1 ){
-                inv_dist += 1.0/(temp_distance*temp_distance); 
+                inv_dist += 1.0/(temp_distance*temp_distance);
                 weight += data_point/(temp_distance*temp_distance);
-                //inv_dist += 1.0/(temp_distance*temp_distance*temp_distance*temp_distance); 
+                //inv_dist += 1.0/(temp_distance*temp_distance*temp_distance*temp_distance);
                 //weight += data_point/(temp_distance*temp_distance*temp_distance*temp_distance);
             }
         }
-    }	
- 	     
+    }
+
     if (inv_dist > 0.0) {
-        intp_[index] = weight/inv_dist; 
-    }  
+        intp_[index] = weight/inv_dist;
+    }
 }
 
-/// perform interpolation based on a list triangulation points. 
-/// assuming a linear trend in precipitation in the latitude and longitude 
-/// directions. This is an approximation, strict interpolation should be 
+/// perform interpolation based on a list triangulation points.
+/// assuming a linear trend in precipitation in the latitude and longitude
+/// directions. This is an approximation, strict interpolation should be
 /// along geodescis???
-void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations) 
+void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations)
 {
 
 ///This needs checking and testing
@@ -903,7 +851,7 @@ void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations)
 
     //In this algorithm there are only three neighbours!
 
-    if (BestStations.size() == 3){ 	 
+    if (BestStations.size() == 3){
 
         j=0;
 
@@ -912,7 +860,7 @@ void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations)
             i=stindex[ *ist ];
 
             x[j]=(double) lon_[i]*radish;
-            y[j]=(double) lat_[i]*radish;        
+            y[j]=(double) lat_[i]*radish;
 
             utm.u=x[j];  //Longitude
             utm.v=y[j];  //latitude
@@ -932,7 +880,7 @@ void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations)
 
 
             data_point=(double) original_[i];
-            if (data_point == -1.0) data_point = 0; 
+            if (data_point == -1.0) data_point = 0;
             rr[j]=data_point;
 
             ++j;
@@ -941,7 +889,7 @@ void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations)
         if (rr[0] > -1 && rr[1] > -1 && rr[2] > -1 && OKTRI){
 
             utm.u=(double) lon_[index]*radish;
-            utm.v=(double) lat_[index]*radish;        
+            utm.v=(double) lat_[index]*radish;
             utm = pj.ll2xy(utm);
             xt = utm.u;
             yt = utm.v;
@@ -951,10 +899,10 @@ void Qc2D::calculate_trintp_sl(unsigned int index, std::list<int> BestStations)
             intp_[index]=rr[0]+(xt-xp[0])*d_rr_over_d_x+(yt-yp[0])*d_rr_over_d_y;
 
         }
-    } 
+    }
 
 
-} 
+}
 
 /// dummy modeule                                                                     |
 void Qc2D::intp_dummy(unsigned int index)
@@ -974,7 +922,7 @@ void Qc2D::intp_dummy(unsigned int index)
     inv_dist = 0.0;
     weight   = 0.0;
 
-    intp_[index] = 1000.0;                 
+    intp_[index] = 1000.0;
 }
 
 ///Inverse distance weighting interpolation prototype.
@@ -998,19 +946,19 @@ void Qc2D::intp_temp(unsigned int index)
     NeighboursUsed.clear();
     double sum, mean, var, dev, skew, kurt;
 
- 	  
+
     typedef pair <float,int> id_pair;
- 	  
+
     // pindex will hold the "station_distance" and the index in the
     // original data array.
- 	  
+
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
 
     for (unsigned int i=0 ; i<original_.size() ; i++) {
 
         //std::cout << original_[i] << std::endl;
- 	  	
+
         delta_lon=(lon_[index]-lon_[i])*radish;
         delta_lat=(lat_[index]-lat_[i])*radish;
         a        = sin(delta_lat/2)*sin(delta_lat/2) +
@@ -1018,25 +966,25 @@ void Qc2D::intp_temp(unsigned int index)
             sin(delta_lon/2)*sin(delta_lon/2);
         c        =2.0 * atan2(sqrt(a),sqrt(1-a));
 
-        temp_distance = RADIUS*c;                
-            
+        temp_distance = RADIUS*c;
+
         pindex.push_back( id_pair(temp_distance,i) );
-    }	
-       
+    }
+
     //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
-       
+    //the value in the second part of the pair is the index in the original array
+
     sort(pindex.begin(),pindex.end());
- 	  	  
+
     //Find index for stations < max_distance km distant
- 	  
+
     int imax=0;
     float max_distance=params.InterpolationLimit;
- 	  
+
     for (unsigned int i=0 ; i<original_.size() ; i++) {
         if (pindex[i].first < max_distance) imax=i;
     }
- 	   	  
+
 
 
     inv_dist = 0.0;
@@ -1056,10 +1004,10 @@ void Qc2D::intp_temp(unsigned int index)
             break;
         }
     }
- 
-} 
 
-/// perform an inverse distanced weighted interpolation based on all the neighbours. 
+}
+
+/// perform an inverse distanced weighted interpolation based on all the neighbours.
 /// This one modified for temperature ... working ... not for use
 void Qc2D::calculate_intp_temp(unsigned int index)
 {
@@ -1106,7 +1054,7 @@ void Qc2D::calculate_intp_temp(unsigned int index)
     }
 }
 
-/// perform an inverse distanced weighted interpolation based on all the neighbours. 
+/// perform an inverse distanced weighted interpolation based on all the neighbours.
 void Qc2D::calculate_intp_all(unsigned int index)
 {
     const double RADIUS=6371.0;
@@ -1180,9 +1128,9 @@ void Qc2D::intp_delaunay(unsigned int index)
 
     double XX_triangle[3]; // corresponds to the triangle longitudes !!!
     double YY_triangle[3]; // corresponds to the triangle latitudes  !!!
- 	  
+
     typedef pair <float,int> id_pair;
- 	  
+
     double Denom,d_rr_over_d_x,d_rr_over_d_y;
     double x[3], y[3],rr[3];
     double xp[3], yp[3];
@@ -1191,7 +1139,7 @@ void Qc2D::intp_delaunay(unsigned int index)
 
     // pindex will hold the "station_distance" and the index in the
     // original data array.
- 	  
+
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
 
@@ -1200,9 +1148,9 @@ void Qc2D::intp_delaunay(unsigned int index)
     std::vector<float>                  working_lon;
     std::vector<float>                  working_ht;
 
- 
 
-/// Only makes sense to perform this interpolation if there are realvalues in the mesh 
+
+/// Only makes sense to perform this interpolation if there are realvalues in the mesh
     for (unsigned int i=0 ; i<original_.size() ; i++) {
         if (original_[i] != params.missing || i==index) {
             working_data.push_back(original_[i]);
@@ -1210,7 +1158,7 @@ void Qc2D::intp_delaunay(unsigned int index)
             working_lon.push_back(lon_[i]);
             working_ht.push_back(ht_[i]);
         }
-    }	
+    }
 
 
     //for (unsigned int i=0 ; i<original_.size() ; i++) {
@@ -1220,9 +1168,9 @@ void Qc2D::intp_delaunay(unsigned int index)
     //cos(lat_[i]*radish)*cos(lat_[index]*radish)*
     //sin(delta_lon/2)*sin(delta_lon/2);
     //c        =2.0 * atan2(sqrt(a),sqrt(1-a));
-    //temp_distance = RADIUS*c;                
+    //temp_distance = RADIUS*c;
     //pindex.push_back( id_pair(temp_distance,i) );
-    //}	
+    //}
     for (unsigned int i=0 ; i<working_data.size() ; i++) {
         delta_lon=(lon_[index]-working_lon[i])*radish;
         delta_lat=(lat_[index]-working_lat[i])*radish;
@@ -1230,26 +1178,26 @@ void Qc2D::intp_delaunay(unsigned int index)
             cos(working_lat[i]*radish)*cos(lat_[index]*radish)*
             sin(delta_lon/2)*sin(delta_lon/2);
         c        =2.0 * atan2(sqrt(a),sqrt(1-a));
-        temp_distance = RADIUS*c;                
+        temp_distance = RADIUS*c;
         pindex.push_back( id_pair(temp_distance,i) );
-    }	
-       
+    }
+
     //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
-       
+    //the value in the second part of the pair is the index in the original array
+
     sort(pindex.begin(),pindex.end());
- 	  	  
+
     //Find index for stations < max_distance km distant
     //Only triangulate using this set of local stations!!!
- 	  
+
     int imax=0;
     float max_distance=params.InterpolationLimit;
- 	  
+
     for (unsigned int i=0 ; i<working_data.size() ; i++) {
         //for (unsigned int i=0 ; i<original_.size() ; i++) {
         if (pindex[i].first < max_distance) imax=i;
     }
- 	   	  
+
     //std::cout << "IMAX: " << imax << std::endl;
 
     inv_dist = 0.0;
@@ -1261,24 +1209,24 @@ void Qc2D::intp_delaunay(unsigned int index)
     //std::cout << "STATION-LIST: " <<  stid_[pindex[j].second] << std::endl;
     //}
 
-    //std::cout << "Triangulate over these neighbours" << std::endl; 
+    //std::cout << "Triangulate over these neighbours" << std::endl;
 
     if (imax >=3){         // only makes sense for triangulation (must be at least three nodes surrounding)
-        // the point with index = 0 (remember imax is the largest index value and so corresponds 
+        // the point with index = 0 (remember imax is the largest index value and so corresponds
         // to a list of imax+1 stations.
 
 
         // Setup projection engine business
-          
+
         std::string prms("proj=utm lon_0=15e datum=WGS84"); //From Matthias
         proj pj(prms);
         projUV utm;
-          
+
         std::vector<double> lat;
         std::vector<double> lon;
         std::vector<double> original_data;
         std::vector<int> stid;
-          
+
         int node_num;
         double *table;
         int *triangle_neighbor;
@@ -1290,20 +1238,20 @@ void Qc2D::intp_delaunay(unsigned int index)
 
         int result;
         int node_index;
-          
-        node_num=imax;  // These are only the neighbours 
+
+        node_num=imax;  // These are only the neighbours
         table= new double[2*node_num];
-          
-          
+
+
         for (int i=0 ; i<=imax ; i++) {    // NB imax is an index
 
 
             /// Problem to solve here
             /// we triangulate the nodes but lose track of the data corresponding to the node !!!!!!
 
-          
+
             //Loop Through Stations And Convert To UTM co-ordinates
-          
+
             //utm.u= lon_[pindex[i].second]*radish;   /// Use DEG_TO_RAD instead !!!!! ????????
             //utm.v= lat_[pindex[i].second]*radish;
             utm.u= working_lon[pindex[i].second]*radish;   /// Use DEG_TO_RAD instead !!!!! ????????
@@ -1311,7 +1259,7 @@ void Qc2D::intp_delaunay(unsigned int index)
             utm = pj.ll2xy(utm);
             ////std::cout << "Longitude = " << utm.u << " from "  << lon_[i] << std::endl;
             //std::cout << "Latitude  = " << utm.v << " from "  << lat_[i] << std::endl;
-             
+
             lon.push_back( utm.u );
             lat.push_back( utm.v );
             if (i > 0) {                // i=0 corresponds to the target
@@ -1320,18 +1268,18 @@ void Qc2D::intp_delaunay(unsigned int index)
                 //Make sure we keep the right set of data values corrsponding to the neighbours
                 //original_data.push_back( original_[pindex[i].second]);
                 original_data.push_back( working_data[pindex[i].second]);
-                //std::cout << "Loading: " << utm.u << " " << utm.v << " " <<  original_[pindex[i].second] << std::endl;      
+                //std::cout << "Loading: " << utm.u << " " << utm.v << " " <<  original_[pindex[i].second] << std::endl;
             }
         }
-          
+
         int m2 = 3;
         triangle_node = new int[m2*3*node_num];
         triangle_neighbor = new int[m2*3*node_num];  /// Funny non-intuitive counting here array is (1+N) where n=1 is the centre???
         /// Check all this array dimensioning ... I think it is fishy!
-          
+
         //Calculate the Triangles For Each Target Station
         //std::cout << "Enter DTRIS2 " << std::endl;
-        result=dtris2 ( node_num, table, &triangle_num, triangle_node, triangle_neighbor );  
+        result=dtris2 ( node_num, table, &triangle_num, triangle_node, triangle_neighbor );
 
         /// We are assuming that table is not reordered !!!!!
 
@@ -1341,12 +1289,12 @@ void Qc2D::intp_delaunay(unsigned int index)
             //cout << "  Number of triangles is " << triangle_num << "\n";
             copy_triangle_num=triangle_num;
 
-          
+
             intp_[index]=-10.0;  /// This does nothing more yet !!!!!!!!!!!!!!!!!!!
             CP_[index]=-10.0;
-          
+
             //We have to find which triangle is home for our station
-          
+
             //std::cout << triangle_num << std::endl;
             //Loop over all triangles
             int tri;
@@ -1357,7 +1305,7 @@ void Qc2D::intp_delaunay(unsigned int index)
             for (tri=0; tri<copy_triangle_num; ++tri) {
 
                 for (int corner=0; corner <=2; ++corner){
-      
+
                     int node_index = triangle_node[corner + tri*3] - 1;   // NB triangle_node values do not start at 0
                     // delaunay code result ?
                     //std::cout << "corner: "<< corner <<  " node index: " <<node_index << std::endl;
@@ -1372,7 +1320,7 @@ void Qc2D::intp_delaunay(unsigned int index)
                 //std::cout << triangle_num << std::endl;
                 //std::cout << "looped over the triangles " << std::endl;
 
-///  Perform "Point in triangle test" according to Barycentric Technique (see http://www.blackpawn.com/texts/pointinpoly/default.html) 
+///  Perform "Point in triangle test" according to Barycentric Technique (see http://www.blackpawn.com/texts/pointinpoly/default.html)
 
                 dot00=(x_triangle[2]-x_triangle[0])*(x_triangle[2]-x_triangle[0]) + (y_triangle[2]-y_triangle[0])*(y_triangle[2]-y_triangle[0]);
                 dot01=(x_triangle[2]-x_triangle[0])*(x_triangle[1]-x_triangle[0]) + (y_triangle[2]-y_triangle[0])*(y_triangle[1]-y_triangle[0]);
@@ -1385,7 +1333,7 @@ void Qc2D::intp_delaunay(unsigned int index)
                 u = (dot11 * dot02 - dot01 * dot12) * invDenom;
                 v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-                if(u >= 0. && v >= 0. && u + v <= 1.0) {         
+                if(u >= 0. && v >= 0. && u + v <= 1.0) {
                     //sprintf(epsfilename,"%d%s%d%s",stid_[index],"_",tri,".eps");
                     //triangulation_order3_plot_eps ( epsfilename, node_num, table, copy_triangle_num, triangle_node, node_show,triangle_show,lon[0],lat[0],x_triangle[0],y_triangle[0],x_triangle[1],y_triangle[1],x_triangle[2],y_triangle[2] );
                     /// PLotting test triangles gives memory fault on virtual boxes !!!!ZZ
@@ -1397,12 +1345,12 @@ void Qc2D::intp_delaunay(unsigned int index)
                     //std::cout << " TQ "<< x_triangle[0] << " " <<y_triangle[0]<< std::endl;
                     //std::cout << " TQ "<< x_triangle[1]<< " " <<y_triangle[1]<< std::endl;
                     //std::cout << " TQ "<< x_triangle[2]<< " " <<y_triangle[2]<< std::endl;
-                      
+
                     for (int ii=0;ii<3;++ii){
-                 
+
                         data_point=(double) cornerdata[ii];       /// This is wrong! It is not the right data point.
                         if (data_point == -1.0) data_point = 0; /// This is only for RAINFALL
-                 
+
                         rr[ii]=data_point;
                         xp[ii]=x_triangle[ii];
                         yp[ii]=y_triangle[ii];
@@ -1427,10 +1375,10 @@ void Qc2D::intp_delaunay(unsigned int index)
                         //std::cout << "RESULTS ######## "<< intp_[index] << " " << original_[index] << std::endl;
                     }
 
-                }           
+                }
 
             }
-        }   //------------------ 
+        }   //------------------
 
         delete [] table;
         delete [] triangle_node;
@@ -1438,8 +1386,8 @@ void Qc2D::intp_delaunay(unsigned int index)
 
 
     }
- 
-} 
+
+}
 
 
 ///Method to append the interpolated model data to a netCDF file
@@ -1449,12 +1397,12 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
     //static const int NC_ERR = 2;
     long counter=0;
     long netcdf_index;
-  
-    //static const int NX=slist.size(); 
-    int NX=slist.size(); 
-    static const int NP=3; 
-    static const int NF=16; 
-   
+
+    //static const int NX=slist.size();
+    int NX=slist.size();
+    static const int NP=3;
+    static const int NF=16;
+
     long          CdfStation[NX];
     int           Cdftypeid[NX];
     float           Original[NX];
@@ -1467,9 +1415,9 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
     char               QQ[NX][16];
     char               UU[NX][16];
     float              Location[NX][NP];
-   
+
     char dougal[17], zebedee[17];
-   
+
     long JulianDay;
 
     //boost::gregorian::date d(2002,2,10);
@@ -1482,13 +1430,13 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
     for ( std::list<kvalobs::kvStation>::const_iterator it = slist.begin(); it != slist.end(); ++ it )
     {
         CdfStation[counter]=it->stationID();
-         
+
         std::vector<int>::iterator iv = std::find(stid_.begin(), stid_.end(), it->stationID());
 
         if (iv != stid_.end()) {
-         	
-            vector<int>::difference_type d = distance(stid_.begin(), iv); 
-            
+
+            vector<int>::difference_type d = distance(stid_.begin(), iv);
+
             Cdftypeid[counter]=typeid_[d];
 
             Original[counter]=original_[d];
@@ -1497,21 +1445,21 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
             Redistributed[counter]=redis_[d];
             ConfidenceParameter[counter]=CP_[d];
 
-         	
+
             Location[counter][0]=lat_[d];
             Location[counter][1]=lon_[d];
             Location[counter][2]=ht_[d];
-            
+
             QFlag[counter]=controlinfo_[d].flagstring();
             UFlag[counter]=useinfo_[d].flagstring();
-            
+
             strcpy(dougal,  controlinfo_[d].flagstring().c_str());
             strcpy(zebedee, useinfo_[d].flagstring().c_str());
             for ( int k=0 ; k!=16 ; k++ ){
                 QQ[counter][k] = dougal[k];
                 UU[counter][k] = zebedee[k];
-            }  
-        } 
+            }
+        }
         else {
             Cdftypeid[counter]=999;
             Original[counter]=-999.0;
@@ -1522,25 +1470,25 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
             Location[counter][0]=-999.0;
             Location[counter][1]=-999.0;
             Location[counter][2]=-999.0;
-   
+
             for (int k=0 ; k!=16 ; k++ ){
                 QQ[counter][k] = '-';
                 UU[counter][k] = '-';
-            }  
+            }
         }
         counter++;
     }
-   
+
     netcdf_index=0;
 
     NcFile dataFile("interpolations.nc", NcFile::New);
     if (dataFile.is_valid())
-    {  
-        NcDim* xDim  = dataFile.add_dim("x", NX); 
+    {
+        NcDim* xDim  = dataFile.add_dim("x", NX);
         NcDim* Loc   = dataFile.add_dim("loc",NP);
         NcDim* nFlag = dataFile.add_dim("flag",NF);
         NcDim* nTime = dataFile.add_dim("time");
-            
+
         NcVar *intdata1 = dataFile.add_var("Interpolations", ncFloat,nTime, xDim);
         NcVar *intdata10 = dataFile.add_var("Redistributed", ncFloat,nTime, xDim);
         NcVar *intdata80 = dataFile.add_var("ConfidenceParameter", ncFloat,nTime, xDim);
@@ -1550,28 +1498,28 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
         NcVar *intdata5 = dataFile.add_var("ControlInfo", ncChar,nTime, xDim, nFlag);
         NcVar *intdata6 = dataFile.add_var("UseInfo", ncChar, nTime, xDim, nFlag);
         NcVar *intdata60 = dataFile.add_var("TypeID", ncInt, nTime, xDim);
-        NcVar *intdata7 = dataFile.add_var("Time", ncLong, nTime);   
-    
+        NcVar *intdata7 = dataFile.add_var("Time", ncLong, nTime);
+
         intdata1->put(&Interpolated[0], 1, NX);
         intdata10->put(&Redistributed[0], 1, NX);
         intdata80->put(&ConfidenceParameter[0], 1, NX);
         intdata2->put(&Original[0],1, NX);
         intdata20->put(&Corrected[0],1, NX);
-        intdata3->put(&Location[0][0], 1, NX, NP);   
+        intdata3->put(&Location[0][0], 1, NX, NP);
         intdata5->put(&QQ[0][0],1,NX,NF);
-        intdata6->put(&UU[0][0],1,NX,NF);   
-        intdata60->put(&Cdftypeid[0],1,NX);   
+        intdata6->put(&UU[0][0],1,NX,NF);
+        intdata60->put(&Cdftypeid[0],1,NX);
         intdata7->put(&JulianDay,1);
-      
+
     } else{
-   	  
+
         NcFile dataFile("interpolations.nc", NcFile::Write);
         NcDim* nTime = dataFile.rec_dim();
-       
+
         netcdf_index = nTime->size();
-          
+
         if (dataFile.is_valid())
-        {      
+        {
             NcVar *appdata1 = dataFile.get_var("Interpolations");
             NcVar *appdata10 = dataFile.get_var("Redistributed");
             NcVar *appdata80 = dataFile.get_var("ConfidenceParameter");
@@ -1581,46 +1529,46 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
             NcVar *appdata5 = dataFile.get_var("ControlInfo");
             NcVar *appdata6 = dataFile.get_var("UseInfo");
             NcVar *appdata60 = dataFile.get_var("TypeID");
-            NcVar *appdata7 = dataFile.get_var("Time");   
-       
+            NcVar *appdata7 = dataFile.get_var("Time");
+
             appdata1->set_cur( netcdf_index, 0);
             appdata10->set_cur( netcdf_index, 0);
             appdata80->set_cur( netcdf_index, 0);
             appdata2->set_cur( netcdf_index, 0);
             appdata20->set_cur( netcdf_index, 0);
-            appdata3->set_cur( netcdf_index, 0,0);            
+            appdata3->set_cur( netcdf_index, 0,0);
             appdata5->set_cur( netcdf_index, 0,0);
             appdata6->set_cur( netcdf_index, 0,0);
             appdata60->set_cur( netcdf_index, 0);
             appdata7->set_cur( netcdf_index );
- 
+
             appdata1->put(&Interpolated[0], 1, NX);
             appdata10->put(&Redistributed[0], 1, NX);
             appdata80->put(&ConfidenceParameter[0], 1, NX);
             appdata2->put(&Original[0],1, NX);
             appdata20->put(&Corrected[0],1, NX);
-            appdata3->put(&Location[0][0],1, NX, NP);   
+            appdata3->put(&Location[0][0],1, NX, NP);
             appdata5->put(&QQ[0][0],1,NX,NF);
-            appdata6->put(&UU[0][0],1,NX,NF);   
-            appdata60->put(&Cdftypeid[0],1,NX);   
-            appdata7->put(&JulianDay,1);           
+            appdata6->put(&UU[0][0],1,NX,NF);
+            appdata60->put(&Cdftypeid[0],1,NX);
+            appdata7->put(&JulianDay,1);
         }
     }
-   
+
     //if (!dataFile.is_valid())
     //{
     //  cout << "Couldn't open file!\n";
     // return NC_ERR;
     //}
-   
+
     dataFile.close();
-   
+
     return result;
 }
 
 //
-/// Calculates the semivarigram for the loaded data 
-// 
+/// Calculates the semivarigram for the loaded data
+//
 //
 
 int Qc2D::SampleSemiVariogram()
@@ -1647,36 +1595,36 @@ int Qc2D::SampleSemiVariogram()
         for (unsigned int i=0 ; i<original_.size() ; i++) {
 
 
-            if (original_[i] != params.missing && original_[index] != params.missing) { 	  	
+            if (original_[i] != params.missing && original_[index] != params.missing) {
                 delta_lon=(lon_[index]-lon_[i])*radish;
                 delta_lat=(lat_[index]-lat_[i])*radish;
                 a        = sin(delta_lat/2)*sin(delta_lat/2) +
                     cos(lat_[i]*radish)*cos(lat_[index]*radish)*
                     sin(delta_lon/2)*sin(delta_lon/2);
                 c        =2.0 * atan2(sqrt(a),sqrt(1-a));
-   
-                temp_distance = RADIUS*c;                
+
+                temp_distance = RADIUS*c;
                 temp_gamma = 0.5*(original_[index] - original_[i])*(original_[index] - original_[i]);
-   
+
                 //std::cout << "SV: " << temp_distance <<  " " << temp_gamma << std::endl;
-   
+
                 Gamma.push_back( temp_gamma );
                 H.push_back( temp_distance );
             }
 
         }
-    }	
-       
+    }
+
     //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
-       
+    //the value in the second part of the pair is the index in the original array
+
     return 0;
 }
 
 
 //
 // Performs a Space Check [Early version very basic]
-// 
+//
 //
 
 
@@ -1697,13 +1645,13 @@ int Qc2D::SpaceCheck()
     int imax;
 
     ProcessControl CheckFlags;
- 
+
     std::map<int, std::list<int> > TheNeighbours;
 
     double sum, mean, var, dev, skew, kurt;
- 	  
+
     typedef pair <float,int> id_pair;
- 	  
+
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
 
@@ -1716,10 +1664,10 @@ int Qc2D::SpaceCheck()
                 cos(lat_[i]*radish)*cos(lat_[index]*radish)*
                 sin(delta_lon/2)*sin(delta_lon/2);
             c        =2.0 * atan2(sqrt(a),sqrt(1-a));
-         
-            temp_distance = RADIUS*c;                
+
+            temp_distance = RADIUS*c;
             pindex.push_back( id_pair(temp_distance,i) );
-        }	
+        }
 
         sort(pindex.begin(),pindex.end());
         imax=0;
@@ -1728,10 +1676,10 @@ int Qc2D::SpaceCheck()
         }
         //std::cout << original_[index] <<  " " << intp_[index]  << std::endl;
         for (int i=1 ; i<imax+1 ; i++) {  //NB i=0 corresponds to the station for which we do an interpolation
-                       
+
             data_point=original_[pindex[i].second];
             if (params.pid==110 && data_point==-1) {
-                data_point=0; 
+                data_point=0;
             }
             if (data_point != params.missing){
                 TheNeighbours[ index ].push_back( data_point );
@@ -1744,28 +1692,28 @@ int Qc2D::SpaceCheck()
             computeStats(TheNeighbours[index].begin( ), TheNeighbours[index].end( ), sum, mean, var, dev, skew, kurt);
             //std::cout << sum << " " <<  mean << " " << var << " " << dev << " " << skew << " " <<  kurt <<std::endl;
 
-            std::cout << "Useinfo: " << useinfo_[index] << " Original: " << original_[index] << 
+            std::cout << "Useinfo: " << useinfo_[index] << " Original: " << original_[index] <<
                 " Neighbour mean: " << mean << " +/- " << dev << std::endl;
         }
 
         //sleep(1);
         pindex.clear();
     }
-       
+
     //sort the data, i.e. by the distance to each neighbour
-    //the value in the second part of the pair is the index in the original array 
+    //the value in the second part of the pair is the index in the original array
 
     //if (NeighboursUsed.size() > 0) {
     //computeStats(NeighboursUsed.begin( ), NeighboursUsed.end( ), sum, mean, var, dev, skew, kurt);
     //}
- 
-} 
+
+}
 //
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 //
-///Ad hoc filter. e.g. use to remove missing values before calculating the variance of a data set and 
-///set -1s to 0s. e.g.: 
+///Ad hoc filter. e.g. use to remove missing values before calculating the variance of a data set and
+///set -1s to 0s. e.g.:
 /// Object.filter(fdata, -1, 200.0, -1.0, 0.0);
 void Qc2D::filter(vector<float>& fdata, float Min, float Max, float IfMod=0.0, float Mod=0.0)
 {
@@ -1775,7 +1723,7 @@ void Qc2D::filter(vector<float>& fdata, float Min, float Max, float IfMod=0.0, f
         dude = (original_[i] <= Max && original_[i] >= Min) ? original_[i] :params.missing;
         if (dude == IfMod) { dude=Mod; }
         if (dude != params.missing) {
-            fdata.push_back(dude); 
+            fdata.push_back(dude);
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
   Copyright (C) 2011 met.no
 
@@ -13,17 +13,17 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -62,14 +62,14 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         Qc2D GSW(Qc2Data, StationList, params, "Generate Missing Rows");
         GSW.Qc2_interp();
         std::list<kvalobs::kvData> ReturnData;
-        GSW.distributor(StationList, ReturnData, 0);
+        GSW.distributor(ReturnData, 0);
         //GSW.write_cdf(StationList);
 
         //std::cout << "Not Empty" << std::endl;
         foreach(const kvalobs::kvData& d, ReturnData) {
             //LOGINFO("---------------->: "+ kvqc2logstring(*id) );
             miutil::miTime PreviousCheck = d.obstime();
-            PreviousCheck.addDay(-1);
+            PreviousCheck.addDay(-1); // FIXME this should be Step_DD from the config file
             std::list<kvalobs::kvData> CheckData;
             if( !database()->dataForStationParamTimerange(CheckData, d.stationID(), params.pid, PreviousCheck, PreviousCheck) ) {
                 LOGERROR("Problem with station data query in ProcessRedistribution");
@@ -104,5 +104,5 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
     std::list<kvalobs::kvData> Qc2Data;
     std::list<kvalobs::kvData> ReturnData;
     Qc2D GSW(Qc2Data, StationList, params);
-    GSW.distributor(StationList, ReturnData, 1); /// solution for memory cleanup ... maybe needs to be improved.
+    GSW.distributor(ReturnData, 1); /// solution for memory cleanup ... maybe needs to be improved.
 }

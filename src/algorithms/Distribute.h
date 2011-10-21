@@ -15,7 +15,7 @@
 #include "ProcessControl.h"
 #include "scone.h"
 
-///The class manages the redistribution of 24 hour precipitation data. 
+///The class manages the redistribution of 24 hour precipitation data.
 
 class Distribute {
 
@@ -23,21 +23,15 @@ private:
     ProcessControl ControlFlag;
 
 public:
-
-    Distribute( const std::list<kvalobs::kvStation> & slist, const ReadProgramOptions& params);
-    ~Distribute(){}
-
-    void add_element(int & sid, float & data, float & intp, float & corr, float & newd, miutil::miTime & tbtime, miutil::miTime & time, int & sensor, int & level, int & d_tid, kvalobs::kvControlInfo & d_control, kvalobs::kvUseInfo & d_use, miutil::miString & cfailed);
-    void clean_station_entry( int & sid );
+    void add_element(int sid, float data, float intp, float corr, float newd, const miutil::miTime& tbtime, const miutil::miTime& time, int sensor, int level, int d_tid, const kvalobs::kvControlInfo& d_control, const kvalobs::kvUseInfo& d_use, const miutil::miString& cfailed);
+    void clean_station_entry(int sid);
 
     // void RedistributeStationData( int & sid , std::list<kvalobs::kvData>& ReturnData );
-    void RedistributeStationData( int & sid, std::list<kvalobs::kvData>& ReturnData);
+    void RedistributeStationData(int sid, std::list<kvalobs::kvData>& ReturnData, const ReadProgramOptions& params);
 
     void clear_all();
-  
-private:
-    const ReadProgramOptions& params;
 
+private:
     std::map<int, std::vector<float> > dst_data;
     std::map<int, std::vector<float> > dst_intp;
     std::map<int, std::vector<float> > dst_corr;
@@ -48,7 +42,7 @@ private:
 
     std::map<int, std::vector<int> > d_sensor;
     std::map<int, std::vector<int> > d_level;
-  
+
     std::map<int, std::vector<int> >    d_typeid;
     std::map<int, std::vector<kvalobs::kvControlInfo> > d_controlinfo;
     std::map<int, std::vector<kvalobs::kvUseInfo> > d_useinfo;

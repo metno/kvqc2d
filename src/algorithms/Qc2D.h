@@ -14,18 +14,16 @@
 #include "ReadProgramOptions.h"
 #include "ProcessControl.h"
 
-/// The Qc2Data object is a custom container for handling data subject to Qc2 algorithms. 
-/// It is designed to hold data from the whole network and include the geographic 
-/// co-ordinates and altitude of each point. The geo-statistical algorithms which make up 
+/// The Qc2Data object is a custom container for handling data subject to Qc2 algorithms.
+/// It is designed to hold data from the whole network and include the geographic
+/// co-ordinates and altitude of each point. The geo-statistical algorithms which make up
 /// Qc2 space controls require this information to be managed together.
-/// Each structure includes a full kvalobs::kvData record 
-/// with the associated station location (height, latitude, longitude). 
+/// Each structure includes a full kvalobs::kvData record
+/// with the associated station location (height, latitude, longitude).
 
 class Qc2D{
-	
-private:
 
-public:
+private:
     std::vector<int>                    stid_;
     std::vector<miutil::miTime>         obstime_;
     std::vector<float>                  original_;
@@ -52,7 +50,7 @@ public:
     void istindex(int stid)             {stindex[ stid ] = stid_.size()-1;}
 
     //maps the station id to the index of the vectors
-    //as they are populated ... does this work for all 
+    //as they are populated ... does this work for all
     //compilers?? i.e. size can never be 0 because an
     //element is always created in the statement.
 
@@ -82,19 +80,21 @@ public:
 
     int stationID() const { return stid_[0]; }
 
+public:
     ~Qc2D(){};
 
     Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params);
     Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params, std::string GenerateMissing);
 
     void clean();
- 
+
     friend std::ostream& operator<<(std::ostream& stm, const Qc2D &Q);
 
     void Qc2_interp();
-  
-    void distributor(const std::list<kvalobs::kvStation> & slist, std::list<kvalobs::kvData>& ReturnData,int ClearFlag);  // UMPH !!! ClearFlag
 
+    void distributor(std::list<kvalobs::kvData>& ReturnData,int ClearFlag);  // UMPH !!! ClearFlag
+
+private:
     void calculate_intp_all(unsigned int index);
     void calculate_intp_temp(unsigned int index);
     void idw_intp_limit(unsigned int index);
@@ -108,10 +108,10 @@ public:
 
     int SampleSemiVariogram();
     int SpaceCheck();
-                                      
-  
+
+
     int write_cdf(const std::list<kvalobs::kvStation> & slist); // write the data record to a CDF file
-  
+
     void filter(std::vector<float>& fdata, float Min, float Max, float IfMod, float Mod);
 
 private:
