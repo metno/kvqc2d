@@ -48,7 +48,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
-    for(miutil::miTime ProcessTime = params.UT0; ProcessTime <= params.UT1; ProcessTime.addDay()) {
+    for(miutil::miTime ProcessTime = params.UT0; ProcessTime <= params.UT1; ProcessTime.addDay(1)) {
 
         std::list<kvalobs::kvData> Qc2Data;
         if( !database()->dataForStationsParamTimerange(Qc2Data, StationIds, params.pid, ProcessTime, ProcessTime) ) {

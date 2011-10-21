@@ -27,87 +27,52 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <list>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <algorithm>
 #include "Qc2D.h"
+
+#include "AlgorithmHelpers.h"
+#include "BasicStatistics.h"
 #include "Distribute.h"
 #include "StationSelection.h"
-#include "BasicStatistics.h"
-#include <dnmithread/mtcout.h>
-#include <kvalobs/kvData.h>
-#include "kvQABaseTypes.h"
-#include <map>
-
-#include <netcdfcpp.h>
-
-#include <milog/milog.h>
-
 #include "ProcessControl.h"
 #include "proj++.h"
-
 #include "table_delaunay.h"
 
-using namespace std;
-using namespace miutil;
-using namespace dnmi;
+#include <kvalobs/kvData.h>
+#include <milog/milog.h>
 
+#include "foreach.h"
+#include <netcdfcpp.h>
+#include <map>
+
+Qc2D::StationData::StationData(const kvalobs::kvData& o, const kvalobs::kvStation& station)
+    : mObservation(o), mLon(station.lon()), mLat(station.lat()), mAltitude(station.height()),
+      mInterpolated(-10), mRedis(-10), mConfidence(-10)
+{
+}
+
+Qc2D::StationData::StationData()
+    : mLon(1000), mLat(1000), mAltitude(-10000), mInterpolated(-10), mRedis(-10), mConfidence(-10)
+{
+}
+
+// #######################################################################
 
 ///Method to clear() all of the vectors held in the Qc2D data structure.
 void Qc2D::clean()
 {
-    stid_.clear();
-    obstime_.clear();
-    original_.clear();
-    paramid_.clear();
-    tbtime_.clear();
-    typeid_.clear();
-    sensor_.clear();
-    level_.clear();
-    corrected_.clear();
-    controlinfo_.clear();
-    useinfo_.clear();
-    cfailed_.clear();
-
-    intp_.clear();
-    redis_.clear();
-    lat_.clear();
-    lon_.clear();
-    ht_.clear();
-    CP_.clear();
-
-    stindex.clear();
+    mStationsByID.clear();
 }
 
 Qc2D::Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& PPP)
     : params( PPP )
 {
     std::map<int, kvalobs::kvStation> Gsid;
-    for ( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
-        Gsid[ it->stationID() ] = *it;
-    }
-    for (std::list<kvalobs::kvData>::const_iterator id = QD.begin(); id != QD.end(); ++id) {
-        istid( id->stationID() );
-        iobstime( id->obstime() );
-        ioriginal( id->original() );
-        iparamid( id->paramID() );
-        itbtime( id->tbtime() );
-        itypeid( id->typeID() );
-        isensor( id->sensor() );
-        ilevel( id->level() );
-        icorrected( id->corrected() );
-        icontrolinfo( id->controlinfo() );
-        iuseinfo( id->useinfo() );
-        icfailed( id->cfailed() );
-        iintp( -10.0 );
-        iredis( -10.0 );
-        icp( -10.0 );
-        iht(Gsid[ id->stationID() ].height());
-        ilat(Gsid[ id->stationID() ].lat());
-        ilon(Gsid[ id->stationID() ].lon());
-        istindex( id->stationID() );
+    foreach(const kvalobs::kvStation& s, SL)
+        Gsid[ s.stationID() ] = s;
+
+    foreach(const kvalobs::kvData& o, QD) {
+        const int sid = o.stationID();
+        mStationsByID[ sid ] = StationData(o, Gsid[ sid ]);
     }
 }
 
@@ -115,130 +80,61 @@ Qc2D::Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, co
     : params( PPP )
 {
     std::map<int, kvalobs::kvStation> Gsid;
-    kvalobs::kvControlInfo::kvControlInfo controlNULL;
-    kvalobs::kvUseInfo::kvUseInfo useNULL;
-
-    for ( std::list<kvalobs::kvStation>::const_iterator it = SL.begin(); it != SL.end(); ++it ) {
-        Gsid[ it->stationID() ] = *it;
+    std::set<int> unusedStations;
+    foreach(const kvalobs::kvStation& s, SL) {
+        const int sid = s.stationID();
+        Gsid[ sid ] = s;
+        unusedStations.insert( sid );
     }
 
-    for (std::list<kvalobs::kvData>::const_iterator id = QD.begin(); id != QD.end(); ++id) {
-        istid( id->stationID() );
-        iobstime( id->obstime() );
-        ioriginal( id->original() );
-        iparamid( id->paramID() );
-        itbtime( id->tbtime() );
-        itypeid( id->typeID() );
-        isensor( id->sensor() );
-        ilevel( id->level() );
-        icorrected( id->corrected() );
-        icontrolinfo( id->controlinfo() );
-        iuseinfo( id->useinfo() );
-        icfailed( id->cfailed() );
-        iintp( -10.0 );
-        iredis( -10.0 );
-        icp( -10.0 );
-
-        iht(Gsid[ id->stationID() ].height());
-        ilat(Gsid[ id->stationID() ].lat());
-        ilon(Gsid[ id->stationID() ].lon());
-
-        istindex( id->stationID() );
+    foreach(const kvalobs::kvData& o, QD) {
+        const int sid = o.stationID();
+        unusedStations.erase( sid );
+        mStationsByID[ sid ] = StationData(o, Gsid[ sid ]);
     }
 
-/// Includes handling of missing rows.
-/// This block will add entries for stations with no values. If an accumulated value is found for these
-/// stations a reaccumulation is performed.
-    for ( std::list<kvalobs::kvStation>::const_iterator ist = SL.begin(); ist != SL.end(); ++ ist )
-    {
-        std::vector<int>::const_iterator vit = find (stid_.begin(), stid_.end(),  ist->stationID() );
-        if ( vit  != stid_.end() )
-        {
-            //std::cout << "Celebrity Match" << std::endl;
-        }
-        else
-        {
-            //std::cout << "Celebrity Miss" << std::endl;
-            std::list<kvalobs::kvData>::const_iterator zid=QD.begin();/// Need to check this logic!!!
-            iobstime( zid->obstime() );
-            iparamid( zid->paramID() );
-            itbtime( miutil::miTime::nowTime() );
-            isensor(0);
-            //isensor( zid->sensor() );
-            ilevel(0);                        // Check this ... is there a proxy one can use?
-            //ilevel( zid->level() );
-            icfailed( "Missing Row!" );
-            istid(ist->stationID());
-            ioriginal(params.missing);
-            itypeid(999);
-            icorrected(params.missing);
-            iredis(-10.0);
-            iintp(-10.0);
-            icp( -10.0 );
-            icontrolinfo(controlNULL);
-            iuseinfo(useNULL);
-            iht(Gsid[ ist->stationID() ].height());
-            ilat(Gsid[ ist->stationID() ].lat());
-            ilon(Gsid[ ist->stationID() ].lon());
-            istindex( ist->stationID() );
-        }
+    /// Includes handling of missing rows.
+    /// This block will add entries for stations with no values. If an accumulated value is found for these
+    /// stations a re-accumulation is performed.
+    foreach(int sid, unusedStations) {
+        kvalobs::kvControlInfo::kvControlInfo controlNULL;
+        kvalobs::kvUseInfo::kvUseInfo useNULL;
+
+        // TODO need to check logic for missing rows dummy data
+        const kvalobs::kvData& templt = QD.front();
+        const kvalobs::kvData dummy(sid, templt.obstime(), params.missing, templt.paramID(), miutil::miTime::nowTime(),
+                999, 0, 0, params.missing, kvalobs::kvControlInfo(), kvalobs::kvUseInfo(), "Missing Row!");
+        mStationsByID[ sid ] = StationData(dummy, Gsid[ sid ]);
     }
 }
-
-std::ostream& operator<<(std::ostream& stm, const Qc2D &Q)
-{
-    stm << "Qc2 Data:";
-    for (unsigned int i=0; i<Q.stid_.size(); i++){
-        stm <<"{"<< Q.stid_[i]
-            <<","<< Q.obstime_[i]
-            <<","<< Q.original_[i]
-            <<","<< Q.paramid_[i]
-            <<","<< Q.tbtime_[i]
-            <<","<< Q.typeid_[i]
-            <<","<< Q.sensor_[i]
-            <<","<< Q.level_[i]
-            <<","<< Q.corrected_[i]
-            <<","<< Q.controlinfo_[i]
-            <<","<< Q.useinfo_[i]
-            <<","<< Q.cfailed_[i]
-            <<","<< Q.intp_[i]
-            <<","<< Q.redis_[i]
-            <<","<< Q.lat_[i]
-            <<","<< Q.lon_[i]
-            <<","<< Q.ht_[i]
-            <<","<< Q.CP_[i]
-            <<"}"<< std::endl;
-    }
-    return stm;
-}
-
-
 
 /// Method to pass Qc2D data for redistribution of accumulated values. ((Needs to be reworked!! Encapsulate!))
-void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData,int ClearFlag)
+void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
 {
     static Distribute DataForRedistribution; // TODO why is this static?
     if (ClearFlag)
         DataForRedistribution.clear_all();  //For cleaning up memory when all is done!
 
-    for (unsigned int i=0 ; i<original_.size() ; i++) {
-        if ( ControlFlag.condition(controlinfo_[i],params.Aflag)
-             && ( find(params.tids.begin(),params.tids.end(),typeid_[i])!=params.tids.end() ) )
+    foreach(stationsByID_t::value_type& v, mStationsByID) {
+        const StationData& sd = v.second;
+        if( ControlFlag.condition(sd.mObservation.controlinfo(), params.Aflag)
+            && std::find(params.tids.begin(), params.tids.end(), sd.mObservation.typeID()) != params.tids.end() )
         {
             ///Only redistribute typeids specified in the configuration file
-            DataForRedistribution.add_element(stid_[i],original_[i],intp_[i],corrected_[i],redis_[i],
-                                              tbtime_[i],obstime_[i], sensor_[i], level_[i], typeid_[i],
-                                              controlinfo_[i], useinfo_[i], cfailed_[i]);
+            const kvalobs::kvData& o = sd.mObservation;
+            DataForRedistribution.add_element(o.stationID(), o.original(), sd.mInterpolated, o.corrected(), sd.mRedis,
+                                              o.tbtime(), o.obstime(), o.sensor(), o.level(), o.typeID(),
+                                              o.controlinfo(), o.useinfo(), o.cfailed());
 
-            if (original_[i] != params.missing) {        // This condition means the
+            if( sd.mObservation.original() != params.missing ) {
+                // This condition means the
                 // value is no longer missing
                 // This is data to Redistribute
-                if (original_[i] != params.rejected)
-                    DataForRedistribution.RedistributeStationData(stid_[i],ReturnData ,params);
-                // Add also a check for the case where the value is rejected
-                // Then do not redistribute
-                DataForRedistribution.clean_station_entry(stid_[i]);
-
+                if( sd.mObservation.original() != params.rejected)
+                    // Add also a check for the case where the value is rejected
+                    // Then do not redistribute
+                    DataForRedistribution.RedistributeStationData(sd.mObservation.stationID(), ReturnData ,params);
+                DataForRedistribution.clean_station_entry(sd.mObservation.stationID());
             }
         }
     }
@@ -249,14 +145,18 @@ void Qc2D::Qc2_interp()
 {
     int InterpCode = params.InterpCode;
 
-    for (unsigned int i=0 ; i<original_.size() ; i++) {
+    foreach(stationsByID_t::value_type& v, mStationsByID) {
+        StationData& sd = v.second;
         switch (InterpCode) {
+#if 0
         case 1:
             calculate_intp_all(i);
             break;
+#endif
         case 2:
-            idw_intp_limit(i);
+            idw_intp_limit(sd);
             break;
+#if 0
         case 3:
             calculate_intp_h(i);  // This option would add a 10% correction to the height for every 100m.
             break;
@@ -264,14 +164,14 @@ void Qc2D::Qc2_interp()
             if (params.NeighbourFilename != "NotSet") {
                 StationSelection Adjacent(params.NeighbourFilename);
                 std::map<int, std::list<int> > Neighbours=Adjacent.ReturnMap(); /// Rework this later ...
-                calculate_intp_sl(i,Neighbours[ stid_[i] ]);  // Perform the interpolation over a station list
+                calculate_intp_sl(i, Neighbours[ sd.mObservation.stationID() ]);  // Perform the interpolation over a station list
             }
             break;
         case 5:
             if (params.NeighbourFilename != "NotSet") {
                 StationSelection Adjacent(params.NeighbourFilename);
                 std::map<int, std::list<int> > Neighbours=Adjacent.ReturnMap(); /// Rework this later ...
-                calculate_trintp_sl(i,Neighbours[ stid_[i] ]); // Perform the interpolation over a station list
+                calculate_trintp_sl(i, Neighbours[ sd.mObservation.stationID() ]); // Perform the interpolation over a station list
                 // and performs linear gradient interpolation
             }
             break;
@@ -290,6 +190,7 @@ void Qc2D::Qc2_interp()
         case 10:
             calculate_intp_temp(i);
             break;
+#endif
         default:
             std::cout << "No valid Interpolation Code Provided. Case: " << InterpCode << std::endl;
             break;
@@ -297,6 +198,7 @@ void Qc2D::Qc2_interp()
     }
 }
 
+#if 0
 /// Inverse distance weighting interpolation prototype.
 /// Algorithm to construct a model value by inverse distance weighting from neighbouring stations.
 /// This optionincludes experimental investigation of various uniformity tests.
@@ -315,7 +217,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 
     bool first_station;
 
-    typedef pair <float,int> id_pair;
+    typedef std::pair <float,int> id_pair;
 
     // pindex will hold the "station_distance" and the index in the
     // original data array.
@@ -323,7 +225,7 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
 
-    for (unsigned int i=0 ; i<original_.size() ; i++) {
+    for( unsigned int i=0 ; i<original_.size() ; i++) {
 
         delta_lon=(lon_[index]-lon_[i])*radish;
         delta_lat=(lat_[index]-lat_[i])*radish;
@@ -532,74 +434,71 @@ void Qc2D::calculate_intp_wet_dry(unsigned int index)
 
     }
 }
+#endif
 
 ///Inverse distance weighting interpolation prototype.
 /// Algorithm to construct a model value by inverse distance weighting from neighbouring stations.
 /// This optionincludes experimental investigation of various uniformity tests.
-void Qc2D::idw_intp_limit(unsigned int index)
+void Qc2D::idw_intp_limit(StationData& sInterpol)
 {
-    ProcessControl CheckFlags;
-
-    std::vector<float> NeighboursUsed;
-
     // pindex will hold the "station_distance" and the index in the  original data array.
-    typedef pair <float,int> id_pair;
+    typedef std::pair <float,int> id_pair;
     std::vector<id_pair> pindex;
 
-    for(unsigned int i=0 ; i<original_.size() ; i++) {
-        const double radish = M_PI/180;
-        const double RADIUS=6371.0;
-        const double delta_lon=(lon_[index]-lon_[i])*radish;
-        const double delta_lat=(lat_[index]-lat_[i])*radish;
-        const double a = sin(delta_lat/2)*sin(delta_lat/2) +
-            cos(lat_[i]*radish)*cos(lat_[index]*radish)*
-            sin(delta_lon/2)*sin(delta_lon/2);
-        const double c =2.0 * atan2(sqrt(a),sqrt(1-a));
-
-        const double temp_distance = RADIUS*c;
-        if( temp_distance < params.InterpolationLimit )
-            pindex.push_back( id_pair(temp_distance,i) );
+    foreach(stationsByID_t::value_type& v, mStationsByID) {
+        const StationData& sd = v.second;
+        if( sd.mObservation == sInterpol.mObservation )
+            continue;
+        const double distance = Helpers::distance(sInterpol.mLon, sInterpol.mLat, sd.mLon, sd.mLat);
+        if( distance < params.InterpolationLimit )
+            pindex.push_back( id_pair(distance, sd.mObservation.stationID()) );
     }
-    if( pindex.size() < 2 )
+    if( pindex.size() <= 1 ) // TODO decide how many neighbors are required
         return;
 
     float sumWeights = 0.0;
     float sumWeightedValues = 0.0;
+    std::vector<float> NeighboursUsed;
+    ProcessControl CheckFlags;
 
     bool first_station = true;
-    for( int i=1; i<pindex.size(); i++ ) { //NB i=0 corresponds to the station for which we do an interpolation
-
-        float data_point = original_[pindex[i].second];
+    for( unsigned int i=0; i<pindex.size(); i++ ) {
+        StationData& sd = mStationsByID[ pindex[i].second ];
+        kvalobs::kvData& o = sd.mObservation;
+        float data_point = sd.mObservation.original();
         if (data_point == -1)
             data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
 
         if( data_point > -1
             && pindex[i].first > 0
-            && CheckFlags.condition(controlinfo_[pindex[i].second],params.Iflag) )
+            && CheckFlags.condition(o.controlinfo(), params.Iflag) )
         {
-            sumWeights += 1.0/(pindex[i].first*pindex[i].first);
-            sumWeightedValues += data_point/(pindex[i].first*pindex[i].first);
+            const double invDist2 = 1.0/(pindex[i].first*pindex[i].first);
+            sumWeights += invDist2;
+            sumWeightedValues += data_point*invDist2;
+            miutil::miString cf = sInterpol.mObservation.cfailed();
             if( first_station ) {
-                if (cfailed_[index].length() > 0)
-                    cfailed_[index] += ",";
+                if( cf.length() > 0 )
+                    cf += ",";
                 first_station=false;
-                cfailed_[index]+="QC2N";
+                cf += "QC2N";
             }
-            cfailed_[index]+="_"+StrmConvert(stid_[pindex[i].second]);
+            cf += "_" + StrmConvert(o.stationID());
+            sInterpol.mObservation.cfailed(cf);
             NeighboursUsed.push_back(data_point);
         }
     }
 
-    if( sumWeights > 0.0 ) {
+    if( sumWeights > 0 ) {
         double sum, mean, var, dev, skew, kurt;
         computeStats(NeighboursUsed.begin(), NeighboursUsed.end(), sum, mean, var, dev, skew, kurt);
 
-        intp_[index] = sumWeightedValues/sumWeights;
-        CP_[index]=dev;
+        sInterpol.mInterpolated = sumWeightedValues/sumWeights;
+        sInterpol.mConfidence = dev;
     }
 }
 
-
+#if 0
 /// Inverse distance weighting interpolation prototype.
 /// Algorithm to construct a model value by inverse distance weighting from neighbouring stations.
 /// Includes a 10 % modification to the rainfall with 100 m or altitude up to 1000m and 5% for
@@ -626,7 +525,7 @@ void Qc2D::calculate_intp_h(unsigned int index)
     float height;
 
 
-    typedef pair <float,int> id_pair;
+    typedef std::pair<float,int> id_pair;
 
     // pindex will hold the "station_distance" and the index in the
     // original data array.
@@ -947,7 +846,7 @@ void Qc2D::intp_temp(unsigned int index)
     double sum, mean, var, dev, skew, kurt;
 
 
-    typedef pair <float,int> id_pair;
+    typedef std::pair <float,int> id_pair;
 
     // pindex will hold the "station_distance" and the index in the
     // original data array.
@@ -1129,7 +1028,7 @@ void Qc2D::intp_delaunay(unsigned int index)
     double XX_triangle[3]; // corresponds to the triangle longitudes !!!
     double YY_triangle[3]; // corresponds to the triangle latitudes  !!!
 
-    typedef pair <float,int> id_pair;
+    typedef std::pair <float,int> id_pair;
 
     double Denom,d_rr_over_d_x,d_rr_over_d_y;
     double x[3], y[3],rr[3];
@@ -1435,7 +1334,7 @@ int Qc2D::write_cdf(const std::list<kvalobs::kvStation> & slist)
 
         if (iv != stid_.end()) {
 
-            vector<int>::difference_type d = distance(stid_.begin(), iv);
+            std::vector<int>::difference_type d = distance(stid_.begin(), iv);
 
             Cdftypeid[counter]=typeid_[d];
 
@@ -1650,7 +1549,7 @@ int Qc2D::SpaceCheck()
 
     double sum, mean, var, dev, skew, kurt;
 
-    typedef pair <float,int> id_pair;
+    typedef std::pair <float,int> id_pair;
 
     std::vector<id_pair> pindex;
     std::vector<id_pair>::const_iterator ip;
@@ -1669,7 +1568,7 @@ int Qc2D::SpaceCheck()
             pindex.push_back( id_pair(temp_distance,i) );
         }
 
-        sort(pindex.begin(),pindex.end());
+        std::sort(pindex.begin(),pindex.end());
         imax=0;
         for (unsigned int i=0 ; i<original_.size() ; i++) {
             if (pindex[i].first < max_distance) imax=i;
@@ -1706,7 +1605,7 @@ int Qc2D::SpaceCheck()
     //if (NeighboursUsed.size() > 0) {
     //computeStats(NeighboursUsed.begin( ), NeighboursUsed.end( ), sum, mean, var, dev, skew, kurt);
     //}
-
+    return 0;
 }
 //
 // ----------------------------------------------------------------------
@@ -1715,7 +1614,7 @@ int Qc2D::SpaceCheck()
 ///Ad hoc filter. e.g. use to remove missing values before calculating the variance of a data set and
 ///set -1s to 0s. e.g.:
 /// Object.filter(fdata, -1, 200.0, -1.0, 0.0);
-void Qc2D::filter(vector<float>& fdata, float Min, float Max, float IfMod=0.0, float Mod=0.0)
+void Qc2D::filter(std::vector<float>& fdata, float Min, float Max, float IfMod=0.0, float Mod=0.0)
 {
     fdata.clear();
     float dude;
@@ -1727,3 +1626,5 @@ void Qc2D::filter(vector<float>& fdata, float Min, float Max, float IfMod=0.0, f
         }
     }
 }
+
+#endif

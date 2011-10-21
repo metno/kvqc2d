@@ -31,6 +31,7 @@
 #include "algorithms/ProcessRedistribution.h"
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
+#include "foreach.h"
 
 class RedistributionTest : public AlgorithmTestBase {
 public:
@@ -300,11 +301,19 @@ TEST_F(RedistributionTest, Bugzilla1333)
 
     const float expected_corrected[2] = { 10.5, 2.3 };
     const char* expected_controlinfo[2] = { "0000001000007000", "0140004000007000" };
+    const char* expected_cfailed_end[2] = { ",QC2N_83520_84190,QC2-redist", ",QC2N_83520_84190,QC2-redist" };
     for(int i=0; i<bc->count(); ++i) {
         const kvalobs::kvData& d = bc->updates()[i];
         EXPECT_EQ(83880, d.stationID()) << " at index " << i;
         EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected()) << " at index " << i;
         EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring()) << " at index " << i;
+        EXPECT_TRUE(Helpers::endsWith(d.cfailed(), expected_cfailed_end[i])) << " at index " << i << " cfailed=" << d.cfailed();
+    }
+
+    std::list<kvalobs::kvData> cfailedWithQC2;
+    ASSERT_TRUE( db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%'") );
+    foreach(const kvalobs::kvData& d, cfailedWithQC2) {
+        EXPECT_EQ(83880, d.stationID()) << " data=" << d;
     }
 
     bc->clear();
