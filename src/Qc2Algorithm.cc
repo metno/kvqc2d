@@ -14,7 +14,7 @@ Qc2Algorithm::~Qc2Algorithm()
 {
 }
 
-void Qc2Algorithm::fillStationLists(std::list<kvalobs::kvStation> stations, std::list<int>& idList)
+void Qc2Algorithm::fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList)
 {
     // TODO this list is not updated very often; maybe cache the results somewhere else
     Helpers::GetNorwegianFixedStations(mDatabase, stations);

@@ -52,7 +52,7 @@ public:
     ProcessControl checkFlags()
         { return mCheckFlags; }
 
-    void fillStationLists(std::list<kvalobs::kvStation> stations, std::list<int>& idList);
+    void fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
 private:
