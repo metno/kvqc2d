@@ -31,7 +31,6 @@ private:
         float mAltitude;
 
         float mInterpolated;
-        float mRedis;
         float mConfidence; // (e.g. standard deviation from the interpolation)
 
         StationData(const kvalobs::kvData& o, const kvalobs::kvStation& station);

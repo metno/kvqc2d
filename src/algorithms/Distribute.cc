@@ -112,9 +112,7 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
     for (int k=sindex-irun; k<=sindex ; ++k) {
 
         // Perform redistribution.
-        svec[k].mRedis = svec[k].mInterpolated * normaliser;
-
-        float roundVal = round<float,1>(svec[k].mRedis);
+        float roundVal = round<float,1>(svec[k].mInterpolated * normaliser);
         roundSum += roundVal;  // Need to check roundSum does not deviate too much from accval
         if (original_accval == -1.0)
             roundVal=-1.0;

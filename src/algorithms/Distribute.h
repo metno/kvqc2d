@@ -26,9 +26,8 @@ public:
     struct StationData {
         kvalobs::kvData mObservation;
         float mInterpolated;
-        float mRedis;
-        StationData(const kvalobs::kvData& o, float interpolated, float redis)
-            : mObservation(o), mInterpolated(interpolated), mRedis(redis) { }
+        StationData(const kvalobs::kvData& o, float interpolated)
+            : mObservation(o), mInterpolated(interpolated) { }
         StationData();
     };
 

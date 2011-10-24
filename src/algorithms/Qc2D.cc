@@ -46,12 +46,12 @@
 
 Qc2D::StationData::StationData(const kvalobs::kvData& o, const kvalobs::kvStation& station)
     : mObservation(o), mLon(station.lon()), mLat(station.lat()), mAltitude(station.height()),
-      mInterpolated(-10), mRedis(-10), mConfidence(-10)
+      mInterpolated(-10), mConfidence(-10)
 {
 }
 
 Qc2D::StationData::StationData()
-    : mLon(1000), mLat(1000), mAltitude(-10000), mInterpolated(-10), mRedis(-10), mConfidence(-10)
+    : mLon(1000), mLat(1000), mAltitude(-10000), mInterpolated(-10), mConfidence(-10)
 {
 }
 
@@ -122,7 +122,7 @@ void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
         {
             ///Only redistribute typeids specified in the configuration file
             const kvalobs::kvData& o = sd.mObservation;
-            DataForRedistribution.add_element(Distribute::StationData(o, sd.mInterpolated, sd.mRedis));
+            DataForRedistribution.add_element(Distribute::StationData(o, sd.mInterpolated));
 
             if( sd.mObservation.original() != params.missing ) {
                 // This condition means the
