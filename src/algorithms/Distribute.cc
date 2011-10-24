@@ -30,77 +30,46 @@
 */
 
 #include "Distribute.h"
+
+#include "AlgorithmHelpers.h"
 #include "tround.h"
+#include "foreach.h"
 
 ///Add a row to the data object holding items to be redistributed.
-void Distribute::add_element(int sid, float data, float intp, float corr, float newd,
-                             const miutil::miTime& tbtime, const miutil::miTime & obstime, int sensor,
-                             int level, int d_tid, const kvalobs::kvControlInfo& d_control,
-                             const kvalobs::kvUseInfo& d_use, const miutil::miString& cfailed)
+void Distribute::add_element(const StationData& sd)
 {
-    dst_data[ sid ].push_back(data);
-    dst_intp[ sid ].push_back(intp);
-    dst_corr[ sid ].push_back(corr);
-    dst_newd[ sid ].push_back(newd);
-    dst_tbtime[ sid ].push_back(tbtime);
-    dst_time[ sid ].push_back(obstime);
-    d_sensor[ sid ].push_back(sensor);
-    d_level[ sid ].push_back(level);
-    d_typeid[ sid ].push_back(d_tid);
-    d_controlinfo[ sid ].push_back(d_control);
-    d_useinfo[ sid ].push_back(d_use);
-    d_cfailed[ sid ].push_back(cfailed);
+    int sid = sd.mObservation.stationID();
+    mStationsByID[ sid ].push_back(sd);
 }
 
 /// Clear all data from the redistribution data object.
 void Distribute::clear_all()
 {
-    dst_data.clear();
-    dst_intp.clear();
-    dst_corr.clear();
-    dst_newd.clear();
-    dst_tbtime.clear();
-    dst_time.clear();
-    d_sensor.clear();
-    d_level.clear();
-    d_typeid.clear();
-    d_controlinfo.clear();
-    d_useinfo.clear();
-    d_cfailed.clear();
+    mStationsByID.clear();
 }
 
 /// Clear single station entry from the redistribution data object.
 void Distribute::clean_station_entry(int sid)
 {
-    dst_data[ sid ].clear();
-    dst_intp[ sid ].clear();
-    dst_corr[ sid ].clear();
-    dst_newd[ sid ].clear();
-    dst_tbtime[ sid ].clear();
-    dst_time[ sid ].clear();
-    d_sensor[ sid ].clear();
-    d_level[ sid ].clear();
-    d_typeid[ sid ].clear();
-    d_controlinfo[ sid ].clear();
-    d_useinfo[ sid ].clear();
-    d_cfailed[ sid ].clear();
+    mStationsByID[ sid ].clear();
 }
 
 /// Algorithm to redistribute data based on interpolated model data.
 void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& ReturnData, const ReadProgramOptions& params)
 {
+    std::vector<StationData>& svec = mStationsByID[ stid ];
     // need to keep accval -- if it is -1 need to set all redistributed elements to -1
-    const float original_accval = dst_data[ stid ][ dst_data[ stid ].size() -1 ];
+    const float original_accval = svec.back().mObservation.original();
     float accval = original_accval;
     if (accval == -1.0)
         accval=0.0;
 
     int irun = 0;
-    int index=dst_data[ stid ].size()-1 ;
+    int index = svec.size()-1 ;
     const int sindex=index;
     float missing_val = params.missing;
     while (missing_val == params.missing && index != 0) { //works out how long the series to redistribute is
-        missing_val=dst_data[ stid ][ index - 1 ];
+        missing_val = svec[ index - 1 ].mObservation.original();
         ++irun;
         --index;
     }
@@ -108,7 +77,7 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
     if( irun<1 )
         return;
 
-    if( dst_time[ stid ][ sindex-irun ] <= params.UT0 ) {
+    if( svec[ sindex-irun ].mObservation.obstime() == params.UT0 ) {
         // NB if the available data starts at the first time
         // we cannot redistribute since there might be times
         // earlier!!!
@@ -117,16 +86,16 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
 
     float sumint = 0.0;
     for( int k=sindex; k>=sindex-irun ; --k ) {
-        if( dst_intp[ stid ][ k ] == -10.0 )
+        if( svec[ k ].mInterpolated == -10.0 )
             return;  // this is set if any of the points are unavailable
-        sumint += dst_intp[ stid ][ k ];
+        sumint += svec[ k ].mInterpolated;
 
         // Also a check for time continuity
         if( k != sindex-irun ) {
-            const miutil::miTime& d_now = dst_time[ stid ][ k ];
+            const miutil::miTime& d_now = svec[k].mObservation.obstime();
             miutil::miTime d_test = d_now;
             d_test.addDay(-1);
-            const miutil::miTime& d_next = dst_time[ stid ][ k-1 ];
+            const miutil::miTime& d_next = svec[k-1].mObservation.obstime();
             if ( d_next != d_test )
                 return;
         }
@@ -143,9 +112,9 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
     for (int k=sindex-irun; k<=sindex ; ++k) {
 
         // Perform redistribution.
-        dst_newd[ stid ][ k ] = dst_intp[ stid ][ k ] * normaliser;
+        svec[k].mRedis = svec[k].mInterpolated * normaliser;
 
-        float roundVal = round<float,1>(dst_newd[ stid ][ k ]);
+        float roundVal = round<float,1>(svec[k].mRedis);
         roundSum += roundVal;  // Need to check roundSum does not deviate too much from accval
         if (original_accval == -1.0)
             roundVal=-1.0;
@@ -153,34 +122,25 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
             roundVal=-1.0;   // BUG1304 ... By default assume dry.
 
         // Set flags and do housecleaning indicating that a redistribution has been done
-        const miutil::miTime& fixtime = dst_time[ stid ][ k ];
-        kvalobs::kvControlInfo fixflags = d_controlinfo[ stid ][ k ];
-
+        kvalobs::kvControlInfo fixflags = svec[ k ].mObservation.controlinfo();
         ControlFlag.setter(fixflags,params.Sflag);
         ControlFlag.conditional_setter(fixflags,params.chflag);
 
-        miutil::miString new_cfailed = d_cfailed[ stid ][ k ];
-        if (new_cfailed.length() > 0)
-            new_cfailed += ",";
-        new_cfailed += "QC2-redist";
-        if (params.CFAILED_STRING.length() > 0)
-            new_cfailed += ","+params.CFAILED_STRING;
-
-        kvalobs::kvData ReturnElement(stid,fixtime,dst_data[ stid ][ k ],110,
-                          dst_tbtime[ stid ][ k ],d_typeid[ stid ][ k ], d_sensor[ stid ][ k ],
-                          d_level[ stid ][ k ], roundVal,fixflags,
-                          d_useinfo[ stid ][ k ],
-                          new_cfailed);
-        ReturnData.push_back(ReturnElement);
+        kvalobs::kvData correctedData(svec[k].mObservation);
+        correctedData.corrected(roundVal);
+        correctedData.controlinfo(fixflags);
+        Helpers::updateUseInfo(correctedData);
+        Helpers::updateCfailed(correctedData, "QC2-redist", params.CFAILED_STRING);
+        ReturnData.push_back(correctedData);
     }
 
     // Check ReturnData
     // IF VALUES ARE DIFFERENT
     float compareSum = round<float,1>(roundSum-accval);
     if (compareSum != 0.0) {
-        for (std::list<kvalobs::kvData>::reverse_iterator iq=ReturnData.rbegin(); iq!=ReturnData.rend(); ++iq) {
-            if ((iq->corrected() - compareSum) > 0.0) {
-                iq->corrected(iq->corrected() - compareSum);
+        foreach(kvalobs::kvData& d, ReturnData) {
+            if ((d.corrected() - compareSum) > 0.0) {
+                d.corrected(d.corrected() - compareSum);
                 compareSum=0.0;
             }
         }

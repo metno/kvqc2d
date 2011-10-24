@@ -23,7 +23,16 @@ private:
     ProcessControl ControlFlag;
 
 public:
-    void add_element(int sid, float data, float intp, float corr, float newd, const miutil::miTime& tbtime, const miutil::miTime& time, int sensor, int level, int d_tid, const kvalobs::kvControlInfo& d_control, const kvalobs::kvUseInfo& d_use, const miutil::miString& cfailed);
+    struct StationData {
+        kvalobs::kvData mObservation;
+        float mInterpolated;
+        float mRedis;
+        StationData(const kvalobs::kvData& o, float interpolated, float redis)
+            : mObservation(o), mInterpolated(interpolated), mRedis(redis) { }
+        StationData();
+    };
+
+    void add_element(const StationData& sd);
     void clean_station_entry(int sid);
 
     // void RedistributeStationData( int & sid , std::list<kvalobs::kvData>& ReturnData );
@@ -32,23 +41,8 @@ public:
     void clear_all();
 
 private:
-    std::map<int, std::vector<float> > dst_data;
-    std::map<int, std::vector<float> > dst_intp;
-    std::map<int, std::vector<float> > dst_corr;
-    std::map<int, std::vector<float> > dst_newd;
-
-    std::map<int, std::vector<miutil::miTime> >    dst_time;
-    std::map<int, std::vector<miutil::miTime> >    dst_tbtime;
-
-    std::map<int, std::vector<int> > d_sensor;
-    std::map<int, std::vector<int> > d_level;
-
-    std::map<int, std::vector<int> >    d_typeid;
-    std::map<int, std::vector<kvalobs::kvControlInfo> > d_controlinfo;
-    std::map<int, std::vector<kvalobs::kvUseInfo> > d_useinfo;
-    std::map<int, std::vector<miutil::miString> > d_cfailed;
-
+    typedef std::map<int, std::vector<StationData> > stationsByID_t;
+    stationsByID_t mStationsByID;
 };
 
-/** @} */
 #endif

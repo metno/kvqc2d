@@ -122,9 +122,7 @@ void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
         {
             ///Only redistribute typeids specified in the configuration file
             const kvalobs::kvData& o = sd.mObservation;
-            DataForRedistribution.add_element(o.stationID(), o.original(), sd.mInterpolated, o.corrected(), sd.mRedis,
-                                              o.tbtime(), o.obstime(), o.sensor(), o.level(), o.typeID(),
-                                              o.controlinfo(), o.useinfo(), o.cfailed());
+            DataForRedistribution.add_element(Distribute::StationData(o, sd.mInterpolated, sd.mRedis));
 
             if( sd.mObservation.original() != params.missing ) {
                 // This condition means the
