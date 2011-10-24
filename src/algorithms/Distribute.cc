@@ -57,7 +57,7 @@ void Distribute::clean_station_entry(int sid)
 /// Algorithm to redistribute data based on interpolated model data.
 void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& ReturnData, const ReadProgramOptions& params)
 {
-    std::vector<StationData>& svec = mStationsByID[ stid ];
+    const std::vector<StationData>& svec = mStationsByID[ stid ];
     // need to keep accval -- if it is -1 need to set all redistributed elements to -1
     const float original_accval = svec.back().mObservation.original();
     float accval = original_accval;
@@ -77,7 +77,9 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
     if( irun<1 )
         return;
 
-    if( svec[ sindex-irun ].mObservation.obstime() == params.UT0 ) {
+    miutil::miTime before = svec[ sindex-irun ].mObservation.obstime();
+    before.addDay(-1);
+    if( before < params.UT0 ) {
         // NB if the available data starts at the first time
         // we cannot redistribute since there might be times
         // earlier!!!
@@ -106,7 +108,7 @@ void Distribute::RedistributeStationData(int stid, std::list<kvalobs::kvData>& R
         return;
     }
 
-    float normaliser = accval/sumint;
+    const float normaliser = accval/sumint;
     float roundSum = 0.0;
     //for (int k=sindex-irun+1; k<=sindex ; ++k) {
     for (int k=sindex-irun; k<=sindex ; ++k) {

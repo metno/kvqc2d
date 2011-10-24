@@ -37,14 +37,14 @@ private:
         StationData();
     };
 
-    typedef std::map<int, StationData> stationsByID_t;
-    stationsByID_t mStationsByID;
+    typedef std::map<int, StationData> dataByStationID_t;
+    dataByStationID_t mDataByStationID;
 
 public:
     ~Qc2D(){};
 
-    Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params);
-    Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params, std::string GenerateMissing);
+
+    Qc2D(const std::list<kvalobs::kvData>& QD, const std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& params, bool generateMissing);
 
     void clean();
 

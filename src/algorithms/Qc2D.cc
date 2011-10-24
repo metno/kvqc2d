@@ -60,51 +60,40 @@ Qc2D::StationData::StationData()
 ///Method to clear() all of the vectors held in the Qc2D data structure.
 void Qc2D::clean()
 {
-    mStationsByID.clear();
+    mDataByStationID.clear();
 }
 
-Qc2D::Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& PPP)
+Qc2D::Qc2D(const std::list<kvalobs::kvData>& allDataOneTime, const std::list<kvalobs::kvStation>& allStations,
+        const ReadProgramOptions& PPP, bool generateMissing)
     : params( PPP )
 {
-    std::map<int, kvalobs::kvStation> Gsid;
-    foreach(const kvalobs::kvStation& s, SL)
-        Gsid[ s.stationID() ] = s;
-
-    foreach(const kvalobs::kvData& o, QD) {
-        const int sid = o.stationID();
-        mStationsByID[ sid ] = StationData(o, Gsid[ sid ]);
-    }
-}
-
-Qc2D::Qc2D(std::list<kvalobs::kvData>& QD, std::list<kvalobs::kvStation>& SL, const ReadProgramOptions& PPP, std::string GenerateMissing)
-    : params( PPP )
-{
-    std::map<int, kvalobs::kvStation> Gsid;
+    std::map<int, kvalobs::kvStation> stationsByID;
     std::set<int> unusedStations;
-    foreach(const kvalobs::kvStation& s, SL) {
+    foreach(const kvalobs::kvStation& s, allStations) {
         const int sid = s.stationID();
-        Gsid[ sid ] = s;
+        stationsByID[ sid ] = s;
         unusedStations.insert( sid );
     }
 
-    foreach(const kvalobs::kvData& o, QD) {
+    foreach(const kvalobs::kvData& o, allDataOneTime) {
         const int sid = o.stationID();
         unusedStations.erase( sid );
-        mStationsByID[ sid ] = StationData(o, Gsid[ sid ]);
+        mDataByStationID[ sid ] = StationData(o, stationsByID[ sid ]);
     }
 
-    /// Includes handling of missing rows.
-    /// This block will add entries for stations with no values. If an accumulated value is found for these
-    /// stations a re-accumulation is performed.
-    foreach(int sid, unusedStations) {
-        kvalobs::kvControlInfo::kvControlInfo controlNULL;
-        kvalobs::kvUseInfo::kvUseInfo useNULL;
+    if( generateMissing ) {
+        /// This block will add entries for stations with no values. If an accumulated value is found for these
+        /// stations a re-accumulation is performed.
+        foreach(int sid, unusedStations) {
+            kvalobs::kvControlInfo::kvControlInfo controlNULL;
+            kvalobs::kvUseInfo::kvUseInfo useNULL;
 
-        // TODO need to check logic for missing rows dummy data
-        const kvalobs::kvData& templt = QD.front();
-        const kvalobs::kvData dummy(sid, templt.obstime(), params.missing, templt.paramID(), miutil::miTime::nowTime(),
-                999, 0, 0, params.missing, kvalobs::kvControlInfo(), kvalobs::kvUseInfo(), "Missing Row!");
-        mStationsByID[ sid ] = StationData(dummy, Gsid[ sid ]);
+            // TODO need to check logic for missing rows dummy data
+            const kvalobs::kvData& templt = allDataOneTime.front();
+            const kvalobs::kvData dummy(sid, templt.obstime(), params.missing, templt.paramID(), miutil::miTime::nowTime(),
+                    999, 0, 0, params.missing, kvalobs::kvControlInfo(), kvalobs::kvUseInfo(), "Missing Row!");
+            mDataByStationID[ sid ] = StationData(dummy, stationsByID[ sid ]);
+        }
     }
 }
 
@@ -115,7 +104,7 @@ void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
     if (ClearFlag)
         DataForRedistribution.clear_all();  //For cleaning up memory when all is done!
 
-    foreach(stationsByID_t::value_type& v, mStationsByID) {
+    foreach(dataByStationID_t::value_type& v, mDataByStationID) {
         const StationData& sd = v.second;
         if( ControlFlag.condition(sd.mObservation.controlinfo(), params.Aflag)
             && std::find(params.tids.begin(), params.tids.end(), sd.mObservation.typeID()) != params.tids.end() )
@@ -143,7 +132,7 @@ void Qc2D::Qc2_interp()
 {
     int InterpCode = params.InterpCode;
 
-    foreach(stationsByID_t::value_type& v, mStationsByID) {
+    foreach(dataByStationID_t::value_type& v, mDataByStationID) {
         StationData& sd = v.second;
         switch (InterpCode) {
 #if 0
@@ -443,9 +432,10 @@ void Qc2D::idw_intp_limit(StationData& sInterpol)
     typedef std::pair <float,int> id_pair;
     std::vector<id_pair> pindex;
 
-    foreach(stationsByID_t::value_type& v, mStationsByID) {
+    foreach(dataByStationID_t::value_type& v, mDataByStationID) {
         const StationData& sd = v.second;
         if( sd.mObservation == sInterpol.mObservation )
+            // don not calculate distance to same station
             continue;
         const double distance = Helpers::distance(sInterpol.mLon, sInterpol.mLat, sd.mLon, sd.mLat);
         if( distance < params.InterpolationLimit )
@@ -461,7 +451,7 @@ void Qc2D::idw_intp_limit(StationData& sInterpol)
 
     bool first_station = true;
     for( unsigned int i=0; i<pindex.size(); i++ ) {
-        StationData& sd = mStationsByID[ pindex[i].second ];
+        StationData& sd = mDataByStationID[ pindex[i].second ];
         kvalobs::kvData& o = sd.mObservation;
         float data_point = sd.mObservation.original();
         if (data_point == -1)

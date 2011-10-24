@@ -44,22 +44,22 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Redistribute Accumulations");
 
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
-    fillStationLists(StationList, StationIds);
+    std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
+    std::list<int> allStationIDs;
+    fillStationLists(allStations, allStationIDs);
 
     for(miutil::miTime ProcessTime = params.UT0; ProcessTime <= params.UT1; ProcessTime.addDay(1)) {
 
-        std::list<kvalobs::kvData> Qc2Data;
-        if( !database()->dataForStationsParamTimerange(Qc2Data, StationIds, params.pid, ProcessTime, ProcessTime) ) {
+        std::list<kvalobs::kvData> allDataOneTime;
+        if( !database()->dataForStationsParamTimerange(allDataOneTime, allStationIDs, params.pid, ProcessTime, ProcessTime) ) {
             LOGERROR("Problem with query in ProcessRedistribution");
             continue;
         }
-        if( Qc2Data.empty() ) {
+        if( allDataOneTime.empty() ) {
             continue;
         }
 
-        Qc2D GSW(Qc2Data, StationList, params, "Generate Missing Rows");
+        Qc2D GSW(allDataOneTime, allStations, params, true);
         GSW.Qc2_interp();
         std::list<kvalobs::kvData> ReturnData;
         GSW.distributor(ReturnData, 0);
@@ -102,7 +102,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
     }
     std::list<kvalobs::kvData> Qc2Data;
+    Qc2D GSW(Qc2Data, allStations, params, false);
     std::list<kvalobs::kvData> ReturnData;
-    Qc2D GSW(Qc2Data, StationList, params);
     GSW.distributor(ReturnData, 1); /// solution for memory cleanup ... maybe needs to be improved.
 }
