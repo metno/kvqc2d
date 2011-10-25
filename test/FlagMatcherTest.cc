@@ -46,6 +46,22 @@ TEST_F(FlagMatcherTest, Match)
     EXPECT_FALSE(fm.matches(kvalobs::kvControlInfo("0140004000002001")));
 }
 
+TEST_F(FlagMatcherTest, Is)
+{
+    FlagMatcher fm;
+    fm.require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).exclude(f_fhqc, 1);
+
+    EXPECT_TRUE(fm.isRequired(f_fhqc, 0));
+    EXPECT_TRUE(fm.isExcluded(f_fhqc, 1));
+    EXPECT_TRUE(fm.isAllowed(f_fhqc, 0));
+    EXPECT_TRUE(fm.isRequired(f_fd, 2));
+    EXPECT_TRUE(fm.isRequired(f_fd, 3));
+
+    EXPECT_FALSE(fm.isAllowed(f_fd, 1));
+    EXPECT_FALSE(fm.isExcluded(f_fd, 1));
+    EXPECT_FALSE(fm.isRequired(f_fd, 1));
+}
+
 TEST_F(FlagMatcherTest, SQLtext)
 {
     std::ostringstream sql;

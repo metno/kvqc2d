@@ -77,12 +77,18 @@ std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
 bool FlagMatcher::matches(const kvalobs::kvDataFlag& flags) const
 {
     for(int i=0; i<N_FLAGS; ++i) {
-        const unsigned int f = flags.flag(i), bit = (1<<f), r = mRequired[i], e = mExcluded[i];
-        if( r != 0 && ( r & bit ) == 0 )
-            return false;
-        if( e != 0 && ( e & bit ) != 0 )
+        if( !isAllowed(i, flags.flag(i)) )
             return false;
     }
     return true;
 }
 
+bool FlagMatcher::isAllowed(int flag, int value) const
+{
+    const unsigned int bit = (1<<value), r = mRequired[flag], e = mExcluded[flag];
+    if( r != 0 && ( r & bit ) == 0 )
+        return false;
+    if( e != 0 && ( e & bit ) != 0 )
+        return false;
+    return true;
+}

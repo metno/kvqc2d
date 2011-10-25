@@ -48,6 +48,14 @@ public:
     FlagMatcher& exclude(kvQCFlagTypes::c_flags flag, int value)
         { mExcluded[flag] |= (1<<value); return *this; }
 
+    bool isRequired(kvQCFlagTypes::c_flags flag, int value) const
+        { const unsigned int r = mRequired[flag], bit = 1<<value; return r != 0 && (r & bit) != 0; }
+
+    bool isExcluded(kvQCFlagTypes::c_flags flag, int value) const
+        { const unsigned int e = mExcluded[flag], bit = 1<<value; return e != 0 && (e & bit) != 0; }
+
+    bool isAllowed(int flag, int value) const;
+
     FlagMatcher& reset();
 
     std::string sql(const std::string& column, bool needSQLText=false) const;
