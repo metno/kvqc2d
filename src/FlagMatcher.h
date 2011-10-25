@@ -31,7 +31,6 @@
 #define FLAGMATCH_H_
 
 #include <kvalobs/kvDataFlag.h>
-#include <kvalobs/kvQCFlagTypes.h>
 #include <string>
 
 class FlagMatcher {
@@ -42,16 +41,16 @@ public:
     FlagMatcher()
         { reset(); }
 
-    FlagMatcher& permit(kvQCFlagTypes::c_flags flag, int value)
+    FlagMatcher& permit(int flag, int value)
         { mPermitted[flag] |= (1<<value); return *this; }
 
-    FlagMatcher& forbid(kvQCFlagTypes::c_flags flag, int value)
+    FlagMatcher& forbid(int flag, int value)
         { mForbidden[flag] |= (1<<value); return *this; }
 
-    bool isPermitted(kvQCFlagTypes::c_flags flag, int value) const
+    bool isPermitted(int flag, int value) const
         { const unsigned int r = mPermitted[flag], bit = 1<<value; return r != 0 && (r & bit) != 0; }
 
-    bool isForbidden(kvQCFlagTypes::c_flags flag, int value) const
+    bool isForbidden(int flag, int value) const
         { const unsigned int e = mForbidden[flag], bit = 1<<value; return e != 0 && (e & bit) != 0; }
 
     bool isAllowed(int flag, int value) const
