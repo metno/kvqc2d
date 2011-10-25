@@ -28,16 +28,16 @@
 */
 
 #include "algorithms/AlgorithmTestBase.h"
-#include "FlagMatch.h"
+#include "FlagMatcher.h"
 
-class FlagMatchTest : public AlgorithmTestBase {
+class FlagMatcherTest : public AlgorithmTestBase {
 };
 
 using namespace kvQCFlagTypes;
 
-TEST_F(FlagMatchTest, Match)
+TEST_F(FlagMatcherTest, Match)
 {
-    FlagMatch fm;
+    FlagMatcher fm;
     fm.require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0);
 
     EXPECT_TRUE(fm.matches(kvalobs::kvControlInfo("0000003000002000")));
@@ -46,21 +46,21 @@ TEST_F(FlagMatchTest, Match)
     EXPECT_FALSE(fm.matches(kvalobs::kvControlInfo("0140004000002001")));
 }
 
-TEST_F(FlagMatchTest, SQLtext)
+TEST_F(FlagMatcherTest, SQLtext)
 {
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');";
     ASSERT_TRUE( db->exec(sql.str()) );
 
-    EXPECT_EQ("", FlagMatch().sql("ci"));
-    EXPECT_EQ("0=0", FlagMatch().sql("ci", true));
+    EXPECT_EQ("", FlagMatcher().sql("ci"));
+    EXPECT_EQ("0=0", FlagMatcher().sql("ci", true));
     EXPECT_EQ("substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0')",
-            FlagMatch().require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).sql("ci"));
+            FlagMatcher().require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).sql("ci"));
     EXPECT_EQ("substr(controlinfo,7,1) IN ('0','1','2','3','5','6','7','8','9','A','B','C','D','E','F') AND substr(controlinfo,16,1) IN ('0')",
-            FlagMatch().exclude(f_fmis, 4).require(f_fhqc, 0).sql("controlinfo"));
+            FlagMatcher().exclude(f_fmis, 4).require(f_fhqc, 0).sql("controlinfo"));
 }
 
-TEST_F(FlagMatchTest, SQLquery)
+TEST_F(FlagMatcherTest, SQLquery)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (83880, '2011-10-10 06:00:00',   16.9, 110, '2011-10-10 09:01:31', 302, 0, 0,   16.9, '0140004000002001', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
@@ -76,15 +76,15 @@ TEST_F(FlagMatchTest, SQLquery)
     ASSERT_TRUE( db->exec(sql.str()) );
 
     std::list<kvalobs::kvData> series;
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatch().require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).sql(true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).sql(true)) );
     EXPECT_EQ(4, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatch().sql( true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().sql( true)) );
     EXPECT_EQ(10, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatch().exclude(f_fcc, 4).sql(true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().exclude(f_fcc, 4).sql(true)) );
     EXPECT_EQ(5, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatch().require(f_fcc, 1).sql(true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().require(f_fcc, 1).sql(true)) );
     EXPECT_EQ(1, series.size());
 }

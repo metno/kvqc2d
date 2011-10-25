@@ -21,6 +21,8 @@ libkvqc2d_a_SOURCES = \
 	AlgorithmHelpers.h \
 	Helpers.cc \
 	Helpers.h \
+	FlagMatcher.cc \
+	FlagMatcher.h \
 	ProcessControl.cc \
 	ProcessControl.h \
 	ProcessImpl.cc \

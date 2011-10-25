@@ -34,21 +34,21 @@
 #include <kvalobs/kvQCFlagTypes.h>
 #include <string>
 
-class FlagMatch {
+class FlagMatcher {
 
 public:
     enum { N_FLAGS = 16, N_VALUES = 16 };
 
-    FlagMatch()
+    FlagMatcher()
         { reset(); }
 
-    FlagMatch& require(kvQCFlagTypes::c_flags flag, int value)
+    FlagMatcher& require(kvQCFlagTypes::c_flags flag, int value)
         { mRequired[flag] |= (1<<value); return *this; }
 
-    FlagMatch& exclude(kvQCFlagTypes::c_flags flag, int value)
+    FlagMatcher& exclude(kvQCFlagTypes::c_flags flag, int value)
         { mExcluded[flag] |= (1<<value); return *this; }
 
-    FlagMatch& reset();
+    FlagMatcher& reset();
 
     std::string sql(const std::string& column, bool needSQLText=false) const;
 

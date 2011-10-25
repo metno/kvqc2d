@@ -27,7 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "FlagMatch.h"
+#include "FlagMatcher.h"
 
 #include <sstream>
 #include <iostream>
@@ -40,14 +40,14 @@ static char int2char(int i)
         return ('A' + (i-10));
 }
 
-FlagMatch& FlagMatch::reset()
+FlagMatcher& FlagMatcher::reset()
 {
     for(int i=0; i<N_FLAGS; ++i)
         mRequired[i] = mExcluded[i] = 0;
     return *this;
 }
 
-std::string FlagMatch::sql(const std::string& column, bool needSQLText) const
+std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
 {
     std::ostringstream sql;
     for(int i=0; i<N_FLAGS; ++i) {
@@ -74,7 +74,7 @@ std::string FlagMatch::sql(const std::string& column, bool needSQLText) const
     return sql.str();
 }
 
-bool FlagMatch::matches(const kvalobs::kvDataFlag& flags) const
+bool FlagMatcher::matches(const kvalobs::kvDataFlag& flags) const
 {
     for(int i=0; i<N_FLAGS; ++i) {
         const unsigned int f = flags.flag(i), bit = (1<<f), r = mRequired[i], e = mExcluded[i];
