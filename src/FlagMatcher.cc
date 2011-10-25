@@ -32,7 +32,9 @@
 #include <sstream>
 #include <iostream>
 
-static char int2char(int i)
+namespace {
+
+char int2char(int i)
 {
     if( i<10 )
         return ('0' + i);
@@ -40,10 +42,23 @@ static char int2char(int i)
         return ('A' + (i-10));
 }
 
+int count_bits(unsigned int x)
+{
+    // origin: http://bytes.com/topic/c/answers/535049-how-many-bits-1-integer-variable
+    int bits = 0;
+    while( x ) {
+        x &= (x-1);
+        bits += 1;
+    }
+    return bits;
+}
+
+} // anonymous namespace
+
 FlagMatcher& FlagMatcher::reset()
 {
     for(int i=0; i<N_FLAGS; ++i)
-        mRequired[i] = mExcluded[i] = 0;
+        mPermitted[i] = mForbidden[i] = 0;
     return *this;
 }
 
@@ -51,16 +66,22 @@ std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
 {
     std::ostringstream sql;
     for(int i=0; i<N_FLAGS; ++i) {
-        const unsigned int r = mRequired[i], e = mExcluded[i];
-        if( r == 0 && e == 0 )
+        const unsigned int allowed = allowedBits(i), nbits = count_bits(allowed);
+        if( nbits == 0 )
+            return "0=1";
+        else if( nbits == N_VALUES )
             continue;
         if( !sql.str().empty() )
             sql << " AND ";
-        sql << "substr(" << column << "," << i+1 << ",1) IN (";
+        sql << "substr(" << column << "," << i+1 << ",1) ";
+        const bool negate = nbits > N_VALUES/2;
+        if( negate )
+            sql << "NOT ";
+        sql << "IN (";
         bool first = true;
         for(int v = 0; v<N_VALUES; ++v) {
-            const unsigned int bit = (1<<v);
-            if( (r == 0 || ( r & bit ) == 0) && (e == 0 || ( e & bit ) != 0) )
+            const bool needBit = (allowed & (1<<v)) != 0;
+            if( (negate && needBit) || (!negate && !needBit) )
                 continue;
             if( !first )
                 sql << ',';
@@ -70,7 +91,7 @@ std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
         sql << ")";
     }
     if( needSQLText && sql.str().empty() )
-        sql << "0=0";
+        return "0=0";
     return sql.str();
 }
 
@@ -80,15 +101,5 @@ bool FlagMatcher::matches(const kvalobs::kvDataFlag& flags) const
         if( !isAllowed(i, flags.flag(i)) )
             return false;
     }
-    return true;
-}
-
-bool FlagMatcher::isAllowed(int flag, int value) const
-{
-    const unsigned int bit = (1<<value), r = mRequired[flag], e = mExcluded[flag];
-    if( r != 0 && ( r & bit ) == 0 )
-        return false;
-    if( e != 0 && ( e & bit ) != 0 )
-        return false;
     return true;
 }

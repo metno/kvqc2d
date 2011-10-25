@@ -42,19 +42,20 @@ public:
     FlagMatcher()
         { reset(); }
 
-    FlagMatcher& require(kvQCFlagTypes::c_flags flag, int value)
-        { mRequired[flag] |= (1<<value); return *this; }
+    FlagMatcher& permit(kvQCFlagTypes::c_flags flag, int value)
+        { mPermitted[flag] |= (1<<value); return *this; }
 
-    FlagMatcher& exclude(kvQCFlagTypes::c_flags flag, int value)
-        { mExcluded[flag] |= (1<<value); return *this; }
+    FlagMatcher& forbid(kvQCFlagTypes::c_flags flag, int value)
+        { mForbidden[flag] |= (1<<value); return *this; }
 
-    bool isRequired(kvQCFlagTypes::c_flags flag, int value) const
-        { const unsigned int r = mRequired[flag], bit = 1<<value; return r != 0 && (r & bit) != 0; }
+    bool isPermitted(kvQCFlagTypes::c_flags flag, int value) const
+        { const unsigned int r = mPermitted[flag], bit = 1<<value; return r != 0 && (r & bit) != 0; }
 
-    bool isExcluded(kvQCFlagTypes::c_flags flag, int value) const
-        { const unsigned int e = mExcluded[flag], bit = 1<<value; return e != 0 && (e & bit) != 0; }
+    bool isForbidden(kvQCFlagTypes::c_flags flag, int value) const
+        { const unsigned int e = mForbidden[flag], bit = 1<<value; return e != 0 && (e & bit) != 0; }
 
-    bool isAllowed(int flag, int value) const;
+    bool isAllowed(int flag, int value) const
+        { return (allowedBits(flag) & (1<<value)) != 0; }
 
     FlagMatcher& reset();
 
@@ -69,8 +70,11 @@ public:
     bool matches(const kvalobs::kvDataFlag& flags) const;
 
 private:
-    unsigned int mRequired[N_FLAGS];
-    unsigned int mExcluded[N_FLAGS];
+    unsigned int allowedBits(int flag) const
+        { const unsigned int p = mPermitted[flag]; return (p ? p : (1<<N_VALUES)-1) & ~mForbidden[flag]; }
+
+    unsigned int mPermitted[N_FLAGS];
+    unsigned int mForbidden[N_FLAGS];
 };
 
 

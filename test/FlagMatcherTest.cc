@@ -38,7 +38,7 @@ using namespace kvQCFlagTypes;
 TEST_F(FlagMatcherTest, Match)
 {
     FlagMatcher fm;
-    fm.require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0);
+    fm.permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0);
 
     EXPECT_TRUE(fm.matches(kvalobs::kvControlInfo("0000003000002000")));
     EXPECT_TRUE(fm.matches(kvalobs::kvControlInfo("0140004000002000")));
@@ -49,17 +49,17 @@ TEST_F(FlagMatcherTest, Match)
 TEST_F(FlagMatcherTest, Is)
 {
     FlagMatcher fm;
-    fm.require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).exclude(f_fhqc, 1);
+    fm.permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).forbid(f_fhqc, 1);
 
-    EXPECT_TRUE(fm.isRequired(f_fhqc, 0));
-    EXPECT_TRUE(fm.isExcluded(f_fhqc, 1));
+    EXPECT_TRUE(fm.isPermitted(f_fhqc, 0));
+    EXPECT_TRUE(fm.isForbidden(f_fhqc, 1));
     EXPECT_TRUE(fm.isAllowed(f_fhqc, 0));
-    EXPECT_TRUE(fm.isRequired(f_fd, 2));
-    EXPECT_TRUE(fm.isRequired(f_fd, 3));
+    EXPECT_TRUE(fm.isPermitted(f_fd, 2));
+    EXPECT_TRUE(fm.isPermitted(f_fd, 3));
 
     EXPECT_FALSE(fm.isAllowed(f_fd, 1));
-    EXPECT_FALSE(fm.isExcluded(f_fd, 1));
-    EXPECT_FALSE(fm.isRequired(f_fd, 1));
+    EXPECT_FALSE(fm.isForbidden(f_fd, 1));
+    EXPECT_FALSE(fm.isPermitted(f_fd, 1));
 }
 
 TEST_F(FlagMatcherTest, SQLtext)
@@ -69,11 +69,12 @@ TEST_F(FlagMatcherTest, SQLtext)
     ASSERT_TRUE( db->exec(sql.str()) );
 
     EXPECT_EQ("", FlagMatcher().sql("ci"));
-    EXPECT_EQ("0=0", FlagMatcher().sql("ci", true));
+    EXPECT_EQ("0=0", FlagMatcher().permit(f_fhqc, 0).reset().sql("ci", true));
+    EXPECT_EQ("0=1", FlagMatcher().permit(f_fhqc, 0).permit(f_fmis, 0).forbid(f_fmis, 0).sql("ci", true));
     EXPECT_EQ("substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0')",
-            FlagMatcher().require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).sql("ci"));
-    EXPECT_EQ("substr(controlinfo,7,1) IN ('0','1','2','3','5','6','7','8','9','A','B','C','D','E','F') AND substr(controlinfo,16,1) IN ('0')",
-            FlagMatcher().exclude(f_fmis, 4).require(f_fhqc, 0).sql("controlinfo"));
+            FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql("ci"));
+    EXPECT_EQ("substr(controlinfo,7,1) NOT IN ('4') AND substr(controlinfo,16,1) IN ('0')",
+            FlagMatcher().forbid(f_fmis, 4).permit(f_fhqc, 0).sql("controlinfo"));
 }
 
 TEST_F(FlagMatcherTest, SQLquery)
@@ -92,15 +93,15 @@ TEST_F(FlagMatcherTest, SQLquery)
     ASSERT_TRUE( db->exec(sql.str()) );
 
     std::list<kvalobs::kvData> series;
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().require(f_fd, 2).require(f_fd, 3).require(f_fhqc, 0).sql(true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true)) );
     EXPECT_EQ(4, series.size());
 
     ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().sql( true)) );
     EXPECT_EQ(10, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().exclude(f_fcc, 4).sql(true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().forbid(f_fcc, 4).sql(true)) );
     EXPECT_EQ(5, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().require(f_fcc, 1).sql(true)) );
+    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().permit(f_fcc, 1).sql(true)) );
     EXPECT_EQ(1, series.size());
 }
