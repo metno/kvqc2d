@@ -32,6 +32,7 @@
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
 #include "FlagMatcher.h"
+#include "tround.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
@@ -117,6 +118,84 @@ std::string StationConstraint::sql() const
         sql << "stationid IN ";
         char sep = '(';
         foreach(int sid, mStationIDs) {
+            sql << sep << sid;
+            sep = ',';
+        }
+        sql << ')';
+    }
+    return sql.str();
+}
+
+class ParamidConstraint : public DBConstraint {
+public:
+    ParamidConstraint()
+        { }
+    ParamidConstraint(const std::list<int>& paramIDs)
+        { add(paramIDs); }
+    ParamidConstraint(int pid)
+        { add(pid); }
+    ParamidConstraint& add(const std::list<int>& paramIDs)
+        { foreach(int pid, paramIDs) add(pid); return *this; }
+    ParamidConstraint& add(int pid)
+        { mParamIDs.push_back(pid); return *this; }
+    virtual std::string sql() const;
+private:
+    std::list<int> mParamIDs;
+};
+
+std::string ParamidConstraint::sql() const
+{
+    unsigned int n = mParamIDs.size();
+    if( n == 0 )
+        return "";
+    std::ostringstream sql;
+    if( n == 1 ) {
+        sql << "paramid = " << mParamIDs.front();
+    } else {
+        sql << "paramid IN ";
+        char sep = '(';
+        foreach(int pid, mParamIDs) {
+            sql << sep << pid;
+            sep = ',';
+        }
+        sql << ')';
+    }
+    return sql.str();
+}
+
+class TypeidConstraint : public DBConstraint {
+public:
+    TypeidConstraint()
+        { }
+    TypeidConstraint(const std::vector<int>& typeIDs)
+        { add(typeIDs); }
+    TypeidConstraint(const std::list<int>& typeIDs)
+        { add(typeIDs); }
+    TypeidConstraint(int tid)
+        { add(tid); }
+    TypeidConstraint& add(const std::vector<int>& typeIDs)
+        { foreach(int t, typeIDs) add(t); return *this; }
+    TypeidConstraint& add(const std::list<int>& typeIDs)
+        { foreach(int t, typeIDs) add(t); return *this; }
+    TypeidConstraint& add(int tid)
+        { mTypeIDs.push_back(tid); return *this; }
+    virtual std::string sql() const;
+private:
+    std::list<int> mTypeIDs;
+};
+
+std::string TypeidConstraint::sql() const
+{
+    unsigned int n = mTypeIDs.size();
+    if( n == 0 )
+        return "";
+    std::ostringstream sql;
+    if( n == 1 ) {
+        sql << "typeid = " << mTypeIDs.front();
+    } else {
+        sql << "typeid IN ";
+        char sep = '(';
+        foreach(int sid, mTypeIDs) {
             sql << sep << sid;
             sep = ',';
         }
@@ -275,19 +354,21 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
     dataList_t allDataOneTime;
     if( !database()->selectData(allDataOneTime,
             WHERE(ControlinfoConstraint(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0))
-            && ObstimeConstraint(params.UT0, params.UT1))) )
+                    && ParamidConstraint(params.pid) && TypeidConstraint(params.tids)
+                    && ObstimeConstraint(params.UT0, params.UT1))) )
     {
         LOGERROR("Problem with query in ProcessRedistribution");
         return;
     }
     foreach(const kvalobs::kvData& d, allDataOneTime) {
-        std::cout << "center=" << d << std::endl;
+        //std::cout << "center=" << d << std::endl;
 
         dataList_t bdata;
         if( !database()->selectData(bdata,
                 WHERE(ControlinfoConstraint(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0))
-                && ObstimeConstraint(params.UT0, d.obstime())
-                && StationConstraint(d.stationID()))
+                        && ParamidConstraint(params.pid) && TypeidConstraint(d.typeID())
+                        && ObstimeConstraint(params.UT0, d.obstime())
+                        && StationConstraint(d.stationID()))
                 + ORDER_BY(ColumnOrdering("obstime").desc())) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
@@ -304,11 +385,11 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             t.addDay(-1);
         }
         if( before.size()<=1 ) {
-            std::cout << "no data before accumulated value" << std::endl;
+            //std::cout << "no data before accumulated value" << std::endl;
             continue;
         }
         if( before.back().obstime() <= params.UT0 ) {
-            std::cout << "before starts at UT0, no idea about series length" << std::endl;
+            //std::cout << "before starts at UT0, no idea about series length" << std::endl;
             continue;
         }
 
@@ -327,7 +408,8 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         dataList_t ndata;
         if( !database()->selectData(ndata,
                 WHERE(UseinfoConstraint(FlagMatcher().permit(2, 0))
-                && ObstimeConstraint(before.back().obstime(), d.obstime()) && sc)
+                        && ParamidConstraint(params.pid) && TypeidConstraint(d.typeID())
+                        && ObstimeConstraint(before.back().obstime(), d.obstime()) && sc)
                 + ORDER_BY((ColumnOrdering("obstime").desc(), ColumnOrdering("stationid")))) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
@@ -337,25 +419,28 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         float sumint = 0;
         dataList_t::const_iterator itN = ndata.begin(), itB = before.begin();
         for(; itB != before.end() && itN != ndata.end(); ++itB ) {
-            std::cout << "itb obstime=" << itB->obstime() << " itN obstime=" << itN->obstime() << std::endl;
+            //std::cout << "itb obstime=" << itB->obstime() << " itN obstime=" << itN->obstime() << std::endl;
             float sumWeights = 0.0, sumWeightedValues = 0.0;
             for( ; itN->obstime() == itB->obstime(); ++itN ) {
-                std::cout << "neighbour id = " << itN->stationID() << std::endl;
+                //std::cout << "neighbour id = " << itN->stationID() << std::endl;
                 float data_point = itN->original();
                 if (data_point == -1)
                     data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
                 if( data_point <= -1 )
                     continue;
                 const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
-                std::cout << "distance =" << dist << " km" << std::endl;
+                //std::cout << "distance =" << dist << " km" << std::endl;
                 sumWeights += invDist2;
                 sumWeightedValues += data_point*invDist2;
             }
             sumint += sumWeightedValues/sumWeights;
         }
-        std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
+        std::list<kvalobs::kvData> toWrite;
+        //std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
         itN = ndata.begin(), itB = before.begin();
         for(; itB != before.end() && itN != ndata.end(); ++itB ) {
+            std::ostringstream cfailed;
+            cfailed << "QC2N";
             float sumWeights = 0.0, sumWeightedValues = 0.0;
             for( ; itN->obstime() == itB->obstime(); ++itN ) {
                 float data_point = itN->original();
@@ -366,9 +451,31 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                 const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
                 sumWeights += invDist2;
                 sumWeightedValues += data_point*invDist2;
+                cfailed << "_" << itN->stationID();
             }
+            cfailed << ",QC2-redist";
             float itB_corrected = (sumWeightedValues/sumWeights) * (d.original() / sumint);
-            std::cout << "corrected at " << itB->obstime() << " = " << itB_corrected << std::endl;
+            // TODO make sure that sum of re-distributed is the same as the original accumulated value
+            //std::cout << "corrected at " << itB->obstime() << " = " << itB_corrected << std::endl;
+
+            kvalobs::kvControlInfo fixflags = itB->controlinfo();
+            checkFlags().setter(fixflags, params.Sflag);
+            checkFlags().conditional_setter(fixflags, params.chflag);
+
+            kvalobs::kvData correctedData(*itB);
+            correctedData.corrected(round<float, 1>(itB_corrected));
+            correctedData.controlinfo(fixflags);
+            Helpers::updateUseInfo(correctedData);
+            Helpers::updateCfailed(correctedData, cfailed.str(), params.CFAILED_STRING);
+            toWrite.push_back(correctedData);
         }
+        foreach_r(const kvalobs::kvData& corr, toWrite) {
+            if( !database()->insertData(corr, true) ) {
+                LOGERROR("Could not write to database");
+                continue;
+            }
+            broadcaster()->queueChanged(corr);
+        }
+        broadcaster()->sendChanges();
     }
 }
