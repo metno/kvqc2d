@@ -53,6 +53,8 @@ libkvqc2d_a_SOURCES = \
 	algorithms/kvQABaseTypes.h \
 	algorithms/ProcessRedistribution.cc \
 	algorithms/ProcessRedistribution.hh \
+	algorithms/RedistributionAlgorithm.cc \
+	algorithms/RedistributionAlgorithm.hh \
 	algorithms/SingleLinearAlgorithm.cc \
 	algorithms/SingleLinearAlgorithm.hh \
 	algorithms/GapInterpolate.cc \

@@ -28,7 +28,8 @@
 */
 
 #include "AlgorithmTestBase.h"
-#include "algorithms/ProcessRedistribution.h"
+//#include "algorithms/ProcessRedistribution.h"
+#include "algorithms/RedistributionAlgorithm.h"
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
 #include "foreach.h"
@@ -38,13 +39,13 @@ public:
     void SetUp();
     void TearDown();
 protected:
-    RedistributionAlgorithm* algo;
+    RedistributionAlgorithm2* algo;
 };
 
 void RedistributionTest::SetUp()
 {
     AlgorithmTestBase::SetUp();
-    algo = new RedistributionAlgorithm();
+    algo = new RedistributionAlgorithm2();
     algo->setDatabase(db);
     algo->setBroadcaster(bc);
 }
@@ -169,7 +170,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
 
     algo->run(params);
     ASSERT_EQ(4, bc->count());
-#if 1
+
     const float expected_corrected[4] = { 0.9, 2.8, 28.3, 6.3 };
     const char* expected_controlinfo[4] = { "0000001000007000", "0000001000007000", "0000001000007000", "0140004000007000" };
     for(int i=0; i<bc->count(); ++i) {
@@ -182,7 +183,6 @@ TEST_F(RedistributionTest, Station83880History2011117)
     bc->clear();
     algo->run(params);
     ASSERT_EQ(0, bc->count());
-#endif
 }
 
 TEST_F(RedistributionTest, Bugzilla1333)
