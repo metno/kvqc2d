@@ -37,6 +37,13 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
+miutil::miTime plusDay(const miutil::miTime& t, int nDays)
+{
+    miutil::miTime p(t);
+    p.addDay(nDays);
+    return p;
+}
+
 class DBConstraint  {
 public:
     virtual ~DBConstraint() { }
@@ -155,7 +162,7 @@ std::string OrConstraint::sql() const
         return sqlB;
     if( sqlB.empty() )
         return sqlA;
-    return sqlA + " OR " + sqlB;
+    return "(" +sqlA + ") OR (" + sqlB + ")";
 }
 
 AndConstraint operator &&(const DBConstraint& a, const DBConstraint&  b)
@@ -164,16 +171,60 @@ AndConstraint operator &&(const DBConstraint& a, const DBConstraint&  b)
 OrConstraint operator ||(const DBConstraint& a, const DBConstraint& b)
 { return OrConstraint(a, b); }
 
-std::string SQL(const DBConstraint& c)
+std::string WHERE(const DBConstraint& c)
 {
     const std::string sql = c.sql();
     if( sql.empty() )
         return "";
-    return "WHERE " + sql;
+    return " WHERE " + sql;
+}
+
+class DBOrdering {
+public:
+    virtual ~DBOrdering() { }
+    virtual std::string sql() const = 0;
+};
+
+class ColumnOrdering : public DBOrdering {
+public:
+    ColumnOrdering(const std::string& column)
+        : mColumn(column), mAscending(true) { }
+    virtual std::string sql() const
+        { return mColumn + (mAscending ? " ASC" : " DESC"); }
+
+    DBOrdering& asc()
+        { mAscending = true; return *this; }
+    DBOrdering& desc()
+        { mAscending = false; return *this; }
+private:
+    std::string mColumn;
+    bool mAscending;
+};
+
+class SequenceOrdering : public DBOrdering {
+public:
+    SequenceOrdering(const DBOrdering& first, const DBOrdering& second)
+        : mFirst(first), mSecond(second) { }
+    virtual std::string sql() const
+        { return mFirst.sql() + ", " + mSecond.sql(); }
+private:
+    const DBOrdering& mFirst;
+    const DBOrdering& mSecond;
+};
+
+SequenceOrdering operator , (const DBOrdering& a, const DBOrdering& b)
+{
+    return SequenceOrdering(a, b);
+}
+
+std::string ORDER_BY(const DBOrdering& o)
+{
+    return " ORDER BY " + o.sql();
 }
 
 class NeighboringStationFinder {
 public:
+    typedef std::map<int, double> stationsWithDistances_t;
     typedef std::list<kvalobs::kvStation> stations_t;
     typedef std::map<int, kvalobs::kvStation> stationsByID_t;
 
@@ -184,7 +235,7 @@ public:
 
     void setStationList(const stations_t& stations);
 
-    virtual void findNeighbors(stations_t& neighbors, int aroundID, float maxdist);
+    virtual void findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist);
 
 private:
     stationsByID_t mStationsByID;
@@ -197,7 +248,7 @@ void NeighboringStationFinder::setStationList(const stations_t& stations)
     }
 }
 
-void NeighboringStationFinder::findNeighbors(stations_t& neighbors, int aroundID, float maxdist)
+void NeighboringStationFinder::findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist)
 {
     neighbors.clear();
     if( mStationsByID.find(aroundID) == mStationsByID.end() )
@@ -208,47 +259,57 @@ void NeighboringStationFinder::findNeighbors(stations_t& neighbors, int aroundID
         if( station.stationID() == aroundID )
             continue;
         const double distance = Helpers::distance(around.lon(), around.lat(), station.lon(), station.lat());
-        if( distance > 0 && distance < maxdist )
-            neighbors.push_back( station );
+        if( distance > 0 && distance < maxdist ) {
+            neighbors[ station.stationID() ] = distance;
+        }
     }
 }
 
 void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 {
+    using namespace kvQCFlagTypes;
+    typedef std::list<kvalobs::kvData> dataList_t;
+
     NeighboringStationFinder nf;
 
-    FlagMatcher fm;
-    fm.permit(kvQCFlagTypes::f_fmis, 4).permit(kvQCFlagTypes::f_fd, 2).permit(kvQCFlagTypes::f_fhqc, 0);
-
-    const std::string constraint = SQL(ControlinfoConstraint(fm)
-            && ObstimeConstraint(params.UT0, params.UT1));
-    std::cout << "sql='" << constraint << "'" << std::endl;
-    std::list<kvalobs::kvData> allDataOneTime;
-    if( !database()->selectData(allDataOneTime, constraint) ) {
+    dataList_t allDataOneTime;
+    if( !database()->selectData(allDataOneTime,
+            WHERE(ControlinfoConstraint(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0))
+            && ObstimeConstraint(params.UT0, params.UT1))) )
+    {
         LOGERROR("Problem with query in ProcessRedistribution");
-        std::cout << " => sql error" << std::endl;
         return;
     }
-    std::cout << " => got " << allDataOneTime.size() << std::endl;
     foreach(const kvalobs::kvData& d, allDataOneTime) {
         std::cout << "center=" << d << std::endl;
 
-        FlagMatcher fm1;
-        fm1.permit(kvQCFlagTypes::f_fmis, 3).permit(kvQCFlagTypes::f_fd, 2).permit(kvQCFlagTypes::f_fhqc, 0);
-        const std::string constraint1 = SQL(ControlinfoConstraint(fm1)
+        dataList_t bdata;
+        if( !database()->selectData(bdata,
+                WHERE(ControlinfoConstraint(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0))
                 && ObstimeConstraint(params.UT0, d.obstime())
                 && StationConstraint(d.stationID()))
-                + " ORDER BY obstime";
-        std::cout << "sql2='" << constraint1 << "'" << std::endl;
-        std::list<kvalobs::kvData> bdata;
-        if( !database()->selectData(bdata, constraint1) ) {
+                + ORDER_BY(ColumnOrdering("obstime").desc())) )
+        {
             LOGERROR("Problem with query in ProcessRedistribution");
             std::cout << " => sql error" << std::endl;
             return;
         }
-        std::cout << " => got " << bdata.size() << std::endl;
+        dataList_t before;
+        before.push_back(d);
+        miutil::miTime t = plusDay(d.obstime(), -1);
         foreach(const kvalobs::kvData& b, bdata) {
-            std::cout << "before=" << b << std::endl;
+            if( b.obstime() != t )
+                break;
+            before.push_back(b);
+            t.addDay(-1);
+        }
+        if( before.size()<=1 ) {
+            std::cout << "no data before accumulated value" << std::endl;
+            continue;
+        }
+        if( before.back().obstime() <= params.UT0 ) {
+            std::cout << "before starts at UT0, no idea about series length" << std::endl;
+            continue;
         }
 
         if( !nf.hashStationList() ) {
@@ -258,23 +319,56 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             nf.setStationList(allStations);
         }
 
-        std::list<kvalobs::kvStation> neighbors;
+        NeighboringStationFinder::stationsWithDistances_t neighbors;
         nf.findNeighbors(neighbors, d.stationID(), params.InterpolationLimit);
-
-        const std::string constraint2 = SQL(UseinfoConstraint(FlagMatcher().permit(2, 0))
-                && ObstimeConstraint(params.UT0, d.obstime())
-                && StationConstraint(neighbors))
-                + " ORDER BY obstime, stationid";
-        std::cout << "sql2='" << constraint2 << "'" << std::endl;
-        std::list<kvalobs::kvData> ndata;
-        if( !database()->selectData(ndata, constraint2) ) {
+        StationConstraint sc;
+        foreach(NeighboringStationFinder::stationsWithDistances_t::value_type& v, neighbors)
+            sc.add( v.first );
+        dataList_t ndata;
+        if( !database()->selectData(ndata,
+                WHERE(UseinfoConstraint(FlagMatcher().permit(2, 0))
+                && ObstimeConstraint(before.back().obstime(), d.obstime()) && sc)
+                + ORDER_BY((ColumnOrdering("obstime").desc(), ColumnOrdering("stationid")))) )
+        {
             LOGERROR("Problem with query in ProcessRedistribution");
-            std::cout << " => sql error" << std::endl;
             return;
         }
-        std::cout << " => got " << ndata.size() << std::endl;
-        foreach(const kvalobs::kvData& n, ndata) {
-            std::cout << "neighbor=" << n << std::endl;
+
+        float sumint = 0;
+        dataList_t::const_iterator itN = ndata.begin(), itB = before.begin();
+        for(; itB != before.end() && itN != ndata.end(); ++itB ) {
+            std::cout << "itb obstime=" << itB->obstime() << " itN obstime=" << itN->obstime() << std::endl;
+            float sumWeights = 0.0, sumWeightedValues = 0.0;
+            for( ; itN->obstime() == itB->obstime(); ++itN ) {
+                std::cout << "neighbour id = " << itN->stationID() << std::endl;
+                float data_point = itN->original();
+                if (data_point == -1)
+                    data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
+                if( data_point <= -1 )
+                    continue;
+                const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
+                std::cout << "distance =" << dist << " km" << std::endl;
+                sumWeights += invDist2;
+                sumWeightedValues += data_point*invDist2;
+            }
+            sumint += sumWeightedValues/sumWeights;
+        }
+        std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
+        itN = ndata.begin(), itB = before.begin();
+        for(; itB != before.end() && itN != ndata.end(); ++itB ) {
+            float sumWeights = 0.0, sumWeightedValues = 0.0;
+            for( ; itN->obstime() == itB->obstime(); ++itN ) {
+                float data_point = itN->original();
+                if (data_point == -1)
+                    data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
+                if( data_point <= -1 )
+                    continue;
+                const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
+                sumWeights += invDist2;
+                sumWeightedValues += data_point*invDist2;
+            }
+            float itB_corrected = (sumWeightedValues/sumWeights) * (d.original() / sumint);
+            std::cout << "corrected at " << itB->obstime() << " = " << itB_corrected << std::endl;
         }
     }
 }
