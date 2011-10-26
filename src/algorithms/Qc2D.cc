@@ -106,22 +106,23 @@ void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
 
     foreach(dataByStationID_t::value_type& v, mDataByStationID) {
         const StationData& sd = v.second;
-        if( ControlFlag.condition(sd.mObservation.controlinfo(), params.Aflag)
-            && std::find(params.tids.begin(), params.tids.end(), sd.mObservation.typeID()) != params.tids.end() )
+        const kvalobs::kvData& o = sd.mObservation;
+        if( ControlFlag.condition(o.controlinfo(), params.Aflag)
+            && std::find(params.tids.begin(), params.tids.end(), o.typeID()) != params.tids.end() )
         {
             ///Only redistribute typeids specified in the configuration file
-            const kvalobs::kvData& o = sd.mObservation;
             DataForRedistribution.add_element(Distribute::StationData(o, sd.mInterpolated));
 
-            if( sd.mObservation.original() != params.missing ) {
+            if( o.original() != params.missing ) {
                 // This condition means the
                 // value is no longer missing
                 // This is data to Redistribute
-                if( sd.mObservation.original() != params.rejected)
+                if( o.original() != params.rejected ) {
                     // Add also a check for the case where the value is rejected
                     // Then do not redistribute
-                    DataForRedistribution.RedistributeStationData(sd.mObservation.stationID(), ReturnData ,params);
-                DataForRedistribution.clean_station_entry(sd.mObservation.stationID());
+                    DataForRedistribution.RedistributeStationData(o.stationID(), ReturnData, params);
+                }
+                DataForRedistribution.clean_station_entry(o.stationID());
             }
         }
     }
@@ -438,7 +439,7 @@ void Qc2D::idw_intp_limit(StationData& sInterpol)
             // don not calculate distance to same station
             continue;
         const double distance = Helpers::distance(sInterpol.mLon, sInterpol.mLat, sd.mLon, sd.mLat);
-        if( distance < params.InterpolationLimit )
+        if( distance > 0 && distance < params.InterpolationLimit )
             pindex.push_back( id_pair(distance, sd.mObservation.stationID()) );
     }
     if( pindex.size() <= 1 ) // TODO decide how many neighbors are required
@@ -458,10 +459,9 @@ void Qc2D::idw_intp_limit(StationData& sInterpol)
             data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
 
         if( data_point > -1
-            && pindex[i].first > 0
             && CheckFlags.condition(o.controlinfo(), params.Iflag) )
         {
-            const double invDist2 = 1.0/(pindex[i].first*pindex[i].first);
+            const double dist = pindex[i].first, invDist2 = 1.0/(dist*dist);
             sumWeights += invDist2;
             sumWeightedValues += data_point*invDist2;
             miutil::miString cf = sInterpol.mObservation.cfailed();
