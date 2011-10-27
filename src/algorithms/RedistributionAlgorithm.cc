@@ -38,6 +38,8 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
+static const unsigned int MIN_NEIGHBORS = 1;
+
 miutil::miTime plusDay(const miutil::miTime& t, int nDays)
 {
     miutil::miTime p(t);
@@ -477,6 +479,12 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 
         NeighboringStationFinder::stationsWithDistances_t neighbors;
         nf.findNeighbors(neighbors, d.stationID(), params.InterpolationLimit);
+        if( neighbors.size() < MIN_NEIGHBORS ) {
+            LOGINFO("less than " << MIN_NEIGHBORS << " neighbor(s) within " << params.InterpolationLimit
+                    << " km for stationid=" << d.stationID());
+            continue;
+        }
+
         StationConstraint sc;
         foreach(NeighboringStationFinder::stationsWithDistances_t::value_type& v, neighbors)
             sc.add( v.first );
@@ -493,12 +501,14 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             return;
         }
 
+        bool neighborsMissing = false;
         float sumint = 0;
         dataList_t::const_iterator itN = ndata.begin(), itB = before.begin();
-        for(; itB != before.end() && itN != ndata.end(); ++itB ) {
+        for(; itB != before.end(); ++itB ) {
             //std::cout << "itb obstime=" << itB->obstime() << " itN obstime=" << itN->obstime() << std::endl;
             float sumWeights = 0.0, sumWeightedValues = 0.0;
-            for( ; itN->obstime() == itB->obstime(); ++itN ) {
+            unsigned int n = 0;
+            for( ; itN != ndata.end() && itN->obstime() == itB->obstime(); ++itN ) {
                 //std::cout << "neighbour id = " << itN->stationID() << std::endl;
                 float data_point = itN->original();
                 if (data_point == -1)
@@ -509,8 +519,17 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                 //std::cout << "distance =" << dist << " km" << std::endl;
                 sumWeights += invDist2;
                 sumWeightedValues += data_point*invDist2;
+                n += 1;
+            }
+            if( n < MIN_NEIGHBORS ) {
+                neighborsMissing = true;
+                break;
             }
             sumint += sumWeightedValues/sumWeights;
+        }
+        if( neighborsMissing ){
+            LOGERROR("not enough good neighbors d=" << d);
+            continue;
         }
         std::list<kvalobs::kvData> toWrite;
         //std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
@@ -532,6 +551,9 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             }
             cfailed << ",QC2-redist";
             float itB_corrected = (sumWeightedValues/sumWeights) * (d.original() / sumint);
+            if( d.original() == -1 || itB_corrected == 0 )
+                itB_corrected = -1; // bugzilla 1304: by default assume dry
+
             // TODO make sure that sum of re-distributed is the same as the original accumulated value
             //std::cout << "corrected at " << itB->obstime() << " = " << itB_corrected << std::endl;
 
