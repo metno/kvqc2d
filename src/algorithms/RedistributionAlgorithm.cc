@@ -120,138 +120,110 @@ private:
 };
 typedef SQLBuilderPointer<ObstimeConstraintImpl> ObstimeConstraint;
 
-class StationConstraintImpl : public DBConstraintImpl {
+class IntegerColumnnConstraintImpl : public DBConstraintImpl {
+protected:
+    IntegerColumnnConstraintImpl(const std::string& columnName)
+        : mColumnName(columnName) { }
+    IntegerColumnnConstraintImpl& add(int pid)
+        { mValues.push_back(pid); return *this; }
+    virtual std::string sql() const;
+private:
+    std::string mColumnName;
+    std::list<int> mValues;
+};
+
+std::string IntegerColumnnConstraintImpl::sql() const
+{
+    unsigned int n = mValues.size();
+    if( n == 0 )
+        return "";
+    std::ostringstream sql;
+    if( n == 1 ) {
+        sql << mColumnName << " = " << mValues.front();
+    } else {
+        sql << mColumnName << " IN ";
+        char sep = '(';
+        foreach(int v, mValues) {
+            sql << sep << v;
+            sep = ',';
+        }
+        sql << ')';
+    }
+    return sql.str();
+}
+
+
+class StationConstraintImpl : public IntegerColumnnConstraintImpl {
 public:
     StationConstraintImpl()
-        { }
+        : IntegerColumnnConstraintImpl(stationid) { }
     StationConstraintImpl(const std::list<kvalobs::kvStation>& stations)
-        { add(stations); }
+        : IntegerColumnnConstraintImpl(stationid) { add(stations); }
     StationConstraintImpl(const std::list<int>& stationIDs)
-        { add(stationIDs); }
+        : IntegerColumnnConstraintImpl(stationid) { add(stationIDs); }
     StationConstraintImpl(const kvalobs::kvStation& s)
-        { add(s.stationID()); }
+        : IntegerColumnnConstraintImpl(stationid) { add(s.stationID()); }
     StationConstraintImpl(int sid)
-        { add(sid); }
+        : IntegerColumnnConstraintImpl(stationid) { add(sid); }
     StationConstraintImpl& add(const std::list<kvalobs::kvStation>& stations)
         { foreach(const kvalobs::kvStation& s, stations) add(s); return *this; }
     StationConstraintImpl& add(const std::list<int>& stationIDs)
         { foreach(int sid, stationIDs) add(sid); return *this; }
     StationConstraintImpl& add(const kvalobs::kvStation& s)
-        { mStationIDs.push_back(s.stationID()); return *this; }
+        { add(s.stationID()); return *this; }
     StationConstraintImpl& add(int sid)
-        { mStationIDs.push_back(sid); return *this; }
-    virtual std::string sql() const;
+        { IntegerColumnnConstraintImpl::add(sid); return *this; }
 private:
-    std::list<int> mStationIDs;
+    static const char* stationid;
 };
-//typedef SQLBuilderPointer<StationConstraintImpl> StationConstraint;
-class StationConstraintC : public SQLBuilderPointer<StationConstraintImpl> {
+class StationConstraint : public SQLBuilderPointer<StationConstraintImpl> {
 public:
-    StationConstraintC()
+    StationConstraint()
         : SQLBuilderPointer<StationConstraintImpl>() { }
-    StationConstraintC& add(int s)
+    StationConstraint& add(int s)
         { p->add(s); return *this; }
 };
+const char* StationConstraintImpl::stationid = "stationid";
 
-std::string StationConstraintImpl::sql() const
-{
-    unsigned int n = mStationIDs.size();
-    if( n == 0 )
-        return "";
-    std::ostringstream sql;
-    if( n == 1 ) {
-        sql << "stationid = " << mStationIDs.front();
-    } else {
-        sql << "stationid IN ";
-        char sep = '(';
-        foreach(int sid, mStationIDs) {
-            sql << sep << sid;
-            sep = ',';
-        }
-        sql << ')';
-    }
-    return sql.str();
-}
-
-class ParamidConstraintImpl : public DBConstraintImpl {
+class ParamidConstraintImpl : public IntegerColumnnConstraintImpl {
 public:
     ParamidConstraintImpl()
-        { }
+        : IntegerColumnnConstraintImpl(paramid) { }
     ParamidConstraintImpl(const std::list<int>& paramIDs)
-        { add(paramIDs); }
+        : IntegerColumnnConstraintImpl(paramid) { add(paramIDs); }
     ParamidConstraintImpl(int pid)
-        { add(pid); }
+        : IntegerColumnnConstraintImpl(paramid) { add(pid); }
     ParamidConstraintImpl& add(const std::list<int>& paramIDs)
         { foreach(int pid, paramIDs) add(pid); return *this; }
     ParamidConstraintImpl& add(int pid)
-        { mParamIDs.push_back(pid); return *this; }
-    virtual std::string sql() const;
+        { IntegerColumnnConstraintImpl::add(pid); return *this; }
 private:
-    std::list<int> mParamIDs;
+    static const char* paramid;
 };
 typedef SQLBuilderPointer<ParamidConstraintImpl> ParamidConstraint;
+const char* ParamidConstraintImpl::paramid = "paramid";
 
-std::string ParamidConstraintImpl::sql() const
-{
-    unsigned int n = mParamIDs.size();
-    if( n == 0 )
-        return "";
-    std::ostringstream sql;
-    if( n == 1 ) {
-        sql << "paramid = " << mParamIDs.front();
-    } else {
-        sql << "paramid IN ";
-        char sep = '(';
-        foreach(int pid, mParamIDs) {
-            sql << sep << pid;
-            sep = ',';
-        }
-        sql << ')';
-    }
-    return sql.str();
-}
-
-class TypeidConstraintImpl : public DBConstraintImpl {
+class TypeidConstraintImpl : public IntegerColumnnConstraintImpl {
 public:
     TypeidConstraintImpl()
-        { }
+        : IntegerColumnnConstraintImpl(typeID) { }
     TypeidConstraintImpl(const std::vector<int>& typeIDs)
-        { add(typeIDs); }
+        : IntegerColumnnConstraintImpl(typeID) { add(typeIDs); }
     TypeidConstraintImpl(const std::list<int>& typeIDs)
-        { add(typeIDs); }
+        : IntegerColumnnConstraintImpl(typeID) { add(typeIDs); }
     TypeidConstraintImpl(int tid)
-        { add(tid); }
+        : IntegerColumnnConstraintImpl(typeID) { add(tid); }
     TypeidConstraintImpl& add(const std::vector<int>& typeIDs)
         { foreach(int t, typeIDs) add(t); return *this; }
     TypeidConstraintImpl& add(const std::list<int>& typeIDs)
         { foreach(int t, typeIDs) add(t); return *this; }
     TypeidConstraintImpl& add(int tid)
-        { mTypeIDs.push_back(tid); return *this; }
-    virtual std::string sql() const;
+        { IntegerColumnnConstraintImpl::add(tid); return *this; }
 private:
-    std::list<int> mTypeIDs;
+    static const char* typeID;
 };
 typedef SQLBuilderPointer<TypeidConstraintImpl> TypeidConstraint;
-
-std::string TypeidConstraintImpl::sql() const
-{
-    unsigned int n = mTypeIDs.size();
-    if( n == 0 )
-        return "";
-    std::ostringstream sql;
-    if( n == 1 ) {
-        sql << "typeid = " << mTypeIDs.front();
-    } else {
-        sql << "typeid IN ";
-        char sep = '(';
-        foreach(int sid, mTypeIDs) {
-            sql << sep << sid;
-            sep = ',';
-        }
-        sql << ')';
-    }
-    return sql.str();
-}
+const char* TypeidConstraintImpl::typeID = "typeid";
 
 class AndConstraintImpl : public DBConstraintImpl {
 public:
@@ -440,7 +412,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                         && ParamidConstraint(params.pid)
                         && TypeidConstraint(d.typeID())
                         && ObstimeConstraint(params.UT0, d.obstime())
-                        && StationConstraintC().add(d.stationID()))
+                        && StationConstraint().add(d.stationID()))
                 + ORDER_BY(order_by_time)) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
@@ -476,7 +448,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 
         NeighboringStationFinder::stationsWithDistances_t neighbors;
         nf.findNeighbors(neighbors, d.stationID(), params.InterpolationLimit);
-        StationConstraintC sc;
+        StationConstraint sc;
         foreach(NeighboringStationFinder::stationsWithDistances_t::value_type& v, neighbors)
             sc.add( v.first );
         dataList_t ndata;
