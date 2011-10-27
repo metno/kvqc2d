@@ -112,13 +112,22 @@ typedef SQLBuilderPointer<UseinfoConstraintImpl> UseinfoConstraint;
 class ObstimeConstraintImpl : public DBConstraintImpl {
 public:
     ObstimeConstraintImpl(const miutil::miTime& t0, const miutil::miTime& t1)
-        : mT0(t0), mT1(t1) { }
-    virtual std::string sql() const
-        { return "obstime BETWEEN '" + mT0.isoTime() + "' AND '" + mT1.isoTime() + "'"; }
+        : mT0(t0), mT1(t1) { if( mT0 > mT1 ) std::swap(mT0, mT1); }
+    ObstimeConstraintImpl(const miutil::miTime& t)
+        : mT0(t), mT1(t) { }
+    virtual std::string sql() const;
 private:
     miutil::miTime mT0, mT1;
 };
 typedef SQLBuilderPointer<ObstimeConstraintImpl> ObstimeConstraint;
+
+std::string ObstimeConstraintImpl::sql() const
+{
+    if ( mT0 != mT1 )
+        return "obstime BETWEEN '" + mT0.isoTime() + "' AND '" + mT1.isoTime() + "'";
+    else
+        return "obstime = '" + mT0.isoTime() + "'";
+}
 
 class IntegerColumnnConstraintImpl : public DBConstraintImpl {
 protected:
@@ -180,6 +189,8 @@ class StationConstraint : public SQLBuilderPointer<StationConstraintImpl> {
 public:
     StationConstraint()
         : SQLBuilderPointer<StationConstraintImpl>() { }
+    StationConstraint(int sid)
+        : SQLBuilderPointer<StationConstraintImpl>() { add(sid); }
     StationConstraint& add(int s)
         { p->add(s); return *this; }
 };
@@ -412,7 +423,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                         && ParamidConstraint(params.pid)
                         && TypeidConstraint(d.typeID())
                         && ObstimeConstraint(params.UT0, d.obstime())
-                        && StationConstraint().add(d.stationID()))
+                        && StationConstraint(d.stationID()))
                 + ORDER_BY(order_by_time)) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
@@ -436,6 +447,24 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
         if( before.back().obstime() <= params.UT0 ) {
             //std::cout << "before starts at UT0, no idea about series length" << std::endl;
+            continue;
+        }
+
+        dataList_t startdata;
+        if( !database()->selectData(startdata,
+                WHERE(/*usei_neighbors // need to define some constraints on this value
+                        &&*/ ParamidConstraint(params.pid)
+                        && TypeidConstraint(d.typeID())
+                        && ObstimeConstraint(t)
+                        && StationConstraint(d.stationID()))
+                + ORDER_BY(order_by_time)) )
+        {
+            LOGERROR("Problem with query in ProcessRedistribution");
+            std::cout << " => sql error" << std::endl;
+            return;
+        }
+        if( startdata.size() != 1 || startdata.front().original() == params.missing || startdata.front().original() == params.rejected ) {
+            LOGINFO("value before time series not existing/missing/rejected/not usable at t=" << t << " for accumulation in " << d);
             continue;
         }
 
