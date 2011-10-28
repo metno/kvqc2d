@@ -39,13 +39,18 @@
 #endif
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
+#include "algorithms/tround.h"
 #include "foreach.h"
+
+#include <algorithm>
+#include <numeric>
 
 class RedistributionTest : public AlgorithmTestBase {
 public:
     void SetUp();
     void TearDown();
     void Configure(ReadProgramOptions& params, int startDay, int endDay);
+    void RoundingTest(const float* values, const int N);
 protected:
     ALGO_CLASS* algo;
 };
@@ -125,6 +130,65 @@ void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int
             << "I_fd=1"  << std::endl
             << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
+}
+
+void RedistributionTest::RoundingTest(const float* values, const int N)
+{
+    const float rounded_acc = round<float,1>(std::accumulate(values, values+N, 0.0));
+
+    std::ostringstream sql;
+    sql // fake values assuming 0.075 mm for all stations
+        << "INSERT INTO data VALUES (83880, '2011-10-13 06:00:00',    0.5, 110, '2011-10-13 05:04:36', 302, 0, 0,    0.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
+        << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00', -32767, 110, '2011-10-15 00:35:29', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00', -32767, 110, '2011-10-16 00:35:40', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00', -32767, 110, '2011-10-18 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-19 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00', " << rounded_acc << ", 110, '2011-10-20 09:11:19', 302, 0, 0, " << rounded_acc << ", '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+
+        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    0.5, 110, '2011-10-13 07:48:30', 302, 0, 0,    0.5, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    0.1, 110, '2011-10-13 06:23:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');";
+
+    float rounded_values[N];
+    std::transform(values, values+N, rounded_values, round<float, 1>);
+    const float acc_of_rounded = round<float,1>(std::accumulate(rounded_values, rounded_values+N, 0.0)), scaling = rounded_acc / acc_of_rounded;
+
+    float interpolated_values[N];
+    for(int i=0; i<N; ++i)
+        interpolated_values[i] = round<float,1>(rounded_values[i] * scaling);
+    const float acc_of_interpolated = round<float,1>(std::accumulate(interpolated_values, interpolated_values+N, 0.0));
+    const float delta = acc_of_interpolated - rounded_acc;
+    ASSERT_LE(0.05, fabs(delta)) << "values do not expose problem under test";
+
+    for(int i=0; i<N; ++i) {
+        const int d = 14 + i;
+        const float r =rounded_values[i];
+        sql << "INSERT INTO data VALUES (83520, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-" << d <<  " 06:11:24', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');"
+            << "INSERT INTO data VALUES (84190, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-" << d <<  " 06:11:24', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');";
+    }
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    ReadProgramOptions params;
+    Configure(params, 10, 19);
+
+    algo->run(params);
+    ASSERT_EQ(6, bc->count());
+
+    float delta2 = delta, acc_of_corrected = 0;
+    for(int i=0; i<bc->count(); ++i) {
+        const kvalobs::kvData& d = bc->updates()[i];
+        SCOPED_TRACE(testing::Message() << "Update #" << i);
+        EXPECT_EQ(83880, d.stationID());
+        float expected = interpolated_values[i];
+        if( fabs(delta2) > 0 && expected>delta2 ) {
+            expected = round<float,1>(expected - delta2);
+            delta2 = 0;
+        }
+        EXPECT_FLOAT_EQ(expected, d.corrected()) << "aor=" << acc_of_rounded << " ra=" << rounded_acc << " v[" << i << "]=" << values[i];
+        EXPECT_EQ(i==5 ? "0140004000007000" : "0000001000007000", d.controlinfo().flagstring());
+        acc_of_corrected += d.corrected();
+    }
+    EXPECT_FLOAT_EQ(rounded_acc, acc_of_corrected);
 }
 
 TEST_F(RedistributionTest, Station83880History2011117)
@@ -264,7 +328,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
     std::ostringstream sql;
     sql // some data are fake for stationid=83880
         << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   12.8, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00',    0.6, 110, '2011-10-19 06:11:12', 302, 0, 0,    0.6, '0140000000000000', '7020400000000001', 'QC1-2-72.b12');"
 
         << "INSERT INTO data VALUES (83520, '2011-10-16 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
@@ -527,13 +591,37 @@ TEST_F(RedistributionTest, BoneDry)
 TEST_F(RedistributionTest, IncompleteSeries)
 {
     // may not redistribute if no accumulated value yet
-    FAIL() << "test not implemented";
-}
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (83880, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
+        << "INSERT INTO data VALUES (83880, '2011-10-13 06:00:00',    6.5, 110, '2011-10-13 05:04:36', 302, 0, 0,    6.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
+        << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00', -32767, 110, '2011-10-15 00:35:29', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00', -32767, 110, '2011-10-16 00:35:40', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
 
-TEST_F(RedistributionTest, VerySmallValues)
-{
-    // may not redistribute if first missing value is start of database
-    FAIL() << "test not implemented";
+        << "INSERT INTO data VALUES (83520, '2011-10-12 06:00:00',    0.1, 110, '2011-10-12 06:59:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    2.5, 110, '2011-10-13 07:48:30', 302, 0, 0,    2.5, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-14 06:00:00',    2.6, 110, '2011-10-14 06:11:24', 302, 0, 0,    2.6, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',    5.7, 110, '2011-10-15 07:16:28', 302, 0, 0,    5.7, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-16 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (84190, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 06:16:56', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    4.5, 110, '2011-10-13 06:23:40', 302, 0, 0,    4.5, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-14 06:00:00',    0.1, 110, '2011-10-14 06:05:03', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',    0.2, 110, '2011-10-16 15:13:23', 302, 0, 0,    0.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-16 06:00:00',    6.4, 110, '2011-10-16 15:13:23', 302, 0, 0,    6.4, '0110000000001000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 05:29:19', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00',    2.1, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    0.6, 110, '2011-10-14 05:34:52', 302, 0, 0,    0.6, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00', -32767, 110, '2011-10-16 00:36:09', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    ReadProgramOptions params;
+    Configure(params, 10, 17);
+
+    algo->run(params);
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(RedistributionTest, Bugzilla1296)
@@ -556,7 +644,18 @@ TEST_F(RedistributionTest, Bugzilla1322)
 TEST_F(RedistributionTest, Bugzilla1325)
 {
     // consistency of accumulated value with sum of redistributed values
-    FAIL() << "test not implemented";
+    const int N = 6;
+    const float values[N] = { 1.07, 2.07, 3.07, 2.07, 1.07, 1.07 };
+
+    RoundingTest(values, N);
+}
+
+TEST_F(RedistributionTest, RoundingForVerySmallValues)
+{
+    // keep sum of distributed values identical to accumulated value; see bugzilla 1325
+    const int N = 6;
+    const float values[N] = { 0.07, 0.07, 0.07, 0.07, 0.07, 0.07 };
+    RoundingTest(values, N);
 }
 
 TEST_F(RedistributionTest, Bugzilla1333)

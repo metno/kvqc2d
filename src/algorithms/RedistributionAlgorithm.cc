@@ -55,23 +55,23 @@ public:
         : p(d.p) { }
 
     explicit SQLBuilderPointer()
-        : p( new T()) { }
+        : p(new T()) { }
 
     template<class P1>
     explicit SQLBuilderPointer(const P1& p1)
-        : p( new T(p1)) { }
+        : p(new T(p1)) { }
 
     template<class P1, class P2>
     explicit SQLBuilderPointer(const P1& p1, const P2& p2)
-        : p( new T(p1, p2)) { }
+        : p(new T(p1, p2)) { }
 
     template<class P1, class P2, class P3>
     explicit SQLBuilderPointer(const P1& p1, const P2& p2, const P3& p3)
-        : p( new T(p1, p2, p3)) { }
+        : p(new T(p1, p2, p3)) { }
 
     template<class P1, class P2, class P3, class P4>
     explicit SQLBuilderPointer(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-        : p( new T(p1, p2, p3, p4)) { }
+        : p(new T(p1, p2, p3, p4)) { }
 
     std::string sql() const
         { return p->sql(); }
@@ -534,6 +534,9 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         std::list<kvalobs::kvData> toWrite;
         //std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
         itN = ndata.begin(), itB = before.begin();
+        float accumulated = d.original(), corrected_sum = 0;
+        if( d.original() == -1 )
+            accumulated = 0;
         for(; itB != before.end() && itN != ndata.end(); ++itB ) {
             std::ostringstream cfailed;
             cfailed << "QC2N";
@@ -550,23 +553,36 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                 cfailed << "_" << itN->stationID();
             }
             cfailed << ",QC2-redist";
-            float itB_corrected = (sumWeightedValues/sumWeights) * (d.original() / sumint);
+            float itB_corrected = round<float, 1>((sumWeightedValues/sumWeights) * (accumulated / sumint));
+            corrected_sum += itB_corrected;
             if( d.original() == -1 || itB_corrected == 0 )
                 itB_corrected = -1; // bugzilla 1304: by default assume dry
-
-            // TODO make sure that sum of re-distributed is the same as the original accumulated value
-            //std::cout << "corrected at " << itB->obstime() << " = " << itB_corrected << std::endl;
 
             kvalobs::kvControlInfo fixflags = itB->controlinfo();
             checkFlags().setter(fixflags, params.Sflag);
             checkFlags().conditional_setter(fixflags, params.chflag);
 
             kvalobs::kvData correctedData(*itB);
-            correctedData.corrected(round<float, 1>(itB_corrected));
+            correctedData.corrected(itB_corrected);
             correctedData.controlinfo(fixflags);
             Helpers::updateUseInfo(correctedData);
             Helpers::updateCfailed(correctedData, cfailed.str(), params.CFAILED_STRING);
             toWrite.push_back(correctedData);
+        }
+
+        // make sure that sum of re-distributed is the same as the original accumulated value
+        const float delta = round<float,1>(corrected_sum - accumulated);
+        if( delta != 0 ) {
+            bool fixed = false;
+            foreach_r(kvalobs::kvData& w, toWrite) {
+                if( w.corrected() >= delta ) {
+                    w.corrected(w.corrected() - delta);
+                    fixed = true;
+                    break;
+                }
+            }
+            if( !fixed )
+                LOGINFO("Could not avoid difference between distributed sum and accumulated value at d=" << d);
         }
 
         // we accumulated the corrections in time-reversed order, while tests expect them the other way around => foreach_r
