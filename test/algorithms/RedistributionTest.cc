@@ -45,15 +45,6 @@
 #include <algorithm>
 #include <numeric>
 
-static std::string digit2(int i)
-{
-    std::ostringstream o;
-    if( i>-10 && i<10 )
-        o << '0';
-    o << i;
-    return o.str();
-}
-
 class RedistributionTest : public AlgorithmTestBase {
 public:
     void SetUp();
@@ -655,7 +646,7 @@ TEST_F(RedistributionTest, Release113)
     for(int d=5; d<=16; ++d) {
         for(int j=0; j<4; ++j) {
             const int n = neighbors[j];
-            sql << "INSERT INTO data VALUES (" << n << ", '2011-05-" << digit2(d) << " 06:00:00', 2.7, 110, '2011-10-28 15:40:00', 402, 0, 0, 2.7, '0110000000001000', '7000000000000000', '');";
+            sql << "INSERT INTO data VALUES (" << n << ", '2011-05-" << std::setw(2) << std::setfill('0') << d << " 06:00:00', 2.7, 110, '2011-10-28 15:40:00', 402, 0, 0, 2.7, '0110000000001000', '7000000000000000', '');";
         }
     }
 
