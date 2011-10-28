@@ -39,6 +39,7 @@
 #include <puTools/miTime.h>
 #include <memory>
 #include <stdexcept>
+#include <boost/version.hpp>
 
 #include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"

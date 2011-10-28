@@ -31,6 +31,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/exception.hpp>
+#include <boost/version.hpp>
 #include "Qc2App.h"
 #include <milog/milog.h>
 #include "InitLogger.h"

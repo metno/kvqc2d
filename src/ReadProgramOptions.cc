@@ -40,6 +40,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/version.hpp>
 #include <kvalobs/kvPath.h>
 
 #include "ReadProgramOptions.h"

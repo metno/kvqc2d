@@ -1,3 +1,9 @@
+kvqc2d (1.2.2-1) unstable; urgency=low
+
+  * Faster shutdown of kvqc2d did not work, BOOST_VERSION was not set.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 18 Oct 2011 15:02:27 +0100
+
 kvqc2d (1.2.1-1) unstable; urgency=low
 
   * Faster shutdown of kvqc2d.

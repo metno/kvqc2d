@@ -34,6 +34,7 @@
 #include <milog/milog.h>
 #include <string>
 #include <kvalobs/kvPath.h>
+#include <boost/version.hpp>
 
 namespace{
   volatile sig_atomic_t sigTerm=0;
