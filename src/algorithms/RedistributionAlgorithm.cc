@@ -500,6 +500,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             LOGERROR("Problem with query in ProcessRedistribution");
             return;
         }
+        //std::cout << "ndata .size = " << ndata.size() << std::endl;
 
         bool neighborsMissing = false;
         float sumint = 0;
@@ -522,12 +523,13 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                 n += 1;
             }
             if( n < MIN_NEIGHBORS ) {
+                //LOGERROR("not enough good neighbors n=" << n << " d=" << d);
                 neighborsMissing = true;
                 break;
             }
             sumint += sumWeightedValues/sumWeights;
         }
-        if( neighborsMissing ){
+        if( neighborsMissing ) {
             LOGERROR("not enough good neighbors d=" << d);
             continue;
         }

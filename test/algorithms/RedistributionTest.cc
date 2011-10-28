@@ -45,6 +45,15 @@
 #include <algorithm>
 #include <numeric>
 
+static std::string digit2(int i)
+{
+    std::ostringstream o;
+    if( i>-10 && i<10 )
+        o << '0';
+    o << i;
+    return o.str();
+}
+
 class RedistributionTest : public AlgorithmTestBase {
 public:
     void SetUp();
@@ -136,19 +145,6 @@ void RedistributionTest::RoundingTest(const float* values, const int N)
 {
     const float rounded_acc = round<float,1>(std::accumulate(values, values+N, 0.0));
 
-    std::ostringstream sql;
-    sql // fake values assuming 0.075 mm for all stations
-        << "INSERT INTO data VALUES (83880, '2011-10-13 06:00:00',    0.5, 110, '2011-10-13 05:04:36', 302, 0, 0,    0.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
-        << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00', -32767, 110, '2011-10-15 00:35:29', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00', -32767, 110, '2011-10-16 00:35:40', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00', -32767, 110, '2011-10-18 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-19 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00', " << rounded_acc << ", 110, '2011-10-20 09:11:19', 302, 0, 0, " << rounded_acc << ", '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
-
-        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    0.5, 110, '2011-10-13 07:48:30', 302, 0, 0,    0.5, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    0.1, 110, '2011-10-13 06:23:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');";
-
     float rounded_values[N];
     std::transform(values, values+N, rounded_values, round<float, 1>);
     const float acc_of_rounded = round<float,1>(std::accumulate(rounded_values, rounded_values+N, 0.0)), scaling = rounded_acc / acc_of_rounded;
@@ -160,11 +156,24 @@ void RedistributionTest::RoundingTest(const float* values, const int N)
     const float delta = acc_of_interpolated - rounded_acc;
     ASSERT_LE(0.05, fabs(delta)) << "values do not expose problem under test";
 
+    std::ostringstream sql;
+    sql // fake values assuming 0.075 mm for all stations
+        << "INSERT INTO data VALUES (83880, '2011-10-13 06:00:00',    0.5, 110, '2011-10-28 15:40:00', 302, 0, 0,    0.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
+        << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00', -32767, 110, '2011-10-28 15:40:00', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00', -32767, 110, '2011-10-28 15:40:00', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-28 15:40:00', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00', -32767, 110, '2011-10-28 15:40:00', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-28 15:40:00', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00', " << rounded_acc << ", 110, '2011-10-28 15:40:00', 302, 0, 0, " << rounded_acc << ", '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+
+        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    0.5, 110, '2011-10-13 07:48:30', 302, 0, 0,    0.5, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    0.1, 110, '2011-10-13 06:23:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');";
+
     for(int i=0; i<N; ++i) {
         const int d = 14 + i;
         const float r =rounded_values[i];
-        sql << "INSERT INTO data VALUES (83520, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-" << d <<  " 06:11:24', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');"
-            << "INSERT INTO data VALUES (84190, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-" << d <<  " 06:11:24', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');";
+        sql << "INSERT INTO data VALUES (83520, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-28 15:40:00', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');"
+            << "INSERT INTO data VALUES (84190, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-28 15:40:00', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');";
     }
     ASSERT_TRUE( db->exec(sql.str()) );
 
@@ -624,6 +633,89 @@ TEST_F(RedistributionTest, IncompleteSeries)
     ASSERT_EQ(0, bc->count());
 }
 
+TEST_F(RedistributionTest, Release113)
+{
+    // origin of test case: https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:version:kvqc2d-1.1.3
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (66100, '2011-05-05 06:00:00',    5.8, 110, '2011-05-10 14:35:42', 402, 0, 0,    5.8, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-06 06:00:00',    0.9, 110, '2011-05-10 14:35:42', 402, 0, 0,    0.9, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-07 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000000000', '7899900000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-08 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000000000', '7899900000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-09 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000000000', '7899900000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-10 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000000000', '7899900000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-11 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000000000', '7899900000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-12 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000000000', '7899900000000000', '');"
+        << "INSERT INTO data VALUES (66100, '2011-05-13 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110b');"
+        << "INSERT INTO data VALUES (66100, '2011-05-14 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110b');"
+        << "INSERT INTO data VALUES (66100, '2011-05-15 06:00:00', -32767, 110, '2011-05-24 19:21:18', 402, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110b');"
+        << "INSERT INTO data VALUES (66100, '2011-05-16 06:00:00',   27.1, 110, '2011-05-24 19:21:18', 402, 0, 0,   27.1, '0140004000002000', '7330900000000001', 'QC1-7-110b');";
+
+    // fake, did not find actual data for stations 66070 and 65270
+    const int neighbors[4] = { 65270, 66070, 67150, 68270 };
+    for(int d=5; d<=16; ++d) {
+        for(int j=0; j<4; ++j) {
+            const int n = neighbors[j];
+            sql << "INSERT INTO data VALUES (" << n << ", '2011-05-" << digit2(d) << " 06:00:00', 2.7, 110, '2011-10-28 15:40:00', 402, 0, 0, 2.7, '0110000000001000', '7000000000000000', '');";
+        }
+    }
+
+    sql << "INSERT INTO station VALUES(65270,  63.2302,  9.3488, 306, 0,                'S_VATNET', NULL, 65270, NULL, NULL, NULL,  9, 't', '1965-07-01 00:00:00');"
+        << "INSERT INTO station VALUES(66070,  63.2941,  9.7291,  84, 0, 'SKJENALDFOSSEN I ORKDAL', NULL, 66070, NULL, NULL, NULL,  9, 't', '1907-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(66100, 63.33085,  9.6489, 300, 0,                  'SONGLI', NULL, 66100, NULL, NULL, NULL, 10, 't', '1988-07-03 00:00:00');"
+        << "INSERT INTO station VALUES(67150,   63.328, 10.2737,  13, 0,              'LEINSTRAND', NULL, 67150, NULL, NULL, NULL,  9, 't', '1960-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(68270,  63.2315, 10.4369, 173, 0,                 'L_KSMYR', NULL, 68270, NULL, NULL, NULL,  9, 't', '1960-01-01 00:00:00');"
+
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1,   'QC1-1-110', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1',          NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 274, 304, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 305, 334, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 335, 365, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1,  31, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,  32,  59, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,  60,  90, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,  91, 120, -1, 'QC1-2-72.b4', 'R1\n5',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 121, 151, -1, 'QC1-2-72.b4', 'R1\n3',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 152, 181, -1, 'QC1-2-72.b4', 'R1\n1',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 182, 212, -1, 'QC1-2-72.b4', 'R1\n0',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 213, 243, -1, 'QC1-2-72.b4', 'R1\n0',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 244, 273, -1, 'QC1-2-72.b4', 'R1\n3',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 274, 304, -1, 'QC1-2-72.c4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 305, 334, -1, 'QC1-2-72.c4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 335, 365, -1, 'QC1-2-72.c4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1,  31, -1, 'QC1-2-72.c4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,  32,  59, -1, 'QC1-2-72.c4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,  60,  90, -1, 'QC1-2-72.c4', 'R1\n10', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,  91, 120, -1, 'QC1-2-72.c4', 'R1\n5',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 121, 151, -1, 'QC1-2-72.c4', 'R1\n3',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 152, 181, -1, 'QC1-2-72.c4', 'R1\n1',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 182, 212, -1, 'QC1-2-72.c4', 'R1\n0',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 213, 243, -1, 'QC1-2-72.c4', 'R1\n0',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0, 244, 273, -1, 'QC1-2-72.c4', 'R1\n3',  '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1, 'QC1-1-110x',  '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    ReadProgramOptions params;
+    Configure(params, 5, 16);
+    params.UT0 = "2011-05-05 06:00:00";
+    params.UT1 = "2011-05-16 06:00:00";
+
+    // with bad fd flags, make sure that the redistribution does not run
+    algo->run(params);
+    ASSERT_EQ(0, bc->count());
+
+    // now fix the fd flags and make sure that the redistribution runs
+    sql.str("");
+    sql << "UPDATE data SET controlinfo = '0000003000002000' WHERE stationid = 66100 AND obstime BETWEEN '2011-05-07 06:00:00' AND '2011-05-12 06:00:00';";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    algo->run(params);
+    ASSERT_EQ(10, bc->count());
+}
+
+TEST_F(RedistributionTest, RerunWithUpdatedValues)
+{
+    FAIL() << "test not implemented";
+}
+
 TEST_F(RedistributionTest, Bugzilla1296)
 {
     FAIL() << "test not implemented";
@@ -638,7 +730,7 @@ TEST_F(RedistributionTest, Bugzilla1304)
 TEST_F(RedistributionTest, Bugzilla1322)
 {
     // redistribution run starts in the middle of a sequence of missing values
-    FAIL() << "test not implemented";
+    FAIL() << "test not implemented, no example data found";
 }
 
 TEST_F(RedistributionTest, Bugzilla1325)
