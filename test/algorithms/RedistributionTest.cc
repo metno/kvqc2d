@@ -320,6 +320,10 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    params.UT0 = "2011-10-15 06:00:00";
+    algo->run(params);
+    ASSERT_EQ(2, bc->count());
 }
 
 TEST_F(RedistributionTest, StartOfDatabase)
@@ -349,6 +353,16 @@ TEST_F(RedistributionTest, StartOfDatabase)
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    sql.str("");
+    sql << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    algo->run(params);
+    ASSERT_EQ(2, bc->count());
 }
 
 TEST_F(RedistributionTest, TwoSeries)
@@ -483,6 +497,13 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    sql.str("");
+    sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190) AND obstime = '2011-10-13 06:00:00';";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    algo->run(params);
+    ASSERT_EQ(2, bc->count());
 }
 
 TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
@@ -515,6 +536,13 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    sql.str("");
+    sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190, 84070) AND obstime = '2011-10-13 06:00:00';";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    algo->run(params);
+    ASSERT_EQ(3, bc->count());
 }
 
 TEST_F(RedistributionTest, NeighborsTooFar)
@@ -541,10 +569,14 @@ TEST_F(RedistributionTest, NeighborsTooFar)
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
-    params.InterpolationLimit = 5; // only neighbors within 1 km => none
+    params.InterpolationLimit = 5; // only neighbors within 5 km => none
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    params.InterpolationLimit = 50;
+    algo->run(params);
+    ASSERT_EQ(4, bc->count());
 }
 
 TEST_F(RedistributionTest, BoneDry)
@@ -622,6 +654,16 @@ TEST_F(RedistributionTest, IncompleteSeries)
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    sql.str("");
+    sql << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   12.8, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83520, '2011-10-17 06:00:00',    8.2, 110, '2011-10-16 08:10:34', 302, 0, 0,    8.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-17 06:00:00',    2.4, 110, '2011-10-16 15:13:23', 302, 0, 0,    2.4, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');";
+    ASSERT_TRUE( db->exec(sql.str()) );
+
+    algo->run(params);
+    ASSERT_EQ(4, bc->count());
 }
 
 TEST_F(RedistributionTest, Release113)
