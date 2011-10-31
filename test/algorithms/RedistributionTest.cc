@@ -94,8 +94,7 @@ void RedistributionTest::SetUp()
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 182, 212, -1, 'QC1-2-72.c4', 'R1\n0',  '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 213, 243, -1, 'QC1-2-72.c4', 'R1\n0',  '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 244, 273, -1, 'QC1-2-72.c4', 'R1\n3',  '', '1500-01-01 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 }
 
 void RedistributionTest::TearDown()
@@ -166,7 +165,7 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
         sql << "INSERT INTO data VALUES (83520, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-28 15:40:00', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');"
             << "INSERT INTO data VALUES (84190, '2011-10-" << d << " 06:00:00', " << r << ", 110, '2011-10-28 15:40:00', 302, 0, 0, " << r << ", '0110000000001000', '7000000000000000', '');";
     }
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 10, 19);
@@ -239,7 +238,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
         //<< "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00', 38.3, 110, '2011-10-17 09:11:19', 302, 0, 0, 6.3, '0140004000007000', '5336900000000001', 'QC1-2-72.b12,QC1-7-110,QC2N_83520_84190,QC2-redist');"
         /// << "INSERT INTO data VALUES (84070, '2011-10-10 06:00:00', 3.4, 110, '2011-10-10 12:41:17', 302, 0, 0, 3.4, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         /// << "INSERT INTO data VALUES (84070, '2011-10-10 06:00:00', 3.4, 110, '2011-10-10 12:41:17', 302, 0, 0, -1, '0140004000007000', '5336900000000001', 'QC1-2-72.b12,QC1-7-110,QC2N_84190,QC2-redist');"
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 13, 17);
@@ -308,7 +307,7 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
         << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00', -32767, 110, '2011-10-18 00:39:35', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-18 06:00:00',   66.7, 110, '2011-10-19 06:43:04', 302, 0, 0,   66.7, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-19 06:00:00',    1.4, 110, '2011-10-19 06:43:04', 302, 0, 0,    1.4, '0110000000001000', '7000000000000000', '');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 16, 17);
@@ -341,7 +340,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
         << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00', -32767, 110, '2011-10-18 00:39:35', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-18 06:00:00',   66.7, 110, '2011-10-19 06:43:04', 302, 0, 0,   66.7, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 14, 17);
@@ -354,7 +353,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
         << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());
@@ -408,7 +407,7 @@ TEST_F(RedistributionTest, TwoSeries)
         << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-18 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-19 06:00:00',    1.4, 110, '2011-10-19 06:43:04', 302, 0, 0,    1.4, '0110000000001000', '7000000000000000', '');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
@@ -449,7 +448,7 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
         << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 402, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00', -32767, 110, '2011-10-17 00:30:56', 402, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',     10, 110, '2011-10-17 09:11:19', 402, 0, 0,     10, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
@@ -485,7 +484,7 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
         << "INSERT INTO data VALUES (84190, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 06:16:56', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84190, '2011-10-14 06:00:00',    0.1, 110, '2011-10-14 06:05:03', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
@@ -495,7 +494,7 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
 
     sql.str("");
     sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190) AND obstime = '2011-10-13 06:00:00';";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());
@@ -524,7 +523,7 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
         << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',    0.4, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.4, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',     10, 110, '2011-10-17 09:11:19', 302, 0, 0,     10, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
@@ -534,7 +533,7 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
 
     sql.str("");
     sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190, 84070) AND obstime = '2011-10-13 06:00:00';";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     algo->run(params);
     ASSERT_EQ(3, bc->count());
@@ -560,7 +559,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
         << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',     10, 110, '2011-10-17 09:11:19', 302, 0, 0,     10, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
@@ -594,7 +593,7 @@ TEST_F(RedistributionTest, BoneDry)
         << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',    0.1, 110, '2011-10-12 06:16:56', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00',     -1, 110, '2011-10-13 06:23:40', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    0.0, 110, '2011-10-14 06:05:03', 302, 0, 0,    0.0, '0110000000001000', '7000000000000000', '');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 11, 18);
@@ -642,7 +641,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
         << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    0.6, 110, '2011-10-14 05:34:52', 302, 0, 0,    0.6, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00', -32767, 110, '2011-10-16 00:36:09', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 10, 17);
@@ -655,7 +654,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
         << "INSERT INTO data VALUES (83520, '2011-10-17 06:00:00',    8.2, 110, '2011-10-16 08:10:34', 302, 0, 0,    8.2, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84190, '2011-10-17 06:00:00',    2.4, 110, '2011-10-16 15:13:23', 302, 0, 0,    2.4, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     algo->run(params);
     ASSERT_EQ(4, bc->count());
@@ -719,7 +718,7 @@ TEST_F(RedistributionTest, Release113)
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 213, 243, -1, 'QC1-2-72.c4', 'R1\n0',  '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 244, 273, -1, 'QC1-2-72.c4', 'R1\n3',  '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1, 'QC1-1-110x',  '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 5, 16);
@@ -733,7 +732,7 @@ TEST_F(RedistributionTest, Release113)
     // now fix the fd flags and make sure that the redistribution runs
     sql.str("");
     sql << "UPDATE data SET controlinfo = '0000003000002000' WHERE stationid = 66100 AND obstime BETWEEN '2011-05-07 06:00:00' AND '2011-05-12 06:00:00';";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     algo->run(params);
     ASSERT_EQ(10, bc->count());
@@ -837,7 +836,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
         << "INSERT INTO data VALUES (84070, '2011-10-18 06:00:00',   66.7, 110, '2011-10-19 06:43:04', 302, 0, 0,   66.7, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (84070, '2011-10-19 06:00:00',    1.4, 110, '2011-10-19 06:43:04', 302, 0, 0,    1.4, '0110000000001000', '7000000000000000', '');";
 
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
     Configure(params, 13, 17);
@@ -857,7 +856,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
     }
 
     std::list<kvalobs::kvData> cfailedWithQC2;
-    ASSERT_TRUE( db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%'") );
+    ASSERT_NO_THROW(db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%'"));
     foreach(const kvalobs::kvData& d, cfailedWithQC2) {
         EXPECT_EQ(83880, d.stationID()) << " data=" << d;
     }

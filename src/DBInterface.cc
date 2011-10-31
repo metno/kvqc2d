@@ -29,13 +29,13 @@
 
 #include "DBInterface.h"
 
-bool DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last)
+void DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException)
 {
     const kvStationIDList_t stations(1, stationID);
     return dataForStationsParamTimerange(r, stations, paramID, first, last);
 }
 
-bool DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter)
+void DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter) throw (DBException)
 {
     const kvStationIDList_t stations(1, stationID);
     miutil::miTime first=middle, last=middle;
@@ -44,17 +44,17 @@ bool DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, i
     return dataForStationsParamTimerange(r, stations, paramID, first, last);
 }
 
-bool DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where)
+void DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where) throw (DBException)
 {
     return selectData(r, Constraint::WHERE(where));
 }
 
-bool DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by)
+void DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by) throw (DBException)
 {
     return selectData(r, Constraint::WHERE(where) + Ordering::ORDER_BY(order_by));
 }
 
-bool DBInterface::insertData(const kvalobs::kvData& d, bool replace)
+void DBInterface::insertData(const kvalobs::kvData& d, bool replace) throw (DBException)
 {
     const kvDataList_t datalist(1, d);
     return insertData(datalist, replace);

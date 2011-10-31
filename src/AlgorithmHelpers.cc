@@ -84,10 +84,7 @@ void GetNorwegianFixedStations(DBInterface* db, std::list<kvalobs::kvStation>& s
 void GetAllStations(DBInterface* db, std::list<kvalobs::kvStation>& stations)
 {
     stations.clear();
-    if( !db->selectStations( stations ) ) {
-        LOGERROR("Could not get station list from database.");
-        return;
-    }
+    db->selectStations( stations );
 }
 
 double distance(double lon1, double lat1, double lon2, double lat2)

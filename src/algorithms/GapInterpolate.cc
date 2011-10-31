@@ -1,5 +1,5 @@
 /*
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
   Copyright (C) 2011 met.no
 
@@ -13,17 +13,17 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -54,10 +54,7 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
         const miutil::miString filter = "WHERE STATIONID="+StrmConvert(station.stationID())+" AND PARAMID="+StrmConvert(params.pid)
                 +" AND TYPEID="+StrmConvert(params.tid)+" AND level=0 AND sensor=\'0\' AND obstime BETWEEN \'"+params.UT0.isoTime()+"\' AND \'"+params.UT1.isoTime()+"\'";
         std::list<kvalobs::kvData> Qc2SeriesData;
-        if( !database()->selectData(Qc2SeriesData, filter) ) {
-            LOGERROR("Database query problem in GapInterpolate");
-            continue;
-        }
+        database()->selectData(Qc2SeriesData, filter);
 
         std::vector<double> xt,yt;
         // Go through the data and fit an Akima Spline to the good points
@@ -70,7 +67,7 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
                     d.obstime().min()/60.0+d.obstime().sec()/3600.0;
                 xt.push_back(HourDec);
                 yt.push_back(d.original());
-            } 
+            }
         }
         // Calculate the Akima Spline if there are enough points and the fill missing points
         if( xt.size() <= 4 )
@@ -127,5 +124,5 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
                 }
             }
         }
-    }  
+    }
 }

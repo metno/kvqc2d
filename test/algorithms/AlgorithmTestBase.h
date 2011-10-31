@@ -41,11 +41,11 @@ public:
     SqliteTestDB();
     ~SqliteTestDB();
 
-    virtual bool selectData(kvDataList_t&, const miutil::miString& where);
-    virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx);
-    virtual bool selectStations(kvStationList_t&);
-    virtual bool insertData(const kvDataList_t&, bool replace);
-    bool exec(const std::string& statement);
+    virtual void selectData(kvDataList_t&, const miutil::miString& where)  throw (DBException);
+    virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
+    virtual void selectStations(kvStationList_t&) throw (DBException);
+    virtual void insertData(const kvDataList_t&, bool replace) throw (DBException);
+    void exec(const std::string& statement) throw (DBException);
 private:
     sqlite3 *db;
 };

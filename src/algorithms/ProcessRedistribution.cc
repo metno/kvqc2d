@@ -51,10 +51,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
     for(miutil::miTime ProcessTime = params.UT0; ProcessTime <= params.UT1; ProcessTime.addDay(1)) {
 
         std::list<kvalobs::kvData> allDataOneTime;
-        if( !database()->dataForStationsParamTimerange(allDataOneTime, allStationIDs, params.pid, ProcessTime, ProcessTime) ) {
-            LOGERROR("Problem with query in ProcessRedistribution");
-            continue;
-        }
+        database()->dataForStationsParamTimerange(allDataOneTime, allStationIDs, params.pid, ProcessTime, ProcessTime);
         if( allDataOneTime.empty() ) {
             continue;
         }
@@ -71,10 +68,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             miutil::miTime PreviousCheck = d.obstime();
             PreviousCheck.addDay(-1); // FIXME this should be Step_DD from the config file
             std::list<kvalobs::kvData> CheckData;
-            if( !database()->dataForStationParamTimerange(CheckData, d.stationID(), params.pid, PreviousCheck, PreviousCheck) ) {
-                LOGERROR("Problem with station data query in ProcessRedistribution");
-                continue;
-            }
+            database()->dataForStationParamTimerange(CheckData, d.stationID(), params.pid, PreviousCheck, PreviousCheck);
             int ignore_station = 0;
             foreach(const kvalobs::kvData& c, CheckData) {
                 if (c.corrected()==params.missing) {
@@ -89,10 +83,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
                 kvalobs::kvData dwrite(d);
                 Helpers::updateUseInfo(dwrite);
-                if( !database()->insertData(dwrite, true) ) {
-                    LOGERROR("Could not write to database");
-                    continue;
-                }
+                database()->insertData(dwrite, true);
 
                 broadcaster()->queueChanged(d);
                 broadcaster()->sendChanges();

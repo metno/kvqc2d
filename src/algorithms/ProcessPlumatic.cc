@@ -54,11 +54,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
             +" AND PARAMID="+StrmConvert(params.pid)
             +" AND obstime BETWEEN \'"+params.UT0.isoTime()+"\' AND \'"+params.UT1.isoTime()+"\'";
         std::list<kvalobs::kvData> PluviData;
-        if( !database()->selectData(PluviData, ladle) ) {
-            LOGERROR( "Failed to select data in ProcessPlumatic");
-            continue;
-        }
-
+        database()->selectData(PluviData, ladle);
         if( PluviData.empty() )
             continue;
 

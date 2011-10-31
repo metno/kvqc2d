@@ -37,7 +37,7 @@ TEST_F(AlgorithmHelpersTest, testGetNorwegianFixedStations)
 {
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::list<kvalobs::kvStation> stations;
     Helpers::GetNorwegianFixedStations(db, stations);

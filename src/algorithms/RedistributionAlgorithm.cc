@@ -99,31 +99,22 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
     const C::DBConstraint usei_neighbors = C::Useinfo(FlagMatcher().permit(2, 0));
 
     dataList_t allDataOneTime;
-    if( !database()->selectData(allDataOneTime,
+    database()->selectData(allDataOneTime,
             controli_endpoint
                     && C::Paramid(params.pid)
                     && C::Typeid(params.tids)
-                    && C::Obstime(params.UT0, params.UT1)) )
-    {
-        LOGERROR("Problem with query in ProcessRedistribution");
-        return;
-    }
+                    && C::Obstime(params.UT0, params.UT1));
     foreach(const kvalobs::kvData& d, allDataOneTime) {
         //std::cout << "center=" << d << std::endl;
 
         dataList_t bdata;
-        if( !database()->selectData(bdata,
+        database()->selectData(bdata,
                 controli_missing
                         && C::Paramid(params.pid)
                         && C::Typeid(d.typeID())
                         && C::Obstime(params.UT0, d.obstime())
                         && C::Station(d.stationID()),
-                order_by_time) )
-        {
-            LOGERROR("Problem with query in ProcessRedistribution");
-            std::cout << " => sql error" << std::endl;
-            return;
-        }
+                order_by_time);
 
         // FIXME check for start of database, too
         dataList_t before;
@@ -145,18 +136,13 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
 
         dataList_t startdata;
-        if( !database()->selectData(startdata,
+        database()->selectData(startdata,
                 /*usei_neighbors // need to define some constraints on this value
                         &&*/ C::Paramid(params.pid)
                         && C::Typeid(d.typeID())
                         && C::Obstime(t)
                         && C::Station(d.stationID()),
-                order_by_time) )
-        {
-            LOGERROR("Problem with query in ProcessRedistribution");
-            std::cout << " => sql error" << std::endl;
-            return;
-        }
+                order_by_time);
         if( startdata.size() != 1 || startdata.front().original() == params.missing || startdata.front().original() == params.rejected ) {
             LOGINFO("value before time series not existing/missing/rejected/not usable at t=" << t << " for accumulation in " << d);
             continue;
@@ -181,18 +167,13 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         foreach(NeighboringStationFinder::stationsWithDistances_t::value_type& v, neighbors)
             sc.add( v.first );
         dataList_t ndata;
-        if( !database()->selectData(ndata,
+        database()->selectData(ndata,
                 usei_neighbors
                         && C::Paramid(params.pid)
                         && C::Typeid(d.typeID())
                         && C::Obstime(before.back().obstime(), d.obstime())
                         && sc,
-                order_by_time_id) )
-        {
-            LOGERROR("Problem with query in ProcessRedistribution");
-            return;
-        }
-        //std::cout << "ndata .size = " << ndata.size() << std::endl;
+                order_by_time_id);
 
         bool neighborsMissing = false;
         float sumint = 0;
@@ -287,13 +268,9 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
 
         // we accumulated the corrections in time-reversed order, while tests expect them the other way around => foreach_r
-        foreach_r(const kvalobs::kvData& corr, toWrite) {
-            if( !database()->insertData(corr, true) ) {
-                LOGERROR("Could not write to database");
-                continue;
-            }
+        database()->insertData(toWrite, true);
+        foreach_r(const kvalobs::kvData& corr, toWrite)
             broadcaster()->queueChanged(corr);
-        }
         broadcaster()->sendChanges();
     }
 }

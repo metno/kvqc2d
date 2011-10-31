@@ -57,41 +57,41 @@ public:
     typedef std::list<int> kvStationIDList_t;
     typedef std::list<kvalobs::kvStation> kvStationList_t;
 
-    bool dataForStationsParamTimerange(kvDataList_t& d, const kvStationIDList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last)
-        { return selectData(d, kvQueries::selectData(s, paramID, first, last)); }
+    void dataForStationsParamTimerange(kvDataList_t& d, const kvStationIDList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException)
+        { selectData(d, kvQueries::selectData(s, paramID, first, last)); }
 
     /**
      * Select station data for one parameter id in the specified time range.
      * Calls dataForStationsParamTimerange.
      */
-    bool dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last);
+    void dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException);
 
     /**
      * Select station data like in dataForStationParamTimerange, but specifying relative times.
      * Calls dataForStationsParamTimerange.
      */
-    bool dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter);
+    void dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter) throw (DBException);
 
-    virtual bool selectData(kvDataList_t&, const miutil::miString& where) = 0;
+    virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException) = 0;
 
-    virtual bool selectData(kvDataList_t&, const Constraint::DBConstraint& where);
+    virtual void selectData(kvDataList_t&, const Constraint::DBConstraint& where) throw (DBException);
 
-    virtual bool selectData(kvDataList_t&, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by);
+    virtual void selectData(kvDataList_t&, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by) throw (DBException);
 
-    virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) = 0;
+    virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException) = 0;
 
-    virtual bool selectStations(kvStationList_t&) = 0;
+    virtual void selectStations(kvStationList_t&) throw (DBException) = 0;
 
     /**
      * Insert data to table tblName (or main table), replacing existing data if replace is true.
      */
-    virtual bool insertData(const kvDataList_t&, bool replace=false) = 0;
+    virtual void insertData(const kvDataList_t&, bool replace=false) throw (DBException) = 0;
 
     /**
      * Insert single data item to table tblName (or main table), replacing existing data if replace is true.
      * Calls insert.
      */
-    bool insertData(const kvalobs::kvData&, bool replace=false);
+    void insertData(const kvalobs::kvData&, bool replace=false) throw (DBException);
 
 };
 

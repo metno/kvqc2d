@@ -1,7 +1,7 @@
 /*
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  $Id$                                                       
+  $Id$
 
   Copyright (C) 2007 met.no
 
@@ -15,17 +15,17 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -62,7 +62,7 @@ bool DipTestAlgorithm::fillParameterDeltaMap(const ReadProgramOptions& params, s
 void DipTestAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Dip Test");
- 
+
     std::map<int, float> PidValMap;
     fillParameterDeltaMap(params, PidValMap);
 
@@ -73,10 +73,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
         const float pid = it->first, delta = it->second;
 
         DBInterface::kvStationParamList_t splist;
-        if( !database()->selectStationparams(splist, 0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid) ) ) { /// FIXME what time to use here?
-            LOGERROR("Failed to select station_params");
-            continue;
-        }
+        database()->selectStationparams(splist, 0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid) ); /// FIXME what time to use here?
         if( splist.empty() ) {
             LOGERROR("Empty station_param for stationid=0 list.");
             continue;
@@ -95,10 +92,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
             /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
             //********* Change this to select the appropriate data
             std::list<kvalobs::kvData> Qc2Data;
-            if( !database()->dataForStationsParamTimerange(Qc2Data, StationIds, pid, ProcessTime, ProcessTime) ) {
-                LOGERROR("Failed to select data for DipTest at t=" << ProcessTime);
-                continue;
-            }
+            database()->dataForStationsParamTimerange(Qc2Data, StationIds, pid, ProcessTime, ProcessTime);
             if( Qc2Data.empty() ) {
                 LOGDEBUG("empty data at " << ProcessTime << " pid=" << pid);
                 continue;
@@ -106,10 +100,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
 
             foreach(const kvalobs::kvData& d, Qc2Data) {
                 std::list<kvalobs::kvData> Qc2SeriesData;
-                if( !database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), pid, linearStart, linearStop) ) {
-                    LOGERROR("Could not select time neighbors for DipTest " << linearStart << ".." << linearStop);
-                    continue;
-                }
+                database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), pid, linearStart, linearStop);
 
                 const std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
 
@@ -146,7 +137,8 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                 // Just need some extra points
 
                 // Calculate Akima Block
-                if( database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(),pid, akimaStart, akimaStop) ) {
+                {
+                    database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(),pid, akimaStart, akimaStop);
                     const std::vector<kvalobs::kvData> Aseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
                     // A(0)
                     // A(1)
@@ -185,7 +177,8 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     // FIXME what time to use here?
 
                     DBInterface::kvStationParamList_t splist;
-                    if( !database()->selectStationparams(splist, d.stationID(), ProcessTime, "QC1-1-"+StrmConvert(pid) ) ) {
+                    database()->selectStationparams(splist, d.stationID(), ProcessTime, "QC1-1-"+StrmConvert(pid));
+                    if( splist.empty() ) {
                         LOGERROR("Failed to select data for MinimumCheck at " << ProcessTime << ". Assuming no akima interpolation.");
                         AkimaPresent = false;
                     } else {

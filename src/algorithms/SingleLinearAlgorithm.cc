@@ -82,10 +82,7 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
         const miutil::miString filter = "WHERE (substr(controlinfo,7,1) IN ('1', '2', '3', '4')) "
             "AND paramid="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'"; // TODO AND stationid BETWEEN 60 and 99999"?
         std::list<kvalobs::kvData> Qc2Data;
-        if( !database()->selectData(Qc2Data, filter) ) {
-            LOGERROR( "Database error finding middle points for linear interpolation");
-            continue;
-        }
+        database()->selectData(Qc2Data, filter);
         if( Qc2Data.empty() )
             continue;
 
@@ -95,10 +92,7 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
             std::list<kvalobs::kvData> Qc2SeriesData;
-            if( !database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), params.pid, timeBefore, timeAfter) ) {
-                LOGERROR( "Database error finding neighbours for linear interpolation");
-                continue;
-            }
+            database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), params.pid, timeBefore, timeAfter);
             if( Qc2SeriesData.size() != 3 )
                 continue;
 
@@ -207,10 +201,7 @@ void SingleLinearAlgorithm::storeUpdate(const ReadProgramOptions& params, const 
     Helpers::updateUseInfo(dwrite);
 
     LOGINFO( "SingleLinear_v32: " + Helpers::kvqc2logstring(dwrite) );
-    if( !database()->insertData(dwrite, true) ) {
-        LOGERROR( "Error updating database with interpolated value");
-        return; // FIXME what should be done here, actually?
-    }
+    database()->insertData(dwrite, true);
 
     // TODO why not accumulate a long list and send several updates at once?
     broadcaster()->queueChanged(middle);

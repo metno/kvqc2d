@@ -88,13 +88,13 @@ SqliteTestDB::~SqliteTestDB()
     sqlite3_close(db);
 }
 
-bool SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where)
+void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
 {
     d.clear();
     const miutil::miString& sql = "SELECT * FROM data " + where + ";";
     sqlite3_stmt *stmt;
     if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        return false;
+        throw DBException("preparing '" + sql + "'");
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -115,17 +115,18 @@ bool SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where)
         d.push_back(data);
     }
     sqlite3_finalize(stmt);
-    return (step == SQLITE_DONE);
+    if( step != SQLITE_DONE)
+        throw DBException(sql);
 }
 
-bool SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, const miutil::miTime& time, const std::string& qcx)
+void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     d.clear();
     const std::list<int> station(1, stationID);
     const std::string sql = kvalobs::kvStationParam().selectAllQuery() + kvQueries::selectStationParam(station, time, qcx ) + ";";
     sqlite3_stmt *stmt;
     if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK || !stmt )
-        return false;
+        throw DBException("preparing '" + sql + "'");
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -145,16 +146,17 @@ bool SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
         d.push_back(sp);
     }
     sqlite3_finalize(stmt);
-    return (step == SQLITE_DONE);
+    if(step != SQLITE_DONE)
+        throw DBException(sql);
 }
 
-bool SqliteTestDB::selectStations(kvStationList_t& stations)
+void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
 {
     stations.clear();
     const std::string sql = kvalobs::kvStation().selectAllQuery();
     sqlite3_stmt *stmt;
     if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        return false;
+        throw DBException("preparing '" + sql + "'");
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -180,10 +182,11 @@ bool SqliteTestDB::selectStations(kvStationList_t& stations)
         stations.push_back(station);
     }
     sqlite3_finalize(stmt);
-    return (step == SQLITE_DONE);
+    if(step != SQLITE_DONE)
+        throw DBException(sql);
 }
 
-bool SqliteTestDB::insertData(const kvDataList_t& dl, bool replace)
+void SqliteTestDB::insertData(const kvDataList_t& dl, bool replace) throw (DBException)
 {
     std::ostringstream sql;
     foreach(const kvalobs::kvData& d, dl) {
@@ -193,19 +196,18 @@ bool SqliteTestDB::insertData(const kvDataList_t& dl, bool replace)
             sql << "INSERT INTO data VALUES(" << d.toUpload() << ");" << std::endl;
         }
     }
-    return exec(sql.str());
+    exec(sql.str());
 }
 
-bool SqliteTestDB::exec(const std::string& statement)
+void SqliteTestDB::exec(const std::string& statement) throw (DBException)
 {
     char *zErrMsg = 0;
     int rc = sqlite3_exec(db, statement.c_str(), 0, 0, &zErrMsg);
-    if( rc!=SQLITE_OK ){
-        std::cerr << "DB error: " << zErrMsg << std::endl;
+    if( rc != SQLITE_OK ) {
+        const std::string what = zErrMsg;
         sqlite3_free(zErrMsg);
-        return false;
+        throw DBException(what);
     }
-    return true;
 }
 
 // #######################################################################

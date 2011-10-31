@@ -66,7 +66,7 @@ TEST_F(FlagMatcherTest, SQLtext)
 {
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     EXPECT_EQ("", FlagMatcher().sql("ci"));
     EXPECT_EQ("0=0", FlagMatcher().permit(f_fhqc, 0).reset().sql("ci", true));
@@ -90,18 +90,18 @@ TEST_F(FlagMatcherTest, SQLquery)
         << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   38.3, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-19 00:31:53', 302, 0, 0, -32767, '0000003000000000', '9999900000000000', '');"
         << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00',    0.6, 110, '2011-10-19 06:11:12', 302, 0, 0,    0.6, '0140000000000000', '7020400000000001', 'QC1-2-72.b12');";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::list<kvalobs::kvData> series;
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true)) );
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true)));
     EXPECT_EQ(4, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().sql( true)) );
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().sql( true)));
     EXPECT_EQ(10, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().forbid(f_fcc, 4).sql(true)) );
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().forbid(f_fcc, 4).sql(true)));
     EXPECT_EQ(5, series.size());
 
-    ASSERT_TRUE( db->selectData(series, "WHERE " + FlagMatcher().permit(f_fcc, 1).sql(true)) );
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().permit(f_fcc, 1).sql(true)));
     EXPECT_EQ(1, series.size());
 }

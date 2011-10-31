@@ -89,8 +89,7 @@ TEST_F(DipTestTest, Bugzilla1327)
         << "INSERT INTO station_param VALUES (0, 90, 0, 0, 0, 365, -1, 'QC1-3b-90', 'no\n5', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;93;93;0;0;0', 'DEFAULT MAX-MIN RANGE', '1500-01-01 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -118,7 +117,7 @@ TEST_F(DipTestTest, Bugzilla1327)
     miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 90800, 90, t1, t2) );
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 90800, 90, t1, t2));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
@@ -163,8 +162,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
         << "INSERT INTO station_param VALUES (0, 87, 0, 0, 0, 365, -1, 'QC1-3b-87', 'no\n5', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 87, 0, 0, 1, 365, -1, 'QC1-1-87x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 87, 0, 0, 1, 365, -1, 'QC1-1-87',  'max;highest;high;low;lowest;min\n93;93;93;0;0;0', 'DEFAULT MAX-MIN RANGE', '1500-01-01 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -191,7 +189,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     miutil::miTime t1("2018-09-09 03:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 18230, 87, t1, t2) );
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 18230, 87, t1, t2));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("1109000000000000", it->controlinfo().flagstring());
@@ -228,8 +226,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 0, 365, -1, 'QC1-3b-104', 'no\n48', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(12320, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500;500;50.0;0.0;-3.0', '', '2005-11-04 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -256,7 +253,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 12320, 104, t1, t2) );
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 12320, 104, t1, t2));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("1109000000100100", it->controlinfo().flagstring());
@@ -292,8 +289,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 0, 365, -1, 'QC1-3b-104', 'no\n48', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(12320, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500;500;50.0;0.0;-3.0', '', '2005-11-04 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -317,7 +313,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 12320, 104, t1, t2) );
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 12320, 104, t1, t2));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("1109000000100100", it->controlinfo().flagstring());
@@ -356,7 +352,7 @@ TEST_F(DipTestTest, DipTooSmall)
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(12320, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500;500;50.0;0.0;-3.0', '', '2005-11-04 00:00:00');";
 
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_TRUE( ASSERT_NO_THROW(db->exec(sql.str()) ));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -400,8 +396,7 @@ TEST_F(DipTestTest, JumpTooMuch)
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 0, 365, -1, 'QC1-3b-104', 'no\n48', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(12320, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500;500;50.0;0.0;-3.0', '', '2005-11-04 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -443,8 +438,7 @@ TEST_F(DipTestTest, AfterHQC)
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 0, 365, -1, 'QC1-3b-104', 'no\n48', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 104, 0, 0, 1, 365, -1, 'QC1-1-104x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(12320, 104, 0, 0, 1, 365, -1, 'QC1-1-104', 'max;highest;high;low;lowest;min\n615;500;500;50.0;0.0;-3.0', '', '2005-11-04 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -467,7 +461,7 @@ TEST_F(DipTestTest, AfterHQC)
     // after setting the HQC flag back to 0, the DipTest should perform updates
     sql.str("");
     sql << "UPDATE data SET controlinfo='1102000000100100' WHERE stationid = 12320 AND obstime = '2018-09-25 20:00:00';";
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());
@@ -505,8 +499,7 @@ TEST_F(DipTestTest, Bugzilla1320)
         << "INSERT INTO station_param VALUES (0, 90, 0, 0, 0, 365, -1, 'QC1-3b-90', 'no\n5', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 90, 0, 0, 1, 365, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;93;93;0;0;0', 'DEFAULT MAX-MIN RANGE', '1500-01-01 00:00:00');";
-
-    ASSERT_TRUE( db->exec(sql.str()) );
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
     config << "W_fhqc=0" << std::endl
@@ -530,7 +523,7 @@ TEST_F(DipTestTest, Bugzilla1320)
     miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_TRUE( db->dataForStationParamTimerange(series, 90800, 90, t1, t2) );
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 90800, 90, t1, t2));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());

@@ -42,9 +42,9 @@ public:
     void setConnection(dnmi::db::Connection* connection)
         { mDbGate.set(connection); }
 
-    virtual bool selectData(kvDataList_t&, const miutil::miString& where);
-    virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx);
-    virtual bool insertData(const kvDataList_t&, bool replace=false);
+    virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException);
+    virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
+    virtual void insertData(const kvDataList_t&, bool replace=false) throw (DBException);
 
 private:
     kvalobs::kvDbGate mDbGate;

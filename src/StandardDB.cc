@@ -40,18 +40,22 @@ StandardDB::~StandardDB()
 {
 }
 
-bool StandardDB::selectData(kvDataList_t& d, const miutil::miString& where)
+void StandardDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
 {
-    return mDbGate.select(d, where);
+    if( !mDbGate.select(d, where) )
+        throw DBException("Database problem with SELECT data " + where);
 }
 
-bool StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx)
+void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     const std::list<int> station(1, stationID);
-    return mDbGate.select(s, kvQueries::selectStationParam(station, time, qcx ));
+    const std::string where = kvQueries::selectStationParam(station, time, qcx );
+    if( !mDbGate.select(s, where) )
+        throw DBException("Database problem with SELECT stationparam " + where);
 }
 
-bool StandardDB::insertData(const kvDataList_t& d, bool replace)
+void StandardDB::insertData(const kvDataList_t& d, bool replace) throw (DBException)
 {
-    return mDbGate.insert(d, replace, "data");
+    if( !mDbGate.insert(d, replace, "data") )
+        throw DBException("Database problem with INSERT data");
 }
