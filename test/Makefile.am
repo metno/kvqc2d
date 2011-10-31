@@ -4,7 +4,6 @@ check_PROGRAMS = kvqc2dTest
 
 kvqc2dTest_SOURCES= \
         test_main.cc \
-        TestQc2D.cc \
 	ConfigParserTest.cc \
 	FlagMatcherTest.cc \
 	HelpersTest.cc \

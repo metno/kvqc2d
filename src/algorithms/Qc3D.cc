@@ -35,7 +35,6 @@
 #include <math.h>
 #include <algorithm>
 #include "Qc3D.h"
-#include "Distribute.h"
 #include "StationSelection.h"
 #include "BasicStatistics.h"
 #include <dnmithread/mtcout.h>

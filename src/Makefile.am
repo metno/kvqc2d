@@ -46,23 +46,20 @@ libkvqc2d_a_SOURCES = \
 	StopWatch.cc \
 	StopWatch.h \
 	algorithms/BasicStatistics.h \
-	algorithms/Distribute.cc \
-	algorithms/Distribute.h \
 	algorithms/Plumatic.cc \
 	algorithms/Plumatic.h \
 	algorithms/GetStationParam.cc \
 	algorithms/GetStationParam.h \
 	algorithms/kvQABaseTypes.h \
-	algorithms/ProcessRedistribution.cc \
-	algorithms/ProcessRedistribution.hh \
 	algorithms/RedistributionAlgorithm.cc \
 	algorithms/RedistributionAlgorithm.hh \
 	algorithms/SingleLinearAlgorithm.cc \
 	algorithms/SingleLinearAlgorithm.hh \
-	algorithms/GapInterpolate.cc \
+	algorithms/GapInterpolationAlgorithm.cc \
+	algorithms/GapInterpolationAlgorithm.hh \
 	algorithms/ProcessPlumatic.cc \
 	algorithms/ProcessPlumatic.hh \
-	algorithms/DipTest.cc \
+	algorithms/DipTestAlgorithm.cc \
 	algorithms/DipTestAlgorithm.hh \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \
@@ -70,7 +67,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/Qc2D.h \
 	algorithms/Qc3D.cc \
 	algorithms/Qc3D.h \
-	algorithms/scone.h \
 	algorithms/ParseParValFile.cc \
 	algorithms/ParseParValFile.h \
 	algorithms/StationSelection.cc \
@@ -79,6 +75,7 @@ libkvqc2d_a_SOURCES = \
 	algorithms/table_delaunay.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
+	algorithms/scone.h \
 	algorithms/tround.h 
 
 libkvqc2d_a_CPPFLAGS = -Wall -W \

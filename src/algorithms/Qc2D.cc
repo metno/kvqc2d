@@ -31,11 +31,12 @@
 
 #include "AlgorithmHelpers.h"
 #include "BasicStatistics.h"
-#include "Distribute.h"
+//#include "Distribute.h"
 #include "StationSelection.h"
 #include "ProcessControl.h"
 #include "proj++.h"
 #include "table_delaunay.h"
+#include "scone.h"
 
 #include <kvalobs/kvData.h>
 #include <milog/milog.h>
@@ -100,6 +101,7 @@ Qc2D::Qc2D(const std::list<kvalobs::kvData>& allDataOneTime, const std::list<kva
 /// Method to pass Qc2D data for redistribution of accumulated values. ((Needs to be reworked!! Encapsulate!))
 void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
 {
+#if 0
     static Distribute DataForRedistribution; // TODO why is this static?
     if (ClearFlag)
         DataForRedistribution.clear_all();  //For cleaning up memory when all is done!
@@ -126,6 +128,7 @@ void Qc2D::distributor(std::list<kvalobs::kvData>& ReturnData, int ClearFlag)
             }
         }
     }
+#endif
 }
 
 /// Interface to the interpolation method. Replace later with interpolation algorithm strategy ?!?!

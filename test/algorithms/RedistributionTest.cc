@@ -30,13 +30,7 @@
 #define NEW_VERSION 1
 
 #include "AlgorithmTestBase.h"
-#ifdef NEW_VERSION
 #include "algorithms/RedistributionAlgorithm.h"
-#define ALGO_CLASS RedistributionAlgorithm2
-#else
-#include "algorithms/ProcessRedistribution.h"
-#define ALGO_CLASS RedistributionAlgorithm
-#endif
 #include "AlgorithmHelpers.h"
 #include "Helpers.h"
 #include "algorithms/tround.h"
@@ -52,13 +46,13 @@ public:
     void Configure(ReadProgramOptions& params, int startDay, int endDay);
     void RoundingTest(const float* values, const float* expected, const int N);
 protected:
-    ALGO_CLASS* algo;
+    RedistributionAlgorithm2* algo;
 };
 
 void RedistributionTest::SetUp()
 {
     AlgorithmTestBase::SetUp();
-    algo = new ALGO_CLASS();
+    algo = new RedistributionAlgorithm2();
     algo->setDatabase(db);
     algo->setBroadcaster(bc);
 
