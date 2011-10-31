@@ -187,6 +187,7 @@ public:
 private:
     static const char* stationid;
 };
+const char* StationConstraintImpl::stationid = "stationid";
 class StationConstraint : public SQLBuilderPointer<StationConstraintImpl> {
 public:
     StationConstraint()
@@ -196,7 +197,6 @@ public:
     StationConstraint& add(int s)
         { p->add(s); return *this; }
 };
-const char* StationConstraintImpl::stationid = "stationid";
 
 class ParamidConstraintImpl : public IntegerColumnnConstraintImpl {
 public:
@@ -316,16 +316,26 @@ private:
     std::string mColumn;
     bool mAscending;
 };
-//typedef SQLBuilderPointer<ColumnOrderingImpl> ColumnOrdering;
 
 class ColumnOrdering : public SQLBuilderPointer<ColumnOrderingImpl> {
-public:
+protected:
     ColumnOrdering(const std::string& column)
         : SQLBuilderPointer<ColumnOrderingImpl>(column) { }
+public:
     ColumnOrdering& asc()
         { p->asc(); return *this; }
     ColumnOrdering& desc()
         { p->desc(); return *this; }
+};
+
+class ObstimeOrdering : public ColumnOrdering {
+public:
+    ObstimeOrdering() : ColumnOrdering("obstime") { }
+};
+
+class StationidOrdering : public ColumnOrdering {
+public:
+    StationidOrdering() : ColumnOrdering("stationid") { }
 };
 
 class SequenceOrderingImpl : public DBOrderingImpl {
@@ -400,11 +410,11 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 
     NeighboringStationFinder nf;
 
-    const ColumnOrdering order_by_time = ColumnOrdering("obstime").desc();
-    const SequenceOrdering order_by_time_id = (order_by_time, ColumnOrdering("stationid"));
-    const ControlinfoConstraint controli_endpoint(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0));
-    const ControlinfoConstraint controli_missing(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0));
-    const UseinfoConstraint usei_neighbors(FlagMatcher().permit(2, 0));
+    const DBOrdering order_by_time = ObstimeOrdering().desc();
+    const DBOrdering order_by_time_id = (order_by_time, StationidOrdering());
+    const DBConstraint controli_endpoint = ControlinfoConstraint(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0));
+    const DBConstraint controli_missing = ControlinfoConstraint(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0));
+    const DBConstraint usei_neighbors = UseinfoConstraint(FlagMatcher().permit(2, 0));
 
     dataList_t allDataOneTime;
     if( !database()->selectData(allDataOneTime,
