@@ -30,335 +30,17 @@
 #include "RedistributionAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
+#include "DBConstraints.h"
 #include "Helpers.h"
-#include "FlagMatcher.h"
 #include "tround.h"
 
 #include <milog/milog.h>
-#include <puTools/miTime.h>
 #include "foreach.h"
 
+namespace C = Constraint;
+namespace O = Ordering;
+
 static const unsigned int MIN_NEIGHBORS = 1;
-
-miutil::miTime plusDay(const miutil::miTime& t, int nDays)
-{
-    miutil::miTime p(t);
-    p.addDay(nDays);
-    return p;
-}
-
-template<class T>
-class SQLBuilderPointer {
-public:
-    template<class D>
-    SQLBuilderPointer(const SQLBuilderPointer<D>& d)
-        : p(d.p) { }
-
-    explicit SQLBuilderPointer()
-        : p(new T()) { }
-
-    template<class P1>
-    explicit SQLBuilderPointer(const P1& p1)
-        : p(new T(p1)) { }
-
-    template<class P1, class P2>
-    explicit SQLBuilderPointer(const P1& p1, const P2& p2)
-        : p(new T(p1, p2)) { }
-
-    template<class P1, class P2, class P3>
-    explicit SQLBuilderPointer(const P1& p1, const P2& p2, const P3& p3)
-        : p(new T(p1, p2, p3)) { }
-
-    template<class P1, class P2, class P3, class P4>
-    explicit SQLBuilderPointer(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-        : p(new T(p1, p2, p3, p4)) { }
-
-    std::string sql() const
-        { return p->sql(); }
-
-protected:
-    template<class D> friend class SQLBuilderPointer;
-
-    boost::shared_ptr<T> p;
-};
-
-class DBConstraintImpl  {
-public:
-    virtual ~DBConstraintImpl() { }
-    virtual std::string sql() const = 0;
-};
-typedef SQLBuilderPointer<DBConstraintImpl> DBConstraint;
-
-class ControlinfoConstraintImpl : public DBConstraintImpl {
-public:
-    ControlinfoConstraintImpl(const FlagMatcher& fm)
-        : mFlagMatcher(fm) { }
-    virtual std::string sql() const
-        { return mFlagMatcher.sql("controlinfo", false); }
-private:
-    FlagMatcher mFlagMatcher;
-};
-typedef SQLBuilderPointer<ControlinfoConstraintImpl> ControlinfoConstraint;
-
-class UseinfoConstraintImpl : public DBConstraintImpl {
-public:
-    UseinfoConstraintImpl(const FlagMatcher& fm)
-        : mFlagMatcher(fm) { }
-    virtual std::string sql() const
-        { return mFlagMatcher.sql("useinfo", false); }
-private:
-    FlagMatcher mFlagMatcher;
-};
-typedef SQLBuilderPointer<UseinfoConstraintImpl> UseinfoConstraint;
-
-class ObstimeConstraintImpl : public DBConstraintImpl {
-public:
-    ObstimeConstraintImpl(const miutil::miTime& t0, const miutil::miTime& t1)
-        : mT0(t0), mT1(t1) { if( mT0 > mT1 ) std::swap(mT0, mT1); }
-    ObstimeConstraintImpl(const miutil::miTime& t)
-        : mT0(t), mT1(t) { }
-    virtual std::string sql() const;
-private:
-    miutil::miTime mT0, mT1;
-};
-typedef SQLBuilderPointer<ObstimeConstraintImpl> ObstimeConstraint;
-
-std::string ObstimeConstraintImpl::sql() const
-{
-    if ( mT0 != mT1 )
-        return "obstime BETWEEN '" + mT0.isoTime() + "' AND '" + mT1.isoTime() + "'";
-    else
-        return "obstime = '" + mT0.isoTime() + "'";
-}
-
-class IntegerColumnnConstraintImpl : public DBConstraintImpl {
-protected:
-    IntegerColumnnConstraintImpl(const std::string& columnName)
-        : mColumnName(columnName) { }
-    IntegerColumnnConstraintImpl& add(int pid)
-        { mValues.push_back(pid); return *this; }
-    virtual std::string sql() const;
-private:
-    std::string mColumnName;
-    std::list<int> mValues;
-};
-
-std::string IntegerColumnnConstraintImpl::sql() const
-{
-    unsigned int n = mValues.size();
-    if( n == 0 )
-        return "";
-    std::ostringstream sql;
-    if( n == 1 ) {
-        sql << mColumnName << " = " << mValues.front();
-    } else {
-        sql << mColumnName << " IN ";
-        char sep = '(';
-        foreach(int v, mValues) {
-            sql << sep << v;
-            sep = ',';
-        }
-        sql << ')';
-    }
-    return sql.str();
-}
-
-
-class StationConstraintImpl : public IntegerColumnnConstraintImpl {
-public:
-    StationConstraintImpl()
-        : IntegerColumnnConstraintImpl(stationid) { }
-    StationConstraintImpl(const std::list<kvalobs::kvStation>& stations)
-        : IntegerColumnnConstraintImpl(stationid) { add(stations); }
-    StationConstraintImpl(const std::list<int>& stationIDs)
-        : IntegerColumnnConstraintImpl(stationid) { add(stationIDs); }
-    StationConstraintImpl(const kvalobs::kvStation& s)
-        : IntegerColumnnConstraintImpl(stationid) { add(s.stationID()); }
-    StationConstraintImpl(int sid)
-        : IntegerColumnnConstraintImpl(stationid) { add(sid); }
-    StationConstraintImpl& add(const std::list<kvalobs::kvStation>& stations)
-        { foreach(const kvalobs::kvStation& s, stations) add(s); return *this; }
-    StationConstraintImpl& add(const std::list<int>& stationIDs)
-        { foreach(int sid, stationIDs) add(sid); return *this; }
-    StationConstraintImpl& add(const kvalobs::kvStation& s)
-        { add(s.stationID()); return *this; }
-    StationConstraintImpl& add(int sid)
-        { IntegerColumnnConstraintImpl::add(sid); return *this; }
-private:
-    static const char* stationid;
-};
-const char* StationConstraintImpl::stationid = "stationid";
-class StationConstraint : public SQLBuilderPointer<StationConstraintImpl> {
-public:
-    StationConstraint()
-        : SQLBuilderPointer<StationConstraintImpl>() { }
-    StationConstraint(int sid)
-        : SQLBuilderPointer<StationConstraintImpl>() { add(sid); }
-    StationConstraint& add(int s)
-        { p->add(s); return *this; }
-};
-
-class ParamidConstraintImpl : public IntegerColumnnConstraintImpl {
-public:
-    ParamidConstraintImpl()
-        : IntegerColumnnConstraintImpl(paramid) { }
-    ParamidConstraintImpl(const std::list<int>& paramIDs)
-        : IntegerColumnnConstraintImpl(paramid) { add(paramIDs); }
-    ParamidConstraintImpl(int pid)
-        : IntegerColumnnConstraintImpl(paramid) { add(pid); }
-    ParamidConstraintImpl& add(const std::list<int>& paramIDs)
-        { foreach(int pid, paramIDs) add(pid); return *this; }
-    ParamidConstraintImpl& add(int pid)
-        { IntegerColumnnConstraintImpl::add(pid); return *this; }
-private:
-    static const char* paramid;
-};
-typedef SQLBuilderPointer<ParamidConstraintImpl> ParamidConstraint;
-const char* ParamidConstraintImpl::paramid = "paramid";
-
-class TypeidConstraintImpl : public IntegerColumnnConstraintImpl {
-public:
-    TypeidConstraintImpl()
-        : IntegerColumnnConstraintImpl(typeID) { }
-    TypeidConstraintImpl(const std::vector<int>& typeIDs)
-        : IntegerColumnnConstraintImpl(typeID) { add(typeIDs); }
-    TypeidConstraintImpl(const std::list<int>& typeIDs)
-        : IntegerColumnnConstraintImpl(typeID) { add(typeIDs); }
-    TypeidConstraintImpl(int tid)
-        : IntegerColumnnConstraintImpl(typeID) { add(tid); }
-    TypeidConstraintImpl& add(const std::vector<int>& typeIDs)
-        { foreach(int t, typeIDs) add(t); return *this; }
-    TypeidConstraintImpl& add(const std::list<int>& typeIDs)
-        { foreach(int t, typeIDs) add(t); return *this; }
-    TypeidConstraintImpl& add(int tid)
-        { IntegerColumnnConstraintImpl::add(tid); return *this; }
-private:
-    static const char* typeID;
-};
-typedef SQLBuilderPointer<TypeidConstraintImpl> TypeidConstraint;
-const char* TypeidConstraintImpl::typeID = "typeid";
-
-class AndConstraintImpl : public DBConstraintImpl {
-public:
-    AndConstraintImpl(const DBConstraint& a, const DBConstraint& b)
-        : mA(a), mB(b) { }
-    virtual std::string sql() const;
-private:
-    const DBConstraint mA;
-    const DBConstraint mB;
-};
-typedef SQLBuilderPointer<AndConstraintImpl> AndConstraint;
-
-std::string AndConstraintImpl::sql() const
-{
-    const std::string sqlA = mA.sql(), sqlB = mB.sql();
-    if( sqlA.empty() )
-        return sqlB;
-    if( sqlB.empty() )
-        return sqlA;
-    return sqlA + " AND " + sqlB;
-}
-
-class OrConstraintImpl : public DBConstraintImpl {
-public:
-    OrConstraintImpl(const DBConstraint&  a, const DBConstraint&  b)
-        : mA(a), mB(b) { }
-    virtual std::string sql() const;
-private:
-    const DBConstraint mA;
-    const DBConstraint mB;
-};
-typedef SQLBuilderPointer<OrConstraintImpl> OrConstraint;
-
-std::string OrConstraintImpl::sql() const
-{
-    const std::string sqlA = mA.sql(), sqlB = mB.sql();
-    if( sqlA.empty() )
-        return sqlB;
-    if( sqlB.empty() )
-        return sqlA;
-    return "(" +sqlA + ") OR (" + sqlB + ")";
-}
-
-AndConstraint operator &&(const DBConstraint& a, const DBConstraint&  b)
-{ return AndConstraint(a, b); }
-
-OrConstraint operator ||(const DBConstraint& a, const DBConstraint& b)
-{ return OrConstraint(a, b); }
-
-std::string WHERE(const DBConstraint& c)
-{
-    const std::string sql = c.sql();
-    if( sql.empty() )
-        return "";
-    return " WHERE " + sql;
-}
-
-class DBOrderingImpl {
-public:
-    virtual ~DBOrderingImpl() { }
-    virtual std::string sql() const = 0;
-};
-typedef SQLBuilderPointer<DBOrderingImpl> DBOrdering;
-
-class ColumnOrderingImpl : public DBOrderingImpl {
-public:
-    ColumnOrderingImpl(const std::string& column)
-        : mColumn(column), mAscending(true) { }
-    virtual std::string sql() const
-        { return mColumn + (mAscending ? " ASC" : " DESC"); }
-
-    ColumnOrderingImpl& asc()
-        { mAscending = true; return *this; }
-    ColumnOrderingImpl& desc()
-        { mAscending = false; return *this; }
-private:
-    std::string mColumn;
-    bool mAscending;
-};
-
-class ColumnOrdering : public SQLBuilderPointer<ColumnOrderingImpl> {
-protected:
-    ColumnOrdering(const std::string& column)
-        : SQLBuilderPointer<ColumnOrderingImpl>(column) { }
-public:
-    ColumnOrdering& asc()
-        { p->asc(); return *this; }
-    ColumnOrdering& desc()
-        { p->desc(); return *this; }
-};
-
-class ObstimeOrdering : public ColumnOrdering {
-public:
-    ObstimeOrdering() : ColumnOrdering("obstime") { }
-};
-
-class StationidOrdering : public ColumnOrdering {
-public:
-    StationidOrdering() : ColumnOrdering("stationid") { }
-};
-
-class SequenceOrderingImpl : public DBOrderingImpl {
-public:
-    SequenceOrderingImpl(const DBOrdering& first, const DBOrdering& second)
-        : mFirst(first), mSecond(second) { }
-    virtual std::string sql() const
-        { return mFirst.sql() + ", " + mSecond.sql(); }
-private:
-    const DBOrdering mFirst;
-    const DBOrdering mSecond;
-};
-typedef SQLBuilderPointer<SequenceOrderingImpl> SequenceOrdering;
-
-SequenceOrdering operator , (const DBOrdering& a, const DBOrdering& b)
-{
-    return SequenceOrdering(a, b);
-}
-
-std::string ORDER_BY(const DBOrdering& o)
-{
-    return " ORDER BY " + o.sql();
-}
 
 class NeighboringStationFinder {
 public:
@@ -410,18 +92,18 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 
     NeighboringStationFinder nf;
 
-    const DBOrdering order_by_time = ObstimeOrdering().desc();
-    const DBOrdering order_by_time_id = (order_by_time, StationidOrdering());
-    const DBConstraint controli_endpoint = ControlinfoConstraint(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0));
-    const DBConstraint controli_missing = ControlinfoConstraint(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0));
-    const DBConstraint usei_neighbors = UseinfoConstraint(FlagMatcher().permit(2, 0));
+    const O::DBOrdering order_by_time = O::Obstime().desc();
+    const O::DBOrdering order_by_time_id = (order_by_time, O::Stationid());
+    const C::DBConstraint controli_endpoint = C::Controlinfo(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0));
+    const C::DBConstraint controli_missing = C::Controlinfo(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0));
+    const C::DBConstraint usei_neighbors = C::Useinfo(FlagMatcher().permit(2, 0));
 
     dataList_t allDataOneTime;
     if( !database()->selectData(allDataOneTime,
-            WHERE(controli_endpoint
-                    && ParamidConstraint(params.pid)
-                    && TypeidConstraint(params.tids)
-                    && ObstimeConstraint(params.UT0, params.UT1))) )
+            controli_endpoint
+                    && C::Paramid(params.pid)
+                    && C::Typeid(params.tids)
+                    && C::Obstime(params.UT0, params.UT1)) )
     {
         LOGERROR("Problem with query in ProcessRedistribution");
         return;
@@ -431,12 +113,12 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 
         dataList_t bdata;
         if( !database()->selectData(bdata,
-                WHERE(controli_missing
-                        && ParamidConstraint(params.pid)
-                        && TypeidConstraint(d.typeID())
-                        && ObstimeConstraint(params.UT0, d.obstime())
-                        && StationConstraint(d.stationID()))
-                + ORDER_BY(order_by_time)) )
+                controli_missing
+                        && C::Paramid(params.pid)
+                        && C::Typeid(d.typeID())
+                        && C::Obstime(params.UT0, d.obstime())
+                        && C::Station(d.stationID()),
+                order_by_time) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
             std::cout << " => sql error" << std::endl;
@@ -446,7 +128,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         // FIXME check for start of database, too
         dataList_t before;
         before.push_back(d);
-        miutil::miTime t = plusDay(d.obstime(), -1);
+        miutil::miTime t = Helpers::plusDay(d.obstime(), -1);
         foreach(const kvalobs::kvData& b, bdata) {
             if( b.obstime() != t )
                 break;
@@ -464,12 +146,12 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 
         dataList_t startdata;
         if( !database()->selectData(startdata,
-                WHERE(/*usei_neighbors // need to define some constraints on this value
-                        &&*/ ParamidConstraint(params.pid)
-                        && TypeidConstraint(d.typeID())
-                        && ObstimeConstraint(t)
-                        && StationConstraint(d.stationID()))
-                + ORDER_BY(order_by_time)) )
+                /*usei_neighbors // need to define some constraints on this value
+                        &&*/ C::Paramid(params.pid)
+                        && C::Typeid(d.typeID())
+                        && C::Obstime(t)
+                        && C::Station(d.stationID()),
+                order_by_time) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
             std::cout << " => sql error" << std::endl;
@@ -495,17 +177,17 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             continue;
         }
 
-        StationConstraint sc;
+        C::Station sc;
         foreach(NeighboringStationFinder::stationsWithDistances_t::value_type& v, neighbors)
             sc.add( v.first );
         dataList_t ndata;
         if( !database()->selectData(ndata,
-                WHERE(usei_neighbors
-                        && ParamidConstraint(params.pid)
-                        && TypeidConstraint(d.typeID())
-                        && ObstimeConstraint(before.back().obstime(), d.obstime())
-                        && sc)
-                + ORDER_BY(order_by_time_id)) )
+                usei_neighbors
+                        && C::Paramid(params.pid)
+                        && C::Typeid(d.typeID())
+                        && C::Obstime(before.back().obstime(), d.obstime())
+                        && sc,
+                order_by_time_id) )
         {
             LOGERROR("Problem with query in ProcessRedistribution");
             return;

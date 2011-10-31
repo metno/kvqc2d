@@ -6,8 +6,10 @@ kvqc2d_SOURCES = Qc2Main.cc
 noinst_LIBRARIES = libkvqc2d.a
 
 libkvqc2d_a_SOURCES = \
-    DBInterface.cc \
-    DBInterface.h \
+	DBConstraints.cc \
+	DBConstraints.h \
+	DBInterface.cc \
+	DBInterface.h \
 	CheckedDataCommandBase.h \
 	CheckedDataHelper.cc \
 	CheckedDataHelper.h \

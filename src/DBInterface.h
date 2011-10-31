@@ -1,5 +1,5 @@
 /* -*- c++ -*-
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
   Copyright (C) 2011 met.no
 
@@ -13,17 +13,17 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -34,6 +34,16 @@
 #include <kvalobs/kvQueries.h>
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
+
+#include "DBConstraints.h"
+
+#include <exception>
+
+class DBException : public std::runtime_error {
+public:
+    DBException(const std::string& what)
+        : std::runtime_error(what) { }
+};
 
 /**
  * Wrapper for kvalobs database connections.
@@ -63,6 +73,10 @@ public:
     bool dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter);
 
     virtual bool selectData(kvDataList_t&, const miutil::miString& where) = 0;
+
+    virtual bool selectData(kvDataList_t&, const Constraint::DBConstraint& where);
+
+    virtual bool selectData(kvDataList_t&, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by);
 
     virtual bool selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) = 0;
 

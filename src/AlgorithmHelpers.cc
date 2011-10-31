@@ -100,4 +100,11 @@ double distance(double lon1, double lat1, double lon2, double lat2)
     return EARTH_RADIUS*c;
 }
 
+miutil::miTime plusDay(const miutil::miTime& t, int nDays)
+{
+    miutil::miTime p(t);
+    p.addDay(nDays);
+    return p;
+}
+
 } // namespace Helpers
