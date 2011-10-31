@@ -50,7 +50,7 @@ public:
     void SetUp();
     void TearDown();
     void Configure(ReadProgramOptions& params, int startDay, int endDay);
-    void RoundingTest(const float* values, const int N);
+    void RoundingTest(const float* values, const float* expected, const int N);
 protected:
     ALGO_CLASS* algo;
 };
@@ -132,7 +132,7 @@ void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int
     params.Parse(config);
 }
 
-void RedistributionTest::RoundingTest(const float* values, const int N)
+void RedistributionTest::RoundingTest(const float* values, const float* expected, const int N)
 {
     const float rounded_acc = round<float,1>(std::accumulate(values, values+N, 0.0));
 
@@ -174,17 +174,12 @@ void RedistributionTest::RoundingTest(const float* values, const int N)
     algo->run(params);
     ASSERT_EQ(6, bc->count());
 
-    float delta2 = delta, acc_of_corrected = 0;
+    float acc_of_corrected = 0;
     for(int i=0; i<bc->count(); ++i) {
         const kvalobs::kvData& d = bc->updates()[i];
         SCOPED_TRACE(testing::Message() << "Update #" << i);
         EXPECT_EQ(83880, d.stationID());
-        float expected = interpolated_values[i];
-        if( fabs(delta2) > 0 && expected>delta2 ) {
-            expected = round<float,1>(expected - delta2);
-            delta2 = 0;
-        }
-        EXPECT_FLOAT_EQ(expected, d.corrected()) << "aor=" << acc_of_rounded << " ra=" << rounded_acc << " v[" << i << "]=" << values[i];
+        EXPECT_FLOAT_EQ(expected[i], d.corrected()) << "aor=" << acc_of_rounded << " ra=" << rounded_acc << " v[" << i << "]=" << values[i] << " interp=" << interpolated_values[i];
         EXPECT_EQ(i==5 ? "0140004000007000" : "0000001000007000", d.controlinfo().flagstring());
         acc_of_corrected += d.corrected();
     }
@@ -770,17 +765,29 @@ TEST_F(RedistributionTest, Bugzilla1325)
 {
     // consistency of accumulated value with sum of redistributed values
     const int N = 6;
-    const float values[N] = { 1.07, 2.07, 3.07, 2.07, 1.07, 1.07 };
+    const float values[N]   = { 1.07, 2.07, 3.07, 2.07, 1.07, 1.07 };
+    const float expected[N] = { 1.0,  2.1,  3.0,  2.1,  1.1,  1.1 };
 
-    RoundingTest(values, N);
+    RoundingTest(values, expected, N);
+}
+
+TEST_F(RedistributionTest, Bugzilla1325Comment4)
+{
+    const int N = 6;
+    const float values[N]   = { 0.07, 0.17, 0.17, 0.17, 0.17, 0.07 };
+    const float expected[N] = { 0.0,  0.1,  0.2,  0.2,  0.2,  0.1 };
+
+    RoundingTest(values, expected, N);
 }
 
 TEST_F(RedistributionTest, RoundingForVerySmallValues)
 {
     // keep sum of distributed values identical to accumulated value; see bugzilla 1325
     const int N = 6;
-    const float values[N] = { 0.07, 0.07, 0.07, 0.07, 0.07, 0.07 };
-    RoundingTest(values, N);
+    const float values[N]   = { 0.07, 0.07, 0.07, 0.07, 0.07, 0.07 };
+    const float expected[N] = { 0.0,  0.0,  0.1,  0.1,  0.1,  0.1 };
+
+    RoundingTest(values, expected, N);
 }
 
 TEST_F(RedistributionTest, Bugzilla1333)

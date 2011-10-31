@@ -533,6 +533,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             LOGERROR("not enough good neighbors d=" << d);
             continue;
         }
+        std::vector<bool> hasNeigboursWithPrecipitation;
         std::list<kvalobs::kvData> toWrite;
         //std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
         itN = ndata.begin(), itB = before.begin();
@@ -540,6 +541,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         if( d.original() == -1 )
             accumulated = 0;
         for(; itB != before.end() && itN != ndata.end(); ++itB ) {
+            hasNeigboursWithPrecipitation.push_back(false);
             std::ostringstream cfailed;
             cfailed << "QC2N";
             float sumWeights = 0.0, sumWeightedValues = 0.0;
@@ -547,8 +549,10 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                 float data_point = itN->original();
                 if (data_point == -1)
                     data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
-                if( data_point <= -1 )
+                if( data_point < -1 )
                     continue;
+                if( data_point>0.15 )
+                    hasNeigboursWithPrecipitation.back() = true;
                 const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
                 sumWeights += invDist2;
                 sumWeightedValues += data_point*invDist2;
@@ -573,18 +577,21 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
 
         // make sure that sum of re-distributed is the same as the original accumulated value
-        const float delta = round<float,1>(corrected_sum - accumulated);
-        if( delta != 0 ) {
-            bool fixed = false;
-            foreach_r(kvalobs::kvData& w, toWrite) {
-                if( w.corrected() >= delta ) {
-                    w.corrected(w.corrected() - delta);
-                    fixed = true;
-                    break;
-                }
+        int idxNeighboursWithPrecipitation = hasNeigboursWithPrecipitation.size()-1;
+        float delta = round<float,1>(corrected_sum - accumulated);
+        std::list<kvalobs::kvData>::reverse_iterator itS = toWrite.rbegin();
+        for( ; delta > 0 && itS != toWrite.rend(); ++itS, --idxNeighboursWithPrecipitation ) {
+            kvalobs::kvData& w = *itS;
+            bool nb = hasNeigboursWithPrecipitation[idxNeighboursWithPrecipitation];
+            const float oc = w.corrected();
+            if( (nb && oc >= delta+0.1) || (!nb && oc>0.05) ) {
+                const float nc = std::max(round<float, 1>(oc - delta), 0.0f);
+                w.corrected(nc);
+                delta = round<float, 1>(delta - (oc - nc));
             }
-            if( !fixed )
-                LOGINFO("Could not avoid difference between distributed sum and accumulated value at d=" << d);
+        }
+        if( delta > 0.05 ) {
+            LOGWARN("Could not avoid difference between distributed sum and accumulated value at d=" << d);
         }
 
         // we accumulated the corrections in time-reversed order, while tests expect them the other way around => foreach_r
