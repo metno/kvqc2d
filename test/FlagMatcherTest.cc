@@ -62,6 +62,18 @@ TEST_F(FlagMatcherTest, Is)
     EXPECT_FALSE(fm.isPermitted(f_fd, 1));
 }
 
+TEST_F(FlagMatcherTest, Parse)
+{
+    FlagMatcher fm("___.___.___.[23]__0");
+
+    EXPECT_TRUE(fm.isAllowed(f_fhqc, 0));
+    EXPECT_TRUE(fm.isAllowed(f_fd, 3));
+
+    EXPECT_FALSE(fm.isAllowed(f_fhqc, 1));
+    EXPECT_FALSE(fm.isAllowed(f_fd, 1));
+    EXPECT_FALSE(fm.isAllowed(f_fd, 4));
+}
+
 TEST_F(FlagMatcherTest, SQLtext)
 {
     EXPECT_EQ("", FlagMatcher().sql("ci"));

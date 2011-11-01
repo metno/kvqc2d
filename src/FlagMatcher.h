@@ -41,6 +41,9 @@ public:
     FlagMatcher()
         { reset(); }
 
+    FlagMatcher(const std::string& flagstring)
+        { parse(flagstring); }
+
     FlagMatcher& permit(int flag, int value)
         { mPermitted[flag] |= (1<<value); return *this; }
 
@@ -67,6 +70,8 @@ public:
         { return sql("controlinfo", needSQLText); }
 
     bool matches(const kvalobs::kvDataFlag& flags) const;
+
+    bool parse(const std::string& flagstring);
 
 private:
     unsigned int allowedBits(int flag) const

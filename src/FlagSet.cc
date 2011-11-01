@@ -1,8 +1,6 @@
 
 #include "FlagSet.h"
 
-#include <sstream>
-
 bool FlagSet::matches(const kvalobs::kvDataFlag& flags) const
 {
     if( mError )
@@ -23,65 +21,18 @@ bool FlagSet::parse(const std::string& flagstring)
     if( flagstring.empty() )
         return true;
 
-    std::istringstream iflag(flagstring);
-    FlagMatcher fm;
-    int f = 0;
-    while(true) {
-        char fc;
-        iflag >> fc;
-        if( !iflag && f != 0 ) {
+    std::size_t lastSeparator = 0;
+    while( lastSeparator < flagstring.size() ) {
+        std::size_t nextSeparator = flagstring.find("|", lastSeparator);
+        if( nextSeparator == std::string::npos )
+            nextSeparator = flagstring.size();
+        FlagMatcher fm;
+        if( !fm.parse(flagstring.substr(lastSeparator, nextSeparator - lastSeparator)) ) {
             mError = true;
             return false;
         }
-        if( fc == '_' || fc == '.' ) {
-            // no constraint on flag f
-        } else if( fc == '[' || fc == ')' ) {
-            // multiple permitted / forbidden flags
-            while(true) {
-                char fcc;
-                iflag >> fcc;
-                if( !iflag ) {
-                    mError = true;
-                    return false;
-                }
-                if( (fc == ')' && fcc == '(') || (fc=='[' && fcc==']') ) {
-                    // end of inclusion/exclusion
-                    break;
-                }
-                if( (fcc>='0' && fcc<='9') || (fcc>='A' && fcc<='F') ) {
-                    int fv = (fcc>='0' && fcc<='9') ? (fcc - '0') : (fcc - 'A' + 10);
-                    if( fc == '[' ) {
-                        fm.permit(f, fv);
-                    } else {
-                        fm.forbid(f, fv);
-                    }
-                } else {
-                    mError = true;
-                    return false;
-                }
-            }
-        } else if( (fc>='0' && fc<='9') || (fc>='A' && fc<='F') ) {
-            // single permitted flag
-            int fv = (fc>='0' && fc<='9') ? (fc - '0') : (fc - 'A' + 10);
-            fm.permit(f, fv);
-        } else {
-            mError = true;
-            return false;
-        }
-        f += 1;
-        if( f == 16 ) {
-            f = 0;
-            add(fm);
-            fm.reset();
-
-            iflag >> fc;
-            if( !iflag )
-                break;
-            if( fc != '|' ) {
-                mError = true;
-                return false;
-            }
-        }
+        add(fm);
+        lastSeparator = nextSeparator + 1;
     }
     return true;
 }

@@ -113,3 +113,57 @@ bool FlagMatcher::matches(const kvalobs::kvDataFlag& flags) const
     }
     return true;
 }
+
+static int char2int(char c)
+{
+    return (c>='0' && c<='9') ? (c - '0') : (c - 'A' + 10);
+}
+
+bool FlagMatcher::parse(const std::string& flagstring)
+{
+    bool mError = false;
+
+    reset();
+    if( flagstring.empty() ) {
+        mError = true;
+        return mError;
+    }
+
+    unsigned int c=0, f=0;
+    for(; f<16 && c<flagstring.size(); ++f) {
+        char fc = flagstring[c++];
+        if( fc == '_' || fc == '.' ) {
+            // no constraint on flag f
+        } else if( fc == '[' || fc == ')' ) {
+            // multiple permitted / forbidden flags
+            while(c<flagstring.size()) {
+                char fcc = flagstring[c++];
+                if( (fc == ')' && fcc == '(') || (fc=='[' && fcc==']') ) {
+                    // end of inclusion/exclusion
+                    break;
+                }
+                if( (fcc>='0' && fcc<='9') || (fcc>='A' && fcc<='F') ) {
+                    if( fc == '[' )
+                        permit(f, char2int(fcc));
+                    else
+                        forbid(f, char2int(fcc));
+                } else {
+                    mError = true;
+                    return false;
+                }
+            }
+        } else if( (fc>='0' && fc<='9') || (fc>='A' && fc<='F') ) {
+            // single permitted flag
+            permit(f, char2int(fc));
+        } else {
+            mError = true;
+            return false;
+        }
+    }
+    if( c != flagstring.size() || f != 16 ) {
+        mError = true;
+        return false;
+    }
+    return true;
+}
+
