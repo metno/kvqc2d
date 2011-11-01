@@ -62,6 +62,9 @@ public:
     FlagSet& setDefaultIfEmpty(bool d)
         { mDefaultIfEmpty = d; return *this; }
 
+    FlagSet& reset()
+        { mMatchers.clear(); mError = false; return *this; }
+
     bool parse(const std::string& flagstring);
 
     std::string sql(const std::string& column) const;

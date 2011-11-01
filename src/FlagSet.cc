@@ -15,9 +15,6 @@ bool FlagSet::matches(const kvalobs::kvDataFlag& flags) const
 
 bool FlagSet::parse(const std::string& flagstring)
 {
-    mMatchers.clear();
-    mError = false;
-
     if( flagstring.empty() )
         return true;
 

@@ -49,16 +49,18 @@ TEST_F(FlagSetTest, SingleMatch)
 TEST_F(FlagSetTest, MultiMatch)
 {
     FlagSet fs;
-    ASSERT_TRUE(fs.parse("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_."));
+    ASSERT_TRUE (fs.parse("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_."));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("0020000000000A00")));
     ASSERT_FALSE(fs.matches(kvalobs::kvControlInfo("0010050000000A00")));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("0010020000000F00")));
 
-    ASSERT_TRUE(fs.parse("__0.___.___.___."));
+    fs.reset();
+    ASSERT_TRUE (fs.parse("__0.___.___.___."));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("AA0ABCDEFABCDEF8")));
     ASSERT_FALSE(fs.matches(kvalobs::kvControlInfo("AA1ABCDEFABCDEF8")));
 
-    ASSERT_TRUE(fs.parse(""));
+    fs.reset();
+    ASSERT_TRUE (fs.parse(""));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("AA1ABCDEFABCDEF8")));
 }
 
