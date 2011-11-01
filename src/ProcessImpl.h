@@ -10,9 +10,9 @@ class ReadProgramOptions;
 class Qc2App;
 class Qc2Algorithm;
 
-///Handles the interface to different processing algorithms. 
+///Handles the interface to different processing algorithms.
 
-class ProcessImpl  
+class ProcessImpl
 {
 public:
     ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ );
@@ -28,13 +28,11 @@ public:
 
 private:
     Qc2App & app;
-    std::string logpath_; 
+    std::string logpath_;
     dnmi::db::Connection & con;
 
     typedef std::map<std::string, Qc2Algorithm*> algorithms_t;
     algorithms_t mAlgorithms;
-
-    std::map<int,std::string> mCode2Name; // TODO this is static
 };
 
 #endif

@@ -61,13 +61,6 @@ public:
 ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
     : app( app_ ), con( con_ )
 {
-    mCode2Name[1] = "SingleLinear";
-    mCode2Name[2] = "Redistribute";
-    mCode2Name[3] = "DipTest";
-    mCode2Name[4] = "GapInterpolate";
-    mCode2Name[5] = "Plumatic";
-    mCode2Name[12] = "Dummy";
-
     mAlgorithms["SingleLinear"]   = new SingleLinearAlgorithm();
     mAlgorithms["Redistribute"]   = new RedistributionAlgorithm2();
     mAlgorithms["DipTest"]        = new DipTestAlgorithm();
@@ -86,18 +79,8 @@ ProcessImpl::~ProcessImpl()
 
 int ProcessImpl::select(const ReadProgramOptions& params)
 {
-    // TODO this gives the Algorithm name higher priority than the AlgoCode -- okay?
     std::string algorithm = params.Algorithm;
-    std::cout << "Algorithm setting is name='" << algorithm << "' code=" << params.AlgoCode << std::endl;
-    if( algorithm == "NotSet" ) {
-        std::map<int,std::string>::const_iterator it = mCode2Name.find(params.AlgoCode);
-        if( it != mCode2Name.end() ) {
-            algorithm = it->second;
-        } else {
-            LOGINFO("Algorithm name not set, and AlgoCode=" << params.AlgoCode << " unknown.");
-            return 1;
-        }
-    }
+    std::cout << "Algorithm setting is name='" << algorithm << "'" << std::endl;
     algorithms_t::iterator a = mAlgorithms.find(algorithm);
     if( a != mAlgorithms.end() ) {
         LOGINFO("Case " + algorithm);
