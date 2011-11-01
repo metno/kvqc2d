@@ -65,14 +65,17 @@ FlagMatcher& FlagMatcher::reset()
 std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
 {
     std::ostringstream sql;
+    bool enclose = false;
     for(int i=0; i<N_FLAGS; ++i) {
         const unsigned int allowed = allowedBits(i), nbits = count_bits(allowed);
         if( nbits == 0 )
             return "0=1";
         else if( nbits == N_VALUES )
             continue;
-        if( !sql.str().empty() )
+        if( !sql.str().empty() ) {
             sql << " AND ";
+            enclose = true;
+        }
         sql << "substr(" << column << "," << i+1 << ",1) ";
         const bool negate = nbits > N_VALUES/2;
         if( negate )
@@ -90,9 +93,16 @@ std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
         }
         sql << ")";
     }
-    if( needSQLText && sql.str().empty() )
-        return "0=0";
-    return sql.str();
+    const std::string sql1 = sql.str();
+    if( sql1.empty() ) {
+        if( needSQLText )
+            return "0=0";
+        else
+            return "";
+    }
+    if( !enclose )
+        return sql1;
+    return "(" + sql1 + ")";
 }
 
 bool FlagMatcher::matches(const kvalobs::kvDataFlag& flags) const

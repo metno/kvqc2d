@@ -64,17 +64,15 @@ TEST_F(FlagMatcherTest, Is)
 
 TEST_F(FlagMatcherTest, SQLtext)
 {
-    std::ostringstream sql;
-    sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');";
-    ASSERT_NO_THROW(db->exec(sql.str()));
-
     EXPECT_EQ("", FlagMatcher().sql("ci"));
     EXPECT_EQ("0=0", FlagMatcher().permit(f_fhqc, 0).reset().sql("ci", true));
     EXPECT_EQ("0=1", FlagMatcher().permit(f_fhqc, 0).permit(f_fmis, 0).forbid(f_fmis, 0).sql("ci", true));
-    EXPECT_EQ("substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0')",
+    EXPECT_EQ("(substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0'))",
             FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql("ci"));
-    EXPECT_EQ("substr(controlinfo,7,1) NOT IN ('4') AND substr(controlinfo,16,1) IN ('0')",
+    EXPECT_EQ("(substr(controlinfo,7,1) NOT IN ('4') AND substr(controlinfo,16,1) IN ('0'))",
             FlagMatcher().forbid(f_fmis, 4).permit(f_fhqc, 0).sql("controlinfo"));
+    EXPECT_EQ("substr(ci,13,1) IN ('2','3')",
+            FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).sql("ci"));
 }
 
 TEST_F(FlagMatcherTest, SQLquery)
