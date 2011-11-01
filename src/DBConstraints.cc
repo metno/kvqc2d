@@ -34,12 +34,12 @@ namespace Constraint {
 
 std::string ControlinfoImpl::sql() const
 {
-    return mFlagMatcher.sql("controlinfo", false);
+    return mFlagSet.sql("controlinfo");
 }
 
 std::string UseinfoImpl::sql() const
 {
-    return mFlagMatcher.sql("useinfo", false);
+    return mFlagSet.sql("useinfo");
 }
 
 std::string ObstimeImpl::sql() const
@@ -122,6 +122,50 @@ TypeidImpl& TypeidImpl::add(int tid)
 }
 
 const char* TypeidImpl::typeID = "typeid";
+
+SensorImpl& SensorImpl::add(const std::vector<int>& sensors)
+{
+    foreach(int s, sensors)
+        add(s);
+    return *this;
+}
+
+SensorImpl& SensorImpl::add(const std::list<int>& sensors)
+{
+    foreach(int s, sensors)
+        add(s);
+    return *this;
+}
+
+SensorImpl& SensorImpl::add(int tid)
+{
+    IntegerColumnnImpl::add(tid);
+    return *this;
+}
+
+const char* SensorImpl::sensor = "sensor";
+
+LevelImpl& LevelImpl::add(const std::vector<int>& levels)
+{
+    foreach(int l, levels)
+        add(l);
+    return *this;
+}
+
+LevelImpl& LevelImpl::add(const std::list<int>& levels)
+{
+    foreach(int l, levels)
+        add(l);
+    return *this;
+}
+
+LevelImpl& LevelImpl::add(int lvl)
+{
+    IntegerColumnnImpl::add(lvl);
+    return *this;
+}
+
+const char* LevelImpl::level = "level";
 
 std::string AndImpl::sql() const
 {

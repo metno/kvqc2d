@@ -38,9 +38,8 @@
 #include <milog/milog.h>
 #include "foreach.h"
 
-using namespace kvalobs;
-using namespace std;
-using namespace miutil;
+namespace C = Constraint;
+namespace O = Ordering;
 
 void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
 {
@@ -50,11 +49,13 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
+    const C::DBConstraint cGeneral = (C::Paramid(params.pid) && C::Typeid(params.tid)
+                && C::Obstime(params.UT0, params.UT1) && C::Sensor(0) && C::Level(0));
+
     foreach(const kvalobs::kvStation& station, StationList) {
-        const miutil::miString filter = "WHERE STATIONID="+StrmConvert(station.stationID())+" AND PARAMID="+StrmConvert(params.pid)
-                +" AND TYPEID="+StrmConvert(params.tid)+" AND level=0 AND sensor=\'0\' AND obstime BETWEEN \'"+params.UT0.isoTime()+"\' AND \'"+params.UT1.isoTime()+"\'";
         std::list<kvalobs::kvData> Qc2SeriesData;
-        database()->selectData(Qc2SeriesData, filter);
+        const C::DBConstraint cStation = C::Station(station.stationID()) && cGeneral;
+        database()->selectData(Qc2SeriesData, cStation);
 
         std::vector<double> xt,yt;
         // Go through the data and fit an Akima Spline to the good points

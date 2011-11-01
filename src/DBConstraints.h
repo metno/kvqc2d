@@ -30,7 +30,7 @@
 #ifndef DBCONSTRAINTS_H_
 #define DBCONSTRAINTS_H_
 
-#include "FlagMatcher.h"
+#include "FlagSet.h"
 #include <kvalobs/kvStation.h>
 #include <puTools/miTime.h>
 #include <string>
@@ -82,20 +82,24 @@ typedef SQLBuilderPointer<DBConstraintImpl> DBConstraint;
 class ControlinfoImpl : public DBConstraintImpl {
 public:
     ControlinfoImpl(const FlagMatcher& fm)
-        : mFlagMatcher(fm) { }
+        : mFlagSet(fm) { }
+    ControlinfoImpl(const FlagSet& fs)
+        : mFlagSet(fs) { }
     virtual std::string sql() const;
 private:
-    FlagMatcher mFlagMatcher;
+    FlagSet mFlagSet;
 };
 typedef SQLBuilderPointer<ControlinfoImpl> Controlinfo;
 
 class UseinfoImpl : public DBConstraintImpl {
 public:
     UseinfoImpl(const FlagMatcher& fm)
-        : mFlagMatcher(fm) { }
+        : mFlagSet(fm) { }
+    UseinfoImpl(const FlagSet& fs)
+        : mFlagSet(fs) { }
     virtual std::string sql() const;
 private:
-    FlagMatcher mFlagMatcher;
+    FlagSet mFlagSet;
 };
 typedef SQLBuilderPointer<UseinfoImpl> Useinfo;
 
@@ -186,6 +190,42 @@ private:
     static const char* typeID;
 };
 typedef SQLBuilderPointer<TypeidImpl> Typeid;
+
+class SensorImpl : public IntegerColumnnImpl {
+public:
+    SensorImpl()
+        : IntegerColumnnImpl(sensor) { }
+    SensorImpl(const std::vector<int>& sensors)
+        : IntegerColumnnImpl(sensor) { add(sensors); }
+    SensorImpl(const std::list<int>& sensors)
+        : IntegerColumnnImpl(sensor) { add(sensors); }
+    SensorImpl(int sens)
+        : IntegerColumnnImpl(sensor) { add(sens); }
+    SensorImpl& add(const std::vector<int>& sensors);
+    SensorImpl& add(const std::list<int>& sensors);
+    SensorImpl& add(int sens);
+private:
+    static const char* sensor;
+};
+typedef SQLBuilderPointer<SensorImpl> Sensor;
+
+class LevelImpl : public IntegerColumnnImpl {
+public:
+    LevelImpl()
+        : IntegerColumnnImpl(level) { }
+    LevelImpl(const std::vector<int>& levels)
+        : IntegerColumnnImpl(level) { add(levels); }
+    LevelImpl(const std::list<int>& levels)
+        : IntegerColumnnImpl(level) { add(levels); }
+    LevelImpl(int lvl)
+        : IntegerColumnnImpl(level) { add(lvl); }
+    LevelImpl& add(const std::vector<int>& levels);
+    LevelImpl& add(const std::list<int>& levels);
+    LevelImpl& add(int lvl);
+private:
+    static const char* level;
+};
+typedef SQLBuilderPointer<LevelImpl> Level;
 
 class AndImpl : public DBConstraintImpl {
 public:

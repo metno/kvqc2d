@@ -1,7 +1,7 @@
 /*
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  $Id$                                                       
+  $Id$
 
   Copyright (C) 2007 met.no
 
@@ -15,17 +15,17 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -67,7 +67,7 @@ const char* flagnames[16] = { "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fm
 };
 
 template<class T>
-void extractFlag(const ConfigParser& c, const std::string& prefix, 
+void extractFlag(const ConfigParser& c, const std::string& prefix,
                  std::map<int, std::vector<T> >& flag, bool& invert)
 {
     for(int f=0; f<16; ++f)
@@ -93,7 +93,7 @@ void ReadProgramOptions::setConfigPath(const fs::path& path)
     mConfigPath = fs::complete( path );
 }
 
-///Scans $KVALOBS/Qc2Config and searched for configuration files "*.cfg". 
+///Scans $KVALOBS/Qc2Config and searched for configuration files "*.cfg".
 
 bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
 {
@@ -142,7 +142,7 @@ int ReadProgramOptions::Parse(std::istream& input)
         for(int i=0; i<c.errors().size(); ++i)
             errors << c.errors().get(i) << std::endl;
         LOGWARN("Problems parsing kvqc2d algorithm configuration:" << std::endl
-                << errors.str() 
+                << errors.str()
                 << "Continuing anyhow... good luck!");
     }
 
@@ -157,12 +157,12 @@ int ReadProgramOptions::Parse(std::istream& input)
     UT0 = now;
     UT1 = now;
     if( c.has("Last_NDays") ) {
-        // Ho Ho Ho retain the option to run into the future 
+        // Ho Ho Ho retain the option to run into the future
         UT0.addDay( -c.get("Last_NDays").convert<int>(0) );
     } else {
         extractTime(c, "Start", UT0);
+        extractTime(c, "End",   UT1);
     }
-    extractTime(c, "End", UT1); // TODO what if Last_NDays set, and also UT1? Move two lines up?
 
     // const int StepYear   = c.get("Step_YYYY").convert<int>(0, 0); // Step Year (to step through the data interval ...)
     // const int StepMonth  = c.get("Step_MM")  .convert<int>(0, 0); // Step Minute
@@ -183,13 +183,13 @@ int ReadProgramOptions::Parse(std::istream& input)
     ControlInfoString  = c.get("ControlString")        .value(0, ""); // Control Info (not used)
     ControlInfoVector  = c.get("ControlVector")        .convert<int>(); // Control Vector (not used)
     nibble_index       = c.get("NibbleIndex")          .convert<int>(0, 15); // Index of the flag to check if data should be written back to the database. default=15(f_hqc)
-    
+
     NeighbourFilename  = c.get("BestStationFilename")  .value(0, "NotSet"); // Filename containing the best station list
     ParValFile         = c.get("ParValFilename")       .value(0, "NotSet"); // Filename containing pairs of paramids and associated values
     InFlagFilename     = c.get("FlagsIn")              .value(0, "NotSet"); // Pathname for file containing controlinfo useifno test flag pairs
-    OutFlagFilename    = c.get("FlagsOut")             .value(0, "NotSet"); // Pathname for results of flag tests. 
+    OutFlagFilename    = c.get("FlagsOut")             .value(0, "NotSet"); // Pathname for results of flag tests.
     CFAILED_STRING     = c.get("CfailedString")        .value(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
-    
+
     missing            = c.get("MissingValue")         .convert<float>(0, -32767.0); // Original Missing Data Value
     rejected           = c.get("RejectedValue")        .convert<float>(0, -32766.0); // Original Rejected Data Value
     delta              = c.get("DeltaValue")           .convert<float>(0, 0.0); // Delta Value for Dip Test (can be Øgland's Parameter for example
@@ -235,7 +235,7 @@ int ReadProgramOptions::Parse(std::istream& input)
         key << "V_" << flagnames[i];
         *Vflag[i] = c.get(key.str()).convert<unsigned char>();
     }
-    
+
     /// If no specific flag is set then the algorithm shall run for all flags.
     bool Aflag_all_empty = true;
     for (int i=0; Aflag_all_empty && i<16; i++)
@@ -244,7 +244,7 @@ int ReadProgramOptions::Parse(std::istream& input)
         for (int i=0; i<16; i++)
             Aflag[i] = Vfull;
     }
-    
+
     /// If no specific flag is set then the algorithm shall run for all flags.
     bool Uflag_all_empty = true;
     for (int i=0; Uflag_all_empty && i<16; i++)
@@ -253,7 +253,7 @@ int ReadProgramOptions::Parse(std::istream& input)
         for (int i=0; i<16; i++)
             Uflag[i] = Vfull;
     }
-    
+
     return 0;
 }
 

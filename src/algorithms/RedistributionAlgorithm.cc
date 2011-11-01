@@ -42,15 +42,15 @@ namespace O = Ordering;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
-class NeighboringStationFinder {
+class NeighborFinder {
 public:
     typedef std::map<int, double> stationsWithDistances_t;
     typedef std::list<kvalobs::kvStation> stations_t;
     typedef std::map<int, kvalobs::kvStation> stationsByID_t;
 
-    virtual ~NeighboringStationFinder() { }
+    virtual ~NeighborFinder() { }
 
-    bool hashStationList() const
+    bool hasStationList() const
         { return !mStationsByID.empty(); }
 
     void setStationList(const stations_t& stations);
@@ -61,26 +61,27 @@ private:
     stationsByID_t mStationsByID;
 };
 
-void NeighboringStationFinder::setStationList(const stations_t& stations)
+void NeighborFinder::setStationList(const stations_t& stations)
 {
     foreach(const kvalobs::kvStation& s, stations) {
         mStationsByID[ s.stationID() ] = s;
     }
 }
 
-void NeighboringStationFinder::findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist)
+void NeighborFinder::findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist)
 {
     neighbors.clear();
-    if( mStationsByID.find(aroundID) == mStationsByID.end() )
+    const stationsByID_t::const_iterator itAround = mStationsByID.find(aroundID);
+    if( itAround == mStationsByID.end() )
         return;
-    const kvalobs::kvStation& around = mStationsByID.at(aroundID);
+    const kvalobs::kvStation& around = itAround->second;
     foreach(stationsByID_t::value_type& v, mStationsByID) {
-        const kvalobs::kvStation& station = v.second;
-        if( station.stationID() == aroundID )
+        const kvalobs::kvStation& neighbor = v.second;
+        if( neighbor.stationID() == aroundID )
             continue;
-        const double distance = Helpers::distance(around.lon(), around.lat(), station.lon(), station.lat());
+        const double distance = Helpers::distance(around.lon(), around.lat(), neighbor.lon(), neighbor.lat());
         if( distance > 0 && distance < maxdist ) {
-            neighbors[ station.stationID() ] = distance;
+            neighbors[ neighbor.stationID() ] = distance;
         }
     }
 }
@@ -90,7 +91,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
     using namespace kvQCFlagTypes;
     typedef std::list<kvalobs::kvData> dataList_t;
 
-    NeighboringStationFinder nf;
+    NeighborFinder nf;
 
     const O::DBOrdering order_by_time = O::Obstime().desc();
     const O::DBOrdering order_by_time_id = (order_by_time, O::Stationid());
@@ -99,22 +100,19 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
     const C::DBConstraint usei_neighbors = C::Useinfo(FlagMatcher().permit(2, 0));
 
     dataList_t allDataOneTime;
-    database()->selectData(allDataOneTime,
-            controli_endpoint
-                    && C::Paramid(params.pid)
-                    && C::Typeid(params.tids)
-                    && C::Obstime(params.UT0, params.UT1));
+    const C::DBConstraint cEndpoints = controli_endpoint
+            && C::Paramid(params.pid)
+            && C::Typeid(params.tids)
+            && C::Obstime(params.UT0, params.UT1);
+    database()->selectData(allDataOneTime, cEndpoints);
     foreach(const kvalobs::kvData& d, allDataOneTime) {
-        //std::cout << "center=" << d << std::endl;
-
         dataList_t bdata;
-        database()->selectData(bdata,
-                controli_missing
-                        && C::Paramid(params.pid)
-                        && C::Typeid(d.typeID())
-                        && C::Obstime(params.UT0, d.obstime())
-                        && C::Station(d.stationID()),
-                order_by_time);
+        const C::DBConstraint cBefore = controli_missing
+            && C::Paramid(params.pid)
+            && C::Typeid(d.typeID())
+            && C::Obstime(params.UT0, d.obstime())
+            && C::Station(d.stationID());
+        database()->selectData(bdata, cBefore, order_by_time);
 
         // FIXME check for start of database, too
         dataList_t before;
@@ -136,26 +134,26 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
 
         dataList_t startdata;
-        database()->selectData(startdata,
-                /*usei_neighbors // need to define some constraints on this value
-                        &&*/ C::Paramid(params.pid)
-                        && C::Typeid(d.typeID())
-                        && C::Obstime(t)
-                        && C::Station(d.stationID()),
-                order_by_time);
+        const C::DBConstraint cBeforeMissing =
+                // usei_neighbors && // need to define some constraints on this value
+                C::Paramid(params.pid)
+                && C::Typeid(d.typeID())
+                && C::Obstime(t)
+                && C::Station(d.stationID());
+        database()->selectData(startdata, cBeforeMissing, order_by_time);
         if( startdata.size() != 1 || startdata.front().original() == params.missing || startdata.front().original() == params.rejected ) {
             LOGINFO("value before time series not existing/missing/rejected/not usable at t=" << t << " for accumulation in " << d);
             continue;
         }
 
-        if( !nf.hashStationList() ) {
+        if( !nf.hasStationList() ) {
             std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
             std::list<int> allStationIDs;
             fillStationLists(allStations, allStationIDs);
             nf.setStationList(allStations);
         }
 
-        NeighboringStationFinder::stationsWithDistances_t neighbors;
+        NeighborFinder::stationsWithDistances_t neighbors;
         nf.findNeighbors(neighbors, d.stationID(), params.InterpolationLimit);
         if( neighbors.size() < MIN_NEIGHBORS ) {
             LOGINFO("less than " << MIN_NEIGHBORS << " neighbor(s) within " << params.InterpolationLimit
@@ -163,17 +161,16 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             continue;
         }
 
-        C::Station sc;
-        foreach(NeighboringStationFinder::stationsWithDistances_t::value_type& v, neighbors)
-            sc.add( v.first );
+        C::Station cNeighborStations;
+        foreach(NeighborFinder::stationsWithDistances_t::value_type& v, neighbors)
+            cNeighborStations.add( v.first );
         dataList_t ndata;
-        database()->selectData(ndata,
-                usei_neighbors
-                        && C::Paramid(params.pid)
-                        && C::Typeid(d.typeID())
-                        && C::Obstime(before.back().obstime(), d.obstime())
-                        && sc,
-                order_by_time_id);
+        const C::DBConstraint cNeighbors = usei_neighbors
+                && C::Paramid(params.pid)
+                && C::Typeid(d.typeID())
+                && C::Obstime(before.back().obstime(), d.obstime())
+                && cNeighborStations;
+        database()->selectData(ndata, cNeighbors, order_by_time_id);
 
         bool neighborsMissing = false;
         float sumint = 0;
