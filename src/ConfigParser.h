@@ -61,6 +61,8 @@ public:
         friend class ConfigParser;
 
     public:
+        Item() { }
+
         int count() const
             { return mValues.size(); }
 
@@ -141,9 +143,9 @@ std::vector<T> ConfigParser::Item::convert() const
     for(unsigned int i=0; i<mValues.size(); ++i ) {
         T t;
         const std::string v = mValues[i];
-        std::istringstream i(v);
-        i >> t;
-        if( i.fail() || i.tellg() != v.size() )
+        std::istringstream iv(v);
+        iv >> t;
+        if( iv.fail() || iv.tellg() != v.size() )
             return std::vector<T>();
         out.push_back(t);
     }
