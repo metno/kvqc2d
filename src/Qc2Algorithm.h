@@ -55,6 +55,10 @@ public:
     void fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
+protected:
+    void updateData(const kvalobs::kvData& toWrite);
+    void updateData(const std::list<kvalobs::kvData>& toWrite);
+
 private:
     DBInterface* mDatabase;
     Broadcaster* mBroadcaster;

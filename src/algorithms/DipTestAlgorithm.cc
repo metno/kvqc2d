@@ -214,11 +214,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
                     std::list<kvalobs::kvData> toWrite;
                     toWrite.push_back(dwrite1);
                     toWrite.push_back(dwrite2);
-                    database()->insertData(toWrite, true);
-
-                    broadcaster()->queueChanged(Tseries[1]);
-                    broadcaster()->queueChanged(Tseries[2]);
-                    broadcaster()->sendChanges();
+                    updateData(toWrite);
 
                     LOGINFO("DipTest: "+Helpers::kvqc2logstring(dwrite1) );
                     LOGINFO("DipTest: "+Helpers::kvqc2logstring(dwrite2) );

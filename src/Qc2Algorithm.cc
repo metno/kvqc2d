@@ -30,3 +30,19 @@ void Qc2Algorithm::fillStationIDList(std::list<int>& idList)
     std::list<kvalobs::kvStation> stations;
     fillStationLists(stations, idList);
 }
+
+void Qc2Algorithm::updateData(const kvalobs::kvData& toWrite)
+{
+    database()->insertData(toWrite, true);
+    broadcaster()->queueChanged(toWrite);
+    broadcaster()->sendChanges();
+}
+
+void Qc2Algorithm::updateData(const std::list<kvalobs::kvData>& toWrite)
+{
+    database()->insertData(toWrite, true);
+    foreach(const kvalobs::kvData& w, toWrite) {
+        broadcaster()->queueChanged(w);
+    }
+    broadcaster()->sendChanges();
+}

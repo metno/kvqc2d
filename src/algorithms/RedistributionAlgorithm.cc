@@ -115,7 +115,6 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             && C::Station(d.stationID());
         database()->selectData(bdata, cBefore, order_by_time);
 
-        // FIXME check for start of database, too
         dataList_t before;
         before.push_back(d);
         miutil::miTime t = Helpers::plusDay(d.obstime(), -1);
@@ -244,14 +243,15 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             correctedData.controlinfo(fixflags);
             Helpers::updateUseInfo(correctedData);
             Helpers::updateCfailed(correctedData, cfailed.str(), params.CFAILED_STRING);
-            toWrite.push_back(correctedData);
+            // we accumulated the corrections in time-reversed order, while we want to send it with increasing time => push_front
+            toWrite.push_front(correctedData);
         }
 
         // make sure that sum of re-distributed is the same as the original accumulated value
         int idxNeighboursWithPrecipitation = hasNeigboursWithPrecipitation.size()-1;
         float delta = round<float,1>(corrected_sum - accumulated);
-        std::list<kvalobs::kvData>::reverse_iterator itS = toWrite.rbegin();
-        for( ; delta > 0 && itS != toWrite.rend(); ++itS, --idxNeighboursWithPrecipitation ) {
+        std::list<kvalobs::kvData>::iterator itS = toWrite.begin();
+        for( ; delta > 0 && itS != toWrite.end(); ++itS, --idxNeighboursWithPrecipitation ) {
             kvalobs::kvData& w = *itS;
             bool nb = hasNeigboursWithPrecipitation[idxNeighboursWithPrecipitation];
             const float oc = w.corrected();
@@ -265,10 +265,6 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             LOGWARN("Could not avoid difference between distributed sum and accumulated value at d=" << d);
         }
 
-        // we accumulated the corrections in time-reversed order, while tests expect them the other way around => foreach_r
-        database()->insertData(toWrite, true);
-        foreach_r(const kvalobs::kvData& corr, toWrite)
-            broadcaster()->queueChanged(corr);
-        broadcaster()->sendChanges();
+        updateData(toWrite);
     }
 }
