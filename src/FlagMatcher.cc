@@ -121,13 +121,7 @@ static int char2int(char c)
 
 bool FlagMatcher::parse(const std::string& flagstring)
 {
-    bool mError = false;
-
     reset();
-    if( flagstring.empty() ) {
-        mError = true;
-        return mError;
-    }
 
     unsigned int c=0, f=0;
     for(; f<16 && c<flagstring.size(); ++f) {
@@ -148,7 +142,6 @@ bool FlagMatcher::parse(const std::string& flagstring)
                     else
                         forbid(f, char2int(fcc));
                 } else {
-                    mError = true;
                     return false;
                 }
             }
@@ -156,14 +149,11 @@ bool FlagMatcher::parse(const std::string& flagstring)
             // single permitted flag
             permit(f, char2int(fc));
         } else {
-            mError = true;
             return false;
         }
     }
-    if( c != flagstring.size() || f != 16 ) {
-        mError = true;
+    if( c != flagstring.size() || f != 16 )
         return false;
-    }
     return true;
 }
 

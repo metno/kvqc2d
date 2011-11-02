@@ -27,6 +27,8 @@ libkvqc2d_a_SOURCES = \
 	FlagMatcher.h \
 	FlagSet.cc \
 	FlagSet.h \
+	FlagUpdater.cc \
+	FlagUpdater.h \
 	ProcessControl.cc \
 	ProcessControl.h \
 	ProcessImpl.cc \

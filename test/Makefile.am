@@ -7,6 +7,7 @@ kvqc2dTest_SOURCES= \
 	ConfigParserTest.cc \
 	FlagMatcherTest.cc \
 	FlagSetTest.cc \
+	FlagUpdaterTest.cc \
 	HelpersTest.cc \
 	ReadProgramOptionsTest.cc \
 	algorithms/AlgorithmHelpersTest.cc \
