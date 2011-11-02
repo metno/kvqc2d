@@ -23,6 +23,8 @@ libkvqc2d_a_SOURCES = \
 	AlgorithmHelpers.h \
 	Helpers.cc \
 	Helpers.h \
+	FlagChange.cc \
+	FlagChange.h \
 	FlagMatcher.cc \
 	FlagMatcher.h \
 	FlagSet.cc \

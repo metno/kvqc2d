@@ -27,15 +27,12 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "algorithms/AlgorithmTestBase.h"
 #include "FlagSet.h"
-
-class FlagSetTest : public AlgorithmTestBase {
-};
+#include <gtest/gtest.h>
 
 using namespace kvQCFlagTypes;
 
-TEST_F(FlagSetTest, SingleMatch)
+TEST(FlagSetTest, SingleMatch)
 {
     FlagSet fs;
     fs.add(FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0));
@@ -46,7 +43,7 @@ TEST_F(FlagSetTest, SingleMatch)
     EXPECT_FALSE(fs.matches(kvalobs::kvControlInfo("0140004000002001")));
 }
 
-TEST_F(FlagSetTest, MultiMatch)
+TEST(FlagSetTest, MultiMatch)
 {
     FlagSet fs;
     ASSERT_TRUE (fs.parse("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_."));
@@ -64,7 +61,7 @@ TEST_F(FlagSetTest, MultiMatch)
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("AA1ABCDEFABCDEF8")));
 }
 
-TEST_F(FlagSetTest, SQLtext)
+TEST(FlagSetTest, SQLtext)
 {
     EXPECT_EQ("", FlagSet().setDefaultIfEmpty(true).sql("ci"));
     EXPECT_EQ("0=1", FlagSet().setDefaultIfEmpty(false).sql("ci"));

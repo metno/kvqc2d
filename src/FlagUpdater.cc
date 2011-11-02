@@ -65,9 +65,9 @@ bool FlagUpdater::parse(const std::string& flagstring)
     return true;
 }
 
-kvalobs::kvDataFlag FlagUpdater::apply(const kvalobs::kvDataFlag& orig) const
+kvalobs::kvControlInfo FlagUpdater::apply(const kvalobs::kvControlInfo& orig) const
 {
-    kvalobs::kvDataFlag flag = orig;
+    kvalobs::kvControlInfo flag = orig;
     for(int i=0; i<N_FLAGS; ++i) {
         if( mSet[i] != NO_CHANGE )
             flag.set(i, mSet[i]);

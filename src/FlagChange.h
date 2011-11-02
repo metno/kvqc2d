@@ -27,38 +27,41 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef FLAGUPDATER_H_
-#define FLAGUPDATER_H_
+#ifndef FLAGCHANGE_H_
+#define FLAGCHANGE_H_
 
-#include <kvalobs/kvDataFlag.h>
+#include "FlagMatcher.h"
+#include "FlagUpdater.h"
 #include <string>
+#include <vector>
 
-class FlagUpdater {
-
+class FlagChange {
 public:
-    enum { N_FLAGS = 16, NO_CHANGE = -1 };
+    FlagChange()
+        { }
 
-    FlagUpdater()
-        { reset(); }
+    FlagChange(const FlagMatcher& fm, const FlagUpdater& fu)
+        : mMatchers(1, fm), mUpdaters(1, fu) { }
 
-    FlagUpdater(const std::string& flagstring)
-        { parse(flagstring); }
+    FlagChange(const std::string& fs)
+        { parse(fs); }
 
-    FlagUpdater& set(int flag, int value)
-        { mSet[flag] = value; return *this; }
+    FlagChange& add(const FlagMatcher& fm, const FlagUpdater& fu)
+        { mMatchers.push_back(fm); mUpdaters.push_back(fu); return *this; }
 
-    int get(int flag) const
-        { return mSet[flag]; }
+    kvalobs::kvControlInfo apply(const kvalobs::kvControlInfo& orig) const;
 
-    FlagUpdater& reset();
+    bool isEmpty() const
+        { return mUpdaters.empty(); }
+
+    FlagChange& reset()
+        { mMatchers.clear(); mUpdaters.clear(); return *this; }
 
     bool parse(const std::string& flagstring);
 
-    kvalobs::kvControlInfo apply(const kvalobs::kvControlInfo& flag) const;
-
 private:
-    int mSet[N_FLAGS];
+    std::vector<FlagMatcher> mMatchers;
+    std::vector<FlagUpdater> mUpdaters;
 };
 
-
-#endif /* FLAGUPDATER_H_ */
+#endif /* FLAGCHANGE_H_ */

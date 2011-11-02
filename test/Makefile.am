@@ -5,6 +5,7 @@ check_PROGRAMS = kvqc2dTest
 kvqc2dTest_SOURCES= \
         test_main.cc \
 	ConfigParserTest.cc \
+	FlagChangeTest.cc \
 	FlagMatcherTest.cc \
 	FlagSetTest.cc \
 	FlagUpdaterTest.cc \
