@@ -84,6 +84,8 @@ TEST_F(SingleLinearTest, test1)
             << "End_MM     =   10" << std::endl
             << "End_DD     =    1" << std::endl
             << "End_hh     =   21" << std::endl
+           << "neighbor_uflags = __0.___.___.___." << std::endl
+           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
             << "ParamId=211" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
@@ -126,6 +128,8 @@ TEST_F(SingleLinearTest, test2)
             << "End_MM     =   10" << std::endl
             << "End_DD     =    1" << std::endl
             << "End_hh     =   21" << std::endl
+           << "neighbor_uflags = __0.___.___.___." << std::endl
+           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
             << "ParamId=211" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
@@ -205,6 +209,8 @@ TEST_F(SingleLinearTest, testFromWiki)
             << "change_fmis=3->1" << std::endl
             << "change_fmis=0->4" << std::endl
             << "change_fmis=2->4" << std::endl
+           << "neighbor_uflags = __0.___.___.___." << std::endl
+           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
             << "U_2=0" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
@@ -337,6 +343,8 @@ TEST_F(SingleLinearTest, testFromKro)
             << "End_ss=0" << std::endl
             << "ParamId=211" << std::endl
             << "W_fhqc=0" << std::endl
+           << "neighbor_uflags = __0.___.___.___." << std::endl
+           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
             << "S_ftime=1" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);

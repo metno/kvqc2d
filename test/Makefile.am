@@ -21,7 +21,7 @@ kvqc2dTest_SOURCES= \
 SETUP_DB = \"$(srcdir)/test/database/setupdb.sql\"
 #SETUP_DB = \"$(top_srcdir)/src/kvalobs_database/kvalobs_schema.sql\"
 
-kvqc2dTest_CPPFLAGS = -Wall -W \
+AM_CXXFLAGS = -Wall -W \
 	$(TEST_DEPS_CFLAGS) \
 	$(gtest_CFLAGS) \
 	$(BOOST_CPPFLAGS) \

@@ -27,8 +27,7 @@ public:
 
 private:
     bool isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n);
-    float calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries,
-                             const int stationID, const miutil::miTime& timeAfter);
+    float calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& series);
     void storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected);
 
 private:

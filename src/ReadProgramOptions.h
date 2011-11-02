@@ -3,6 +3,8 @@
 #ifndef __ReadProgramOptions_h__
 #define __ReadProgramOptions_h__
 
+#include "ConfigParser.h"
+#include "FlagSet.h"
 #include <puTools/miTime.h>
 
 #include <boost/filesystem/path.hpp>
@@ -61,6 +63,8 @@ public:
 public:
     void setConfigPath(const boost::filesystem::path& path);
 
+    bool getFlagSet(FlagSet& flags, const std::string& name) const;
+
 private:
     boost::filesystem::path mConfigPath;
     const vector_uchar Vfull; // TODO could also be static
@@ -79,6 +83,8 @@ private:
     std::map<int, vector_uchar> zflag;
     std::map<int, vector_uchar> Rflag;    //Requirements for reading
     vector_uchar Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
+
+    ConfigParser c;
 };
 
 /** @} */

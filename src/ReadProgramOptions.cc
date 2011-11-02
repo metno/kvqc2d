@@ -31,7 +31,6 @@
 
 #include "ReadProgramOptions.h"
 
-#include "ConfigParser.h"
 #include "Helpers.h"
 
 #include <kvalobs/kvPath.h>
@@ -136,7 +135,6 @@ int ReadProgramOptions::Parse(const std::string& filename)
 
 int ReadProgramOptions::Parse(std::istream& input)
 {
-    ConfigParser c;
     if( !c.load(input) ) {
         std::ostringstream errors;
         for(int i=0; i<c.errors().size(); ++i)
@@ -292,15 +290,14 @@ int ReadProgramOptions::clear()
 
     return 0;
 }
-//miutil::miTime UT0;
-//miutil::miTime UT1;
-//int StepD;
-//int StepH;
-//int AlgoCode;
-//std::string ControlInfoString;
-//std::vector<int> ControlInfoVector;
-//int RunAtMinute;
-//int RunAtHour;
-//int pid;
-//int tid;
-//bool newfile;
+
+bool ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) const
+{
+    flags.reset();
+    const ConfigParser::Item& item = c.get(name);
+    for(int i=0; i<item.count(); ++i) {
+        if( !flags.parse(item.value(i)) )
+            return false;
+    }
+    return true;
+}

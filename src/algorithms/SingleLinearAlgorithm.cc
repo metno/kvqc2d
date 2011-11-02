@@ -36,8 +36,11 @@
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
-
 #include "foreach.h"
+
+namespace C = Constraint;
+namespace O = Ordering;
+using Helpers::equal;
 
 namespace {
 
@@ -60,10 +63,11 @@ SingleLinearAlgorithm::SingleLinearAlgorithm()
 
 bool SingleLinearAlgorithm::isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n)
 {
-    return !checkFlags().condition(n.controlinfo(), params.Notflag)
-        &&  checkFlags().condition(n.controlinfo(), params.Aflag)
-        && !checkFlags().condition(n.useinfo(),     params.NotUflag)
-        &&  checkFlags().condition(n.useinfo(),     params.Uflag)
+    FlagSet cflags, uflags;
+    params.getFlagSet(cflags, "neighbor_cflags");
+    params.getFlagSet(uflags, "neighbor_uflags");
+    return cflags.matches(n.controlinfo())
+        && uflags.matches(n.useinfo())
         && n.original() != params.missing
         && n.original() != params.rejected;
 }
@@ -73,16 +77,20 @@ bool SingleLinearAlgorithm::isNeighborOk(const ReadProgramOptions& params, const
 void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Single Linear");
+
+    FlagSet missingdata_cflags, missingdata_uflags;
+    params.getFlagSet(missingdata_cflags, "missingdata_cflags");
+    params.getFlagSet(missingdata_uflags, "missingdata_uflags");
+
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
         LOGDEBUG("time=" << ProcessTime);
 
-        // TODO query for flags, too (e.g., Wflag)
-        // TODO maybe just run one query and update ProcessTime according to the results (obstime>=a and obstime<=b)?
-        // substr counts from 1
-        const miutil::miString filter = "WHERE (substr(controlinfo,7,1) IN ('1', '2', '3', '4')) "
-            "AND paramid="+StrmConvert(params.pid)+" AND obstime=\'"+ProcessTime.isoTime()+"\'"; // TODO AND stationid BETWEEN 60 and 99999"?
+        const C::DBConstraint cSingleMissing =
+            C::Controlinfo(missingdata_cflags) && C::Useinfo(missingdata_uflags)
+            && C::Paramid(params.pid)
+            && C::Obstime(ProcessTime); // TODO AND stationid BETWEEN 60 and 99999"?
         std::list<kvalobs::kvData> Qc2Data;
-        database()->selectData(Qc2Data, filter);
+        database()->selectData(Qc2Data, cSingleMissing);
         if( Qc2Data.empty() )
             continue;
 
@@ -102,81 +110,48 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
                 continue;
             }
 
-            const float NewCorrected = calculateCorrected(params, Tseries, d.stationID(), timeAfter);
-            if( NewCorrected == NO_UPDATE ) {
+            const float NewCorrected = calculateCorrected(params, Tseries);
+            if( equal(NewCorrected, NO_UPDATE) ) {
                 LOGDEBUG("cancel no update");
                 continue;
             }
 
-            if( checkFlags().true_nibble(d.controlinfo(), params.Wflag, 15, params.Wbool) ) {
-                LOGDEBUG("about to store");
-                storeUpdate(params, Tseries[1], NewCorrected);
-            }
+            LOGDEBUG("about to store");
+            storeUpdate(params, Tseries[1], NewCorrected);
         }
     }
 }
 
 // ------------------------------------------------------------------------
             
-float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries,
-                                                   const int /*stationID*/, const miutil::miTime& /*timeAfter*/)
+float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries)
 {
     float NewCorrected = NO_UPDATE;
-    const kvalobs::kvData &before = Tseries[0], &middle = Tseries[1], &after = Tseries[2];
+    const kvalobs::kvData before = Tseries[0], middle = Tseries[1], after = Tseries[2];
 
     // check that the neighbours are good
     const int flag7 = middle.controlinfo().flag(7);
-    LOGDEBUG("before.use=" << before.useinfo().flagstring() << " after.use=" << after.useinfo().flagstring());
     if( isNeighborOk(params, before) && isNeighborOk(params, after) ) {
-        LOGDEBUG("ok neighbours");
         if( flag7 == 0 || flag7 == 1 ) {
-            LOGDEBUG("ok flag7=" << flag7);
             NewCorrected = round<float,1>( 0.5*(before.original()+after.original()) );
-#if 0 // not used according to paule@met.no (20111009-0230) (also removed in v33)
-            if( params.maxpid>0 && params.minpid>0 ) {
-                std::list<kvalobs::kvData> MaxValue, MinValue;
-                // FIXME why twice timeAfter ? how does this find the max/min ???
-                if( database()->dataForStationParamTimerange(MaxValue, stationID, params.maxpid, timeAfter, timeAfter)
-                    && database()->dataForStationParamTimerange(MinValue, stationID, params.minpid, timeAfter, timeAfter)
-                    && MaxValue.size()==1 && MinValue.size()==1 )
-                {
-                    const float maxi = MaxValue.begin()->original(), mini = MinValue.begin()->original();
-                    if( maxi > -99.9 && mini > -99.9 ) {
-                        if( interpolated > maxi )
-                            NewCorrected = maxi;
-                        if( interpolated < mini )
-                            NewCorrected = mini;
-                    }
-                    //NB if a corrected value exists and it is already between the min and max then do not overwrite
-                    if( middle.corrected() >= mini && middle.corrected() <= maxi )
-                        NewCorrected = NO_UPDATE; 
-                }
-            }
-#endif
-            LOGDEBUG("corrected old=" << middle.corrected() << " new=" << NewCorrected);
-            if( flag7 == 1 && NewCorrected == middle.corrected() ) {
-                LOGDEBUG("same as old corrected");
+            // std::cout << "heiho cc" << std::endl;
+            if( (flag7 == 1) && equal(middle.corrected(), NewCorrected) ) {
                 NewCorrected = NO_UPDATE;
             }
         }
     } else {
-        LOGDEBUG("bad neighbours");
         //NB for ftime=0 ... do nothing
         
         //For ftime=1, reset to missing value ...
         if( flag7 == 1 ) {
-            LOGDEBUG("flag7=1");
             const int flag6 = middle.controlinfo().flag(6);
             if( flag6 == 1 || flag6 == 3 ) {
-                LOGDEBUG("flag6=" << flag6 << " => missing");
-                if( middle.corrected() != params.missing ) // XXX this is new compared to Paul's version, but necessary to pass his test
+                if( !equal(middle.corrected(), params.missing) ) // XXX this is new compared to Paul's version, but necessary to pass his test
                     NewCorrected = params.missing;
             } else if( flag6 == 2 || flag6 == 4 ) {
-                LOGDEBUG("flag6=" << flag6 << " =>  rejected");
-                if( middle.corrected() != params.rejected ) // XXX this is new compared to Paul's version, but necessary to pass his test
+                if( !equal(middle.corrected(), params.rejected) ) // XXX this is new compared to Paul's version, but necessary to pass his test
                     NewCorrected = params.rejected;
             } else {
-                LOGDEBUG("flag6=" << flag6 << " => interpolating");
                 NewCorrected = round<float,1>( (before.original()+after.original())/2 );
             }
         }
@@ -191,7 +166,7 @@ void SingleLinearAlgorithm::storeUpdate(const ReadProgramOptions& params, const 
     kvalobs::kvControlInfo fixflags = middle.controlinfo();
     checkFlags().setter(fixflags, params.Sflag);
     checkFlags().conditional_setter(fixflags, params.chflag);
-    if( NewCorrected == params.missing || NewCorrected == params.rejected )
+    if( equal(NewCorrected, params.missing) || equal(NewCorrected, params.rejected) )
         checkFlags().conditional_setter(fixflags, setmissing_chflag);
         
     kvalobs::kvData dwrite(middle);

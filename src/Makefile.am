@@ -80,13 +80,11 @@ libkvqc2d_a_SOURCES = \
 	algorithms/scone.h \
 	algorithms/tround.h 
 
-libkvqc2d_a_CPPFLAGS = -Wall -W \
+AM_CXXFLAGS = -Wall -W \
 	$(PROG_DEPS_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniORB4_CFLAGS)
 	$(omniDynamic4_CFLAGS)
-
-kvqc2d_CPPFLAGS = $(libkvqc2d_a_CPPFLAGS)
 
 kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 

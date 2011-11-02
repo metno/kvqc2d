@@ -39,6 +39,7 @@
 
 namespace C = Constraint;
 namespace O = Ordering;
+using Helpers::equal;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
@@ -141,7 +142,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
                 && C::Obstime(t)
                 && C::Station(d.stationID());
         database()->selectData(startdata, cBeforeMissing, order_by_time);
-        if( startdata.size() != 1 || startdata.front().original() == params.missing || startdata.front().original() == params.rejected ) {
+        if( startdata.size() != 1 || equal(startdata.front().original(), params.missing) || equal(startdata.front().original(), params.rejected) ) {
             LOGINFO("value before time series not existing/missing/rejected/not usable at t=" << t << " for accumulation in " << d);
             continue;
         }
@@ -182,7 +183,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             for( ; itN != ndata.end() && itN->obstime() == itB->obstime(); ++itN ) {
                 //std::cout << "neighbour id = " << itN->stationID() << std::endl;
                 float data_point = itN->original();
-                if (data_point == -1)
+                if( equal(data_point, -1.0f) )
                     data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
                 if( data_point <= -1 )
                     continue;
@@ -208,7 +209,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         //std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
         itN = ndata.begin(), itB = before.begin();
         float accumulated = d.original(), corrected_sum = 0;
-        if( d.original() == -1 )
+        if( equal(d.original(), -1.0f) )
             accumulated = 0;
         for(; itB != before.end() && itN != ndata.end(); ++itB ) {
             hasNeigboursWithPrecipitation.push_back(false);
@@ -217,7 +218,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             float sumWeights = 0.0, sumWeightedValues = 0.0;
             for( ; itN->obstime() == itB->obstime(); ++itN ) {
                 float data_point = itN->original();
-                if (data_point == -1)
+                if( equal(data_point, -1.0f) )
                     data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
                 if( data_point < -1 )
                     continue;
@@ -231,7 +232,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             cfailed << ",QC2-redist";
             float itB_corrected = round<float, 1>((sumWeightedValues/sumWeights) * (accumulated / sumint));
             corrected_sum += itB_corrected;
-            if( d.original() == -1 || itB_corrected == 0 )
+            if( equal(d.original(), -1.0f) || equal(itB_corrected, 0.0f) )
                 itB_corrected = -1; // bugzilla 1304: by default assume dry
 
             kvalobs::kvControlInfo fixflags = itB->controlinfo();
