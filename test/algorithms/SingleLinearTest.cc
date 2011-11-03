@@ -72,21 +72,20 @@ TEST_F(SingleLinearTest, test1)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-//            << "A_fmis=0" << std::endl
-//            << "U_0=3" << std::endl
-//            << "U_0=7" << std::endl
-            << "Start_YYYY = 2011" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   10" << std::endl
-            << "Start_hh   =   22" << std::endl
-            << "End_YYYY   = 2011" << std::endl
-            << "End_MM     =   10" << std::endl
-            << "End_DD     =    1" << std::endl
-            << "End_hh     =   21" << std::endl
-           << "neighbor_uflags = __0.___.___.___." << std::endl
-           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
-            << "ParamId=211" << std::endl;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   10" << std::endl
+           << "Start_hh   =   22" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   10" << std::endl
+           << "End_DD     =    1" << std::endl
+           << "End_hh     =   21" << std::endl
+           << "neighbor_cflags    = ___.__0.___.___." << std::endl
+           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
+           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
+           << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
+           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
+           << "ParamId=211" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
 
@@ -119,18 +118,20 @@ TEST_F(SingleLinearTest, test2)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2011" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   10" << std::endl
-            << "Start_hh   =   22" << std::endl
-            << "End_YYYY   = 2011" << std::endl
-            << "End_MM     =   10" << std::endl
-            << "End_DD     =    1" << std::endl
-            << "End_hh     =   21" << std::endl
-           << "neighbor_uflags = __0.___.___.___." << std::endl
-           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
-            << "ParamId=211" << std::endl;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   10" << std::endl
+           << "Start_hh   =   22" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   10" << std::endl
+           << "End_DD     =    1" << std::endl
+           << "End_hh     =   21" << std::endl
+           << "neighbor_cflags    = ___.__0.___.___." << std::endl
+           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
+           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
+           << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
+           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
+           << "ParamId=211" << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
 
@@ -189,29 +190,24 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config  << "Start_YYYY=2025" << std::endl
-            << "Start_MM=9" << std::endl
-            << "Start_DD=16  " << std::endl
-            << "Start_hh=6" << std::endl
-            << "Start_mm=0" << std::endl
-            << "Start_ss=0" << std::endl
-            << "End_YYYY=2025" << std::endl
-            << "End_MM=9" << std::endl
-            << "End_DD=17 " << std::endl
-            << "End_hh=16" << std::endl
-            << "End_mm=0" << std::endl
-            << "End_ss=0" << std::endl
-            << "ParamId=211" << std::endl
-            << "# MaxParamId=215" << std::endl
-            << "# MinParamId=213" << std::endl
-            << "W_fhqc=0" << std::endl
-            << "S_ftime=1" << std::endl
-            << "change_fmis=3->1" << std::endl
-            << "change_fmis=0->4" << std::endl
-            << "change_fmis=2->4" << std::endl
-           << "neighbor_uflags = __0.___.___.___." << std::endl
-           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
-            << "U_2=0" << std::endl;
+    config << "Start_YYYY=2025" << std::endl
+           << "Start_MM=9" << std::endl
+           << "Start_DD=16  " << std::endl
+           << "Start_hh=6" << std::endl
+           << "Start_mm=0" << std::endl
+           << "Start_ss=0" << std::endl
+           << "End_YYYY=2025" << std::endl
+           << "End_MM=9" << std::endl
+           << "End_DD=17 " << std::endl
+           << "End_hh=16" << std::endl
+           << "End_mm=0" << std::endl
+           << "End_ss=0" << std::endl
+           << "ParamId=211" << std::endl
+           << "neighbor_cflags    = ___.__0.___.___." << std::endl
+           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
+           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
+           << "update_flagchange  = ___.___1___.___.;___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
+           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
 
@@ -329,23 +325,24 @@ TEST_F(SingleLinearTest, testFromKro)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config  << "Start_YYYY=2011" << std::endl
-            << "Start_MM=10" << std::endl
-            << "Start_DD=09  " << std::endl
-            << "Start_hh=6" << std::endl
-            << "Start_mm=0" << std::endl
-            << "Start_ss=0" << std::endl
-            << "End_YYYY=2011" << std::endl
-            << "End_MM=10" << std::endl
-            << "End_DD=11 " << std::endl
-            << "End_hh=6" << std::endl
-            << "End_mm=0" << std::endl
-            << "End_ss=0" << std::endl
-            << "ParamId=211" << std::endl
-            << "W_fhqc=0" << std::endl
-           << "neighbor_uflags = __0.___.___.___." << std::endl
-           << "missingdata_cflags = ___.__[1234]____.___0" << std::endl
-            << "S_ftime=1" << std::endl;
+    config << "Start_YYYY=2011" << std::endl
+           << "Start_MM=10" << std::endl
+           << "Start_DD=09  " << std::endl
+           << "Start_hh=6" << std::endl
+           << "Start_mm=0" << std::endl
+           << "Start_ss=0" << std::endl
+           << "End_YYYY=2011" << std::endl
+           << "End_MM=10" << std::endl
+           << "End_DD=11 " << std::endl
+           << "End_hh=6" << std::endl
+           << "End_mm=0" << std::endl
+           << "End_ss=0" << std::endl
+           << "ParamId=211" << std::endl
+           << "neighbor_cflags    = ___.__0.___.___." << std::endl
+           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
+           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
+           << "update_flagchange  = ___.___1___.___.;___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
+           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
 

@@ -54,10 +54,6 @@ const float NO_UPDATE = -99999.0;
 SingleLinearAlgorithm::SingleLinearAlgorithm()
     : Qc2Algorithm("SingleLinear")
 {
-    std::vector<std::string> setmissing_fmis;
-    setmissing_fmis.push_back("1->3");
-    setmissing_fmis.push_back("4->2");
-    setmissing_chflag[6]=setmissing_fmis;
 }
 
 // ------------------------------------------------------------------------
@@ -77,15 +73,17 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 {
     LOGINFO("Single Linear");
 
-    FlagSet missingdata_cflags, missingdata_uflags;
-    params.getFlagSet(missingdata_cflags, "missingdata_cflags");
-    params.getFlagSet(missingdata_uflags, "missingdata_uflags");
+    FlagSetCU missing_flags;
+    if( !params.getFlagSetCU(missing_flags, "missing") ) {
+        LOGWARN("problem reading missing flags; giving up");
+        return;
+    }
 
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
         LOGDEBUG("time=" << ProcessTime);
 
         const C::DBConstraint cSingleMissing =
-            C::Controlinfo(missingdata_cflags) && C::Useinfo(missingdata_uflags)
+            C::ControlUseinfo(missing_flags)
             && C::Paramid(params.pid)
             && C::Obstime(ProcessTime); // TODO AND stationid BETWEEN 60 and 99999"?
         std::list<kvalobs::kvData> Qc2Data;
@@ -162,11 +160,19 @@ float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params
             
 void SingleLinearAlgorithm::storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected)
 {
-    kvalobs::kvControlInfo fixflags = middle.controlinfo();
-    checkFlags().setter(fixflags, params.Sflag);
-    checkFlags().conditional_setter(fixflags, params.chflag);
+    FlagChange update_flagchange, missing_flagchange;
+    if( !params.getFlagChange(update_flagchange, "update_flagchange")) {
+        LOGWARN("problem reading update_flagchange; giving up");
+        return;
+    }
+    if( !params.getFlagChange(missing_flagchange, "missing_flagchange")) {
+        LOGWARN("problem reading missing_flagchange; giving up");
+        return;
+    }
+
+    kvalobs::kvControlInfo fixflags = update_flagchange.apply(middle.controlinfo());
     if( equal(NewCorrected, params.missing) || equal(NewCorrected, params.rejected) )
-        checkFlags().conditional_setter(fixflags, setmissing_chflag);
+        fixflags = missing_flagchange.apply(fixflags);
         
     kvalobs::kvData dwrite(middle);
     dwrite.corrected(NewCorrected);
