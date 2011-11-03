@@ -152,4 +152,22 @@ std::vector<T> ConfigParser::Item::convert() const
     return out;
 }
 
+template<>
+inline std::string ConfigParser::Item::convert(unsigned int idx) const
+{
+    return mValues[idx];
+}
+
+template<>
+inline std::string ConfigParser::Item::convert(unsigned int idx, const std::string& dflt) const
+{
+    return ( idx < mValues.size() ) ? mValues[idx] : dflt;
+}
+
+template<>
+inline std::vector<std::string> ConfigParser::Item::convert() const
+{
+    return mValues;
+}
+
 #endif // ConfigParser_H

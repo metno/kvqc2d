@@ -70,10 +70,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/DipTestAlgorithm.hh \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \
-	algorithms/Qc2D.cc \
-	algorithms/Qc2D.h \
-	algorithms/Qc3D.cc \
-	algorithms/Qc3D.h \
 	algorithms/ParseParValFile.cc \
 	algorithms/ParseParValFile.h \
 	algorithms/StationSelection.cc \

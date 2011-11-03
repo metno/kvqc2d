@@ -53,7 +53,7 @@ using namespace kvQCFlagTypes;
 
 bool DipTestAlgorithm::fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map)
 {
-    const std::string& pvf = params.ParValFile;
+    const std::string pvf = params.getParameter<std::string>("ParValFilename");
 
     if( Helpers::startsWith(pvf, "list:") )
         return Helpers::fillMapFromList(pvf.substr(5), map, ',');

@@ -42,6 +42,11 @@
 namespace C = Constraint;
 namespace O = Ordering;
 
+void GapInterpolationAlgorithm::configure( const ReadProgramOptions& params )
+{
+    Ngap = params.getParameter("MaxHalfGap", 0);
+}
+
 void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
 {
     const long StartDay = params.UT0.date().julianDay();
@@ -101,21 +106,20 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
                 if ( ( std::find(xt.begin(), xt.end(), highHour+1) != xt.end() ) &&
                      ( std::find(xt.begin(), xt.end(), lowHour-1)  != xt.end() ) &&
                      ( std::find(xt.begin(), xt.end(), lowHour-2)  != xt.end() || std::find(xt.begin(), xt.end(), highHour+2)  != xt.end() ) &&
-                     ( HourDec - lowHour <= params.Ngap ) &&
-                     ( highHour - HourDec  < params.Ngap ) )
+                     ( HourDec - lowHour <= Ngap ) &&
+                     ( highHour - HourDec  < Ngap ) )
                 {
                     // Do Akima Interpolation
                     std::cout << d.stationID() << " " << d.obstime() << " " << d.original() << " " << d.corrected() << " Sub Akima " << AkimaX.AkimaPoint(HourDec) << std::endl;
                     const float NewCorrected = round<float,1>(AkimaX.AkimaPoint(HourDec));
 
                     // Push the data back
-                    kvalobs::kvControlInfo fixflags = d.controlinfo();
-                    checkFlags().setter(fixflags,params.Sflag);
-                    checkFlags().conditional_setter(fixflags,params.chflag);
+                    FlagChange fc;
+                    params.getFlagChange(fc, "gap_flagchange");
 
                     kvalobs::kvData dwrite(d);
                     dwrite.corrected(NewCorrected);
-                    dwrite.controlinfo(fixflags);
+                    dwrite.controlinfo(fc.apply(dwrite.controlinfo()));
                     Helpers::updateCfailed(dwrite, "QC2d-2-A", params.CFAILED_STRING);
                     Helpers::updateUseInfo(dwrite);
                     updateData(dwrite);

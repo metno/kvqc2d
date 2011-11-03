@@ -70,7 +70,6 @@ void Qc2Work::operator() ()
         std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files);
         foreach(const std::string& cf, config_files) {
-            params.clear(); // very important!!!!!!
             params.Parse( cf );
             // FIXME this will not necessarily run all algorithms -- 16:20 start for 20min, 16:25 start for other => other not run
             const miutil::miTime now = miutil::miTime::nowTime();

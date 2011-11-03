@@ -35,42 +35,29 @@ public:
     miutil::miTime UT0;
     miutil::miTime UT1;
 
-    int AlgoCode;
-    int InterpCode;
-
-    bool Wbool;
-
-    std::string Algorithm;                  
-    std::string NeighbourFilename;
-    std::string ParValFile;
+    std::string Algorithm;
     std::string CFAILED_STRING;
 
     int RunAtMinute;
     int RunAtHour;
     int pid;
     int tid;
-    int nibble_index;
     std::vector<int> tids;
     float missing;
     float rejected;
-    float InterpolationLimit;
-    int Ngap;
-    std::map<int, vector_uchar> Iflag;    //Requirements for interpolation
-    std::map<int, vector_uchar> Aflag;    //Requirements for analysis
-    std::map<int, vector_uchar> Notflag;  //Restrictions for analysis
-    std::map<int, vector_uchar> Wflag;    //Requirements for write
-    std::map<int, vector_uchar> Uflag;    //Requirements for User flag 
-    std::map<int, vector_uchar> NotUflag; //Requirements for not User flag 
-    std::map<int, unsigned char> Sflag;                  //Flags to set
-    std::map<int, std::vector<std::string> > chflag;
 
-    int Parse(const std::string& filename);
-    int Parse(std::istream& input);
+    void Parse(const std::string& filename);
+    void Parse(std::istream& input);
     bool SelectConfigFiles(std::vector<std::string>& config_files);
-    int clear();
 
 public:
     void setConfigPath(const boost::filesystem::path& path);
+
+    template<typename T>
+    T getParameter(const std::string& name, const T& dflt) const;
+
+    template<typename T>
+    T getParameter(const std::string& name) const;
 
     void getFlagSet(FlagSet& f, const std::string& name) const;
     void getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
@@ -80,23 +67,29 @@ private:
     boost::filesystem::path mConfigPath;
     const vector_uchar Vfull; // TODO could also be static
 
-    // FIXME what are these used for?
-    int StepD;
-    int StepH;
-    bool zbool,Rbool,Ibool,Abool,Notbool,Ubool,NotUbool;
-    std::string InFlagFilename;
-    std::string OutFlagFilename;
-    int maxpid,minpid;
-    float MinimumValue;
-    float delta;
-    std::string ControlInfoString;
-    std::vector<int> ControlInfoVector;
-    std::map<int, vector_uchar> zflag;
-    std::map<int, vector_uchar> Rflag;    //Requirements for reading
-    vector_uchar Vfqclevel,Vfr,Vfcc,Vfs,Vfnum,Vfpos,Vfmis,Vftime,Vfw,Vfstat,Vfcp,Vfclim,Vfd,Vfpre,Vfcombi,Vfhqc;
-
     ConfigParser c;
 };
 
-/** @} */
+template<typename T>
+T ReadProgramOptions::getParameter(const std::string& name, const T& dflt) const
+{
+    if( !c.has(name) )
+        return dflt;
+    const ConfigParser::Item& item =c.get(name);
+    if( item.count() != 1 )
+        throw ConfigException("setting '" + name + "' has != 1 value");
+    return item.convert<T>(0);
+}
+
+template<typename T>
+T ReadProgramOptions::getParameter(const std::string& name) const
+{
+    if( !c.has(name) )
+        throw ConfigException("no such setting: '" + name + "'");
+    const ConfigParser::Item& item =c.get(name);
+    if( item.count() != 1 )
+        throw ConfigException("setting '" + name + "' has != 1 value");
+    return item.convert<T>(0);
+}
+
 #endif

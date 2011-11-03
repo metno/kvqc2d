@@ -11,6 +11,12 @@ public:
         : Qc2Algorithm("GapInterpolate") { }
 
     virtual void run(const ReadProgramOptions& params);
+
+private:
+    void configure(const ReadProgramOptions& params);
+
+private:
+    int Ngap;
 };
 
 #endif

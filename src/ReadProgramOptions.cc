@@ -47,8 +47,6 @@ using namespace std;
 namespace fs = boost::filesystem;
 
 namespace {
-const char Vfull_values[] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                              '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
 void extractTime(const ConfigParser& c, const std::string& prefix, miutil::miTime& time)
 {
@@ -65,22 +63,9 @@ const char* flagnames[16] = { "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fm
                               "fw", "fstat", "fcp", "fclim", "fd", "fpre", "fcombi", "fhqc"
 };
 
-template<class T>
-void extractFlag(const ConfigParser& c, const std::string& prefix,
-                 std::map<int, std::vector<T> >& flag, bool& invert)
-{
-    for(int f=0; f<16; ++f)
-        flag[f] = c.get(prefix+std::string("_")+flagnames[f]).convert<T>();
-
-    invert = true;
-    if( c.has(prefix+"bool") )
-        invert = c.get(prefix+"bool").convert<bool>(0);
-}
-
 } // anonymous namespace
 
 ReadProgramOptions::ReadProgramOptions()
-    : Vfull(Vfull_values, Vfull_values + 16)
 {
     fs::initial_path();
     setConfigPath( fs::path(kvPath("sysconfdir")) / "Qc2Config" );
@@ -127,21 +112,19 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
     return true;
 }
 
-int ReadProgramOptions::Parse(const std::string& filename)
+void ReadProgramOptions::Parse(const std::string& filename)
 {
     std::ifstream input(filename.c_str());
-    return Parse(input);
+    Parse(input);
 }
 
-int ReadProgramOptions::Parse(std::istream& input)
+void ReadProgramOptions::Parse(std::istream& input)
 {
     if( !c.load(input) ) {
         std::ostringstream errors;
         for(int i=0; i<c.errors().size(); ++i)
             errors << c.errors().get(i) << std::endl;
-        LOGWARN("Problems parsing kvqc2d algorithm configuration:" << std::endl
-                << errors.str()
-                << "Continuing anyhow... good luck!");
+        throw ConfigException("Problems parsing kvqc2d algorithm configuration:\n" + errors.str() + "Giving up!");
     }
 
     const miutil::miTime now = miutil::miTime::nowTime();
@@ -162,133 +145,15 @@ int ReadProgramOptions::Parse(std::istream& input)
         extractTime(c, "End",   UT1);
     }
 
-    // const int StepYear   = c.get("Step_YYYY").convert<int>(0, 0); // Step Year (to step through the data interval ...)
-    // const int StepMonth  = c.get("Step_MM")  .convert<int>(0, 0); // Step Minute
-    StepD   = c.get("Step_DD")  .convert<int>(0, 0); // Step Day
-    StepH   = c.get("Step_hh")  .convert<int>(0, 0); // Step Hour
-    // const int StepMinute = c.get("Step_mm")  .convert<int>(0, 0); // Step Minute
-    // const int StepSecond = c.get("Step_ss")  .convert<int>(0, 0); // Step Second
-
     pid                = c.get("ParamId")              .convert<int>(0, 0); // Parameter ID
-    maxpid             = c.get("MaxParamId")           .convert<int>(0, 0); // Parameter ID for a maximum value
-    minpid             = c.get("MinParamId")           .convert<int>(0, 0); // Parameter ID for a minimum value
 
     tid                = c.get("TypeId")               .convert<int>(0, -1); // Type ID
     tids               = c.get("TypeIds")              .convert<int>(); // One of many Type IDs
-    AlgoCode           = c.get("AlgoCode")             .convert<int>(0, -1); // Algorithm Code
     Algorithm          = c.get("Algorithm")            .value(0, "NotSet"); // Algorithm Name
-    InterpCode         = c.get("InterpCode")           .convert<int>(0, -1); // Code to determine method of interpolation
-    ControlInfoString  = c.get("ControlString")        .value(0, ""); // Control Info (not used)
-    ControlInfoVector  = c.get("ControlVector")        .convert<int>(); // Control Vector (not used)
-    nibble_index       = c.get("NibbleIndex")          .convert<int>(0, 15); // Index of the flag to check if data should be written back to the database. default=15(f_hqc)
-
-    NeighbourFilename  = c.get("BestStationFilename")  .value(0, "NotSet"); // Filename containing the best station list
-    ParValFile         = c.get("ParValFilename")       .value(0, "NotSet"); // Filename containing pairs of paramids and associated values
-    InFlagFilename     = c.get("FlagsIn")              .value(0, "NotSet"); // Pathname for file containing controlinfo useifno test flag pairs
-    OutFlagFilename    = c.get("FlagsOut")             .value(0, "NotSet"); // Pathname for results of flag tests.
     CFAILED_STRING     = c.get("CfailedString")        .value(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
 
     missing            = c.get("MissingValue")         .convert<float>(0, -32767.0); // Original Missing Data Value
     rejected           = c.get("RejectedValue")        .convert<float>(0, -32766.0); // Original Rejected Data Value
-    delta              = c.get("DeltaValue")           .convert<float>(0, 0.0); // Delta Value for Dip Test (can be Øgland's Parameter for example
-    MinimumValue       = c.get("MinValue")             .convert<float>(0, -32767.0); // Minimum Data Value For Some Controls
-    InterpolationLimit = c.get("InterpolationDistance").convert<float>(0, 25); // Nearest Neighbour Limiting Distance
-    Ngap               = c.get("MaxHalfGap")           .convert<int>(0, 0); // Maximum distance from a good neighbour for an Akima Interpolation:
-
-    extractFlag(c, "z", zflag, zbool);
-    extractFlag(c, "R", Rflag, Rbool);
-    extractFlag(c, "I", Iflag, Ibool);
-    extractFlag(c, "A", Aflag, Abool);
-    extractFlag(c, "Not", Notflag, Notbool);
-    extractFlag(c, "W", Wflag, Wbool);
-    bool dummy = true;
-    extractFlag(c, "change", chflag, dummy);
-
-    Ubool    = c.get("Ubool")   .convert<bool>(0, true);
-    NotUbool = c.get("NotUbool").convert<bool>(0, true);
-
-    for(int i=0; i<16; ++i) {
-        std::ostringstream key;
-        key << "U_" << i;
-        Uflag[i]    = c.get(        key.str()).convert<unsigned char>();
-        NotUflag[i] = c.get("Not" + key.str()).convert<unsigned char>();
-    }
-
-    for(int i=0; i<16; ++i) {
-        std::string key = std::string("S_") + flagnames[i];
-        if( c.has(key) )
-            Sflag[i] = c.get(key).convert<unsigned char>(0, '?');
-    }
-
-    for(int i=0; i<16; ++i) {
-        std::string key = std::string("change_") + flagnames[i];
-        if( c.has(key) )
-            chflag[i] = c.get(key).values();
-    }
-
-    vector_uchar* Vflag[16] = { &Vfqclevel, &Vfr, &Vfcc, &Vfs, &Vfnum, &Vfpos, &Vfmis, &Vftime,
-                                &Vfw, &Vfstat, &Vfcp, &Vfclim, &Vfd, &Vfpre, &Vfcombi, &Vfhqc };
-    for(int i=0; i<16; ++i) {
-        std::ostringstream key;
-        key << "V_" << flagnames[i];
-        *Vflag[i] = c.get(key.str()).convert<unsigned char>();
-    }
-
-    /// If no specific flag is set then the algorithm shall run for all flags.
-    bool Aflag_all_empty = true;
-    for (int i=0; Aflag_all_empty && i<16; i++)
-        Aflag_all_empty &= Aflag[i].empty();
-    if( Aflag_all_empty ) {
-        for (int i=0; i<16; i++)
-            Aflag[i] = Vfull;
-    }
-
-    /// If no specific flag is set then the algorithm shall run for all flags.
-    bool Uflag_all_empty = true;
-    for (int i=0; Uflag_all_empty && i<16; i++)
-        Uflag_all_empty &= Uflag[i].empty();
-    if( Uflag_all_empty ) {
-        for (int i=0; i<16; i++)
-            Uflag[i] = Vfull;
-    }
-
-    return 0;
-}
-
-int ReadProgramOptions::clear()
-{
-    zflag   .clear();
-    Rflag   .clear();
-    Iflag   .clear();
-    Aflag   .clear();
-    Wflag   .clear();
-    Sflag   .clear();
-    Uflag   .clear();
-    NotUflag.clear();
-    Notflag .clear();
-    chflag  .clear();
-
-    miutil::miTime UT0(1900,1,1,0,0,0);
-    miutil::miTime UT1(1900,1,1,0,0,0);
-
-    StepD=0;
-    StepH=0;
-    AlgoCode=-1;
-    Algorithm="NotSet";
-    InterpCode=-1;
-    std::string ControlInfoString;       ///Check these are cleared correctly
-    std::vector<int> ControlInfoVector;  ///TBD
-
-    RunAtMinute=0;
-    RunAtHour=2;
-    pid=0;
-    maxpid=0;
-    minpid=0;
-    tid=0;
-    nibble_index=15;  // Always set back to HQC by default
-    tids.clear();
-
-    return 0;
 }
 
 void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) const

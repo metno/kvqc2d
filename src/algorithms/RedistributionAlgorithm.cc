@@ -87,19 +87,22 @@ void NeighborFinder::findNeighbors(stationsWithDistances_t& neighbors, int aroun
     }
 }
 
+void RedistributionAlgorithm2::configure(const ReadProgramOptions& params)
+{
+    params.getFlagSetCU(endpoint_flags, "endpoint");
+    params.getFlagSetCU(missingpoint_flags, "missingpoint");
+    params.getFlagSetCU(before_flags, "before");
+    params.getFlagSetCU(neighbor_flags, "neighbor");
+    params.getFlagChange(update_flagchange, "update_flagchange");
+    mInterpolationLimit = params.getParameter("InterpolationDistance", 25);
+}
+
 void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
 {
     using namespace kvQCFlagTypes;
     typedef std::list<kvalobs::kvData> dataList_t;
 
-    FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags;
-    params.getFlagSetCU(endpoint_flags, "endpoint");
-    params.getFlagSetCU(missingpoint_flags, "missingpoint");
-    params.getFlagSetCU(before_flags, "before");
-    params.getFlagSetCU(neighbor_flags, "neighbor");
-
-    FlagChange update_flagchange;
-    params.getFlagChange(update_flagchange, "update_flagchange");
+    configure(params);
 
     NeighborFinder nf;
 
@@ -163,9 +166,9 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
 
         NeighborFinder::stationsWithDistances_t neighbors;
-        nf.findNeighbors(neighbors, d.stationID(), params.InterpolationLimit);
+        nf.findNeighbors(neighbors, d.stationID(), mInterpolationLimit);
         if( neighbors.size() < MIN_NEIGHBORS ) {
-            LOGINFO("less than " << MIN_NEIGHBORS << " neighbor(s) within " << params.InterpolationLimit
+            LOGINFO("less than " << MIN_NEIGHBORS << " neighbor(s) within " << mInterpolationLimit
                     << " km for stationid=" << d.stationID());
             continue;
         }

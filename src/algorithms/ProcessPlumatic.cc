@@ -65,12 +65,11 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
         foreach( const kvalobs::kvData& data, PluviData ) {
             const std::list<miutil::miTime>::iterator iTime = std::find(TimeList.begin(), TimeList.end(), data.obstime());
             if( iTime != TimeList.end() ) {
-                kvalobs::kvControlInfo fixflags = data.controlinfo();
-                checkFlags().setter(fixflags, params.Sflag);
-                checkFlags().conditional_setter(fixflags, params.chflag);
+                FlagChange fc;
+                params.getFlagChange(fc, "plumatic_flagchange");
 
                 kvalobs::kvData dwrite(data);
-                dwrite.controlinfo(fixflags);
+                dwrite.controlinfo(fc.apply(dwrite.controlinfo()));
                 Helpers::updateCfailed(dwrite, "PLX", params.CFAILED_STRING);
                 Helpers::updateUseInfo(dwrite);
 
