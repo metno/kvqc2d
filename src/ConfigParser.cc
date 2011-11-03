@@ -67,9 +67,7 @@ bool ConfigParser::load(std::istream& input)
         }
 
         size_t value_start = line.find_first_not_of(WS, equal+1);
-        if( value_start == std::string::npos )
-            value_start = equal+1;
-        if( value_start == line.size() ) {
+        if( value_start == std::string::npos ) {
             mErrors.add() << "Line " << lineno << ": empty value";
             continue;
         }

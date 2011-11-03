@@ -157,3 +157,14 @@ TEST(ConfigParserTest, testWSAroundValue)
     ASSERT_EQ( 12, v[0] );
     ASSERT_EQ( 24, v[1] );
 }
+
+// ------------------------------------------------------------------------
+
+TEST(ConfigParserTest, ValueOnlyWS)
+{
+    std::stringstream io;
+    io << "boa = "   << std::endl;
+
+    ConfigParser c;
+    ASSERT_FALSE( c.load(io) );
+}
