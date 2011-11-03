@@ -65,7 +65,7 @@ protected:
 private:
     DBInterface* mDatabase;
     Broadcaster* mBroadcaster;
-    const std::string& mName;
+    std::string mName;
     ProcessControl mCheckFlags;
 };
 
