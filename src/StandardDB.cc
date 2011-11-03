@@ -46,6 +46,12 @@ void StandardDB::selectData(kvDataList_t& d, const miutil::miString& where) thro
         throw DBException("Database problem with SELECT data " + where);
 }
 
+void StandardDB::selectStations(kvStationList_t& s) throw (DBException)
+{
+    if( !mDbGate.select(s) )
+        throw DBException("Database problem with SELECT stations");
+}
+
 void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     const std::list<int> station(1, stationID);

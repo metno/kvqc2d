@@ -74,11 +74,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
                 Helpers::updateCfailed(dwrite, "PLX", params.CFAILED_STRING);
                 Helpers::updateUseInfo(dwrite);
 
-                LOGINFO("Pluviometer Aggregation Check: "+Helpers::kvqc2logstring(dwrite) );
-                database()->insertData(dwrite, true);
-
-                broadcaster()->queueChanged(data);
-                broadcaster()->sendChanges();
+                updateData(dwrite);
             }
         }
     }

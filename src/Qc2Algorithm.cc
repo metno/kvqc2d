@@ -2,11 +2,14 @@
 #include "Qc2Algorithm.h"
 
 #include "AlgorithmHelpers.h"
+#include "Helpers.h"
 #include "foreach.h"
+#include <milog/milog.h>
 
-Qc2Algorithm::Qc2Algorithm()
+Qc2Algorithm::Qc2Algorithm(const std::string& name)
     : mDatabase(0)
     , mBroadcaster(0)
+    , mName(name)
 {
 }
 
@@ -43,6 +46,7 @@ void Qc2Algorithm::updateData(const std::list<kvalobs::kvData>& toWrite)
     database()->insertData(toWrite, true);
     foreach(const kvalobs::kvData& w, toWrite) {
         broadcaster()->queueChanged(w);
+        LOGINFO(mName + ": " + Helpers::kvqc2logstring(w) );
     }
     broadcaster()->sendChanges();
 }

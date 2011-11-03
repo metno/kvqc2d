@@ -8,7 +8,7 @@
 class PlumaticAlgorithm : public Qc2Algorithm {
 public:
     PlumaticAlgorithm()
-        : Qc2Algorithm() { }
+        : Qc2Algorithm("Plumatic") { }
 
     virtual void run(const ReadProgramOptions& params);
 };

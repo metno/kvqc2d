@@ -32,7 +32,7 @@ public:
 class Qc2Algorithm  
 {
 public:
-    Qc2Algorithm();
+    Qc2Algorithm(const std::string& name);
     virtual ~Qc2Algorithm();
 
     virtual void run(const ReadProgramOptions& params) = 0;
@@ -52,6 +52,9 @@ public:
     ProcessControl checkFlags()
         { return mCheckFlags; }
 
+    const std::string& name() const
+        { return mName; }
+
     void fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
@@ -62,6 +65,7 @@ protected:
 private:
     DBInterface* mDatabase;
     Broadcaster* mBroadcaster;
+    const std::string& mName;
     ProcessControl mCheckFlags;
 };
 

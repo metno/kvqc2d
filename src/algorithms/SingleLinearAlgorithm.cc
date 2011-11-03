@@ -51,7 +51,7 @@ const float NO_UPDATE = -99999.0;
 // ########################################################################
 
 SingleLinearAlgorithm::SingleLinearAlgorithm()
-    : Qc2Algorithm()
+    : Qc2Algorithm("SingleLinear")
 {
     std::vector<std::string> setmissing_fmis;
     setmissing_fmis.push_back("1->3");
@@ -175,10 +175,5 @@ void SingleLinearAlgorithm::storeUpdate(const ReadProgramOptions& params, const 
     Helpers::updateCfailed(dwrite, "QC2d-2", params.CFAILED_STRING);
     Helpers::updateUseInfo(dwrite);
 
-    LOGINFO( "SingleLinear_v32: " + Helpers::kvqc2logstring(dwrite) );
-    database()->insertData(dwrite, true);
-
-    // TODO why not accumulate a long list and send several updates at once?
-    broadcaster()->queueChanged(middle);
-    broadcaster()->sendChanges();
+    updateData(dwrite);
 }

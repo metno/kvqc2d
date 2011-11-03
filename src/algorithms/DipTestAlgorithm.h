@@ -11,7 +11,7 @@
 class DipTestAlgorithm : public Qc2Algorithm {
 public:
     DipTestAlgorithm()
-        : Qc2Algorithm() { }
+        : Qc2Algorithm("DipTest") { }
 
     virtual void run(const ReadProgramOptions& params);
 

@@ -6,6 +6,8 @@
 #include <kvalobs/kvStation.h>
 #include <string>
 
+class Broadcaster;
+class DBInterface;
 class ReadProgramOptions;
 class Qc2App;
 class Qc2Algorithm;
@@ -33,6 +35,9 @@ private:
 
     typedef std::map<std::string, Qc2Algorithm*> algorithms_t;
     algorithms_t mAlgorithms;
+
+    DBInterface* mDatabase;
+    Broadcaster* mBroadcaster;
 };
 
 #endif

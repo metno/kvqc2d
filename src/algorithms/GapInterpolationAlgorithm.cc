@@ -117,11 +117,7 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
                     dwrite.controlinfo(fixflags);
                     Helpers::updateCfailed(dwrite, "QC2d-2-A", params.CFAILED_STRING);
                     Helpers::updateUseInfo(dwrite);
-                    LOGINFO("Long Akima: "+Helpers::kvqc2logstring(dwrite) );
-
-                    database()->insertData(dwrite, true);
-                    broadcaster()->queueChanged(d);
-                    broadcaster()->sendChanges();
+                    updateData(dwrite);
                 }
             }
         }

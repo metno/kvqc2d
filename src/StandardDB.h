@@ -43,6 +43,7 @@ public:
         { mDbGate.set(connection); }
 
     virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException);
+    virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void insertData(const kvDataList_t&, bool replace=false) throw (DBException);
 

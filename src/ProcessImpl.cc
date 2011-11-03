@@ -40,6 +40,8 @@
 #include "Qc2App.h"
 #include "Qc2Connection.h"
 #include "ReadProgramOptions.h"
+#include "StandardBroadcaster.h"
+#include "StandardDB.h"
 
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
@@ -49,7 +51,7 @@
 class DummyAlgorithm : public Qc2Algorithm {
 public:
     DummyAlgorithm()
-        : Qc2Algorithm() { }
+        : Qc2Algorithm("Dummy") { }
 
     virtual void run(const ReadProgramOptions&) {
         LOGINFO("Dummy algorithm.");
@@ -59,15 +61,23 @@ public:
 // ########################################################################
 
 ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
-    : app( app_ ), con( con_ )
+    : app( app_ ), con( con_ ), mDatabase(new StandardDB(&con)), mBroadcaster(new StandardBroadcaster(app))
 {
-    mAlgorithms["SingleLinear"]   = new SingleLinearAlgorithm();
-    mAlgorithms["Redistribute"]   = new RedistributionAlgorithm2();
-    mAlgorithms["DipTest"]        = new DipTestAlgorithm();
-    mAlgorithms["GapInterpolate"] = new GapInterpolationAlgorithm();
-    mAlgorithms["Plumatic"]       = new PlumaticAlgorithm();
-    mAlgorithms["Dummy"]          = new DummyAlgorithm();
-
+    Qc2Algorithm* algorithms[] = {
+        new SingleLinearAlgorithm(),
+        new RedistributionAlgorithm2(),
+        new DipTestAlgorithm(),
+        new GapInterpolationAlgorithm(),
+        new PlumaticAlgorithm(),
+        new DummyAlgorithm()
+    };
+    const int N = sizeof(algorithms)/sizeof(algorithms[0]);
+    for(int i=0; i<N; ++i) {
+        Qc2Algorithm* a = algorithms[i];
+        mAlgorithms[ a->name() ] = a;
+        a->setBroadcaster(mBroadcaster);
+        a->setDatabase(mDatabase);
+    }
 }
 
 ProcessImpl::~ProcessImpl()
@@ -75,6 +85,8 @@ ProcessImpl::~ProcessImpl()
     foreach(algorithms_t::value_type algo, mAlgorithms) {
         delete algo.second;
     }
+    delete mBroadcaster;
+    delete mDatabase;
 }
 
 int ProcessImpl::select(const ReadProgramOptions& params)
@@ -83,12 +95,14 @@ int ProcessImpl::select(const ReadProgramOptions& params)
     std::cout << "Algorithm setting is name='" << algorithm << "'" << std::endl;
     algorithms_t::iterator a = mAlgorithms.find(algorithm);
     if( a != mAlgorithms.end() ) {
-        LOGINFO("Case " + algorithm);
+        LOGINFO("Case '" + algorithm + "'");
         try {
             a->second->run(params);
             LOGINFO(algorithm + " Completed");
         } catch(DBException& dbe) {
-            LOGERROR(algorithm + " Database exception: '" + dbe.what() + "'");
+            LOGERROR(algorithm + ": Database exception: '" + dbe.what() + "'");
+        } catch(...) {
+            LOGERROR(algorithm + ": Exception -- please report bug in https://kvoss.bugs.met.no");
         }
     } else {
         std::cout << "Algorithm '" << algorithm << " not known." << std::endl;
