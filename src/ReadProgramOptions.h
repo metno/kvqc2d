@@ -9,10 +9,18 @@
 #include <puTools/miTime.h>
 
 #include <boost/filesystem/path.hpp>
+#include <exception>
 #include <istream>
 #include <map>
 #include <string>
 #include <vector>
+
+
+class ConfigException : public std::runtime_error {
+public:
+    ConfigException(const std::string& what)
+        : std::runtime_error(what) { }
+};
 
 ///Selects and reads the configuration files driving each of the Qc2 algorithms.
 
@@ -64,9 +72,9 @@ public:
 public:
     void setConfigPath(const boost::filesystem::path& path);
 
-    bool getFlagSet(FlagSet& f, const std::string& name) const;
-    bool getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
-    bool getFlagChange(FlagChange& fc, const std::string& name) const;
+    void getFlagSet(FlagSet& f, const std::string& name) const;
+    void getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
+    void getFlagChange(FlagChange& fc, const std::string& name) const;
 
 private:
     boost::filesystem::path mConfigPath;

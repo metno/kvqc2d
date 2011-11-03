@@ -71,3 +71,39 @@ TEST(ReadProgramOptionsTest, testScanMixedDir)
 
     fs::remove_all( dir );
 }
+
+// ------------------------------------------------------------------------
+
+TEST(ReadProgramOptionsTest, ParseFlagCU)
+{
+    std::stringstream config;
+    config << "bad_uflags = heiho" << std::endl
+           << "okay1_cflags = ___.ABC.DEF.___.|000.111.222.333." << std::endl
+           << "okay2_cflags = ___.___.___.0123" << std::endl;
+    ReadProgramOptions params;
+    ASSERT_NO_THROW(params.Parse(config));
+
+    FlagSetCU fcu;
+    EXPECT_NO_THROW(params.getFlagSetCU(fcu, "okay1"));
+    EXPECT_NO_THROW(params.getFlagSetCU(fcu, "okay2"));
+
+    EXPECT_THROW(params.getFlagSetCU(fcu, "bad"), ConfigException);
+}
+
+// ------------------------------------------------------------------------
+
+TEST(ReadProgramOptionsTest, ParseFlagChange)
+{
+    std::stringstream config;
+    config << "bad1  = lalelu->boink" << std::endl
+           << "bad2  = ___.ABC.DEF.___.|000.111.222.333." << std::endl
+           << "okay1 = 012.345.678.ABC.->___.___.___.0123" << std::endl;
+    ReadProgramOptions params;
+    ASSERT_NO_THROW(params.Parse(config));
+
+    FlagChange fc;
+    EXPECT_THROW(params.getFlagChange(fc, "bad1"), ConfigException);
+    EXPECT_THROW(params.getFlagChange(fc, "bad2"), ConfigException);
+
+    EXPECT_NO_THROW(params.getFlagChange(fc, "okay1"));
+}

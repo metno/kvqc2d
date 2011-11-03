@@ -83,32 +83,13 @@ bool DipTestAlgorithm::configure(const ReadProgramOptions& params)
     fillParameterDeltaMap(params, PidValMap);
     fillStationIDList(StationIds);
 
-    if( !params.getFlagSetCU(akima_flags, "akima") ) {
-        LOGERROR("could not parse DipTest akima flags; giving up");
-        return false;
-    }
-    if( !params.getFlagSetCU(candidate_flags, "candidate") ) {
-        LOGERROR("could not parse DipTest candidate flags; giving up");
-        return false;
-    }
-    if( !params.getFlagSetCU(linear_before_flags, "linear_before") ) {
-        LOGERROR("could not parse DipTest linear_before flags; giving up");
-        return false;
-    }
-    if( !params.getFlagSetCU(linear_after_flags, "linear_after") ) {
-        LOGERROR("could not parse DipTest linear_after flags; giving up");
-        return false;
-    }
-    // const C::DBConstraint cDipCandidate = C::Controlinfo(FlagMatcher().permit(f_fs, 2).permit(f_fhqc, 0))
+    params.getFlagSetCU(akima_flags, "akima");
+    params.getFlagSetCU(candidate_flags, "candidate");
+    params.getFlagSetCU(linear_before_flags, "linear_before");
+    params.getFlagSetCU(linear_after_flags, "linear_after");
 
-    if( !params.getFlagChange(dip_flagchange, "dip_flagchange")) {
-        LOGWARN("problem reading dip_flagchange; giving up");
-        return false;
-    }
-    if( !params.getFlagChange(afterdip_flagchange, "afterdip_flagchange")) {
-        LOGWARN("problem reading afterdip_flagchange; giving up");
-        return false;
-    }
+    params.getFlagChange(dip_flagchange, "dip_flagchange");
+    params.getFlagChange(afterdip_flagchange, "afterdip_flagchange");
 
     CFAILED_STRING = params.CFAILED_STRING;
     missing = params.missing;
@@ -132,12 +113,12 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
 
         foreach(const kvalobs::kvData& c, candidates) {
             if( c.original() > missing )
-                checkDip(c, delta);
+                checkDipAndInterpolate(c, delta);
         }
     }
 }
 
-void DipTestAlgorithm::checkDip(const kvalobs::kvData& candidate, float delta)
+void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, float delta)
 {
     miutil::miTime linearStart = candidate.obstime(), linearStop = candidate.obstime();
     linearStart.addHour(-1);
@@ -173,12 +154,12 @@ void DipTestAlgorithm::checkDip(const kvalobs::kvData& candidate, float delta)
 
     float interpolated = round<float,1>( 0.5*(before.original() + after.original()) );
 
-    const bool AkimaPresent = checkAkima(candidate, interpolated);
+    const bool AkimaPresent = tryAkima(candidate, interpolated);
 
-    update(candidate, after, interpolated, AkimaPresent);
+    writeChanges(candidate, after, interpolated, AkimaPresent);
 }
 
-bool DipTestAlgorithm::checkAkima(const kvalobs::kvData& candidate, float& interpolated)
+bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpolated)
 {
     const int N_BEFORE = 3, N_AFTER = 2, N_AKIMA = N_BEFORE + N_AFTER;
     miutil::miTime akimaStart = candidate.obstime(), akimaStop = candidate.obstime();
@@ -235,7 +216,7 @@ bool DipTestAlgorithm::checkAkima(const kvalobs::kvData& candidate, float& inter
     return true;
 }
 
-void DipTestAlgorithm::update(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima)
+void DipTestAlgorithm::writeChanges(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima)
 {
     kvalobs::kvData wdip(dip);
     wdip.corrected(interpolated);

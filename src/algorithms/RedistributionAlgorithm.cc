@@ -93,27 +93,13 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
     typedef std::list<kvalobs::kvData> dataList_t;
 
     FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags;
-    if( !params.getFlagSetCU(endpoint_flags, "endpoint") ) {
-        LOGWARN("problem reading endpoint flags; giving up");
-        return;
-    }
-    if( !params.getFlagSetCU(missingpoint_flags, "missingpoint") ) {
-        LOGWARN("problem reading missingpoint flags; giving up");
-        return;
-    }
-    if( !params.getFlagSetCU(before_flags, "before") ) {
-        LOGWARN("problem reading before flags; giving up");
-        return;
-    }
-    if( !params.getFlagSetCU(neighbor_flags, "neighbor") ) {
-        LOGWARN("problem reading neighbor flags; giving up");
-        return;
-    }
+    params.getFlagSetCU(endpoint_flags, "endpoint");
+    params.getFlagSetCU(missingpoint_flags, "missingpoint");
+    params.getFlagSetCU(before_flags, "before");
+    params.getFlagSetCU(neighbor_flags, "neighbor");
+
     FlagChange update_flagchange;
-    if( !params.getFlagChange(update_flagchange, "update_flagchange")) {
-        LOGWARN("problem reading update_flagchange; giving up");
-        return;
-    }
+    params.getFlagChange(update_flagchange, "update_flagchange");
 
     NeighborFinder nf;
 

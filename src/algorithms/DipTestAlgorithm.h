@@ -19,9 +19,9 @@ private:
     bool  fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map);
     float fetchDelta(const miutil::miTime& time, int pid);
     bool  configure(const ReadProgramOptions& params);
-    void  checkDip(const kvalobs::kvData& candidate, float delta);
-    bool  checkAkima(const kvalobs::kvData& candidate, float& interpolated);
-    void  update(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima);
+    void  checkDipAndInterpolate(const kvalobs::kvData& candidate, float delta);
+    bool  tryAkima(const kvalobs::kvData& candidate, float& interpolated);
+    void  writeChanges(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima);
 
 private:
     std::map<int, float> PidValMap;

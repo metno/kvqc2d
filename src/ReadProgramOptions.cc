@@ -291,31 +291,28 @@ int ReadProgramOptions::clear()
     return 0;
 }
 
-bool ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) const
+void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) const
 {
     flags.reset();
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
         if( !flags.parse(item.value(i)) )
-            return false;
+            throw ConfigException("error parsing flag '" + name + "' from '" + item.value(i) + "'");
     }
-    return true;
 }
 
-bool ReadProgramOptions::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
+void ReadProgramOptions::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
 {
-    bool cOk = getFlagSet(fcu.controlflags(), name + "_cflags");
-    bool uOk = getFlagSet(fcu.useflags(),     name + "_uflags");
-    return cOk && uOk;
+    getFlagSet(fcu.controlflags(), name + "_cflags");
+    getFlagSet(fcu.useflags(),     name + "_uflags");
 }
 
-bool ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) const
+void ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) const
 {
     fc.reset();
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
         if( !fc.parse(item.value(i)) )
-            return false;
+            throw ConfigException("error parsing flag update '" + name + "' from '" + item.value(i) + "'");
     }
-    return true;
 }

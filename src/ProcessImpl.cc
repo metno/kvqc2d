@@ -101,6 +101,8 @@ int ProcessImpl::select(const ReadProgramOptions& params)
             LOGINFO(algorithm + " Completed");
         } catch(DBException& dbe) {
             LOGERROR(algorithm + ": Database exception: '" + dbe.what() + "'");
+        } catch(ConfigException& ce) {
+            LOGERROR(algorithm + ": Configuration exception: '" + ce.what() + "'");
         } catch(...) {
             LOGERROR(algorithm + ": Exception -- please report bug in https://kvoss.bugs.met.no");
         }
