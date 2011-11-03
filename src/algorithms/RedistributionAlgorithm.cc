@@ -92,23 +92,47 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
     using namespace kvQCFlagTypes;
     typedef std::list<kvalobs::kvData> dataList_t;
 
+    FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags;
+    if( !params.getFlagSetCU(endpoint_flags, "endpoint") ) {
+        LOGWARN("problem reading endpoint flags; giving up");
+        return;
+    }
+    if( !params.getFlagSetCU(missingpoint_flags, "missingpoint") ) {
+        LOGWARN("problem reading missingpoint flags; giving up");
+        return;
+    }
+    if( !params.getFlagSetCU(before_flags, "before") ) {
+        LOGWARN("problem reading before flags; giving up");
+        return;
+    }
+    if( !params.getFlagSetCU(neighbor_flags, "neighbor") ) {
+        LOGWARN("problem reading neighbor flags; giving up");
+        return;
+    }
+    FlagChange update_flagchange;
+    if( !params.getFlagChange(update_flagchange, "update_flagchange")) {
+        LOGWARN("problem reading update_flagchange; giving up");
+        return;
+    }
+
     NeighborFinder nf;
 
     const O::DBOrdering order_by_time = O::Obstime().desc();
     const O::DBOrdering order_by_time_id = (order_by_time, O::Stationid());
-    const C::DBConstraint controli_endpoint = C::Controlinfo(FlagMatcher().permit(f_fmis, 4).permit(f_fd, 2).permit(f_fhqc, 0));
-    const C::DBConstraint controli_missing = C::Controlinfo(FlagMatcher().permit(f_fmis, 3).permit(f_fd, 2).permit(f_fhqc, 0));
-    const C::DBConstraint usei_neighbors = C::Useinfo(FlagMatcher().permit(2, 0));
+    const C::DBConstraint flags_endpoint  = C::ControlUseinfo(endpoint_flags);
+    const C::DBConstraint flags_missing   = C::ControlUseinfo(missingpoint_flags);
+    const C::DBConstraint flags_neighbors = C::ControlUseinfo(neighbor_flags);
+    const C::DBConstraint flags_before    = C::ControlUseinfo(before_flags);
 
-    dataList_t allDataOneTime;
-    const C::DBConstraint cEndpoints = controli_endpoint
+    dataList_t edata;
+    const C::DBConstraint cEndpoints = flags_endpoint
             && C::Paramid(params.pid)
             && C::Typeid(params.tids)
             && C::Obstime(params.UT0, params.UT1);
-    database()->selectData(allDataOneTime, cEndpoints);
-    foreach(const kvalobs::kvData& d, allDataOneTime) {
+    database()->selectData(edata, cEndpoints);
+    foreach(const kvalobs::kvData& d, edata) {
         dataList_t bdata;
-        const C::DBConstraint cBefore = controli_missing
+        const C::DBConstraint cBefore = flags_missing
             && C::Paramid(params.pid)
             && C::Typeid(d.typeID())
             && C::Obstime(params.UT0, d.obstime())
@@ -134,9 +158,8 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         }
 
         dataList_t startdata;
-        const C::DBConstraint cBeforeMissing =
-                // usei_neighbors && // need to define some constraints on this value
-                C::Paramid(params.pid)
+        const C::DBConstraint cBeforeMissing = flags_before
+                && C::Paramid(params.pid)
                 && C::Typeid(d.typeID())
                 && C::Obstime(t)
                 && C::Station(d.stationID());
@@ -165,7 +188,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         foreach(NeighborFinder::stationsWithDistances_t::value_type& v, neighbors)
             cNeighborStations.add( v.first );
         dataList_t ndata;
-        const C::DBConstraint cNeighbors = usei_neighbors
+        const C::DBConstraint cNeighbors = flags_neighbors
                 && C::Paramid(params.pid)
                 && C::Typeid(d.typeID())
                 && C::Obstime(before.back().obstime(), d.obstime())
@@ -234,13 +257,9 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
             if( equal(d.original(), -1.0f) || equal(itB_corrected, 0.0f) )
                 itB_corrected = -1; // bugzilla 1304: by default assume dry
 
-            kvalobs::kvControlInfo fixflags = itB->controlinfo();
-            checkFlags().setter(fixflags, params.Sflag);
-            checkFlags().conditional_setter(fixflags, params.chflag);
-
             kvalobs::kvData correctedData(*itB);
             correctedData.corrected(itB_corrected);
-            correctedData.controlinfo(fixflags);
+            correctedData.controlinfo(update_flagchange.apply(correctedData.controlinfo()));
             Helpers::updateUseInfo(correctedData);
             Helpers::updateCfailed(correctedData, cfailed.str(), params.CFAILED_STRING);
             // we accumulated the corrections in time-reversed order, while we want to send it with increasing time => push_front

@@ -100,28 +100,27 @@ void RedistributionTest::TearDown()
 void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int endDay)
 {
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "NibbleIndex = 15" << std::endl
-            << "Start_YYYY = 2011" << std::endl
-            << "Start_MM   =   10" << std::endl
-            << "Start_DD   =   " << startDay << std::endl
-            << "Start_hh   =   06" << std::endl
-            << "End_YYYY   = 2011" << std::endl
-            << "End_MM     =   10" << std::endl
-            << "End_DD     =   " << endDay << std::endl
-            << "End_hh     =   06" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "InterpCode=2"  << std::endl
-            << "Step_DD=1"  << std::endl
-            << "ParamId=110"  << std::endl
-            << "TypeIds=302"  << std::endl
-            << "TypeIds=402"  << std::endl
-            << "A_fd=2"  << std::endl
-            << "S_fd=7"  << std::endl
-            << "change_fmis=3->1"  << std::endl
-            << "change_fmis=0->4"  << std::endl
-            << "I_fd=1"  << std::endl
-            << "InterpolationDistance=50.0"  << std::endl;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   10" << std::endl
+           << "Start_DD   =   " << startDay << std::endl
+           << "Start_hh   =   06" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   10" << std::endl
+           << "End_DD     =   " << endDay << std::endl
+           << "End_hh     =   06" << std::endl
+           << "InterpCode=2"  << std::endl
+           << "Step_DD=1"  << std::endl
+           << "ParamId=110"  << std::endl
+           << "TypeIds=302"  << std::endl
+           << "TypeIds=402"  << std::endl
+        // << "change_fmis=0->4"  << std::endl // FIXME this should probably be 4->0
+           << "endpoint_cflags     = ___.__4.___.2__0" << std::endl
+           << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
+           << "neighbor_cflags     = ___.___.___.1__." << std::endl
+           << "neighbor_uflags     = __0.___.___.___." << std::endl
+           << "before_uflags       = ___.___.___.___." << std::endl
+           << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
+           << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
 }
 
