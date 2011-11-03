@@ -33,6 +33,7 @@
 
 #include "AkimaSpline.h"
 #include "AlgorithmHelpers.h"
+#include "DBConstraints.h"
 #include "GetStationParam.h"
 #include "Helpers.h"
 #include "ParseParValFile.h"
@@ -41,9 +42,14 @@
 #include "scone.h"
 #include "tround.h"
 
+#include <kvalobs/kvDataFlag.h>
 #include <milog/milog.h>
 #include <puTools/miTime.h>
 #include "foreach.h"
+
+namespace C = Constraint;
+namespace O = Ordering;
+using namespace kvQCFlagTypes;
 
 bool DipTestAlgorithm::fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map)
 {
@@ -59,164 +65,191 @@ bool DipTestAlgorithm::fillParameterDeltaMap(const ReadProgramOptions& params, s
     return true;
 }
 
+float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
+{
+    DBInterface::kvStationParamList_t splist;
+    database()->selectStationparams(splist, 0, time, "QC1-3a-"+StrmConvert(pid) ); /// FIXME what time to use here?
+    if( splist.empty() ) {
+        LOGERROR("Empty station_param for stationid=0 list.");
+        return -1e8; // FIXME throw an exception or so
+    }
+    const float DeltaCheck = GetStationParam(splist).ValueOf("max").toFloat();
+    LOGINFO("Delta from station_params (valid for t=" << time << ") = " << DeltaCheck);
+    return DeltaCheck;
+}
+
+bool DipTestAlgorithm::configure(const ReadProgramOptions& params)
+{
+    fillParameterDeltaMap(params, PidValMap);
+    fillStationIDList(StationIds);
+
+    if( !params.getFlagSetCU(akima_flags, "akima") ) {
+        LOGERROR("could not parse DipTest akima flags; giving up");
+        return false;
+    }
+    if( !params.getFlagSetCU(candidate_flags, "candidate") ) {
+        LOGERROR("could not parse DipTest candidate flags; giving up");
+        return false;
+    }
+    if( !params.getFlagSetCU(linear_before_flags, "linear_before") ) {
+        LOGERROR("could not parse DipTest linear_before flags; giving up");
+        return false;
+    }
+    if( !params.getFlagSetCU(linear_after_flags, "linear_after") ) {
+        LOGERROR("could not parse DipTest linear_after flags; giving up");
+        return false;
+    }
+    // const C::DBConstraint cDipCandidate = C::Controlinfo(FlagMatcher().permit(f_fs, 2).permit(f_fhqc, 0))
+
+    if( !params.getFlagChange(dip_flagchange, "dip_flagchange")) {
+        LOGWARN("problem reading dip_flagchange; giving up");
+        return false;
+    }
+    if( !params.getFlagChange(afterdip_flagchange, "afterdip_flagchange")) {
+        LOGWARN("problem reading afterdip_flagchange; giving up");
+        return false;
+    }
+
+    CFAILED_STRING = params.CFAILED_STRING;
+    missing = params.missing;
+
+    return true;
+}
+
 void DipTestAlgorithm::run(const ReadProgramOptions& params)
 {
-    LOGINFO("Dip Test");
-
-    std::map<int, float> PidValMap;
-    fillParameterDeltaMap(params, PidValMap);
-
-    std::list<int> StationIds;
-    fillStationIDList(StationIds);
+    if( !configure(params) )
+        return;
 
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         const float pid = it->first, delta = it->second;
 
-        DBInterface::kvStationParamList_t splist;
-        database()->selectStationparams(splist, 0, miutil::miTime::nowTime(), "QC1-3a-"+StrmConvert(pid) ); /// FIXME what time to use here?
-        if( splist.empty() ) {
-            LOGERROR("Empty station_param for stationid=0 list.");
-            continue;
-        }
-        const float DeltaCheck = GetStationParam(splist).ValueOf("max").toFloat();
-        LOGINFO("Delta automatically read from the database (under test!!!):  " << DeltaCheck);
+        const C::DBConstraint cDipCandidate = C::ControlUseinfo(candidate_flags)
+            && C::Station(StationIds) && C::Paramid(pid) && C::Obstime(params.UT0, params.UT1);
 
-        for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
-            miutil::miTime linearStart = ProcessTime, linearStop = ProcessTime;
-            linearStart.addHour(-1);
-            linearStop.addHour(1);
-            miutil::miTime akimaStart = ProcessTime, akimaStop = ProcessTime;
-            akimaStart.addHour(-3);
-            akimaStop.addHour(2);
+        std::list<kvalobs::kvData> candidates;
+        database()->selectData(candidates, cDipCandidate);
 
-            /// Select all data for a given stationlist over three hours (T-1),(T),(T+1)
-            //********* Change this to select the appropriate data
-            std::list<kvalobs::kvData> Qc2Data;
-            database()->dataForStationsParamTimerange(Qc2Data, StationIds, pid, ProcessTime, ProcessTime);
-            if( Qc2Data.empty() ) {
-                LOGDEBUG("empty data at " << ProcessTime << " pid=" << pid);
-                continue;
-            }
-
-            foreach(const kvalobs::kvData& d, Qc2Data) {
-                std::list<kvalobs::kvData> Qc2SeriesData;
-                database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), pid, linearStart, linearStop);
-
-                const std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
-
-                // Check that we have three valid data points and no mixing of typeids
-                if( Tseries.size() != 3 || !Helpers::checkContinuousHourAndSameTypeID(Tseries)
-                        || Tseries[0].controlinfo().flag(3) != 1
-                        || Tseries[1].controlinfo().flag(3) != 2
-                        || Tseries[2].controlinfo().flag(3) != 2 )
-                {
-                    LOGDEBUG("no series or bad flags");
-                    continue;
-                }
-
-                //            x
-                //
-                //      x           x     -> time
-                //
-                //     A(0)  A(1)  A(2)
-                //
-                const float ABS20 = fabs( Tseries[2].original()-Tseries[0].original() );
-                const float ABS10 = fabs( Tseries[1].original()-Tseries[0].original() );
-                //const float ABS21 = fabs( Tseries[2].original()-Tseries[1].original() );
-
-                if( !(ABS20 < ABS10 && ABS20 < delta) ) { // FIXME which delta -- DeltaCheck or delta?
-                    LOGINFO("not a dip/spike");
-                    continue;
-                }
-
-                const float LinInterpolated = round<float,1>( 0.5*(Tseries[0].original()+Tseries[2].original()) );
-                float AkimaInterpolated = LinInterpolated;
-                bool AkimaPresent = false;
-
-                // Now see if we can also do Akima
-                // Just need some extra points
-
-                // Calculate Akima Block
-                {
-                    database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(),pid, akimaStart, akimaStop);
-                    const std::vector<kvalobs::kvData> Aseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
-                    // A(0)
-                    // A(1)
-                    // A(2) = T(0)
-                    // A(3) = T(1)
-                    // A(4) = T(2)
-                    // A(5)
-                    if( Aseries.size()==6                                         &&
-                        Aseries[3] == Tseries[1]                                  &&
-                        Helpers::checkContinuousHourAndSameTypeID(Aseries)        &&
-                        checkFlags().condition(Aseries[0].useinfo(),params.Uflag) &&
-                        checkFlags().condition(Aseries[1].useinfo(),params.Uflag) &&
-                        checkFlags().condition(Aseries[5].useinfo(),params.Uflag) &&
-                        Aseries[0].original() > params.missing                    &&
-                        Aseries[1].original() > params.missing                    &&
-                        Aseries[2].original() > params.missing                    &&
-                        Aseries[4].original() > params.missing                    &&
-                        Aseries[5].original() > params.missing                    &&
-                        Aseries[3].original() > params.missing )
-                    {
-                        std::vector<double> xt,yt;
-                        for( int i=0;i<6;i++ ) {
-                            if( i != 3 ) {
-                                xt.push_back(i*1.0);
-                                yt.push_back( Aseries[i].original() );
-                            }
-                        }
-                        AkimaSpline AkimaX(xt,yt);
-                        AkimaInterpolated=round<float,1>( AkimaX.AkimaPoint(3.0) );
-                        AkimaPresent = true;
-                    }
-                }
-
-                if( AkimaPresent ) {
-                    // FIXME Looking into providing minimum check
-                    // FIXME what time to use here?
-
-                    DBInterface::kvStationParamList_t splist;
-                    database()->selectStationparams(splist, d.stationID(), ProcessTime, "QC1-1-"+StrmConvert(pid));
-                    if( splist.empty() ) {
-                        LOGERROR("Failed to select data for MinimumCheck at " << ProcessTime << ". Assuming no akima interpolation.");
-                        AkimaPresent = false;
-                    } else {
-                        const float MinimumCheck = GetStationParam(splist).ValueOf("min").toFloat();
-                        if( AkimaInterpolated < MinimumCheck ) {
-                            LOGDEBUG("akima < mini");
-                            AkimaPresent = false;
-                        }
-                    }
-                }
-
-                if( checkFlags().true_nibble(d.controlinfo(),params.Wflag,15,params.Wbool) ) { // check for HQC action already
-
-                    kvalobs::kvControlInfo fixflags1 = Tseries[1].controlinfo(); // later control this from the config file
-                    fixflags1.set(3,9); // later control this from the config file
-
-                    kvalobs::kvControlInfo fixflags2 = Tseries[2].controlinfo(); // later control this from the config file
-                    fixflags2.set(3,4); // later control this from the config file
-
-                    const float Interpolated = AkimaPresent ? AkimaInterpolated : LinInterpolated;
-
-                    kvalobs::kvData dwrite1(Tseries[1]);
-                    dwrite1.corrected(Interpolated);
-                    dwrite1.controlinfo(fixflags1);
-                    Helpers::updateCfailed(dwrite1, AkimaPresent ? "QC2d-1-A" : "QC2d-1-L", params.CFAILED_STRING);
-                    Helpers::updateUseInfo(dwrite1);
-
-                    kvalobs::kvData dwrite2(Tseries[2]);
-                    dwrite2.controlinfo(fixflags2);
-                    Helpers::updateCfailed(dwrite2, "QC2d-1", params.CFAILED_STRING);
-                    Helpers::updateUseInfo(dwrite2);
-
-                    std::list<kvalobs::kvData> toWrite;
-                    toWrite.push_back(dwrite1);
-                    toWrite.push_back(dwrite2);
-                    updateData(toWrite);
-                }
-            }
+        foreach(const kvalobs::kvData& c, candidates) {
+            if( c.original() > missing )
+                checkDip(c, delta);
         }
     }
+}
+
+void DipTestAlgorithm::checkDip(const kvalobs::kvData& candidate, float delta)
+{
+    miutil::miTime linearStart = candidate.obstime(), linearStop = candidate.obstime();
+    linearStart.addHour(-1);
+    linearStop.addHour(1);
+
+    const C::DBConstraint cDipAroundL = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
+        && ((   C::ControlUseinfo(linear_before_flags) && C::Obstime(linearStart))
+            || (C::ControlUseinfo(linear_after_flags ) && C::Obstime(linearStop)));
+    
+    std::list<kvalobs::kvData> seriesLinear;
+    database()->selectData(seriesLinear, cDipAroundL, O::Obstime());
+    if( seriesLinear.size() != 2 ) {
+        LOGDEBUG("no neighbors (may be bad flags) around candidate=" << candidate);
+        return;
+    }
+
+    const kvalobs::kvData& before = seriesLinear.front(), after = seriesLinear.back();
+    if( before.original() <= missing || after.original() <= missing )
+        return;
+
+    //            x
+    //      x           x     -> time
+    //     A(0)  A(1)  A(2)
+    const float ABS20 = fabs( after    .original() - before.original() );
+    const float ABS10 = fabs( candidate.original() - before.original() );
+
+    const float deltaCheck = fetchDelta(miutil::miTime::nowTime(), candidate.paramID());
+    
+    if( !(ABS20 < ABS10 && ABS20 < delta) ) { // FIXME which delta -- DeltaCheck or delta?
+        LOGINFO("not a dip/spike around candidate=" << candidate);
+        return;
+    }
+
+    float interpolated = round<float,1>( 0.5*(before.original() + after.original()) );
+
+    const bool AkimaPresent = checkAkima(candidate, interpolated);
+
+    update(candidate, after, interpolated, AkimaPresent);
+}
+
+bool DipTestAlgorithm::checkAkima(const kvalobs::kvData& candidate, float& interpolated)
+{
+    const int N_BEFORE = 3, N_AFTER = 2, N_AKIMA = N_BEFORE + N_AFTER;
+    miutil::miTime akimaStart = candidate.obstime(), akimaStop = candidate.obstime();
+    akimaStart.addHour(-N_BEFORE);
+    akimaStop .addHour( N_AFTER );
+    miutil::miTime linearStart = candidate.obstime(), linearStop = candidate.obstime();
+    linearStart.addHour(-1);
+    linearStop.addHour(1);
+
+    const C::DBConstraint cDipAroundA = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
+        && C::Obstime(akimaStart, akimaStop) && (!C::Obstime(candidate.obstime()))
+        && (C::ControlUseinfo(akima_flags) || C::Obstime(linearStart) || C::Obstime(linearStop));
+    
+    std::list<kvalobs::kvData> seriesAkima;
+    database()->selectData(seriesAkima, cDipAroundA, O::Obstime());
+
+    if( (int)seriesAkima.size() != N_AKIMA )        
+        return false;
+
+    miutil::miTime akimaTime = akimaStart;
+    std::vector<double> xt,yt;
+    int i = 0;
+    foreach(const kvalobs::kvData& a, seriesAkima) {
+        if( a.original() <= missing || a.obstime() != akimaTime )
+            return false;
+        xt.push_back(i);
+        yt.push_back(a.original());
+        i += 1;
+        akimaTime.addHour(1);
+        if( i == N_BEFORE ) {
+            i += 1;
+            akimaTime.addHour(1);
+        }
+    }
+
+    const AkimaSpline AkimaX(xt,yt);
+    const float AkimaInterpolated = round<float,1>( AkimaX.AkimaPoint(N_BEFORE) );
+
+    // FIXME Looking into providing minimum check
+    
+    DBInterface::kvStationParamList_t splist;
+    database()->selectStationparams(splist, candidate.stationID(), candidate.obstime(), "QC1-1-"+StrmConvert(candidate.paramID()));
+    if( splist.empty() ) {
+        LOGERROR("No station params for akima MinimumCheck for candidate=" << candidate << ". Assuming no akima interpolation.");
+        return false;
+    }
+    const float MinimumCheck = GetStationParam(splist).ValueOf("min").toFloat();
+    if( AkimaInterpolated < MinimumCheck ) {
+        LOGDEBUG("akima < mini for candidate=" << candidate);
+        return false;
+    }
+    
+    interpolated = AkimaInterpolated;
+    return true;
+}
+
+void DipTestAlgorithm::update(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima)
+{
+    kvalobs::kvData wdip(dip);
+    wdip.corrected(interpolated);
+    wdip.controlinfo(dip_flagchange.apply(wdip.controlinfo()));
+    Helpers::updateCfailed(wdip, haveAkima ? "QC2d-1-A" : "QC2d-1-L", CFAILED_STRING);
+    Helpers::updateUseInfo(wdip);
+    
+    kvalobs::kvData wafter(after);
+    wafter.controlinfo(afterdip_flagchange.apply(wafter.controlinfo()));
+    Helpers::updateCfailed(wafter, "QC2d-1", CFAILED_STRING);
+    Helpers::updateUseInfo(wafter);
+    
+    std::list<kvalobs::kvData> write;
+    write.push_back(wdip);
+    write.push_back(wafter);
+    updateData(write);
 }

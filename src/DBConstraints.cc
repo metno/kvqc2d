@@ -192,6 +192,16 @@ std::string OrImpl::sql() const
     return "(" +sqlA + ") OR (" + sqlB + ")";
 }
 
+std::string NotImpl::sql() const
+{
+    const std::string sqlC = mC.sql();
+    if( sqlC.empty() )
+        return "0=1";
+    if( sqlC == "0=1" )
+        return "";
+    return "NOT (" +sqlC + ")";
+}
+
 } // namespace Contraint
 
 namespace Ordering {

@@ -16,7 +16,20 @@ public:
     virtual void run(const ReadProgramOptions& params);
 
 private:
-    bool fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map);
+    bool  fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map);
+    float fetchDelta(const miutil::miTime& time, int pid);
+    bool  configure(const ReadProgramOptions& params);
+    void  checkDip(const kvalobs::kvData& candidate, float delta);
+    bool  checkAkima(const kvalobs::kvData& candidate, float& interpolated);
+    void  update(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima);
+
+private:
+    std::map<int, float> PidValMap;
+    std::list<int> StationIds;
+    FlagSetCU akima_flags, candidate_flags, linear_before_flags, linear_after_flags;
+    FlagChange dip_flagchange, afterdip_flagchange;
+    std::string CFAILED_STRING;
+    float missing;
 };
 
 #endif

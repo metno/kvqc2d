@@ -37,6 +37,7 @@ class DipTestTest : public AlgorithmTestBase {
 public:
     void SetUp();
     void TearDown();
+    void Configure(ReadProgramOptions& params, std::stringstream& config);
 protected:
     DipTestAlgorithm* algo;
 };
@@ -53,6 +54,17 @@ void DipTestTest::TearDown()
 {
     delete algo;
     AlgorithmTestBase::TearDown();
+}
+
+void DipTestTest::Configure(ReadProgramOptions& params, std::stringstream& config)
+{
+    config << "candidate_cflags     = ___2___.___.___0" << std::endl
+           << "linear_before_cflags = ___1___.___.___." << std::endl
+           << "linear_after_cflags  = ___2___.___.___0" << std::endl
+           << "akima_uflags         = __0.___.___.___." << std::endl
+           << "dip_flagchange       = ___9___.___.___." << std::endl
+           << "afterdip_flagchange  = ___4___.___.___." << std::endl;
+    params.Parse(config);
 }
 
 TEST_F(DipTestTest, Bugzilla1327)
@@ -92,22 +104,20 @@ TEST_F(DipTestTest, Bugzilla1327)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2011" << std::endl
-            << "Start_MM   =   08" << std::endl
-            << "Start_DD   =   13" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2011" << std::endl
-            << "End_MM     =   08" << std::endl
-            << "End_DD     =   13" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
-               "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
-               "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
-               " 221 15.0, 222 15.0" << std::endl;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   08" << std::endl
+           << "Start_DD   =   13" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   08" << std::endl
+           << "End_DD     =   13" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
+           <<     "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
+           <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
+           <<     " 221 15.0, 222 15.0" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
 
@@ -165,22 +175,20 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2018" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   08" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2018" << std::endl
-            << "End_MM     =   09" << std::endl
-            << "End_DD     =   10" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
-               "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
-               "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
-               " 221 15.0, 222 15.0" << std::endl;
+    config << "Start_YYYY = 2018" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   08" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2018" << std::endl
+           << "End_MM     =   09" << std::endl
+           << "End_DD     =   10" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
+           <<     "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
+           <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
+           <<     " 221 15.0, 222 15.0" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());
@@ -229,22 +237,20 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2018" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   24" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2018" << std::endl
-            << "End_MM     =   09" << std::endl
-            << "End_DD     =   26" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
-               "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
-               "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
-               " 221 15.0, 222 15.0" << std::endl;
+    config << "Start_YYYY = 2018" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   24" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2018" << std::endl
+           << "End_MM     =   09" << std::endl
+           << "End_DD     =   26" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 1 9.0, 2 60.0, 81 10.0, 85 10.0, 86 12.5, 87 10.0, 88 12.5, 89 15.0, 90 12.5,"
+           <<     "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
+           <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
+           <<     " 221 15.0, 222 15.0" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());
@@ -292,19 +298,17 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2018" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   24" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2018" << std::endl
-            << "End_MM     =   09" << std::endl
-            << "End_DD     =   26" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 104 100" << std::endl;
+    config << "Start_YYYY = 2018" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   24" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2018" << std::endl
+           << "End_MM     =   09" << std::endl
+           << "End_DD     =   26" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 104 100" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());
@@ -355,19 +359,17 @@ TEST_F(DipTestTest, DipTooSmall)
     ASSERT_TRUE( ASSERT_NO_THROW(db->exec(sql.str()) ));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2018" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   24" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2018" << std::endl
-            << "End_MM     =   09" << std::endl
-            << "End_DD     =   26" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 104 100" << std::endl;
+    config << "Start_YYYY = 2018" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   24" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2018" << std::endl
+           << "End_MM     =   09" << std::endl
+           << "End_DD     =   26" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 104 100" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
 
@@ -399,19 +401,17 @@ TEST_F(DipTestTest, JumpTooMuch)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2018" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   24" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2018" << std::endl
-            << "End_MM     =   09" << std::endl
-            << "End_DD     =   26" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 104 50" << std::endl;
+    config << "Start_YYYY = 2018" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   24" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2018" << std::endl
+           << "End_MM     =   09" << std::endl
+           << "End_DD     =   26" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 104 50" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
@@ -441,19 +441,17 @@ TEST_F(DipTestTest, AfterHQC)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2018" << std::endl
-            << "Start_MM   =   09" << std::endl
-            << "Start_DD   =   24" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2018" << std::endl
-            << "End_MM     =   09" << std::endl
-            << "End_DD     =   26" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 104 100" << std::endl;
+    config << "Start_YYYY = 2018" << std::endl
+           << "Start_MM   =   09" << std::endl
+           << "Start_DD   =   24" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2018" << std::endl
+           << "End_MM     =   09" << std::endl
+           << "End_DD     =   26" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 104 100" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
@@ -502,19 +500,17 @@ TEST_F(DipTestTest, Bugzilla1320)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::stringstream config;
-    config << "W_fhqc=0" << std::endl
-            << "Start_YYYY = 2011" << std::endl
-            << "Start_MM   =   08" << std::endl
-            << "Start_DD   =   13" << std::endl
-            << "Start_hh   =   12" << std::endl
-            << "End_YYYY   = 2011" << std::endl
-            << "End_MM     =   08" << std::endl
-            << "End_DD     =   13" << std::endl
-            << "End_hh     =   22" << std::endl
-            << "U_2        =   0"  << std::endl
-            << "ParValFilename = list: 90 12.5" << std::endl;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   08" << std::endl
+           << "Start_DD   =   13" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   08" << std::endl
+           << "End_DD     =   13" << std::endl
+           << "End_hh     =   22" << std::endl
+           << "ParValFilename = list: 90 12.5" << std::endl;
     ReadProgramOptions params;
-    params.Parse(config);
+    Configure(params, config);
 
     algo->run(params);
     ASSERT_EQ(2, bc->count());

@@ -121,7 +121,11 @@ public:
     Station()
         : SQLBuilderPointer<StationImpl>() { }
     Station(int sid)
-        : SQLBuilderPointer<StationImpl>() { add(sid); }
+        : SQLBuilderPointer<StationImpl>(sid) { }
+    Station(const std::list<kvalobs::kvStation>& stations)
+        : SQLBuilderPointer<StationImpl>(stations) { }
+    Station(const std::list<int>& stationIDs)
+        : SQLBuilderPointer<StationImpl>(stationIDs) { }
     Station& add(int s)
         { p->add(s); return *this; }
 };
@@ -217,11 +221,24 @@ private:
 };
 typedef SQLBuilderPointer<OrImpl> Or;
 
+class NotImpl : public DBConstraintImpl {
+public:
+    NotImpl(const DBConstraint& c, bool)
+        : mC(c) { }
+    virtual std::string sql() const;
+private:
+    const DBConstraint mC;
+};
+typedef SQLBuilderPointer<NotImpl> Not;
+
 inline And operator &&(const DBConstraint& a, const DBConstraint&  b)
 { return And(a, b); }
 
 inline Or operator ||(const DBConstraint& a, const DBConstraint& b)
 { return Or(a, b); }
+
+inline Not operator !(const DBConstraint& c)
+{ return Not(c, true); }
 
 } // namespace Constraint
 
