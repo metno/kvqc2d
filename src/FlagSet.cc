@@ -57,6 +57,8 @@ std::string FlagSetCU::sql() const
     const std::string sqlC = mControlflags.sql("controlinfo"), sqlU = mUseflags.sql("useinfo");
     if( sqlC.empty() )
         return sqlU;
+    if( sqlU.empty() )
+        return sqlC;
     if( sqlC == "0=1" )
         return "0=1";
     return "(" + sqlC + " AND " + sqlU + ")";
