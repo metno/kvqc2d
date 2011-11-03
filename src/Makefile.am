@@ -6,6 +6,7 @@ kvqc2d_SOURCES = Qc2Main.cc
 noinst_LIBRARIES = libkvqc2d.a
 
 libkvqc2d_a_SOURCES = \
+	DBConstraintsBase.h \
 	DBConstraints.cc \
 	DBConstraints.h \
 	DBInterface.cc \

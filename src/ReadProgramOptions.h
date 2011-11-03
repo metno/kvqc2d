@@ -4,6 +4,7 @@
 #define __ReadProgramOptions_h__
 
 #include "ConfigParser.h"
+#include "FlagChange.h"
 #include "FlagSet.h"
 #include <puTools/miTime.h>
 
@@ -63,7 +64,9 @@ public:
 public:
     void setConfigPath(const boost::filesystem::path& path);
 
-    bool getFlagSet(FlagSet& flags, const std::string& name) const;
+    bool getFlagSet(FlagSet& f, const std::string& name) const;
+    bool getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
+    bool getFlagChange(FlagChange& fc, const std::string& name) const;
 
 private:
     boost::filesystem::path mConfigPath;

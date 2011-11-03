@@ -31,6 +31,7 @@
 #define FLAGSET_H_
 
 #include "FlagMatcher.h"
+#include <kvalobs/kvData.h>
 #include <string>
 #include <vector>
 
@@ -73,6 +74,45 @@ private:
     std::vector<FlagMatcher> mMatchers;
     bool mError;
     bool mDefaultIfEmpty;
+};
+
+class FlagSetCU {
+public:
+    FlagSetCU& setC(const FlagSet& controlflags)
+        { mControlflags = controlflags; return *this; }
+
+    FlagSetCU& setU(const FlagSet& useflags)
+        { mUseflags = useflags; return *this; }
+
+    FlagSet& controlflags()
+        { return mControlflags; }
+
+    FlagSet& useflags()
+        { return mUseflags; }
+
+    const FlagSet& controlflags() const
+        { return mControlflags; }
+
+    const FlagSet& useflags() const
+        { return mUseflags; }
+
+    bool hasError() const
+        { return mControlflags.hasError() || mUseflags.hasError(); }
+
+    FlagSetCU& reset()
+        { mControlflags.reset(); mUseflags.reset(); return *this; }
+
+    bool matches(const kvalobs::kvData& data) const
+        { return matches(data.controlinfo(), data.useinfo()); }
+
+    bool matches(const kvalobs::kvControlInfo& c, const kvalobs::kvUseInfo& u) const
+        { return mControlflags.matches(c) && mUseflags.matches(u); }
+
+    std::string sql() const;
+
+private:
+    FlagSet mControlflags;
+    FlagSet mUseflags;
 };
 
 #endif /* FLAGSET_H_ */

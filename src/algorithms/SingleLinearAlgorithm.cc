@@ -30,6 +30,7 @@
 #include "SingleLinearAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
+#include "DBConstraints.h"
 #include "Helpers.h"
 #include "tround.h"
 #include "scone.h"
@@ -63,11 +64,9 @@ SingleLinearAlgorithm::SingleLinearAlgorithm()
 
 bool SingleLinearAlgorithm::isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n)
 {
-    FlagSet cflags, uflags;
-    params.getFlagSet(cflags, "neighbor_cflags");
-    params.getFlagSet(uflags, "neighbor_uflags");
-    return cflags.matches(n.controlinfo())
-        && uflags.matches(n.useinfo())
+    FlagSetCU nflags;
+    params.getFlagSetCU(nflags, "neighbor");
+    return nflags.matches(n)
         && n.original() != params.missing
         && n.original() != params.rejected;
 }

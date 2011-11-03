@@ -301,3 +301,21 @@ bool ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) con
     }
     return true;
 }
+
+bool ReadProgramOptions::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
+{
+    bool cOk = getFlagSet(fcu.controlflags(), name + "_cflags");
+    bool uOk = getFlagSet(fcu.useflags(),     name + "_uflags");
+    return cOk && uOk;
+}
+
+bool ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) const
+{
+    fc.reset();
+    const ConfigParser::Item& item = c.get(name);
+    for(int i=0; i<item.count(); ++i) {
+        if( !fc.parse(item.value(i)) )
+            return false;
+    }
+    return true;
+}

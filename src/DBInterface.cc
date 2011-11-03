@@ -29,6 +29,21 @@
 
 #include "DBInterface.h"
 
+namespace {
+std::string WHERE(const Constraint::DBConstraint& c)
+{
+    const std::string sql = c.sql();
+    if( sql.empty() )
+        return "";
+    return " WHERE " + sql;
+}
+
+std::string ORDER_BY(const Ordering::DBOrdering& o)
+{
+    return " ORDER BY " + o.sql();
+}
+} // anonymous namespace
+
 void DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException)
 {
     const kvStationIDList_t stations(1, stationID);
@@ -46,12 +61,12 @@ void DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, i
 
 void DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where) throw (DBException)
 {
-    return selectData(r, Constraint::WHERE(where));
+    return selectData(r, WHERE(where));
 }
 
 void DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by) throw (DBException)
 {
-    return selectData(r, Constraint::WHERE(where) + Ordering::ORDER_BY(order_by));
+    return selectData(r, WHERE(where) + ORDER_BY(order_by));
 }
 
 void DBInterface::insertData(const kvalobs::kvData& d, bool replace) throw (DBException)

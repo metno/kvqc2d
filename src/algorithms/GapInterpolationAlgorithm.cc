@@ -31,6 +31,7 @@
 
 #include "AkimaSpline.h"
 #include "AlgorithmHelpers.h"
+#include "DBConstraints.h"
 #include "Helpers.h"
 #include "scone.h"
 #include "tround.h"

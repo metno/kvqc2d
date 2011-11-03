@@ -42,6 +42,11 @@ std::string UseinfoImpl::sql() const
     return mFlagSet.sql("useinfo");
 }
 
+std::string ControlUseinfoImpl::sql() const
+{
+    return mFlagSetCU.sql();
+}
+
 std::string ObstimeImpl::sql() const
 {
     if ( mT0 != mT1 )
@@ -187,14 +192,6 @@ std::string OrImpl::sql() const
     return "(" +sqlA + ") OR (" + sqlB + ")";
 }
 
-std::string WHERE(const DBConstraint& c)
-{
-    const std::string sql = c.sql();
-    if( sql.empty() )
-        return "";
-    return " WHERE " + sql;
-}
-
 } // namespace Contraint
 
 namespace Ordering {
@@ -219,8 +216,4 @@ std::string SequenceImpl::sql() const
     return mFirst.sql() + ", " + mSecond.sql();
 }
 
-std::string ORDER_BY(const DBOrdering& o)
-{
-    return " ORDER BY " + o.sql();
-}
 } // namespace Ordering

@@ -30,54 +30,12 @@
 #ifndef DBCONSTRAINTS_H_
 #define DBCONSTRAINTS_H_
 
+#include "DBConstraintsBase.h"
 #include "FlagSet.h"
 #include <kvalobs/kvStation.h>
 #include <puTools/miTime.h>
-#include <string>
-
-template<class T>
-class SQLBuilderPointer {
-public:
-    template<class D>
-    SQLBuilderPointer(const SQLBuilderPointer<D>& d)
-        : p(d.p) { }
-
-    explicit SQLBuilderPointer()
-        : p(new T()) { }
-
-    template<class P1>
-    explicit SQLBuilderPointer(const P1& p1)
-        : p(new T(p1)) { }
-
-    template<class P1, class P2>
-    explicit SQLBuilderPointer(const P1& p1, const P2& p2)
-        : p(new T(p1, p2)) { }
-
-    template<class P1, class P2, class P3>
-    explicit SQLBuilderPointer(const P1& p1, const P2& p2, const P3& p3)
-        : p(new T(p1, p2, p3)) { }
-
-    template<class P1, class P2, class P3, class P4>
-    explicit SQLBuilderPointer(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-        : p(new T(p1, p2, p3, p4)) { }
-
-    std::string sql() const
-        { return p->sql(); }
-
-protected:
-    template<class D> friend class SQLBuilderPointer;
-
-    boost::shared_ptr<T> p;
-};
 
 namespace Constraint {
-
-class DBConstraintImpl  {
-public:
-    virtual ~DBConstraintImpl() { }
-    virtual std::string sql() const = 0;
-};
-typedef SQLBuilderPointer<DBConstraintImpl> DBConstraint;
 
 class ControlinfoImpl : public DBConstraintImpl {
 public:
@@ -102,6 +60,16 @@ private:
     FlagSet mFlagSet;
 };
 typedef SQLBuilderPointer<UseinfoImpl> Useinfo;
+
+class ControlUseinfoImpl : public DBConstraintImpl {
+public:
+    ControlUseinfoImpl(const FlagSetCU& fcu)
+        : mFlagSetCU(fcu) { }
+    virtual std::string sql() const;
+private:
+    FlagSetCU mFlagSetCU;
+};
+typedef SQLBuilderPointer<ControlUseinfoImpl> ControlUseinfo;
 
 class ObstimeImpl : public DBConstraintImpl {
 public:
@@ -255,18 +223,9 @@ inline And operator &&(const DBConstraint& a, const DBConstraint&  b)
 inline Or operator ||(const DBConstraint& a, const DBConstraint& b)
 { return Or(a, b); }
 
-std::string WHERE(const DBConstraint& c);
-
 } // namespace Constraint
 
 namespace Ordering {
-
-class DBOrderingImpl {
-public:
-    virtual ~DBOrderingImpl() { }
-    virtual std::string sql() const = 0;
-};
-typedef SQLBuilderPointer<DBOrderingImpl> DBOrdering;
 
 class ColumnImpl : public DBOrderingImpl {
 public:
@@ -319,8 +278,6 @@ inline Sequence operator , (const DBOrdering& a, const DBOrdering& b)
 {
     return Sequence(a, b);
 }
-
-std::string ORDER_BY(const DBOrdering& o);
 
 } // namespace Ordering
 

@@ -35,7 +35,7 @@
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
 
-#include "DBConstraints.h"
+#include "DBConstraintsBase.h"
 
 #include <exception>
 

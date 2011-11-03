@@ -51,3 +51,13 @@ std::string FlagSet::sql(const std::string& column) const
         sql << ')';
     return sql.str();
 }
+
+std::string FlagSetCU::sql() const
+{
+    const std::string sqlC = mControlflags.sql("controlinfo"), sqlU = mUseflags.sql("useinfo");
+    if( sqlC.empty() )
+        return sqlU;
+    if( sqlC == "0=1" )
+        return "0=1";
+    return "(" + sqlC + " AND " + sqlU + ")";
+}
