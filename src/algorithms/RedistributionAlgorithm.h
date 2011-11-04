@@ -27,6 +27,9 @@ private:
 // ########################################################################
 
 class RedistributionAlgorithm : public Qc2Algorithm {
+private:
+    typedef std::list<kvalobs::kvData> dataList_t;
+
 public:
     RedistributionAlgorithm()
         : Qc2Algorithm("Redistribute") { }
@@ -35,9 +38,12 @@ public:
 
 private:
     void findNeighbors(int stationID, NeighborFinder::stationsWithDistances_t& neighbors);
-    void getSeriesBefore(const kvalobs::kvData& endpoint, std::list<kvalobs::kvData>& bdata);
-    bool checkAndTrimSeriesBefore(std::list<kvalobs::kvData>& bdata, std::list<kvalobs::kvData>& before, const kvalobs::kvData& endpoint);
+    void getMissingBefore(const kvalobs::kvData& endpoint, dataList_t& bdata);
+    bool checkAndTrimSeries(dataList_t& bdata);
+    bool checkPointBeforeMissing(const kvalobs::kvData& firstMissing);
     void configure(const ReadProgramOptions& params);
+    
+    miutil::miTime stepTime(const miutil::miTime& time);
 
 private:
     NeighborFinder nf;
@@ -45,6 +51,7 @@ private:
     float mInterpolationLimit;
     FlagChange update_flagchange;
     miutil::miTime UT0;
+    float missing, rejected;
 };
 
 #endif

@@ -43,6 +43,11 @@ using Helpers::equal;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
+miutil::miTime RedistributionAlgorithm::stepTime(const miutil::miTime& time)
+{
+    return Helpers::plusDay(time, -1);
+}
+
 // ------------------------------------------------------------------------
 
 void NeighborFinder::setStationList(const stations_t& stations)
@@ -88,35 +93,52 @@ void RedistributionAlgorithm::findNeighbors(int stationID, NeighborFinder::stati
 
 // ------------------------------------------------------------------------
 
-void RedistributionAlgorithm::getSeriesBefore(const kvalobs::kvData& endpoint, std::list<kvalobs::kvData>& bdata)
+void RedistributionAlgorithm::getMissingBefore(const kvalobs::kvData& endpoint, dataList_t& bdata)
 {
     const C::DBConstraint cBefore = C::ControlUseinfo(missingpoint_flags)
         && C::Station(endpoint.stationID()) && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
-        && C::Obstime(UT0, Helpers::plusDay(endpoint.obstime(), -1));
+        && C::Obstime(UT0, stepTime(endpoint.obstime()));
     database()->selectData(bdata, cBefore, O::Obstime().desc());
 }
 
 // ------------------------------------------------------------------------
 
-bool RedistributionAlgorithm::checkAndTrimSeriesBefore(std::list<kvalobs::kvData>& bdata, std::list<kvalobs::kvData>& before, const kvalobs::kvData& endpoint)
+bool RedistributionAlgorithm::checkAndTrimSeries(dataList_t& bdata)
 {
-    before.push_back(endpoint);
-    miutil::miTime t = Helpers::plusDay(endpoint.obstime(), -1);
-    foreach(const kvalobs::kvData& b, bdata) {
-        if( b.obstime() != t )
-            break;
-        before.push_back(b);
-        t.addDay(-1);
-    }
-    if( before.size()<=1 ) {
-        //std::cout << "no data before accumulated value" << std::endl;
+    // walk back in time in 1-day steps
+    dataList_t::iterator it = bdata.begin();
+    miutil::miTime t = it->obstime();
+    for(; it != bdata.end() && it->obstime() == t; ++it)
+        t = stepTime(t);
+
+    // erase data before time jump (or erase nothing)
+    bdata.erase(it, bdata.end());
+
+    if( bdata.size()<=1 ) {
+        // std::cout << "no data before accumulated value" << std::endl;
         return false;
     }
-    if( before.back().obstime() <= UT0 ) {
-        //std::cout << "before starts at UT0, no idea about series length" << std::endl;
+    if( bdata.back().obstime() <= UT0 ) {
+        // std::cout << "before starts at UT0, no idea about series length" << std::endl;
         return false;
     }
     return true;
+}
+
+// ------------------------------------------------------------------------
+
+bool RedistributionAlgorithm::checkPointBeforeMissing(const kvalobs::kvData& firstMissing)
+{
+    const kvalobs::kvData& fm = firstMissing;
+    dataList_t startdata;
+    const C::DBConstraint cBeforeMissing = C::ControlUseinfo(before_flags)
+        && C::Station(fm.stationID()) && C::Paramid(fm.paramID()) && C::Typeid(fm.typeID())
+        && C::Obstime(stepTime(fm.obstime()));
+
+    database()->selectData(startdata, cBeforeMissing, O::Obstime());
+    return startdata.size() == 1
+        && !equal(startdata.front().original(), missing)
+        && !equal(startdata.front().original(), rejected);
 }
 
 // ------------------------------------------------------------------------
@@ -129,7 +151,9 @@ void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
     params.getFlagSetCU(neighbor_flags, "neighbor");
     params.getFlagChange(update_flagchange, "update_flagchange");
     mInterpolationLimit = params.getParameter("InterpolationDistance", 25);
-    UT0 = params.UT0;
+    UT0      = params.UT0;
+    missing  = params.missing;
+    rejected = params.rejected;
 }
 
 // ------------------------------------------------------------------------
@@ -147,29 +171,24 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             && C::Paramid(params.pid) && C::Typeid(params.tids)
             && C::Obstime(UT0, params.UT1);
     database()->selectData(edata, cEndpoints);
-    foreach(const kvalobs::kvData& d, edata) {
+    foreach(const kvalobs::kvData& endpoint, edata) {
 
-        dataList_t bdata;
-        getSeriesBefore(d, bdata);
-
+        // get series back in time from endpoint to last missing
         dataList_t before;
-        if( !checkAndTrimSeriesBefore(bdata, before, d) )
+        getMissingBefore(endpoint, before);
+        before.push_front(endpoint);
+        if( !checkAndTrimSeries(before) )
             continue;
 
-        dataList_t startdata;
-        const C::DBConstraint cBeforeMissing = C::ControlUseinfo(before_flags)
-            && C::Station(d.stationID()) && C::Paramid(d.paramID()) && C::Typeid(d.typeID())
-            && C::Obstime(Helpers::plusDay(before.back().obstime(), -1));
-        database()->selectData(startdata, cBeforeMissing, O::Obstime());
-        if( startdata.size() != 1 || equal(startdata.front().original(), params.missing) || equal(startdata.front().original(), params.rejected) ) {
-            LOGINFO("value before time series not existing/missing/rejected/not usable for accumulation ending in " << d);
+        if( !checkPointBeforeMissing(before.back()) ) {
+            LOGINFO("value before time series not existing/missing/rejected/not usable for accumulation ending in " << endpoint);
             continue;
         }
 
         NeighborFinder::stationsWithDistances_t neighbors;
-        findNeighbors(d.stationID(), neighbors);
+        findNeighbors(endpoint.stationID(), neighbors);
         if( neighbors.size() < MIN_NEIGHBORS ) {
-            LOGINFO("only " << MIN_NEIGHBORS << " neighbor(s) for d=" << d << ", giving up");
+            LOGINFO("only " << MIN_NEIGHBORS << " neighbor(s) for endpoint=" << endpoint << ", giving up");
             continue;
         }
 
@@ -179,8 +198,8 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         dataList_t ndata;
         const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
                 && C::Paramid(params.pid)
-                && C::Typeid(d.typeID())
-                && C::Obstime(before.back().obstime(), d.obstime())
+                && C::Typeid(endpoint.typeID())
+                && C::Obstime(before.back().obstime(), endpoint.obstime())
                 && cNeighborStations;
         database()->selectData(ndata, cNeighbors, order_by_time_id);
 
@@ -205,22 +224,22 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
                 n += 1;
             }
             if( n < MIN_NEIGHBORS ) {
-                //LOGERROR("not enough good neighbors n=" << n << " d=" << d);
+                //LOGERROR("not enough good neighbors n=" << n << " endpoint=" << endpoint);
                 neighborsMissing = true;
                 break;
             }
             sumint += sumWeightedValues/sumWeights;
         }
         if( neighborsMissing ) {
-            LOGERROR("not enough good neighbors d=" << d);
+            LOGERROR("not enough good neighbors endpoint=" << endpoint);
             continue;
         }
         std::vector<bool> hasNeigboursWithPrecipitation;
         std::list<kvalobs::kvData> toWrite;
-        //std::cout << "accval = " << d.original() << " sumint=" << sumint << std::endl;
+        //std::cout << "accval = " << endpoint.original() << " sumint=" << sumint << std::endl;
         itN = ndata.begin(), itB = before.begin();
-        float accumulated = d.original(), corrected_sum = 0;
-        if( equal(d.original(), -1.0f) )
+        float accumulated = endpoint.original(), corrected_sum = 0;
+        if( equal(endpoint.original(), -1.0f) )
             accumulated = 0;
         for(; itB != before.end() && itN != ndata.end(); ++itB ) {
             hasNeigboursWithPrecipitation.push_back(false);
@@ -243,7 +262,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             cfailed << ",QC2-redist";
             float itB_corrected = round<float, 1>((sumWeightedValues/sumWeights) * (accumulated / sumint));
             corrected_sum += itB_corrected;
-            if( equal(d.original(), -1.0f) || equal(itB_corrected, 0.0f) )
+            if( equal(endpoint.original(), -1.0f) || equal(itB_corrected, 0.0f) )
                 itB_corrected = -1; // bugzilla 1304: by default assume dry
 
             kvalobs::kvData correctedData(*itB);
@@ -270,7 +289,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             }
         }
         if( delta > 0.05 ) {
-            LOGWARN("Could not avoid difference between distributed sum and accumulated value at d=" << d);
+            LOGWARN("Could not avoid difference between distributed sum and accumulated value at endpoint=" << endpoint);
         }
 
         updateData(toWrite);
