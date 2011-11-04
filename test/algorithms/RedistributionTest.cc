@@ -816,7 +816,7 @@ TEST_F(RedistributionTest, Bugzilla1325Comment4)
 
 TEST_F(RedistributionTest, RoundingForVerySmallValues)
 {
-    // keep sum of distributed values identical to accumulated value; see bugzilla 1325
+    // keep sum of distributed values identical to accumulated value; see bugzilla 1325 and 1320
     const int N = 6;
     const float values[N]   = { 0.07, 0.07, 0.07, 0.07, 0.07, 0.07 };
     const float expected[N] = { 0.0,  0.0,  0.1,  0.1,  0.1,  0.1 };
