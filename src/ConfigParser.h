@@ -89,7 +89,7 @@ public:
         std::vector<std::string> mValues;
         mutable int mRequested;
     };
-    
+
     ConfigParser();
     ~ConfigParser();
 
@@ -153,7 +153,7 @@ std::vector<T> ConfigParser::Item::convert() const
 }
 
 template<>
-inline std::string ConfigParser::Item::convert(unsigned int idx) const
+inline std::string ConfigParser::Item::convert<std::string>(unsigned int idx) const
 {
     return mValues[idx];
 }
@@ -165,7 +165,7 @@ inline std::string ConfigParser::Item::convert(unsigned int idx, const std::stri
 }
 
 template<>
-inline std::vector<std::string> ConfigParser::Item::convert() const
+inline std::vector<std::string> ConfigParser::Item::convert<std::string>() const
 {
     return mValues;
 }
