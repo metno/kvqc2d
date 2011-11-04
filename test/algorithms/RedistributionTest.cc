@@ -773,27 +773,27 @@ TEST_F(RedistributionTest, Release113)
     ASSERT_EQ(10, bc->count());
 }
 
-// TEST_F(RedistributionTest, RerunWithUpdatedValues)
-// {
-//     FAIL() << "test not implemented";
-// }
-// 
-// TEST_F(RedistributionTest, Bugzilla1296)
-// {
-//     FAIL() << "test not implemented";
-// }
-// 
-// TEST_F(RedistributionTest, Bugzilla1304)
-// {
-//     // by default assume dry
-//     FAIL() << "test not implemented";
-// }
-// 
-// TEST_F(RedistributionTest, Bugzilla1322)
-// {
-//     // redistribution run starts in the middle of a sequence of missing values
-//     FAIL() << "test not implemented, no example data found";
-// }
+#if 0
+TEST_F(RedistributionTest, Bugzilla1296)
+{
+    // should be covered by SeriesPossiblyIncomplete,, IncompleteSeries, StartOfDatabase
+    FAIL() << "test not implemented";
+}
+
+TEST_F(RedistributionTest, Bugzilla1304)
+{
+    // by default assume dry
+    // should be covered by BoneDry
+    FAIL() << "test not implemented";
+}
+
+TEST_F(RedistributionTest, Bugzilla1322)
+{
+    // redistribution run starts in the middle of a sequence of missing values
+    // should be covered by SeriesPossiblyIncomplete,, IncompleteSeries, StartOfDatabase
+    FAIL() << "test not implemented, no example data found";
+}
+#endif
 
 TEST_F(RedistributionTest, Bugzilla1325)
 {
