@@ -37,11 +37,12 @@ public:
     virtual void run(const ReadProgramOptions& params);
 
 private:
+    void configure(const ReadProgramOptions& params);
     void findNeighbors(int stationID, NeighborFinder::stationsWithDistances_t& neighbors);
     void getMissingBefore(const kvalobs::kvData& endpoint, dataList_t& bdata);
     bool checkAndTrimSeries(dataList_t& bdata);
     bool checkPointBeforeMissing(const kvalobs::kvData& firstMissing);
-    void configure(const ReadProgramOptions& params);
+    bool getNeighborData(const dataList_t& before, NeighborFinder::stationsWithDistances_t& neighbors, dataList_t& ndata);
     
     miutil::miTime stepTime(const miutil::miTime& time);
 

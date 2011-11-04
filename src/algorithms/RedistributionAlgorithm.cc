@@ -143,6 +143,29 @@ bool RedistributionAlgorithm::checkPointBeforeMissing(const kvalobs::kvData& fir
 
 // ------------------------------------------------------------------------
 
+bool RedistributionAlgorithm::getNeighborData(const dataList_t& before, NeighborFinder::stationsWithDistances_t& distances, dataList_t& ndata)
+{
+    const kvalobs::kvData& endpoint = before.front();
+
+    findNeighbors(endpoint.stationID(), distances);
+    if( distances.size() < MIN_NEIGHBORS )
+        return false;
+
+    C::Station cNeighborStations;
+    foreach(NeighborFinder::stationsWithDistances_t::value_type& v, distances)
+        cNeighborStations.add( v.first );
+
+    const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
+        && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
+        && C::Obstime(before.back().obstime(), endpoint.obstime())
+        && cNeighborStations;
+    database()->selectData(ndata, cNeighbors, (O::Obstime().desc(), O::Stationid()));
+
+    return ndata.size() >= MIN_NEIGHBORS * before.size();
+}
+
+// ------------------------------------------------------------------------
+
 void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
 {
     params.getFlagSetCU(endpoint_flags, "endpoint");
@@ -164,8 +187,6 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
     configure(params);
 
-    const O::DBOrdering order_by_time_id = (O::Obstime().desc(), O::Stationid());
-
     dataList_t edata;
     const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
             && C::Paramid(params.pid) && C::Typeid(params.tids)
@@ -179,29 +200,18 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         before.push_front(endpoint);
         if( !checkAndTrimSeries(before) )
             continue;
-
+        
         if( !checkPointBeforeMissing(before.back()) ) {
             LOGINFO("value before time series not existing/missing/rejected/not usable for accumulation ending in " << endpoint);
             continue;
         }
 
-        NeighborFinder::stationsWithDistances_t neighbors;
-        findNeighbors(endpoint.stationID(), neighbors);
-        if( neighbors.size() < MIN_NEIGHBORS ) {
-            LOGINFO("only " << MIN_NEIGHBORS << " neighbor(s) for endpoint=" << endpoint << ", giving up");
+        dataList_t ndata;
+        NeighborFinder::stationsWithDistances_t distances;
+        if( !getNeighborData(before, distances, ndata) ) {
+            LOGINFO("too few valid neighbors for endpoint=" << endpoint << ", giving up");
             continue;
         }
-
-        C::Station cNeighborStations;
-        foreach(NeighborFinder::stationsWithDistances_t::value_type& v, neighbors)
-            cNeighborStations.add( v.first );
-        dataList_t ndata;
-        const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
-                && C::Paramid(params.pid)
-                && C::Typeid(endpoint.typeID())
-                && C::Obstime(before.back().obstime(), endpoint.obstime())
-                && cNeighborStations;
-        database()->selectData(ndata, cNeighbors, order_by_time_id);
 
         bool neighborsMissing = false;
         float sumint = 0;
@@ -217,7 +227,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
                     data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
                 if( data_point <= -1 )
                     continue;
-                const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
+                const double dist = distances.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
                 //std::cout << "distance =" << dist << " km" << std::endl;
                 sumWeights += invDist2;
                 sumWeightedValues += data_point*invDist2;
@@ -254,7 +264,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
                     continue;
                 if( data_point>0.15 )
                     hasNeigboursWithPrecipitation.back() = true;
-                const double dist = neighbors.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
+                const double dist = distances.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
                 sumWeights += invDist2;
                 sumWeightedValues += data_point*invDist2;
                 cfailed << "_" << itN->stationID();
