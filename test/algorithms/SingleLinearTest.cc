@@ -258,8 +258,8 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 7
     sql.str("");
-    sql << "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and  obstime='2025-09-17 09:00:00' and paramid=211;"
-           "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and  obstime='2025-09-16 11:00:00' and paramid=211;";
+    sql << "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and obstime='2025-09-17 09:00:00' and paramid=211;"
+           "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and obstime='2025-09-16 11:00:00' and paramid=211;";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     bc->clear();

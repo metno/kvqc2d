@@ -26,12 +26,16 @@ public:
     virtual void run(const ReadProgramOptions& params);
 
 private:
-    bool isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n);
-    float calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& series);
-    void storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected);
+    bool isNeighborOk(const kvalobs::kvData& n);
+    void configure(const ReadProgramOptions& params);
+    float calculateCorrected(const kvalobs::kvData& before, const kvalobs::kvData& middle, const kvalobs::kvData& after);
+    void writeChanges(const kvalobs::kvData& middle, const float NewCorrected);
 
 private:
-    std::map<int, std::vector<std::string> > setmissing_chflag;
+    FlagSetCU missing_flags, neighbor_flags;
+    FlagChange update_flagchange, missing_flagchange;
+    float missing, rejected;
+    std::string CFAILED_STRING;
 };
 
 #endif

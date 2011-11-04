@@ -58,27 +58,31 @@ SingleLinearAlgorithm::SingleLinearAlgorithm()
 
 // ------------------------------------------------------------------------
 
-bool SingleLinearAlgorithm::isNeighborOk(const ReadProgramOptions& params, const kvalobs::kvData& n)
+bool SingleLinearAlgorithm::isNeighborOk(const kvalobs::kvData& n)
 {
-    FlagSetCU nflags;
-    params.getFlagSetCU(nflags, "neighbor");
-    return nflags.matches(n)
-        && n.original() != params.missing
-        && n.original() != params.rejected;
+    return neighbor_flags.matches(n) && n.original() != missing && n.original() != rejected;
+}
+
+// ------------------------------------------------------------------------
+
+void SingleLinearAlgorithm::configure(const ReadProgramOptions& params)
+{
+    params.getFlagSetCU(missing_flags, "missing");
+    params.getFlagSetCU(neighbor_flags, "neighbor");
+    params.getFlagChange(update_flagchange, "update_flagchange");
+    params.getFlagChange(missing_flagchange, "missing_flagchange");
+    missing = params.missing;
+    rejected = params.rejected;
+    CFAILED_STRING = params.CFAILED_STRING;
 }
 
 // ------------------------------------------------------------------------
 
 void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 {
-    LOGINFO("Single Linear");
-
-    FlagSetCU missing_flags;
-    params.getFlagSetCU(missing_flags, "missing");
+    configure(params);
 
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
-        LOGDEBUG("time=" << ProcessTime);
-
         const C::DBConstraint cSingleMissing =
             C::ControlUseinfo(missing_flags)
             && C::Paramid(params.pid)
@@ -93,39 +97,38 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
         timeAfter.addHour(1);
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
-            std::list<kvalobs::kvData> Qc2SeriesData;
-            database()->dataForStationParamTimerange(Qc2SeriesData, d.stationID(), params.pid, timeBefore, timeAfter);
-            if( Qc2SeriesData.size() != 3 )
-                continue;
+            // may not check neighbor flags here, as the corrected value from calculateCorrected depends on neighbor availability
+            const C::DBConstraint cNeighbors = C::Station(d.stationID()) && C::Paramid(d.paramID()) && C::Typeid(d.typeID())
+                && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
 
-            std::vector<kvalobs::kvData> Tseries(Qc2SeriesData.begin(), Qc2SeriesData.end());
-            if( !Helpers::checkContinuousHourAndSameTypeID(Tseries) || Tseries[1] != d ) {
-                LOGDEBUG("cancel continuous");
+            std::list<kvalobs::kvData> series;
+            database()->selectData(series, cNeighbors, O::Obstime());
+            if( series.size() != 2 ) {
+                LOGDEBUG("got " << series.size() << " neighbors at d=" << d);
                 continue;
             }
 
-            const float NewCorrected = calculateCorrected(params, Tseries);
+            const float NewCorrected = calculateCorrected(series.front(), d, series.back());
             if( equal(NewCorrected, NO_UPDATE) ) {
-                LOGDEBUG("cancel no update");
+                LOGDEBUG("no update for d=" << d);
                 continue;
             }
 
-            LOGDEBUG("about to store");
-            storeUpdate(params, Tseries[1], NewCorrected);
+            LOGDEBUG("about to store corrected=" << NewCorrected << " for d=" << d);
+            writeChanges(d, NewCorrected);
         }
     }
 }
 
 // ------------------------------------------------------------------------
             
-float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params, const std::vector<kvalobs::kvData>& Tseries)
+float SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, const kvalobs::kvData& middle, const kvalobs::kvData& after)
 {
     float NewCorrected = NO_UPDATE;
-    const kvalobs::kvData before = Tseries[0], middle = Tseries[1], after = Tseries[2];
 
     // check that the neighbours are good
     const int flag7 = middle.controlinfo().flag(7);
-    if( isNeighborOk(params, before) && isNeighborOk(params, after) ) {
+    if( isNeighborOk(before) && isNeighborOk(after) ) {
         if( flag7 == 0 || flag7 == 1 ) {
             NewCorrected = round<float,1>( 0.5*(before.original()+after.original()) );
             // std::cout << "heiho cc" << std::endl;
@@ -140,11 +143,11 @@ float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params
         if( flag7 == 1 ) {
             const int flag6 = middle.controlinfo().flag(6);
             if( flag6 == 1 || flag6 == 3 ) {
-                if( !equal(middle.corrected(), params.missing) ) // XXX this is new compared to Paul's version, but necessary to pass his test
-                    NewCorrected = params.missing;
+                if( !equal(middle.corrected(), missing) ) // XXX this is new compared to Paul's version, but necessary to pass his test
+                    NewCorrected = missing;
             } else if( flag6 == 2 || flag6 == 4 ) {
-                if( !equal(middle.corrected(), params.rejected) ) // XXX this is new compared to Paul's version, but necessary to pass his test
-                    NewCorrected = params.rejected;
+                if( !equal(middle.corrected(), rejected) ) // XXX this is new compared to Paul's version, but necessary to pass his test
+                    NewCorrected = rejected;
             } else {
                 NewCorrected = round<float,1>( (before.original()+after.original())/2 );
             }
@@ -155,20 +158,16 @@ float SingleLinearAlgorithm::calculateCorrected(const ReadProgramOptions& params
 
 // ------------------------------------------------------------------------
             
-void SingleLinearAlgorithm::storeUpdate(const ReadProgramOptions& params, const kvalobs::kvData& middle, const float NewCorrected)
+void SingleLinearAlgorithm::writeChanges(const kvalobs::kvData& middle, const float NewCorrected)
 {
-    FlagChange update_flagchange, missing_flagchange;
-    params.getFlagChange(update_flagchange, "update_flagchange");
-    params.getFlagChange(missing_flagchange, "missing_flagchange");
-
     kvalobs::kvControlInfo fixflags = update_flagchange.apply(middle.controlinfo());
-    if( equal(NewCorrected, params.missing) || equal(NewCorrected, params.rejected) )
+    if( equal(NewCorrected, missing) || equal(NewCorrected, rejected) )
         fixflags = missing_flagchange.apply(fixflags);
         
     kvalobs::kvData dwrite(middle);
     dwrite.corrected(NewCorrected);
     dwrite.controlinfo(fixflags);
-    Helpers::updateCfailed(dwrite, "QC2d-2", params.CFAILED_STRING);
+    Helpers::updateCfailed(dwrite, "QC2d-2", CFAILED_STRING);
     Helpers::updateUseInfo(dwrite);
 
     updateData(dwrite);
