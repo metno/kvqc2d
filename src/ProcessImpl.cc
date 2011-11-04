@@ -65,7 +65,7 @@ ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
 {
     Qc2Algorithm* algorithms[] = {
         new SingleLinearAlgorithm(),
-        new RedistributionAlgorithm2(),
+        new RedistributionAlgorithm(),
         new DipTestAlgorithm(),
         new GapInterpolationAlgorithm(),
         new PlumaticAlgorithm(),

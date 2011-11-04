@@ -46,13 +46,13 @@ public:
     void Configure(ReadProgramOptions& params, int startDay, int endDay);
     void RoundingTest(const float* values, const float* expected, const int N);
 protected:
-    RedistributionAlgorithm2* algo;
+    RedistributionAlgorithm* algo;
 };
 
 void RedistributionTest::SetUp()
 {
     AlgorithmTestBase::SetUp();
-    algo = new RedistributionAlgorithm2();
+    algo = new RedistributionAlgorithm();
     algo->setDatabase(db);
     algo->setBroadcaster(bc);
 

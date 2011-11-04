@@ -43,24 +43,7 @@ using Helpers::equal;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
-class NeighborFinder {
-public:
-    typedef std::map<int, double> stationsWithDistances_t;
-    typedef std::list<kvalobs::kvStation> stations_t;
-    typedef std::map<int, kvalobs::kvStation> stationsByID_t;
-
-    virtual ~NeighborFinder() { }
-
-    bool hasStationList() const
-        { return !mStationsByID.empty(); }
-
-    void setStationList(const stations_t& stations);
-
-    virtual void findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist);
-
-private:
-    stationsByID_t mStationsByID;
-};
+// ------------------------------------------------------------------------
 
 void NeighborFinder::setStationList(const stations_t& stations)
 {
@@ -68,6 +51,8 @@ void NeighborFinder::setStationList(const stations_t& stations)
         mStationsByID[ s.stationID() ] = s;
     }
 }
+
+// ------------------------------------------------------------------------
 
 void NeighborFinder::findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist)
 {
@@ -87,7 +72,56 @@ void NeighborFinder::findNeighbors(stationsWithDistances_t& neighbors, int aroun
     }
 }
 
-void RedistributionAlgorithm2::configure(const ReadProgramOptions& params)
+// ------------------------------------------------------------------------
+
+void RedistributionAlgorithm::findNeighbors(int stationID, NeighborFinder::stationsWithDistances_t& neighbors)
+{
+    if( !nf.hasStationList() ) {
+        std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
+        std::list<int> allStationIDs;
+        fillStationLists(allStations, allStationIDs);
+        nf.setStationList(allStations);
+    }
+    
+    nf.findNeighbors(neighbors, stationID, mInterpolationLimit);
+}
+
+// ------------------------------------------------------------------------
+
+void RedistributionAlgorithm::getSeriesBefore(const kvalobs::kvData& endpoint, std::list<kvalobs::kvData>& bdata)
+{
+    const C::DBConstraint cBefore = C::ControlUseinfo(missingpoint_flags)
+        && C::Station(endpoint.stationID()) && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
+        && C::Obstime(UT0, Helpers::plusDay(endpoint.obstime(), -1));
+    database()->selectData(bdata, cBefore, O::Obstime().desc());
+}
+
+// ------------------------------------------------------------------------
+
+bool RedistributionAlgorithm::checkAndTrimSeriesBefore(std::list<kvalobs::kvData>& bdata, std::list<kvalobs::kvData>& before, const kvalobs::kvData& endpoint)
+{
+    before.push_back(endpoint);
+    miutil::miTime t = Helpers::plusDay(endpoint.obstime(), -1);
+    foreach(const kvalobs::kvData& b, bdata) {
+        if( b.obstime() != t )
+            break;
+        before.push_back(b);
+        t.addDay(-1);
+    }
+    if( before.size()<=1 ) {
+        //std::cout << "no data before accumulated value" << std::endl;
+        return false;
+    }
+    if( before.back().obstime() <= UT0 ) {
+        //std::cout << "before starts at UT0, no idea about series length" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+// ------------------------------------------------------------------------
+
+void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
 {
     params.getFlagSetCU(endpoint_flags, "endpoint");
     params.getFlagSetCU(missingpoint_flags, "missingpoint");
@@ -95,81 +129,47 @@ void RedistributionAlgorithm2::configure(const ReadProgramOptions& params)
     params.getFlagSetCU(neighbor_flags, "neighbor");
     params.getFlagChange(update_flagchange, "update_flagchange");
     mInterpolationLimit = params.getParameter("InterpolationDistance", 25);
+    UT0 = params.UT0;
 }
 
-void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
+// ------------------------------------------------------------------------
+
+void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 {
-    using namespace kvQCFlagTypes;
     typedef std::list<kvalobs::kvData> dataList_t;
 
     configure(params);
 
-    NeighborFinder nf;
-
-    const O::DBOrdering order_by_time = O::Obstime().desc();
-    const O::DBOrdering order_by_time_id = (order_by_time, O::Stationid());
-    const C::DBConstraint flags_endpoint  = C::ControlUseinfo(endpoint_flags);
-    const C::DBConstraint flags_missing   = C::ControlUseinfo(missingpoint_flags);
-    const C::DBConstraint flags_neighbors = C::ControlUseinfo(neighbor_flags);
-    const C::DBConstraint flags_before    = C::ControlUseinfo(before_flags);
+    const O::DBOrdering order_by_time_id = (O::Obstime().desc(), O::Stationid());
 
     dataList_t edata;
-    const C::DBConstraint cEndpoints = flags_endpoint
-            && C::Paramid(params.pid)
-            && C::Typeid(params.tids)
-            && C::Obstime(params.UT0, params.UT1);
+    const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
+            && C::Paramid(params.pid) && C::Typeid(params.tids)
+            && C::Obstime(UT0, params.UT1);
     database()->selectData(edata, cEndpoints);
     foreach(const kvalobs::kvData& d, edata) {
+
         dataList_t bdata;
-        const C::DBConstraint cBefore = flags_missing
-            && C::Paramid(params.pid)
-            && C::Typeid(d.typeID())
-            && C::Obstime(params.UT0, d.obstime())
-            && C::Station(d.stationID());
-        database()->selectData(bdata, cBefore, order_by_time);
+        getSeriesBefore(d, bdata);
 
         dataList_t before;
-        before.push_back(d);
-        miutil::miTime t = Helpers::plusDay(d.obstime(), -1);
-        foreach(const kvalobs::kvData& b, bdata) {
-            if( b.obstime() != t )
-                break;
-            before.push_back(b);
-            t.addDay(-1);
-        }
-        if( before.size()<=1 ) {
-            //std::cout << "no data before accumulated value" << std::endl;
+        if( !checkAndTrimSeriesBefore(bdata, before, d) )
             continue;
-        }
-        if( before.back().obstime() <= params.UT0 ) {
-            //std::cout << "before starts at UT0, no idea about series length" << std::endl;
-            continue;
-        }
 
         dataList_t startdata;
-        const C::DBConstraint cBeforeMissing = flags_before
-                && C::Paramid(params.pid)
-                && C::Typeid(d.typeID())
-                && C::Obstime(t)
-                && C::Station(d.stationID());
-        database()->selectData(startdata, cBeforeMissing, order_by_time);
+        const C::DBConstraint cBeforeMissing = C::ControlUseinfo(before_flags)
+            && C::Station(d.stationID()) && C::Paramid(d.paramID()) && C::Typeid(d.typeID())
+            && C::Obstime(Helpers::plusDay(before.back().obstime(), -1));
+        database()->selectData(startdata, cBeforeMissing, O::Obstime());
         if( startdata.size() != 1 || equal(startdata.front().original(), params.missing) || equal(startdata.front().original(), params.rejected) ) {
-            LOGINFO("value before time series not existing/missing/rejected/not usable at t=" << t << " for accumulation in " << d);
+            LOGINFO("value before time series not existing/missing/rejected/not usable for accumulation ending in " << d);
             continue;
-        }
-
-        if( !nf.hasStationList() ) {
-            std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
-            std::list<int> allStationIDs;
-            fillStationLists(allStations, allStationIDs);
-            nf.setStationList(allStations);
         }
 
         NeighborFinder::stationsWithDistances_t neighbors;
-        nf.findNeighbors(neighbors, d.stationID(), mInterpolationLimit);
+        findNeighbors(d.stationID(), neighbors);
         if( neighbors.size() < MIN_NEIGHBORS ) {
-            LOGINFO("less than " << MIN_NEIGHBORS << " neighbor(s) within " << mInterpolationLimit
-                    << " km for stationid=" << d.stationID());
+            LOGINFO("only " << MIN_NEIGHBORS << " neighbor(s) for d=" << d << ", giving up");
             continue;
         }
 
@@ -177,7 +177,7 @@ void RedistributionAlgorithm2::run(const ReadProgramOptions& params)
         foreach(NeighborFinder::stationsWithDistances_t::value_type& v, neighbors)
             cNeighborStations.add( v.first );
         dataList_t ndata;
-        const C::DBConstraint cNeighbors = flags_neighbors
+        const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
                 && C::Paramid(params.pid)
                 && C::Typeid(d.typeID())
                 && C::Obstime(before.back().obstime(), d.obstime())
