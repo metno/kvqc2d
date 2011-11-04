@@ -78,7 +78,7 @@ float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
     return DeltaCheck;
 }
 
-bool DipTestAlgorithm::configure(const ReadProgramOptions& params)
+void DipTestAlgorithm::configure(const ReadProgramOptions& params)
 {
     fillParameterDeltaMap(params, PidValMap);
     fillStationIDList(StationIds);
@@ -93,14 +93,11 @@ bool DipTestAlgorithm::configure(const ReadProgramOptions& params)
 
     CFAILED_STRING = params.CFAILED_STRING;
     missing = params.missing;
-
-    return true;
 }
 
 void DipTestAlgorithm::run(const ReadProgramOptions& params)
 {
-    if( !configure(params) )
-        return;
+    configure(params);
 
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         const float pid = it->first, delta = it->second;
@@ -138,16 +135,18 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     const kvalobs::kvData& before = seriesLinear.front(), after = seriesLinear.back();
     if( before.original() <= missing || after.original() <= missing )
         return;
-
+    
+#if 0
+    // FIXME which delta -- DeltaCheck or delta?
+    const float deltaCheck = fetchDelta(miutil::miTime::nowTime(), candidate.paramID());
+#endif
+    
     //            x
     //      x           x     -> time
     //     A(0)  A(1)  A(2)
     const float ABS20 = fabs( after    .original() - before.original() );
     const float ABS10 = fabs( candidate.original() - before.original() );
-
-    const float deltaCheck = fetchDelta(miutil::miTime::nowTime(), candidate.paramID());
-    
-    if( !(ABS20 < ABS10 && ABS20 < delta) ) { // FIXME which delta -- DeltaCheck or delta?
+    if( !(ABS20 < ABS10 && ABS20 < delta) ) {
         LOGINFO("not a dip/spike around candidate=" << candidate);
         return;
     }
@@ -179,6 +178,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     if( (int)seriesAkima.size() != N_AKIMA )        
         return false;
 
+    // check that the akima support points are in the right order and with the right time
     miutil::miTime akimaTime = akimaStart;
     std::vector<double> xt,yt;
     int i = 0;
@@ -198,8 +198,6 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     const AkimaSpline AkimaX(xt,yt);
     const float AkimaInterpolated = round<float,1>( AkimaX.AkimaPoint(N_BEFORE) );
 
-    // FIXME Looking into providing minimum check
-    
     DBInterface::kvStationParamList_t splist;
     database()->selectStationparams(splist, candidate.stationID(), candidate.obstime(), "QC1-1-"+StrmConvert(candidate.paramID()));
     if( splist.empty() ) {
