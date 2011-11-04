@@ -43,6 +43,12 @@ using Helpers::equal;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
+inline float dry2real(float original)
+{ return Helpers::equal(original, -1.0f) ? 0.0f : original; }
+
+inline float real2dry(float real)
+{ return Helpers::equal(real, 0.0f) ? -1.0f : real; }
+
 miutil::miTime RedistributionAlgorithm::stepTime(const miutil::miTime& time)
 {
     return Helpers::plusDay(time, -1);
@@ -209,79 +215,61 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         dataList_t ndata;
         NeighborFinder::stationsWithDistances_t distances;
         if( !getNeighborData(before, distances, ndata) ) {
-            LOGINFO("too few valid neighbors for endpoint=" << endpoint << ", giving up");
+            LOGINFO("too few valid neighbors for accumulation series ending with " << endpoint << ", giving up");
             continue;
         }
 
+        std::vector<bool> hasNeigboursWithPrecipitation;
         bool neighborsMissing = false;
         float sumint = 0;
-        dataList_t::const_iterator itN = ndata.begin(), itB = before.begin();
+        dataList_t::const_iterator itN = ndata.begin();
+        dataList_t::iterator itB = before.begin();
+        float corrected_sum = 0;
         for(; itB != before.end(); ++itB ) {
-            //std::cout << "itb obstime=" << itB->obstime() << " itN obstime=" << itN->obstime() << std::endl;
-            float sumWeights = 0.0, sumWeightedValues = 0.0;
-            unsigned int n = 0;
-            for( ; itN != ndata.end() && itN->obstime() == itB->obstime(); ++itN ) {
-                //std::cout << "neighbour id = " << itN->stationID() << std::endl;
-                float data_point = itN->original();
-                if( equal(data_point, -1.0f) )
-                    data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
-                if( data_point <= -1 )
-                    continue;
-                const double dist = distances.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
-                //std::cout << "distance =" << dist << " km" << std::endl;
-                sumWeights += invDist2;
-                sumWeightedValues += data_point*invDist2;
-                n += 1;
-            }
-            if( n < MIN_NEIGHBORS ) {
-                //LOGERROR("not enough good neighbors n=" << n << " endpoint=" << endpoint);
-                neighborsMissing = true;
-                break;
-            }
-            sumint += sumWeightedValues/sumWeights;
-        }
-        if( neighborsMissing ) {
-            LOGERROR("not enough good neighbors endpoint=" << endpoint);
-            continue;
-        }
-        std::vector<bool> hasNeigboursWithPrecipitation;
-        std::list<kvalobs::kvData> toWrite;
-        //std::cout << "accval = " << endpoint.original() << " sumint=" << sumint << std::endl;
-        itN = ndata.begin(), itB = before.begin();
-        float accumulated = endpoint.original(), corrected_sum = 0;
-        if( equal(endpoint.original(), -1.0f) )
-            accumulated = 0;
-        for(; itB != before.end() && itN != ndata.end(); ++itB ) {
             hasNeigboursWithPrecipitation.push_back(false);
             std::ostringstream cfailed;
             cfailed << "QC2N";
             float sumWeights = 0.0, sumWeightedValues = 0.0;
-            for( ; itN->obstime() == itB->obstime(); ++itN ) {
-                float data_point = itN->original();
-                if( equal(data_point, -1.0f) )
-                    data_point = 0; // These are bone dry measurements as opposed to days when there may have been rain but none was measurable
-                if( data_point < -1 )
+            unsigned int n = 0;
+            for( ; itN != ndata.end() && itN->obstime() == itB->obstime(); ++itN ) {
+                const float neighborValue = dry2real(itN->original());
+                if( neighborValue <= -1 )
                     continue;
-                if( data_point>0.15 )
+                if( neighborValue>0.15 )
                     hasNeigboursWithPrecipitation.back() = true;
                 const double dist = distances.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
-                sumWeights += invDist2;
-                sumWeightedValues += data_point*invDist2;
+                sumWeights        += invDist2;
+                sumWeightedValues += invDist2 * neighborValue;
+                n += 1;
                 cfailed << "_" << itN->stationID();
             }
+            if( n < MIN_NEIGHBORS ) {
+                neighborsMissing = true;
+                break;
+            }
+            sumint += sumWeightedValues/sumWeights;
             cfailed << ",QC2-redist";
-            float itB_corrected = round<float, 1>((sumWeightedValues/sumWeights) * (accumulated / sumint));
-            corrected_sum += itB_corrected;
-            if( equal(endpoint.original(), -1.0f) || equal(itB_corrected, 0.0f) )
-                itB_corrected = -1; // bugzilla 1304: by default assume dry
+            itB->corrected(sumWeightedValues/sumWeights);
+            itB->controlinfo(update_flagchange.apply(itB->controlinfo()));
+            Helpers::updateUseInfo(*itB);
+            Helpers::updateCfailed(*itB, cfailed.str(), params.CFAILED_STRING);
+        }
+        if( neighborsMissing ) {
+            LOGINFO("not enough good neighbors endpoint=" << endpoint);
+            continue;
+        }
 
-            kvalobs::kvData correctedData(*itB);
-            correctedData.corrected(itB_corrected);
-            correctedData.controlinfo(update_flagchange.apply(correctedData.controlinfo()));
-            Helpers::updateUseInfo(correctedData);
-            Helpers::updateCfailed(correctedData, cfailed.str(), params.CFAILED_STRING);
+        std::list<kvalobs::kvData> toWrite;
+        const float accumulated = dry2real(endpoint.original());
+        foreach(kvalobs::kvData& b, before) {
+            const float b_corrected = round<float, 1>(b.corrected() * (accumulated / sumint));
+            corrected_sum += b_corrected;
+            if( equal(endpoint.original(), -1.0f) || equal(b_corrected, 0.0f) )
+                b.corrected(-1); // bugzilla 1304: by default assume dry
+            else
+                b.corrected(b_corrected);
             // we accumulated the corrections in time-reversed order, while we want to send it with increasing time => push_front
-            toWrite.push_front(correctedData);
+            toWrite.push_front(b);
         }
 
         // make sure that sum of re-distributed is the same as the original accumulated value
