@@ -39,7 +39,7 @@ public:
 private:
     void configure(const ReadProgramOptions& params);
     void findNeighbors(int stationID, NeighborFinder::stationsWithDistances_t& neighbors);
-    void getMissingBefore(const kvalobs::kvData& endpoint, dataList_t& bdata);
+    void getMissingBefore(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, dataList_t& bdata);
     bool checkAndTrimSeries(dataList_t& bdata);
     bool checkPointBeforeMissing(const kvalobs::kvData& firstMissing);
     bool getNeighborData(const dataList_t& before, NeighborFinder::stationsWithDistances_t& neighbors, dataList_t& ndata);

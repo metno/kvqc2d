@@ -99,11 +99,11 @@ void RedistributionAlgorithm::findNeighbors(int stationID, NeighborFinder::stati
 
 // ------------------------------------------------------------------------
 
-void RedistributionAlgorithm::getMissingBefore(const kvalobs::kvData& endpoint, dataList_t& bdata)
+void RedistributionAlgorithm::getMissingBefore(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, dataList_t& bdata)
 {
     const C::DBConstraint cBefore = C::ControlUseinfo(missingpoint_flags)
         && C::Station(endpoint.stationID()) && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
-        && C::Obstime(UT0, stepTime(endpoint.obstime()));
+        && C::Obstime(earliest, stepTime(endpoint.obstime()));
     database()->selectData(bdata, cBefore, O::Obstime().desc());
 }
 
@@ -195,13 +195,18 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
     const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
             && C::Paramid(params.pid) && C::Typeid(params.tids)
             && C::Obstime(UT0, params.UT1);
-    database()->selectData(edata, cEndpoints);
+    database()->selectData(edata, cEndpoints, (O::Stationid(), O::Obstime().asc()));
+    
+    int lastStationId = -1;
+    miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
+        const miutil::miTime earliestPossibleMissing = ( endpoint.stationID() != lastStationId ) ? UT0 : lastObstime;
+        lastStationId = endpoint.stationID();
+        lastObstime   = endpoint.obstime();
 
         // get series back in time from endpoint to last missing
         dataList_t before;
-        getMissingBefore(endpoint, before);
-        // TODO this could be optimised by ordering edata by stationid, time.asc(); then missing data cannot be before the previous endpoint
+        getMissingBefore(endpoint, earliestPossibleMissing, before);
         before.push_front(endpoint);
         if( !checkAndTrimSeries(before) )
             continue;
@@ -250,10 +255,11 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             if( goodNeighbors < MIN_NEIGHBORS )
                 break;
             weightedNeighborsAccumulated += sumWeightedValues/sumWeights;
-            cfailed << ",QC2-redist";
+
             itB->corrected(sumWeightedValues/sumWeights);
             itB->controlinfo(update_flagchange.apply(itB->controlinfo()));
             Helpers::updateUseInfo(*itB);
+            cfailed << ",QC2-redist";
             Helpers::updateCfailed(*itB, cfailed.str(), params.CFAILED_STRING);
         }
         if( itB != before.end() ) {
