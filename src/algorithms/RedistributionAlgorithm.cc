@@ -189,8 +189,6 @@ void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
 
 void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 {
-    typedef std::list<kvalobs::kvData> dataList_t;
-
     configure(params);
 
     dataList_t edata;
@@ -203,6 +201,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         // get series back in time from endpoint to last missing
         dataList_t before;
         getMissingBefore(endpoint, before);
+        // TODO this could be optimised by ordering edata by stationid, time.asc(); then missing data cannot be before the previous endpoint
         before.push_front(endpoint);
         if( !checkAndTrimSeries(before) )
             continue;
@@ -218,19 +217,24 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             LOGINFO("too few valid neighbors for accumulation series ending with " << endpoint << ", giving up");
             continue;
         }
+        // neighbor data are in ndata like this:
+        // [endpoint] n1_1 n1_2 n1_3
+        // [miss 1]   n2_1 n2_2
+        // [miss 2]   n3_1 n3_2 n3_4
+        // where nT_S has time T and stationid S
+        // forward iterating through ndata yields n1_1 n1_2 n1_3 n2_1 n2_2 n3_1 n3_2 n3_4
 
         std::vector<bool> hasNeigboursWithPrecipitation;
-        bool neighborsMissing = false;
-        float sumint = 0;
+        float weightedNeighborsAccumulated = 0;
         dataList_t::const_iterator itN = ndata.begin();
         dataList_t::iterator itB = before.begin();
         float corrected_sum = 0;
-        for(; itB != before.end(); ++itB ) {
+        for(; itB != before.end(); ++itB) {
             hasNeigboursWithPrecipitation.push_back(false);
             std::ostringstream cfailed;
             cfailed << "QC2N";
             float sumWeights = 0.0, sumWeightedValues = 0.0;
-            unsigned int n = 0;
+            unsigned int goodNeighbors = 0;
             for( ; itN != ndata.end() && itN->obstime() == itB->obstime(); ++itN ) {
                 const float neighborValue = dry2real(itN->original());
                 if( neighborValue <= -1 )
@@ -240,21 +244,19 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
                 const double dist = distances.at(itN->stationID()), invDist2 = 1.0/(dist*dist);
                 sumWeights        += invDist2;
                 sumWeightedValues += invDist2 * neighborValue;
-                n += 1;
+                goodNeighbors += 1;
                 cfailed << "_" << itN->stationID();
             }
-            if( n < MIN_NEIGHBORS ) {
-                neighborsMissing = true;
+            if( goodNeighbors < MIN_NEIGHBORS )
                 break;
-            }
-            sumint += sumWeightedValues/sumWeights;
+            weightedNeighborsAccumulated += sumWeightedValues/sumWeights;
             cfailed << ",QC2-redist";
             itB->corrected(sumWeightedValues/sumWeights);
             itB->controlinfo(update_flagchange.apply(itB->controlinfo()));
             Helpers::updateUseInfo(*itB);
             Helpers::updateCfailed(*itB, cfailed.str(), params.CFAILED_STRING);
         }
-        if( neighborsMissing ) {
+        if( itB != before.end() ) {
             LOGINFO("not enough good neighbors endpoint=" << endpoint);
             continue;
         }
@@ -262,7 +264,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
         std::list<kvalobs::kvData> toWrite;
         const float accumulated = dry2real(endpoint.original());
         foreach(kvalobs::kvData& b, before) {
-            const float b_corrected = round<float, 1>(b.corrected() * (accumulated / sumint));
+            const float b_corrected = round<float, 1>(b.corrected() * accumulated / weightedNeighborsAccumulated);
             corrected_sum += b_corrected;
             if( equal(endpoint.original(), -1.0f) || equal(b_corrected, 0.0f) )
                 b.corrected(-1); // bugzilla 1304: by default assume dry
