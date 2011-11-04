@@ -46,8 +46,9 @@ libkvqc2d_a_SOURCES = \
 	Qc2Thread.h \
 	ReadProgramOptions.cc \
 	ReadProgramOptions.h \
+	scone.h \
 	StandardBroadcaster.cc \
-	StandardBrodacaster.h \
+	StandardBroadcaster.h \
 	StandardDB.cc \
 	StandardDB.h \
 	StopWatch.cc \
@@ -59,15 +60,15 @@ libkvqc2d_a_SOURCES = \
 	algorithms/GetStationParam.h \
 	algorithms/kvQABaseTypes.h \
 	algorithms/RedistributionAlgorithm.cc \
-	algorithms/RedistributionAlgorithm.hh \
+	algorithms/RedistributionAlgorithm.h \
 	algorithms/SingleLinearAlgorithm.cc \
-	algorithms/SingleLinearAlgorithm.hh \
+	algorithms/SingleLinearAlgorithm.h \
 	algorithms/GapInterpolationAlgorithm.cc \
-	algorithms/GapInterpolationAlgorithm.hh \
+	algorithms/GapInterpolationAlgorithm.h \
 	algorithms/ProcessPlumatic.cc \
-	algorithms/ProcessPlumatic.hh \
+	algorithms/ProcessPlumatic.h \
 	algorithms/DipTestAlgorithm.cc \
-	algorithms/DipTestAlgorithm.hh \
+	algorithms/DipTestAlgorithm.h \
 	algorithms/proj++.cc \
 	algorithms/proj++.h \
 	algorithms/ParseParValFile.cc \
@@ -78,7 +79,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/table_delaunay.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
-	algorithms/scone.h \
 	algorithms/tround.h 
 
 AM_CXXFLAGS = -Wall -W \
@@ -104,6 +104,8 @@ kvqc2d_LDADD = libkvqc2d.a \
 clean-local:
 	rm -rf test/var
 
+ebrowse:
+	ebrowse $(SOURCES)
 
 #sqldir=$(datadir)/kvsynopd
 #sql_DATA=kvsynopd_schema.sql
