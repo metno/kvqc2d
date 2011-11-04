@@ -95,8 +95,7 @@ kvqc2d_LDADD = libkvqc2d.a \
 	$(BOOST_REGEX_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
-	$(omniDynamic4_LIBS) \
-        -lnetcdf_c++
+	$(omniDynamic4_LIBS)
 
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs

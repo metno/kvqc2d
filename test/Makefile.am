@@ -44,8 +44,7 @@ kvqc2dTest_LDADD = ../src/libkvqc2d.a \
 	$(BOOST_REGEX_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
-	$(omniDynamic4_LIBS) \
-        -lnetcdf_c++
+	$(omniDynamic4_LIBS)
 
 EXTRA_DIST = \
 	test/database/setupdb.sql \

@@ -10,12 +10,12 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-AC_CHECK_LIB(proj, pj_init_plus)
-AC_CHECK_LIB(netcdf, nc_create)
+AC_SEARCH_LIBS([pj_init_plus], [proj])
+AC_SEARCH_LIBS([nc_create], [netcdf_c++])
 KV_FIND_OMNIORB4
 KV_POSTGRESQL
 PKG_CHECK_MODULES([PROG_DEPS], [puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.13])
-PKG_CHECK_MODULES([TEST_DEPS], [puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.13 sqlite3 >= 3.6.0 cppunit >= 1.12.1])
+PKG_CHECK_MODULES([TEST_DEPS], [puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.13 sqlite3 >= 3.6.0])
 GTEST_CHECK
 
 AX_BOOST_BASE([1.33.1])

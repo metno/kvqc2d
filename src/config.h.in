@@ -15,12 +15,6 @@
 /* define if the Boost::Thread library is available */
 #undef HAVE_BOOST_THREAD
 
-/* Define to 1 if you have the `netcdf' library (-lnetcdf). */
-#undef HAVE_LIBNETCDF
-
-/* Define to 1 if you have the `proj' library (-lproj). */
-#undef HAVE_LIBPROJ
-
 /* Name of package */
 #undef PACKAGE
 
