@@ -1,24 +1,21 @@
-This package was debianized by emilssen <pak@pak> on
-Sun, 25 Apr 2010 17:21:34 +0200.
+This package was debianized by Paul Emi Eglitis <paule@met.no> and
+Alexander Bürger <alexander.buerger@met.no> in October 2011.
 
-It was downloaded from <url://example.com>
+It was downloaded from svn.met.no
 
-Upstream Author(s): 
+Upstream Authors:
 
-    <put author's name and email here>
-    <likewise for another author>
+    Norwegian Meteorological Institute
+    Postboks 43 Blindern
+    N-0313 OSLO
+    NORWAY
+    email: kvalobs-dev@met.no
 
 Copyright: 
 
-    <Copyright (C) YYYY Name OfAuthor>
-    <likewise for another author>
+    Copyright (C) 2011 met.no
 
 License:
-
-    <Put the license of the package here indented by 4 spaces>
-
-The Debian packaging is (C) 2010, emilssen <pak@pak> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+    
+    The Debian packaging is (C) 2011, met.no and is licensed under
+    the GPL, see `/usr/share/common-licenses/GPL'.

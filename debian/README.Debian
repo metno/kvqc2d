@@ -1,17 +1,6 @@
-kvqc2 for Debian
+kvqc2d for Debian
 ----------------
 
-<possible notes regarding this package - if none, delete this file>
+This package is part of the kvalobs suite, see http://kvalobs.wiki.met.no/
 
-In the control file:
-
-	# The following dependencies need to be sorted out:
-	 metlibs-putools-dev (>= 3.0), libproj (>= 0.0.0),
-	 libperl (>= 5.8), libnetcdf (>= 4.0.0), libnetcf_c++ (>= 4.0.0), 
-	 libgsl (>= 0.0.0), libgslcblas (>= 0.0.0), libkvalobs_kvcpp (>= 1.0.0), 
-	 libkvalobs_kvalobs (>= 1.0.0), libkvalobs_kvdb (>= 1.0.0), 
-	 libkvalobs_fileutil (>= 1.0.0), libkvalobs_milog (>= 1.0.0), 
-	 libkvalobs_kvskel (>= 1.0.0), libkvalobs_dnmithread (>= 1.0.0), 
-	 libkvalobs_miconfparser (>= 1.0.0)
-
- -- emilssen <pak@pak>  Sun, 25 Apr 2010 17:21:34 +0200
+ -- Alexander Bürger <alexanderb@pc4052.pc.met.no>, Mon,  7 Nov 2011 14:02:58 +0100
