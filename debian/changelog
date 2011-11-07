@@ -1,3 +1,66 @@
+kvqc2d (1.3.0-1) unstable; urgency=low
+
+  * Reorganisation of program code, some automatic tests added.
+  * Fixes bugzilla 1325 (comment 3+4), 1333, 1327
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 07 Nov 2011 13:52:52 +0100
+
+kvqc2d (1.2.2-1) unstable; urgency=low
+
+  * Faster shutdown of kvqc2d did not work, BOOST_VERSION was not set.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 18 Oct 2011 15:02:27 +0100
+
+kvqc2d (1.2.1-1) unstable; urgency=low
+
+  * Faster shutdown of kvqc2d.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 07 Oct 2011 12:14:27 +0200
+
+kvqc2d (1.2.0) unstable; urgency=low
+
+  * Long time gaps, pluviometer, and various bug fixes.
+
+ -- Paul Emils Eglitis <paule@met.no>  Tue, 31 Jul 2011 01:59:09 +0200
+
+kvqc2d (1.1.5-1) unstable; urgency=low
+
+  * Faster shutdown of kvqc2d.
+  * Bug-fixes kind of back-ported from 1.2.0.
+  * Closes bugzilla #1327
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 18 Oct 2011 13:54:27 +0100
+
+kvqc2d (1.1.4) unstable; urgency=low
+
+  * Warning message added
+
+ -- Paul Emils Eglitis <paule@met.no>  Tue, 09 Jun 2011 01:59:09 +0200
+
+kvqc2d (1.1.3) unstable; urgency=low
+
+  * Bug1322 and inconsistent fd series patch
+
+ -- Paul Emils Eglitis <paule@met.no>  Tue, 09 Jun 2011 01:59:09 +0200
+
+kvqc2d (1.1.2) unstable; urgency=low
+
+  * DipTest release 
+
+ -- Paul Emils Eglitis <paule@met.no>  Tue, 03 May 2011 01:59:09 +0200
+
+kvqc2d (1.1.1) unstable; urgency=low
+
+  * New release compiled with kvalobs 2.4
+
+ -- Paul Emils Eglitis <paul.eglitis@met.no>  Mon, 01 Mar 2010 00:12:51 +0100
+
+kvqc2d (1.1.0) unstable; urgency=low
+
+  * New release
+
+ -- Paul Emils Eglitis <paul.eglitis@met.no>  Mon, 13 Dec 2010 00:12:51 +0100
+
 kvqc2 (0.9.0-1) unstable; urgency=low
 
   * Initial release of kvqc2 as a standalone packaga.                    
