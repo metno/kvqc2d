@@ -170,8 +170,8 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
         const kvalobs::kvData& d = bc->updates()[i];
         SCOPED_TRACE(testing::Message() << "Update #" << i);
         EXPECT_EQ(83880, d.stationID());
-        EXPECT_FLOAT_EQ(expected[i], d.corrected()) << "aor=" << acc_of_rounded << " ra=" << rounded_acc << " v[" << i << "]=" << values[i] << " interp=" << interpolated_values[i];
-        EXPECT_EQ(i==5 ? "0140004000007000" : "0000001000007000", d.controlinfo().flagstring());
+        EXPECT_NEAR(expected[i], d.corrected(), 0.15) << "aor=" << acc_of_rounded << " ra=" << rounded_acc << " v[" << i << "]=" << values[i] << " interp=" << interpolated_values[i];
+        EXPECT_EQ(i==bc->count()-1 ? "0140004000007000" : "0000001000007000", d.controlinfo().flagstring());
         acc_of_corrected += d.corrected();
     }
     EXPECT_FLOAT_EQ(rounded_acc, acc_of_corrected);
@@ -810,7 +810,7 @@ TEST_F(RedistributionTest, Bugzilla1325Comment4)
     const int N = 6;
     const float values[N]   = { 0.07, 0.17, 0.17, 0.17, 0.17, 0.07 };
     const float expected[N] = { 0.0,  0.1,  0.2,  0.2,  0.2,  0.1 };
-
+    
     RoundingTest(values, expected, N);
 }
 

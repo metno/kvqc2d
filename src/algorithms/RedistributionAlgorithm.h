@@ -4,55 +4,38 @@
 #define RedistributionAlgorithm_H 1
 
 #include "Qc2Algorithm.h"
+#include <boost/shared_ptr.hpp>
 
-class NeighborFinder {
-public:
-    typedef std::map<int, double> stationsWithDistances_t;
-    typedef std::list<kvalobs::kvStation> stations_t;
-    typedef std::map<int, kvalobs::kvStation> stationsByID_t;
-
-    virtual ~NeighborFinder() { }
-
-    bool hasStationList() const
-        { return !mStationsByID.empty(); }
-
-    void setStationList(const stations_t& stations);
-
-    virtual void findNeighbors(stationsWithDistances_t& neighbors, int aroundID, float maxdist);
-
-private:
-    stationsByID_t mStationsByID;
-};
-
-// ########################################################################
+class RedistributionNeighbors;
 
 class RedistributionAlgorithm : public Qc2Algorithm {
 private:
     typedef std::list<kvalobs::kvData> dataList_t;
 
 public:
-    RedistributionAlgorithm()
-        : Qc2Algorithm("Redistribute") { }
+    RedistributionAlgorithm();
 
     virtual void run(const ReadProgramOptions& params);
 
 private:
     void configure(const ReadProgramOptions& params);
-    void findNeighbors(int stationID, NeighborFinder::stationsWithDistances_t& neighbors);
+    std::list<int> findNeighbors(int stationID);
     void getMissingBefore(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, dataList_t& bdata);
     bool checkAndTrimSeries(dataList_t& bdata);
-    bool checkPointBeforeMissing(const kvalobs::kvData& firstMissing);
-    bool getNeighborData(const dataList_t& before, NeighborFinder::stationsWithDistances_t& neighbors, dataList_t& ndata);
+    bool checkPointBeforeMissing(const dataList_t& accumulation);
+    bool getNeighborData(const dataList_t& accumulation, dataList_t& ndata);
+    void redistributeDry(dataList_t& accumulation);
+    void redistributePrecipitation(dataList_t& accumulation);
     
     miutil::miTime stepTime(const miutil::miTime& time);
 
 private:
-    NeighborFinder nf;
+    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
     FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags;
-    float mInterpolationLimit;
     FlagChange update_flagchange;
     miutil::miTime UT0;
     float missing, rejected;
+    std::string CFAILED_STRING;
 };
 
 #endif

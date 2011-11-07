@@ -59,8 +59,12 @@ libkvqc2d_a_SOURCES = \
 	algorithms/GetStationParam.cc \
 	algorithms/GetStationParam.h \
 	algorithms/kvQABaseTypes.h \
+	algorithms/NeighborsDistance2.cc \
+	algorithms/NeighborsDistance2.h \
 	algorithms/RedistributionAlgorithm.cc \
 	algorithms/RedistributionAlgorithm.h \
+	algorithms/RedistributionNeighbors.cc \
+	algorithms/RedistributionNeighbors.h \
 	algorithms/SingleLinearAlgorithm.cc \
 	algorithms/SingleLinearAlgorithm.h \
 	algorithms/GapInterpolationAlgorithm.cc \
