@@ -1,6 +1,7 @@
 
 #include <gtest/gtest.h>
 #include "ReadProgramOptions.h"
+#include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
@@ -9,7 +10,7 @@ namespace fs = boost::filesystem;
 
 TEST(ReadProgramOptionsTest, testScanNoDir)
 {
-    const char* no_dir = "/tmp/thisisnotaconfgurationfiledirectoryforqc2";
+    const char* no_dir = "/tmp/thisisnotaconfigurationfiledirectoryforqc2";
 
     ReadProgramOptions po;
     po.setConfigPath( no_dir );
@@ -17,8 +18,16 @@ TEST(ReadProgramOptionsTest, testScanNoDir)
     std::vector<std::string> files;
     files.push_back( "this should go away" );
 
-    ASSERT_FALSE( fs::exists(no_dir) );
-    ASSERT_FALSE( po.SelectConfigFiles(files) );
+    try {
+        ASSERT_FALSE( fs::exists(no_dir) );
+    } catch(fs::filesystem_error& fse) {
+        FAIL() << "caught filesystem_error '" << fse.what() << "' on exists";
+    }
+    try {
+        ASSERT_FALSE( po.SelectConfigFiles(files) );
+    } catch(fs::filesystem_error& fse) {
+        FAIL() << "caught filesystem_error '" << fse.what() << "' on SelectConfigFiles";
+    }
     ASSERT_TRUE( files.empty() );
 }
 

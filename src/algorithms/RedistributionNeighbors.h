@@ -5,6 +5,8 @@
 
 #include <kvalobs/kvStation.h>
 #include <list>
+#include <map>
+
 class ReadProgramOptions;
 
 class RedistributionNeighbors {

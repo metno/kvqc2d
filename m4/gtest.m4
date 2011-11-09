@@ -15,7 +15,7 @@ AC_ARG_ENABLE([gtest],
                   [Enable tests using the Google C++ Testing Framework.
                   (Default is enabled.)])],
   [],
-  [enable_gtest=])
+  [enable_gtest=yes])
 AC_ARG_VAR([GTEST_CONFIG],
            [The exact path of Google Test's 'gtest-config' script.])
 AC_ARG_VAR([GTEST_CPPFLAGS],
@@ -69,6 +69,6 @@ Google Test was enabled, but no viable version could be found.])
 AC_SUBST([HAVE_GTEST])
 AM_CONDITIONAL([HAVE_GTEST],[test "x$HAVE_GTEST" = "xyes"])
 AS_IF([test "x$HAVE_GTEST" = "xyes"],
-  [m4_ifval([$2], [$2])],
-  [m4_ifval([$3], [$3])])
+  [m4_ifval([$2], [$2], [true])],
+  [m4_ifval([$3], [$3], [true])])
 ])

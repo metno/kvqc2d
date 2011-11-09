@@ -130,7 +130,7 @@ T ConfigParser::Item::convert(unsigned int idx, const T& dflt) const
         const std::string v = mValues[idx];
         std::istringstream i(v);
         i >> t;
-        if( !i.fail() && i.tellg() == v.size() )
+        if( !i.fail() && (int)i.tellg() == (int)v.size() )
             return t;
     }
     return dflt;
@@ -145,7 +145,7 @@ std::vector<T> ConfigParser::Item::convert() const
         const std::string v = mValues[i];
         std::istringstream iv(v);
         iv >> t;
-        if( iv.fail() || iv.tellg() != v.size() )
+        if( iv.fail() || (int)iv.tellg() != (int)v.size() )
             return std::vector<T>();
         out.push_back(t);
     }

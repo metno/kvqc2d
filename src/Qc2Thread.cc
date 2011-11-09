@@ -39,6 +39,7 @@
 #include <milog/milog.h>
 #include <puTools/miTime.h>
 
+#include <boost/version.hpp>
 #include "foreach.h"
 
 Qc2Work::Qc2Work( Qc2App &app_, const std::string& logpath )
@@ -85,8 +86,14 @@ void Qc2Work::operator() ()
         }
         if( app.shutdown() )
             break;
-        sleep(59);   //check config files every minute
-    }                //end of app while loop
-                     //59 seconds is set to avoid the thread getting trapped on a minute boundary
+#if BOOST_VERSION >= 103500
+        sleep(59);   //check config files every minute 
+#elif !defined(BOOST_VERSION)
+#error "BOOST_VERSION not defined"
+#else
+        for(int i=0; i<59 && !app.shutdown(); ++i)
+            sleep(1);
+#endif
+    }
     LOGINFO( "Qc2Work: Thread terminating!" );
 }

@@ -29,6 +29,7 @@
 
 #include "algorithms/AlgorithmTestBase.h"
 #include "FlagMatcher.h"
+#include "config.h"
 
 class FlagMatcherTest : public AlgorithmTestBase {
 };
@@ -79,12 +80,22 @@ TEST_F(FlagMatcherTest, SQLtext)
     EXPECT_EQ("", FlagMatcher().sql("ci"));
     EXPECT_EQ("0=0", FlagMatcher().permit(f_fhqc, 0).reset().sql("ci", true));
     EXPECT_EQ("0=1", FlagMatcher().permit(f_fhqc, 0).permit(f_fmis, 0).forbid(f_fmis, 0).sql("ci", true));
-    EXPECT_EQ("(substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0'))",
-            FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql("ci"));
-    EXPECT_EQ("(substr(controlinfo,7,1) NOT IN ('4') AND substr(controlinfo,16,1) IN ('0'))",
-            FlagMatcher().forbid(f_fmis, 4).permit(f_fhqc, 0).sql("controlinfo"));
-    EXPECT_EQ("substr(ci,13,1) IN ('2','3')",
-            FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).sql("ci"));
+
+    const std::string sql1 = FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql("ci");
+    const std::string sql2 = FlagMatcher().forbid(f_fmis, 4).permit(f_fhqc, 0).sql("controlinfo");
+    const std::string sql3 = FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).sql("ci");
+#ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
+    EXPECT_EQ("(substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0'))", sql1);
+    EXPECT_EQ("(substr(controlinfo,7,1) NOT IN ('4') AND substr(controlinfo,16,1) IN ('0'))", sql2);
+    EXPECT_EQ("substr(ci,13,1) IN ('2','3')", sql3);
+#else
+    EXPECT_EQ("((substr(ci,13,1)='2' OR substr(ci,13,1)='3') AND substr(ci,16,1)='0')", sql1);
+    EXPECT_EQ("((substr(controlinfo,7,1)='0' OR substr(controlinfo,7,1)='1' OR substr(controlinfo,7,1)='2' OR substr(controlinfo,7,1)='3'"
+              " OR substr(controlinfo,7,1)='5' OR substr(controlinfo,7,1)='6' OR substr(controlinfo,7,1)='7' OR substr(controlinfo,7,1)='8'"
+              " OR substr(controlinfo,7,1)='9' OR substr(controlinfo,7,1)='A' OR substr(controlinfo,7,1)='B' OR substr(controlinfo,7,1)='C'"
+              " OR substr(controlinfo,7,1)='D' OR substr(controlinfo,7,1)='E' OR substr(controlinfo,7,1)='F') AND substr(controlinfo,16,1)='0')", sql2);
+    EXPECT_EQ("(substr(ci,13,1)='2' OR substr(ci,13,1)='3')", sql3);
+#endif
 }
 
 TEST_F(FlagMatcherTest, SQLquery)
@@ -103,15 +114,20 @@ TEST_F(FlagMatcherTest, SQLquery)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     std::list<kvalobs::kvData> series;
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true)));
-    EXPECT_EQ(4, series.size());
 
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().sql( true)));
-    EXPECT_EQ(10, series.size());
+    const std::string sql1 = FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true);
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql1)) << "sql='" << sql1 << "'";
+    EXPECT_EQ(4, series.size()) << "sql='" << sql1 << "'";
 
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().forbid(f_fcc, 4).sql(true)));
-    EXPECT_EQ(5, series.size());
+    const std::string sql2 = FlagMatcher().sql(true);
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql2)) << "sql='" << sql2 << "'";
+    EXPECT_EQ(10, series.size()) << "sql='" << sql2 << "'";
 
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + FlagMatcher().permit(f_fcc, 1).sql(true)));
-    EXPECT_EQ(1, series.size());
+    const std::string sql3 = FlagMatcher().forbid(f_fcc, 4).sql(true);
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql3)) << "sql='" << sql3 << "'";
+    EXPECT_EQ(5, series.size()) << "sql='" << sql3 << "'";
+
+    const std::string sql4 = FlagMatcher().permit(f_fcc, 1).sql(true);
+    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql4)) << "sql='" << sql4 << "'";
+    EXPECT_EQ(1, series.size()) << "sql='" << sql4 << "'";
 }

@@ -27,6 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "config.h"
 #include "FlagMatcher.h"
 
 #include <sstream>
@@ -76,22 +77,43 @@ std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
             sql << " AND ";
             enclose = true;
         }
-        sql << "substr(" << column << "," << i+1 << ",1) ";
+        std::ostringstream sqlColumn;
+        sqlColumn << "substr(" << column << "," << i+1 << ",1)";
+        const std::string sqlC = sqlColumn.str();
+#ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
+        sql << sqlC;
         const bool negate = nbits > N_VALUES/2;
         if( negate )
-            sql << "NOT ";
-        sql << "IN (";
+            sql << " NOT";
+        sql << " IN (";
+#else /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
+        if( nbits>1 )
+            sql << '(';
+#endif /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
         bool first = true;
         for(int v = 0; v<N_VALUES; ++v) {
             const bool needBit = (allowed & (1<<v)) != 0;
+#ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
             if( (negate && needBit) || (!negate && !needBit) )
                 continue;
             if( !first )
                 sql << ',';
             sql << "'" << int2char(v) << "'";
+#else /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
+            if( !needBit )
+                continue;
+            if( !first )
+                sql << " OR ";
+            sql << sqlC << "='" << int2char(v) << "'";
+#endif /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
             first = false;
         }
-        sql << ")";
+#ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
+        sql << ')'; // closing the "IN("
+#else /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
+        if( nbits>1 )
+            sql << ')';
+#endif /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
     }
     const std::string sql1 = sql.str();
     if( sql1.empty() ) {

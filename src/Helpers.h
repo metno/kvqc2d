@@ -23,8 +23,8 @@ int hexCharToInt(char n);
 
 bool fillMapFromList(const std::string& list, std::map<int, float>& map, const char separator = ',');
 
-inline bool equal(float a,  float b)  { return std::fabs(a - b) < 4*std::numeric_limits<float> ::epsilon(); }
-inline bool equal(double a, double b) { return std::fabs(a - b) < 4*std::numeric_limits<double>::epsilon(); }
+inline bool equal(float a,  float b)  { return fabs(a - b) < 4*std::numeric_limits<float> ::epsilon(); }
+inline bool equal(double a, double b) { return fabs(a - b) < 4*std::numeric_limits<double>::epsilon(); }
 
 };
 

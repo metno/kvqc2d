@@ -1,19 +1,19 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+#ifndef KVQC2D_CONFIG_H
+#define KVQC2D_CONFIG_H 1
+
 /* define if the Boost library is available */
 #undef HAVE_BOOST
 
 /* define if the Boost::Filesystem library is available */
 #undef HAVE_BOOST_FILESYSTEM
 
-/* define if the Boost::PROGRAM_OPTIONS library is available */
-#undef HAVE_BOOST_PROGRAM_OPTIONS
-
-/* define if the Boost::Regex library is available */
-#undef HAVE_BOOST_REGEX
-
 /* define if the Boost::Thread library is available */
 #undef HAVE_BOOST_THREAD
+
+/* Defined when Google Test is available. */
+#undef HAVE_GTEST
 
 /* Name of package */
 #undef PACKAGE
@@ -38,3 +38,7 @@
 
 /* Version number of package */
 #undef VERSION
+
+#include "config_bottom.h"
+
+#endif /* KVQC2D_CONFIG_H */

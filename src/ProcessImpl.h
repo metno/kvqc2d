@@ -4,6 +4,7 @@
 #define __Qc2Process_h__
 
 #include <kvalobs/kvStation.h>
+#include <map>
 #include <string>
 
 class Broadcaster;

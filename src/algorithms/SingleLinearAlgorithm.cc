@@ -131,7 +131,6 @@ float SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, c
     if( isNeighborOk(before) && isNeighborOk(after) ) {
         if( flag7 == 0 || flag7 == 1 ) {
             NewCorrected = round<float,1>( 0.5*(before.original()+after.original()) );
-            // std::cout << "heiho cc" << std::endl;
             if( (flag7 == 1) && equal(middle.corrected(), NewCorrected) ) {
                 NewCorrected = NO_UPDATE;
             }

@@ -37,10 +37,58 @@
 #define foreach_r(a, b) for(a : b)
 #error "foreach_r is defined wrongly for the cdt parser"
 #else
+
+#ifdef __GNUG__
+
+namespace gcc_foreach_helpers {
+template<typename T, bool>
+struct iterator_helper;
+
+template<typename T>
+struct iterator_helper<T, false> {
+    typedef typename T::iterator         iforward;
+    typedef typename T::reverse_iterator ireverse;
+};
+
+template<typename T>
+struct iterator_helper<T, true> {
+    typedef typename T::const_iterator         iforward;
+    typedef typename T::const_reverse_iterator ireverse;
+};
+
+// this is a simplified version of boost/type_traits/is_const which probably works for fewer types
+template<class T>
+int  is_const_or_not(const T*);
+
+template<class T>
+char is_const_or_not(T*);
+
+template<typename T>
+struct is_const {
+    static T* t;
+    static const bool value = (sizeof(is_const_or_not(t)) != 1);
+};
+
+}
+
+#define GCC_FOREACH_BASE( i, c, BEGIN, END, ITER )                      \
+    for(bool continu=true; continu; continu=false)                      \
+        for(__typeof__( c )& c_REF = (c); continu; continu = false)     \
+            for( gcc_foreach_helpers::iterator_helper<__typeof__( c ),gcc_foreach_helpers::is_const<__typeof__( c )>::value>::ITER c_ITERATOR = c_REF.BEGIN(); \
+                 continu && c_ITERATOR != c_REF.END();                  \
+                 ++ c_ITERATOR, continu = !continu )                    \
+                for(i = *c_ITERATOR; continu; continu=!continu)
+#define foreach(a, b)   GCC_FOREACH_BASE(a, b, begin,  end,  iforward)
+#define foreach_r(a, b) GCC_FOREACH_BASE(a, b, rbegin, rend, ireverse)
+
+#else
+
 #include <boost/foreach.hpp>
 // FIXME defining foreach like this is not good, according to http://www.boost.org/doc/libs/1_40_0/doc/html/foreach.html (bottom)
 #define foreach(a, b) BOOST_FOREACH(a, b)
 #define foreach_r(a, b) BOOST_REVERSE_FOREACH(a, b)
+
+#endif
 #endif
 
 #endif /* FOREACH_H_ */

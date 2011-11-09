@@ -27,6 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "config.h"
 #include "FlagSet.h"
 #include <gtest/gtest.h>
 
@@ -65,7 +66,14 @@ TEST(FlagSetTest, SQLtext)
 {
     EXPECT_EQ("", FlagSet().setDefaultIfEmpty(true).sql("ci"));
     EXPECT_EQ("0=1", FlagSet().setDefaultIfEmpty(false).sql("ci"));
-    EXPECT_EQ("substr(ci,3,1) IN ('0')", FlagSet("__0.___.___.___.").sql("ci"));
-    EXPECT_EQ("(substr(ci,3,1) IN ('2','3','4') OR (substr(ci,6,1) IN ('0','1','2') AND substr(ci,14,1) IN ('D','E','F')))",
-              FlagSet("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_.").sql("ci"));
+
+    const std::string sql1 = FlagSet("__0.___.___.___.").sql("ci");
+    const std::string sql2 = FlagSet("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_.").sql("ci");
+#ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
+    EXPECT_EQ("substr(ci,3,1) IN ('0')", sql1);
+    EXPECT_EQ("(substr(ci,3,1) IN ('2','3','4') OR (substr(ci,6,1) IN ('0','1','2') AND substr(ci,14,1) IN ('D','E','F')))", sql2);
+#else /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
+    EXPECT_EQ("substr(ci,3,1)='0'", sql1);
+    EXPECT_EQ("((substr(ci,3,1)='2' OR substr(ci,3,1)='3' OR substr(ci,3,1)='4') OR ((substr(ci,6,1)='0' OR substr(ci,6,1)='1' OR substr(ci,6,1)='2') AND (substr(ci,14,1)='D' OR substr(ci,14,1)='E' OR substr(ci,14,1)='F')))", sql2);
+#endif /* !HAVE_SQL_WITH_WORKING_SUBSTR_IN */
 }

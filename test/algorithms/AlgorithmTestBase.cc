@@ -93,8 +93,13 @@ void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) th
     d.clear();
     const miutil::miString& sql = "SELECT * FROM data " + where + ";";
     sqlite3_stmt *stmt;
+#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
     if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
         throw DBException("preparing '" + sql + "'");
+#else
+    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
+        throw DBException("preparing '" + sql + "'");
+#endif
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -125,8 +130,13 @@ void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
     const std::list<int> station(1, stationID);
     const std::string sql = kvalobs::kvStationParam().selectAllQuery() + kvQueries::selectStationParam(station, time, qcx ) + ";";
     sqlite3_stmt *stmt;
-    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK || !stmt )
+#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
+    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
         throw DBException("preparing '" + sql + "'");
+#else
+    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
+        throw DBException("preparing '" + sql + "'");
+#endif
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -155,8 +165,13 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
     stations.clear();
     const std::string sql = kvalobs::kvStation().selectAllQuery();
     sqlite3_stmt *stmt;
+#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
     if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
         throw DBException("preparing '" + sql + "'");
+#else
+    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
+        throw DBException("preparing '" + sql + "'");
+#endif
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;

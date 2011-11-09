@@ -36,13 +36,13 @@
 #include <kvalobs/kvPath.h>
 #include <milog/milog.h>
 
+#include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/version.hpp>
 #include <fstream>
 #include <sstream>
 #include <vector>
-
-using namespace std;
 
 namespace fs = boost::filesystem;
 
@@ -79,12 +79,18 @@ void ReadProgramOptions::setConfigPath(const fs::path& path)
 
 ///Scans $KVALOBS/Qc2Config and searched for configuration files "*.cfg".
 
-bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
+bool ReadProgramOptions::SelectConfigFiles(std::vector<std::string>& config_files)
 {
     // TODO this has little to do with qc2 configuration files, move it elsewhere
     config_files.clear();
-    if( !fs::exists( mConfigPath ) && !fs::is_directory( mConfigPath )) {
+    if( !fs::exists( mConfigPath ) || !fs::is_directory( mConfigPath )) {
+#if BOOST_VERSION <= 103500
         LOGWARN("Not a directory: '" << mConfigPath.native_file_string() << "'");
+#elif !defined(BOOST_VERSION)
+#error "BOOST_VERSION not defined"
+#else
+        LOGWARN("Not a directory: '" << mConfigPath.file_string() << "'");
+#endif
         return false;
     }
 
@@ -92,12 +98,29 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<string>& config_files)
     try {
         const fs::directory_iterator end;
         for( fs::directory_iterator dit( mConfigPath ); dit != end; ++dit ) {
-            if( !fs::exists( dit->path()) )
+            if( !fs::exists(
+#if BOOST_VERSION <= 103500
+                    *dit
+#else
+                    dit->path()
+#endif
+                    ) )
                 continue;
             if( fs::is_directory(*dit) )
                 continue;
-            if( Helpers::string_endswith(dit->path().filename(), ".cfg") ) {
-                const std::string& n = dit->path().native_file_string();
+            if( Helpers::string_endswith(
+#if BOOST_VERSION <= 103500
+                    dit->leaf(),
+#else
+                    dit->path().filename(),
+#endif
+                    ".cfg") )
+            {
+#if BOOST_VERSION <= 103500
+                const std::string& n = dit->native_file_string();
+#else
+                const std::string& n = dit->path().file_string();
+#endif
                 config_files.push_back(n);
                 LOGINFO("Found configuration file '" << n << "'");
             }
