@@ -180,6 +180,8 @@ void ReadProgramOptions::Parse(std::istream& input)
 void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) const
 {
     flags.reset();
+    if( !c.has(name) )
+        throw ConfigException("no such flag spec: '" + name + "'");
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
         if( !flags.parse(item.value(i)) )
@@ -189,13 +191,20 @@ void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) con
 
 void ReadProgramOptions::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
 {
-    getFlagSet(fcu.controlflags(), name + "_cflags");
-    getFlagSet(fcu.useflags(),     name + "_uflags");
+    const bool hasC = c.has(name + "_cflags"), hasU = c.has(name + "_uflags");
+    if( !hasC && !hasU )
+        throw ConfigException("no setting for '" + name + "'");
+    if( hasC )
+        getFlagSet(fcu.controlflags(), name + "_cflags");
+    if( hasU )
+        getFlagSet(fcu.useflags(),     name + "_uflags");
 }
 
 void ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) const
 {
     fc.reset();
+    if( !c.has(name) )
+        throw ConfigException("no such flag change: '" + name + "'");
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
         if( !fc.parse(item.value(i)) )

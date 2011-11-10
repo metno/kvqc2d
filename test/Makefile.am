@@ -16,6 +16,7 @@ kvqc2dTest_SOURCES= \
 	algorithms/AlgorithmTestBase.cc \
 	algorithms/AkimaSplineTest.cc \
 	algorithms/DipTestTest.cc \
+	algorithms/PlumaticTest.cc \
 	algorithms/RedistributionTest.cc \
 	algorithms/SingleLinearTest.cc
 
