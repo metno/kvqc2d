@@ -40,9 +40,7 @@ public:
 
     int RunAtMinute;
     int RunAtHour;
-    int pid;
-    int tid;
-    std::vector<int> tids;
+
     float missing;
     float rejected;
 
@@ -59,9 +57,15 @@ public:
     template<typename T>
     T getParameter(const std::string& name) const;
 
+    template<typename T>
+    std::vector<T> getMultiParameter(const std::string& name) const;
+
     void getFlagSet(FlagSet& f, const std::string& name) const;
     void getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
     void getFlagChange(FlagChange& fc, const std::string& name) const;
+
+public:
+    static const std::string CFG_EXT;
 
 private:
     boost::filesystem::path mConfigPath;
@@ -75,7 +79,7 @@ T ReadProgramOptions::getParameter(const std::string& name, const T& dflt) const
 {
     if( !c.has(name) )
         return dflt;
-    const ConfigParser::Item& item =c.get(name);
+    const ConfigParser::Item& item = c.get(name);
     if( item.count() != 1 )
         throw ConfigException("setting '" + name + "' has != 1 value");
     return item.convert<T>(0);
@@ -86,10 +90,18 @@ T ReadProgramOptions::getParameter(const std::string& name) const
 {
     if( !c.has(name) )
         throw ConfigException("no such setting: '" + name + "'");
-    const ConfigParser::Item& item =c.get(name);
+    const ConfigParser::Item& item = c.get(name);
     if( item.count() != 1 )
         throw ConfigException("setting '" + name + "' has != 1 value");
     return item.convert<T>(0);
+}
+
+template<typename T>
+std::vector<T> ReadProgramOptions::getMultiParameter(const std::string& name) const
+{
+    if( !c.has(name) )
+        throw ConfigException("no such setting: '" + name + "'");
+    return c.get(name).convert<T>();
 }
 
 #endif

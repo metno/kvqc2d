@@ -36,6 +36,8 @@ private:
     miutil::miTime UT0;
     float missing, rejected;
     std::string CFAILED_STRING;
+    std::vector<int> pids;
+    std::vector<int> tids;
 };
 
 #endif

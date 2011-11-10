@@ -91,7 +91,7 @@ StationImpl& StationImpl::add(const std::list<int>& stationIDs)
 
 const char* StationImpl::stationid = "stationid";
 
-ParamidImpl& ParamidImpl::add(const std::list<int>& paramIDs)
+ParamidImpl& ParamidImpl::add(const std::vector<int>& paramIDs)
 {
     foreach(int pid, paramIDs)
         add(pid);

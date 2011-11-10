@@ -71,6 +71,7 @@ TEST_F(SingleLinearTest, test1)
         << "INSERT INTO data VALUES (180, '2011-10-01 21:00:00', 12.50, 211, '2011-10-01 20:55:41', 330, '0', 0, 12.50, '0111100000100010', '7000000000000000', '');" << std::endl;
     ASSERT_NO_THROW(db->exec(sql.str()));
 
+    const int pid = 211;
     std::stringstream config;
     config << "Start_YYYY = 2011" << std::endl
            << "Start_MM   =   09" << std::endl
@@ -85,7 +86,7 @@ TEST_F(SingleLinearTest, test1)
            << "missing_cflags     = ___.__[1234]____.___0" << std::endl
            << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
            << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
-           << "ParamId=211" << std::endl;
+           << "ParamId=" << pid << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
 
@@ -93,18 +94,18 @@ TEST_F(SingleLinearTest, test1)
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
     tb.addHour(-1);
     ta.addHour(+1);
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, params.pid, tb, tb));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, tb, tb));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(14.0, series.begin()->original());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, params.pid, ta, ta));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, ta, ta));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
     algo->run(params);
     ASSERT_EQ(1, bc->count());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, params.pid, t, t));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(16.0, series.begin()->corrected());
 }
@@ -117,6 +118,7 @@ TEST_F(SingleLinearTest, test2)
         << "INSERT INTO data VALUES (180, '2011-10-01 12:00:00', -32767, 211, '2011-10-01 11:55:57', 330, '0', 0, 18.60, '0211101000100012', '3000000000000051', '');" << std::endl;
     ASSERT_NO_THROW(db->exec(sql.str()));
 
+    const int pid = 211;
     std::stringstream config;
     config << "Start_YYYY = 2011" << std::endl
            << "Start_MM   =   09" << std::endl
@@ -131,7 +133,7 @@ TEST_F(SingleLinearTest, test2)
            << "missing_cflags     = ___.__[1234]____.___0" << std::endl
            << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
            << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
-           << "ParamId=211" << std::endl;
+           << "ParamId=" << pid << std::endl;
     ReadProgramOptions params;
     params.Parse(config);
 
@@ -140,7 +142,7 @@ TEST_F(SingleLinearTest, test2)
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, params.pid, t, t));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(params.rejected, series.begin()->corrected());
     ASSERT_EQ("0111102100100010", series.begin()->controlinfo().flagstring());
@@ -189,6 +191,7 @@ TEST_F(SingleLinearTest, testFromWiki)
         << "INSERT INTO data VALUES(87120,'2025-09-17 16:00:00',9.3,211,'2010-09-17 16:21:26',330,'0',0,9.3,'0111000000000010','7100000400000000','');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
+    const int pid = 211;
     std::stringstream config;
     config << "Start_YYYY=2025" << std::endl
            << "Start_MM=9" << std::endl
@@ -202,7 +205,7 @@ TEST_F(SingleLinearTest, testFromWiki)
            << "End_hh=16" << std::endl
            << "End_mm=0" << std::endl
            << "End_ss=0" << std::endl
-           << "ParamId=211" << std::endl
+           << "ParamId=" << pid << std::endl
            << "neighbor_cflags    = ___.__0.___.___." << std::endl
            << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
            << "missing_cflags     = ___.__[1234]____.___0" << std::endl
@@ -217,13 +220,13 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2025-09-16 12:00:00"), t1("2025-09-17 10:00:00");
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(6.7, series.begin()->corrected());
     ASSERT_EQ("05120041000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, params.pid, t1, t1));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t1, t1));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(9.1, series.begin()->corrected());
     ASSERT_EQ("0100001100000000", series.begin()->controlinfo().flagstring());
@@ -244,13 +247,13 @@ TEST_F(SingleLinearTest, testFromWiki)
     algo->run(params);
     ASSERT_EQ(2, bc->count());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(7.0, series.begin()->corrected());
     ASSERT_EQ("05120041000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, params.pid, t1, t1));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t1, t1));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(7.3, series.begin()->corrected());
     ASSERT_EQ("0100001100000000", series.begin()->controlinfo().flagstring());
@@ -266,13 +269,13 @@ TEST_F(SingleLinearTest, testFromWiki)
     algo->run(params);
     ASSERT_EQ(2, bc->count());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, params.pid, t0, t0));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(-32766, series.begin()->corrected());
     ASSERT_EQ("05120021000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2,QC2d-2,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, params.pid, t1, t1));
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t1, t1));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ( -32767, series.begin()->corrected());
     ASSERT_EQ("0100003100000000", series.begin()->controlinfo().flagstring());
@@ -324,6 +327,7 @@ TEST_F(SingleLinearTest, testFromKro)
 
     ASSERT_NO_THROW(db->exec(sql.str()));
 
+    const int pid = 211;
     std::stringstream config;
     config << "Start_YYYY=2011" << std::endl
            << "Start_MM=10" << std::endl
@@ -337,7 +341,7 @@ TEST_F(SingleLinearTest, testFromKro)
            << "End_hh=6" << std::endl
            << "End_mm=0" << std::endl
            << "End_ss=0" << std::endl
-           << "ParamId=211" << std::endl
+           << "ParamId=" << pid << std::endl
            << "neighbor_cflags    = ___.__0.___.___." << std::endl
            << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
            << "missing_cflags     = ___.__[1234]____.___0" << std::endl
@@ -348,4 +352,17 @@ TEST_F(SingleLinearTest, testFromKro)
 
     algo->run(params);
     ASSERT_EQ(0, bc->count());
+
+    sql.str("");
+    sql << "UPDATE data SET useinfo='7000000000000000', controlinfo='0110100000100010', original=1.5, corrected=1.5 WHERE obstime='2011-10-10 12:00:00';";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    algo->run(params);
+    ASSERT_EQ(1, bc->count());
+
+    std::list<kvalobs::kvData> series;
+    miutil::miTime t0("2011-10-10 13:00:00");
+    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 93000, pid, t0, t0));
+    ASSERT_EQ(1, series.size());
+    ASSERT_FLOAT_EQ(1.6, series.begin()->corrected());
 }

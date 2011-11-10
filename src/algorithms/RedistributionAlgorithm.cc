@@ -87,6 +87,7 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 
 void RedistributionAlgorithm::getMissingBefore(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, dataList_t& bdata)
 {
+    // FIXME this does not handle missing table rows
     const C::DBConstraint cBefore = C::ControlUseinfo(missingpoint_flags)
         && C::Station(endpoint.stationID()) && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
         && C::Obstime(earliest, stepTime(endpoint.obstime()));
@@ -107,7 +108,7 @@ bool RedistributionAlgorithm::checkAndTrimSeries(dataList_t& bdata)
     bdata.erase(it, bdata.end());
 
     if( bdata.size()<=1 ) {
-        // std::cout << "no data before accumulated value" << std::endl;
+        LOGWARN("no missing values found before endpoint " << bdata.front());
         return false;
     }
     if( bdata.back().obstime() <= UT0 ) {
@@ -165,6 +166,8 @@ void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
     missing  = params.missing;
     rejected = params.rejected;
     CFAILED_STRING = params.CFAILED_STRING;
+    pids = params.getMultiParameter<int>("ParamId");
+    tids = params.getMultiParameter<int>("TypeIds");
 
     mNeighbors->configure(params);
 }
@@ -200,7 +203,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
     dataList_t edata;
     const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
-            && C::Paramid(params.pid) && C::Typeid(params.tids)
+            && C::Paramid(pids) && C::Typeid(tids)
             && C::Obstime(UT0, params.UT1);
     database()->selectData(edata, cEndpoints, (O::Stationid(), O::Obstime().asc()));
     
@@ -219,7 +222,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
             continue;
         
         if( !checkPointBeforeMissing(accumulation) ) {
-            LOGINFO("value before accumulation start missing/... for endpoint " << endpoint);
+            LOGINFO("value before accumulation start missing/not in database/... for endpoint " << endpoint);
             continue;
         }
 

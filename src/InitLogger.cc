@@ -50,8 +50,8 @@ void
 InitLogger(int argn, char **argv, const std::string &logname,
 	   std::string &htmlpath )
 {
-    LogLevel     traceLevel=milog::NOTSET;
-    LogLevel     logLevel=milog::NOTSET;
+    LogLevel     traceLevel= milog::DEBUG;
+    LogLevel     logLevel  = milog::INFO;
     FLogStream   *fs;
     StdErrStream *trace;
     

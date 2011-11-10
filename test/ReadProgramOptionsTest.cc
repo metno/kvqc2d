@@ -60,11 +60,11 @@ TEST(ReadProgramOptionsTest, testScanMixedDir)
     fs::remove_all( dir );
     fs::create_directory( dir );
 
-    fs::create_directory( dir / "directory.cfg" );
+    fs::create_directory( dir / ("directory" + ReadProgramOptions::CFG_EXT) );
     fs::create_directory( dir / "another_directory" );
-    fs::ofstream( (dir / "01match.cfg") ) << "x=y" << std::endl;
-    fs::ofstream( (dir / "00match.cfg") ) << "x=z" << std::endl;
-    fs::ofstream( (dir / "nomatch.nocfg") ) << "x=a" << std::endl;
+    fs::ofstream( (dir / ("01match" + ReadProgramOptions::CFG_EXT)) ) << "x=y" << std::endl;
+    fs::ofstream( (dir / ("00match" + ReadProgramOptions::CFG_EXT)) ) << "x=z" << std::endl;
+    fs::ofstream( (dir / ("nomatch" + ReadProgramOptions::CFG_EXT + "no")) ) << "x=a" << std::endl;
 
     ReadProgramOptions po;
     po.setConfigPath( dir );
@@ -75,9 +75,9 @@ TEST(ReadProgramOptionsTest, testScanMixedDir)
     ASSERT_TRUE( fs::exists(dir) );
     ASSERT_TRUE( po.SelectConfigFiles(files) );
     ASSERT_EQ( 2, files.size() );
-    ASSERT_EQ( (dir / "00match.cfg").native_file_string(), files[0] );
-    ASSERT_EQ( (dir / "01match.cfg").native_file_string(), files[1] );
-
+    ASSERT_EQ( (dir / ("00match" + ReadProgramOptions::CFG_EXT)).native_file_string(), files[0] );
+    ASSERT_EQ( (dir / ("01match" + ReadProgramOptions::CFG_EXT)).native_file_string(), files[1] );
+    
     fs::remove_all( dir );
 }
 

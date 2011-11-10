@@ -74,6 +74,7 @@ void SingleLinearAlgorithm::configure(const ReadProgramOptions& params)
     missing = params.missing;
     rejected = params.rejected;
     CFAILED_STRING = params.CFAILED_STRING;
+    pids = params.getMultiParameter<int>("ParamId");
 }
 
 // ------------------------------------------------------------------------
@@ -85,7 +86,7 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
     for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
         const C::DBConstraint cSingleMissing =
             C::ControlUseinfo(missing_flags)
-            && C::Paramid(params.pid)
+            && C::Paramid(pids)
             && C::Obstime(ProcessTime); // TODO AND stationid BETWEEN 60 and 99999"?
         std::list<kvalobs::kvData> Qc2Data;
         database()->selectData(Qc2Data, cSingleMissing);

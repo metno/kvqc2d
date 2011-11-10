@@ -36,6 +36,7 @@ private:
     FlagChange update_flagchange, missing_flagchange;
     float missing, rejected;
     std::string CFAILED_STRING;
+    std::vector<int> pids;
 };
 
 #endif

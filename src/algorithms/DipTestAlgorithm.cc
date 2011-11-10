@@ -100,7 +100,7 @@ void DipTestAlgorithm::run(const ReadProgramOptions& params)
     configure(params);
 
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
-        const float pid = it->first, delta = it->second;
+        const int pid = it->first, delta = it->second;
 
         const C::DBConstraint cDipCandidate = C::ControlUseinfo(candidate_flags)
             && C::Station(StationIds) && C::Paramid(pid) && C::Obstime(params.UT0, params.UT1);
@@ -128,7 +128,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     std::list<kvalobs::kvData> seriesLinear;
     database()->selectData(seriesLinear, cDipAroundL, O::Obstime());
     if( seriesLinear.size() != 2 ) {
-        LOGDEBUG("no neighbors (may be bad flags) around candidate=" << candidate);
+        LOGINFO("no neighbors (may be bad flags) around candidate=" << candidate);
         return;
     }
 

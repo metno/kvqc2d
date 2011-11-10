@@ -49,13 +49,16 @@ void GapInterpolationAlgorithm::configure( const ReadProgramOptions& params )
 
 void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
 {
+    const std::vector<int> pids = params.getMultiParameter<int>("ParamId");
+    const int tid = params.getParameter<int>("TypeId");
+
     const long StartDay = params.UT0.date().julianDay();
 
     std::list<kvalobs::kvStation> StationList;
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
-    const C::DBConstraint cGeneral = (C::Paramid(params.pid) && C::Typeid(params.tid)
+    const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tid)
                 && C::Obstime(params.UT0, params.UT1) && C::Sensor(0) && C::Level(0));
 
     foreach(const kvalobs::kvStation& station, StationList) {

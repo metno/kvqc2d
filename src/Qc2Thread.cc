@@ -61,29 +61,41 @@ void Qc2Work::operator() ()
         // FIXME just continue if no database connection? will cause sefault when constructing ProcessImpl (*con)
     }
 
-    IDLOGERROR( "html","%%%%%%%%%%%%%%%%%%%%%%%%" );
     LOGINFO( "%%%%%%%%%%%%%%%%%%%%%%%%" );
 
     ProcessImpl Processor( app, *con);
+
+    miutil::miTime lastEnd = miutil::miTime::nowTime();
+    lastEnd.addSec(-lastEnd.sec());
+    lastEnd.addMin(-1);
 
     while( !app.shutdown() ) {
         ReadProgramOptions params;
         std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files);
+
+        // XXX will this run all algorithms? -- 16:20 start for 20min, 16:25 start for other => other run?
+        miutil::miTime now = miutil::miTime::nowTime();
+        now.addSec(-now.sec());
+
         foreach(const std::string& cf, config_files) {
             params.Parse( cf );
-            // FIXME this will not necessarily run all algorithms -- 16:20 start for 20min, 16:25 start for other => other not run
-            const miutil::miTime now = miutil::miTime::nowTime();
-            if ( now.min() == params.RunAtMinute && now.hour() == params.RunAtHour ) {
+            const miutil::miTime runAt(now.year(), now.month(), now.day(), params.RunAtHour, params.RunAtMinute, 0);
+            if( runAt > lastEnd && runAt <= now ) {
+                if( runAt < now )
+                    LOGINFO("Algorithm scheduled for "
+                            << std::setw(2) << std::setfill('0') << runAt.hour() << ':'
+                            << std::setw(2) << std::setfill('0') << runAt.min() << " is delayed");
                 try {
                     Processor.select(params);
                 } catch ( dnmi::db::SQLException & ex ) {
-                    IDLOGERROR( "html", "Exception: " << ex.what() << std::endl );
+                    LOGERROR( "Exception: " << ex.what() << std::endl );
                 } catch ( ... ) {
-                    IDLOGERROR( "html", "Unknown exception: con->exec(ctbl) .....\n" );
+                    LOGERROR( "Unknown exception: con->exec(ctbl) .....\n" );
                 }
             }
         }
+        lastEnd = now;
         if( app.shutdown() )
             break;
 #if BOOST_VERSION >= 103500

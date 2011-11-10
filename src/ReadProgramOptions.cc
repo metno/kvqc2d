@@ -59,11 +59,13 @@ void extractTime(const ConfigParser& c, const std::string& prefix, miutil::miTim
     time = miutil::miTime(Year, Month, Day, Hour, Minute, Second);
 }
 
-const char* flagnames[16] = { "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fmis", "ftime",
-                              "fw", "fstat", "fcp", "fclim", "fd", "fpre", "fcombi", "fhqc"
-};
+//const char* flagnames[16] = { "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fmis", "ftime",
+//                              "fw", "fstat", "fcp", "fclim", "fd", "fpre", "fcombi", "fhqc"
+//};
 
 } // anonymous namespace
+
+const std::string ReadProgramOptions::CFG_EXT = ".cfg2";
 
 ReadProgramOptions::ReadProgramOptions()
 {
@@ -114,7 +116,7 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<std::string>& config_file
 #else
                     dit->path().filename(),
 #endif
-                    ".cfg") )
+                    CFG_EXT) )
             {
 #if BOOST_VERSION <= 103500
                 const std::string& n = dit->native_file_string();
@@ -168,10 +170,6 @@ void ReadProgramOptions::Parse(std::istream& input)
         extractTime(c, "End",   UT1);
     }
 
-    pid                = c.get("ParamId")              .convert<int>(0, 0); // Parameter ID
-
-    tid                = c.get("TypeId")               .convert<int>(0, -1); // Type ID
-    tids               = c.get("TypeIds")              .convert<int>(); // One of many Type IDs
     Algorithm          = c.get("Algorithm")            .value(0, "NotSet"); // Algorithm Name
     CFAILED_STRING     = c.get("CfailedString")        .value(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
 

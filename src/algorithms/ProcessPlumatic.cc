@@ -43,6 +43,8 @@
 
 void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 {
+    const int pid = params.getParameter<int>("ParamId");
+
     LOGINFO("Plumatic Control");
 
     std::list<kvalobs::kvStation> StationList;
@@ -51,7 +53,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 
     foreach(const kvalobs::kvStation& station, StationList) {
         const miutil::miString ladle = "WHERE STATIONID="+StrmConvert(station.stationID())
-            +" AND PARAMID="+StrmConvert(params.pid)
+            +" AND PARAMID="+StrmConvert(pid)
             +" AND obstime BETWEEN \'"+params.UT0.isoTime()+"\' AND \'"+params.UT1.isoTime()+"\'";
         std::list<kvalobs::kvData> PluviData;
         database()->selectData(PluviData, ladle);

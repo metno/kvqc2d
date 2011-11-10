@@ -30,6 +30,7 @@
 #include "StandardDB.h"
 
 #include <kvalobs/kvQueries.h>
+#include "foreach.h"
 
 StandardDB::StandardDB(dnmi::db::Connection* connection)
     : mDbGate(connection)
@@ -43,13 +44,13 @@ StandardDB::~StandardDB()
 void StandardDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
 {
     if( !mDbGate.select(d, where) )
-        throw DBException("Database problem with SELECT data " + where);
+        throw DBException("Database problem with SELECT data " + where + ": " + mDbGate.getErrorStr());
 }
 
 void StandardDB::selectStations(kvStationList_t& s) throw (DBException)
 {
     if( !mDbGate.select(s) )
-        throw DBException("Database problem with SELECT stations");
+        throw DBException("Database problem with SELECT stations: " + mDbGate.getErrorStr());
 }
 
 void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
@@ -62,6 +63,13 @@ void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, con
 
 void StandardDB::insertData(const kvDataList_t& d, bool replace) throw (DBException)
 {
-    if( !mDbGate.insert(d, replace, "data") )
-        throw DBException("Database problem with INSERT data");
+#if 1
+    if( !mDbGate.insert(d, replace) )
+        throw DBException("Database problem with INSERT/UPDATE: " + mDbGate.getErrorStr());
+#else
+    foreach(const kvalobs::kvData& data, d) {
+        if( !mDbGate.insert(data, "data", replace) )
+        throw DBException("Database problem with INSERT/UPDATE: " + mDbGate.getErrorStr());
+    }
+#endif
 }

@@ -136,9 +136,13 @@ public:
         : IntegerColumnnImpl(paramid) { }
     ParamidImpl(const std::list<int>& paramIDs)
         : IntegerColumnnImpl(paramid) { add(paramIDs); }
+    ParamidImpl(const std::vector<int>& paramIDs)
+        : IntegerColumnnImpl(paramid) { add(paramIDs); }
     ParamidImpl(int pid)
         : IntegerColumnnImpl(paramid) { add(pid); }
-    ParamidImpl& add(const std::list<int>& paramIDs);
+    ParamidImpl& add(const std::list<int>& paramIDs)
+        { return add(std::vector<int>(std::vector<int>(paramIDs.begin(), paramIDs.end()))); }
+    ParamidImpl& add(const std::vector<int>& paramIDs);
     ParamidImpl& add(int pid);
 private:
     static const char* paramid;
