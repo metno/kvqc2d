@@ -61,15 +61,21 @@ void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, con
         throw DBException("Database problem with SELECT stationparam " + where);
 }
 
-void StandardDB::insertData(const kvDataList_t& d, bool replace) throw (DBException)
+void StandardDB::insertData(const kvDataList_t& d, bool update) throw (DBException)
 {
-#if 1
-    if( !mDbGate.insert(d, replace) )
-        throw DBException("Database problem with INSERT/UPDATE: " + mDbGate.getErrorStr());
-#else
+    if( d.empty() )
+        return;
+    std::ostringstream sql;
+    if( d.size()>1 )
+        sql << "BEGIN; ";
     foreach(const kvalobs::kvData& data, d) {
-        if( !mDbGate.insert(data, "data", replace) )
-        throw DBException("Database problem with INSERT/UPDATE: " + mDbGate.getErrorStr());
+        if( update )
+            sql << "UPDATE " << data.tableName() << " " << data.toUpdate() << "; ";
+        else
+            sql << "INSERT INTO " << data.tableName() << " VALUES" << data.toSend() << "; ";
     }
-#endif
+    if( d.size()>1 )
+        sql << "COMMIT; " << std::endl;
+    if( !mDbGate.exec(sql.str()) )
+        throw DBException("Database problem with " + std::string(update ? " UPDATE: " : " INSERT: ") + mDbGate.getErrorStr());
 }
