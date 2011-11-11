@@ -1885,7 +1885,7 @@ void PlumaticTest::Configure(ReadProgramOptions& params)
     params.Parse(config);
 }
 
-TEST_F(PlumaticTest, DetectHighSingle)
+TEST_F(PlumaticTest, HighSingle)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 22:00:00', 0,   105, '2011-10-01 23:05:51', 4, 0, 0, 0,   '0101000000000000', '7000000000000000', '');"
@@ -1917,7 +1917,35 @@ TEST_F(PlumaticTest, DetectHighSingle)
     EXPECT_EQ("0B01000000000000", bc->updates()[1].controlinfo().flagstring());
 }
 
-TEST_F(PlumaticTest, DetectHighStart)
+TEST_F(PlumaticTest, HighSingleStartEnd)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.3, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // high single at start, may not do anything
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   10" << std::endl
+           << "Start_DD   =   01" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   11" << std::endl
+           << "End_DD     =   01" << std::endl
+           << "End_hh     =   15" << std::endl
+           << "highstart_flagchange  = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
+           << "ParamId=105" << std::endl;
+    params.Parse(config);
+    
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
+}
+
+TEST_F(PlumaticTest, HighStart)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 22:00:00', 0,   105, '2011-10-01 23:05:51', 4, 0, 0, 0,   '0101000000000000', '7000000000000000', '');"
@@ -1945,7 +1973,40 @@ TEST_F(PlumaticTest, DetectHighStart)
     EXPECT_EQ("0A01000000000000", bc->updates()[1].controlinfo().flagstring());
 }
 
-TEST_F(PlumaticTest, DetectRainInterrupt)
+TEST_F(PlumaticTest, HighStartStartEnd)
+{
+    std::ostringstream sql;
+    sql // high value at start, may not do anything
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.5, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:01:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:02:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   10" << std::endl
+           << "Start_DD   =   01" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   11" << std::endl
+           << "End_DD     =   01" << std::endl
+           << "End_hh     =   13" << std::endl
+           << "highstart_flagchange  = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
+           << "ParamId=105" << std::endl;
+    params.Parse(config);
+    
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
+}
+
+TEST_F(PlumaticTest, RainInterrupt)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 21:00:00', 0,   105, '2011-10-01 23:05:51', 4, 0, 0, 0,   '0101000000000000', '7000000000000000', '');"
@@ -1998,4 +2059,40 @@ TEST_F(PlumaticTest, DetectRainInterrupt)
     EXPECT_EQ("0C01000000000000", bc->updates()[3].controlinfo().flagstring());
     EXPECT_EQ("0C01000000000000", bc->updates()[4].controlinfo().flagstring());
     EXPECT_EQ("0A01000000000000", bc->updates()[5].controlinfo().flagstring());
+}
+
+TEST_F(PlumaticTest, RainInterruptStartEnd)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.3, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // rain interruption at start, may not do anything
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:05:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:58:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:59:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 14:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   10" << std::endl
+           << "Start_DD   =   01" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   11" << std::endl
+           << "End_DD     =   01" << std::endl
+           << "End_hh     =   14" << std::endl
+           << "highstart_flagchange  = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
+           << "ParamId=105" << std::endl;
+    params.Parse(config);
+    
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }

@@ -39,12 +39,22 @@ private:
         Navigator& nav;
         kvDataList_it d, prev, next;
         int dryMinutesBefore, dryMinutesAfter;
+        miutil::miTime beforeUT0, afterUT1;
         Info(Navigator& n);
     };
 
-    bool isRainInterruption(const Info& info);
-    bool isHighSingle(const Info& info);
-    bool isHighStart(const Info& info);
+    enum CheckResult {
+        NO = 0,
+        YES = 1,
+        DONT_KNOW = 2
+    };
+
+    int minutesBetween(const miutil::miTime& t0, const miutil::miTime& t1)
+        { return miutil::miTime::minDiff(t0, t1); }
+
+    CheckResult isRainInterruption(const Info& info);
+    CheckResult isHighSingle(const Info& info);
+    CheckResult isHighStart(const Info& info);
 };
 
 #endif

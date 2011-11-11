@@ -77,6 +77,8 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::previousNot0(kvDa
 /* return next non-0 precipitation, or end() if that does not exist */
 PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataList_it it)
 {
+    if( it == end() )
+        return end();
     ++it;
     while(it != end() && it->original() == 0.0f)
         ++it;
@@ -112,57 +114,89 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
             continue;
         
         Navigator nav(data.begin(), data.end());
+        Info info(nav);
+        info.beforeUT0 = beforeUT0;
+        info.afterUT1  = afterUT1;
+
         for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
-            Info info(nav);
+            std::cout << "data point = " << *d << std::endl;
 
             info.d = d;
             info.prev = nav.previousNot0(d);
             info.next = nav.nextNot0(d);
-            info.dryMinutesBefore = miutil::miTime::minDiff(d->obstime(), info.prev != nav.end() ? info.prev->obstime() : beforeUT0) - 1;
-            info.dryMinutesAfter  = miutil::miTime::minDiff(info.next != nav.end() ? info.next->obstime() : afterUT1, d->obstime()) - 1;
+            info.dryMinutesBefore = minutesBetween(d->obstime(), info.prev != nav.end() ? info.prev->obstime() : beforeUT0) - 1;
+            info.dryMinutesAfter  = minutesBetween(info.next != nav.end() ? info.next->obstime() : afterUT1, d->obstime()) - 1;
 
-            if( isRainInterruption(info) ) {
-                std::cout << "rain interruption between " << *info.prev << " and " << *info.d << std::endl;
+            CheckResult ri = isRainInterruption(info), hsi = isHighSingle(info), hst = isHighStart(info);
 
-                info.prev->controlinfo(interruptedrain_flagchange.apply(info.prev->controlinfo()));
-                Helpers::updateUseInfo(*info.prev);
-                Helpers::updateCfailed(*info.prev, "QC2-plu-interruptedrain-0", CFAILED_STRING);
-
-                info.d->controlinfo(interruptedrain_flagchange.apply(info.d->controlinfo()));
-                Helpers::updateUseInfo(*info.d);
-                Helpers::updateCfailed(*info.d, "QC2-plu-interruptedrain-1", CFAILED_STRING);
-
-                kvDataList_t toWrite;
-                toWrite.push_back(*info.prev);
-                toWrite.push_back(*info.d);
-                updateData(toWrite);
-            } else if( isHighSingle(info) ) {
-                std::cout << "very unlikely value for single point " << *info.d << std::endl;
-
-                info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
-                Helpers::updateUseInfo(*info.d);
-                Helpers::updateCfailed(*info.d, "QC2-plu-highsingle", CFAILED_STRING);
-                updateData(*info.d);
-            } else if( isHighStart(info) ) {
-                std::cout << "very unlikely value for start point " << *info.d << std::endl;
-
-                info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
-                Helpers::updateUseInfo(*info.d);
-                Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
-                updateData(*info.d);
+            if( ri != NO ) {
+                if( ri == YES ) {
+                    std::cout << "  rain interruption since " << *info.prev << std::endl;
+                    
+                    info.prev->controlinfo(interruptedrain_flagchange.apply(info.prev->controlinfo()));
+                    Helpers::updateUseInfo(*info.prev);
+                    Helpers::updateCfailed(*info.prev, "QC2-plu-interruptedrain-0", CFAILED_STRING);
+                    
+                    info.d->controlinfo(interruptedrain_flagchange.apply(info.d->controlinfo()));
+                    Helpers::updateUseInfo(*info.d);
+                    Helpers::updateCfailed(*info.d, "QC2-plu-interruptedrain-1", CFAILED_STRING);
+                    
+                    kvDataList_t toWrite;
+                    toWrite.push_back(*info.prev);
+                    toWrite.push_back(*info.d);
+                    updateData(toWrite);
+                } else {
+                    std::cout << "  maybe rain interruption since " << std::flush;
+                    if( info.prev != nav.end())
+                        std::cout << *info.prev << std::endl;
+                    else
+                        std::cout << params.UT0 << std::endl;
+                }
+            } else if( hsi != NO ) {
+                if( hsi == YES ) {
+                    std::cout << "  very unlikely value for single point" << std::endl;
+                    
+                    info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
+                    Helpers::updateUseInfo(*info.d);
+                    Helpers::updateCfailed(*info.d, "QC2-plu-highsingle", CFAILED_STRING);
+                    updateData(*info.d);
+                } else {
+                    std::cout << "  maybe unlikely value for single point" << std::endl;
+                }
+            } else if( hst != NO ) {
+                if( hst == YES ) {
+                    std::cout << "  very unlikely value for start point" << std::endl;
+                    
+                    info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
+                    Helpers::updateUseInfo(*info.d);
+                    Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
+                    updateData(*info.d);
+                } else {
+                    std::cout << "  maybe unlikely value for start point" << std::endl;
+                }
             }
+            std::cout << " -- done" << std::endl;
         }
+        std::cout << " -- finished" << std::endl;
     }
 }
 
-bool PlumaticAlgorithm::isRainInterruption(const Info& info)
+PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info& info)
 {
-    if( !(info.dryMinutesAfter<1
-          && info.dryMinutesBefore <= maxRainInterrupt
-          && info.prev != info.nav.end()
-          && info.prev->original() >= rainInterruptValue
-          && info.d->original() >= rainInterruptValue) )
-        return false;
+    // std::cout << "    checking for interrupted rain" << std::endl;
+    if( info.d->original() < rainInterruptValue )
+        return NO;
+    // std::cout << "    above threshold" << std::endl;
+    if( info.prev == info.nav.end() )
+        return (info.dryMinutesBefore > maxRainInterrupt ? NO : DONT_KNOW);
+    // std::cout << "    not first" << std::endl;
+    if( info.dryMinutesBefore > maxRainInterrupt  || info.dryMinutesBefore < 1 )
+        return NO;
+    // std::cout << "    short enough interrupt" << std::endl;
+    if( info.prev->original() < rainInterruptValue )
+        return NO;
+
+    // std::cout << "    looks good" << std::endl;
 
     // check that there is some rain before and after the "interrruption"
     int nBefore = 1;
@@ -171,6 +205,9 @@ bool PlumaticAlgorithm::isRainInterruption(const Info& info)
         before = b0;
         nBefore += 1;
     }
+    // std::cout << "    nBefore = " << nBefore << " start = " << (b0 == info.nav.end()) << std::endl;
+    if( b0 == info.nav.end() && nBefore < minRainBeforeAndAfter )
+        return DONT_KNOW;
 
     int nAfter = 2; // info.d and info.next are already after the gap
     kvDataList_it after = info.next, a0;
@@ -178,20 +215,39 @@ bool PlumaticAlgorithm::isRainInterruption(const Info& info)
         after = a0;
         nAfter += 1;
     }
-    std::cout << "nBefore = " << nBefore << " nAfter = " << nAfter << " for " << *info.d << std::endl;
-    return (nAfter >= minRainBeforeAndAfter && nBefore >= minRainBeforeAndAfter);
+    // std::cout << "    nAfter = " << nAfter << " end = " << (a0 == info.nav.end()) << std::endl;
+    if( a0 == info.nav.end() && nAfter < minRainBeforeAndAfter )
+        return DONT_KNOW;
+
+    return (nAfter >= minRainBeforeAndAfter && nBefore >= minRainBeforeAndAfter) ? YES : NO;
 }
 
-bool PlumaticAlgorithm::isHighSingle(const Info& info)
+PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
 {
-    return info.dryMinutesBefore>=1
-        && info.dryMinutesAfter>=1
-        && info.d->original() >= veryUnlikelySingle;
+    // std::cout << "    checking for high single" << std::endl;
+    if( info.d->original() < veryUnlikelySingle)
+        return NO;
+    if( info.dryMinutesBefore<1 || info.dryMinutesAfter<1 )
+        return NO;
+    if( info.prev == info.nav.end() && info.dryMinutesBefore == 1 )
+        return DONT_KNOW;
+    if( info.next == info.nav.end() && info.dryMinutesAfter == 1 )
+        return DONT_KNOW;
+    return YES;
 }
 
-bool PlumaticAlgorithm::isHighStart(const Info& info)
+PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
 {
-    return info.dryMinutesBefore>=1
-        && info.dryMinutesAfter<1
-        && info.d->original() > veryUnlikelyStart;
+    // std::cout << "    checking for high start" << std::endl;
+    if( info.d->original() <= veryUnlikelyStart)
+        return NO;
+    if( info.dryMinutesBefore < 1 )
+        return NO;
+    if( info.dryMinutesBefore == 1 && info.prev == info.nav.end() )
+        return DONT_KNOW;
+    if( info.dryMinutesAfter < 1 )
+        return YES;
+    if( info.dryMinutesAfter == 1 && info.next == info.nav.end() )
+        return DONT_KNOW;
+    return YES;
 }
