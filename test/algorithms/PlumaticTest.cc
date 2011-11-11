@@ -1971,6 +1971,11 @@ TEST_F(PlumaticTest, DetectRainInterrupt)
         << "INSERT INTO data VALUES (27270, '2011-10-02 00:02:00', 0.5, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-02 00:03:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
 
+        << "INSERT INTO data VALUES (27270, '2011-10-02 00:12:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // rain interruption, but not enough rain before => high start
+        << "INSERT INTO data VALUES (27270, '2011-10-02 00:15:00', 0.5, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-02 00:16:00', 0.2, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
         << "INSERT INTO data VALUES (27270, '2011-10-02 01:00:00', 0,   105, '2011-10-02 00:05:52', 4, 0, 0, 0,   '0101000000000000', '7000000000000000', '');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
@@ -1978,17 +1983,19 @@ TEST_F(PlumaticTest, DetectRainInterrupt)
     Configure(params);
     
     ASSERT_NO_THROW(algo->run(params));
-    ASSERT_EQ(5, bc->count());
+    ASSERT_EQ(6, bc->count());
 
     EXPECT_EQ("2011-10-01 21:59:00", bc->updates()[0].obstime());
     EXPECT_EQ("2011-10-01 22:19:00", bc->updates()[1].obstime());
     EXPECT_EQ("2011-10-01 22:23:00", bc->updates()[2].obstime());
     EXPECT_EQ("2011-10-01 23:58:00", bc->updates()[3].obstime());
     EXPECT_EQ("2011-10-02 00:02:00", bc->updates()[4].obstime());
+    EXPECT_EQ("2011-10-02 00:15:00", bc->updates()[5].obstime());
 
     EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_EQ("0C01000000000000", bc->updates()[1].controlinfo().flagstring());
     EXPECT_EQ("0C01000000000000", bc->updates()[2].controlinfo().flagstring());
     EXPECT_EQ("0C01000000000000", bc->updates()[3].controlinfo().flagstring());
     EXPECT_EQ("0C01000000000000", bc->updates()[4].controlinfo().flagstring());
+    EXPECT_EQ("0A01000000000000", bc->updates()[5].controlinfo().flagstring());
 }

@@ -48,35 +48,40 @@ namespace {
 
 const float veryUnlikelySingle = 0.2;
 const float veryUnlikelyStart  = 0.3;
-const int   maxRainInterrupt = 6;
+const int   maxRainInterrupt = 5;
+const int   minRainBeforeAndAfter = 2;
 const float rainInterruptValue = 0.3;
 
-typedef std::list<kvalobs::kvData> kvDataList_t;
-typedef std::list<kvalobs::kvData>::iterator kvDataList_it;
+}; // anonymous namespace
 
-inline kvDataList_it before(kvDataList_it it)
-{ return --it; }
-
-inline kvDataList_it after(kvDataList_it it)
-{ return ++it; }
-
-kvDataList_it before(const kvDataList_it& begin, kvDataList_it it)
+PlumaticAlgorithm::Info::Info(Navigator& n)
+    : nav(n)
 {
-    --it;
-    while( it->obstime().min() == 0 && it->original() == 0.0f && it != begin )
-        --it;
-    return it;
 }
 
-kvDataList_it after(const kvDataList_it& end, kvDataList_it it)
+/* return previous non-0 precipitation, or end() if that does not exist */
+PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::previousNot0(kvDataList_it it)
+{
+    if( it == begin() )
+        return end();
+
+    --it;
+    while(it->original() == 0.0f) {
+        if( it == begin() )
+            return end();
+        --it;
+    }
+    return it;
+}
+    
+/* return next non-0 precipitation, or end() if that does not exist */
+PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataList_it it)
 {
     ++it;
-    while( it->obstime().min() == 0 && it->original() == 0.0f && after(it) != end )
+    while(it != end() && it->original() == 0.0f)
         ++it;
     return it;
 }
-
-}; // anonymous namespace
 
 void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 {
@@ -93,57 +98,100 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
+    miutil::miTime beforeUT0 = params.UT0, afterUT1 = params.UT1;
+    beforeUT0.addMin(-1);
+    afterUT1 .addMin( 1);
+
     foreach(const kvalobs::kvStation& station, StationList) {
         const C::DBConstraint cSeries = C::Station(station.stationID())
             && C::Paramid(pid) && C::Obstime(params.UT0 ,params.UT1);
-        std::list<kvalobs::kvData> series;
-        database()->selectData(series, cSeries, O::Obstime());
-        if( series.empty() )
+
+        kvDataList_t data;
+        database()->selectData(data, cSeries, O::Obstime());
+        if( data.empty() )
             continue;
+        
+        Navigator nav(data.begin(), data.end());
+        for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
+            Info info(nav);
 
-        for(kvDataList_it d = series.begin(); d != series.end(); ++d) {
-            const bool notFirst = (d != series.begin()), notLast = (after(d) != series.end());
-            const kvDataList_it befr = notFirst ? before(series.begin(), d) : series.begin();
-            const kvDataList_it aftr = notLast  ? after (series.end(),   d) : before(series.end());
-            //std::cout << "d= " << *d << "\n   befr=" << *befr << "\n   aftr=" << *aftr << std::endl;
-            
-            const int tDiffBefore = miutil::miTime::minDiff(d->obstime(), notFirst ? befr->obstime() : params.UT0);
-            const int tDiffAfter  = miutil::miTime::minDiff(notLast ? aftr->obstime() : params.UT1, d->obstime());
+            info.d = d;
+            info.prev = nav.previousNot0(d);
+            info.next = nav.nextNot0(d);
+            info.dryMinutesBefore = miutil::miTime::minDiff(d->obstime(), info.prev != nav.end() ? info.prev->obstime() : beforeUT0) - 1;
+            info.dryMinutesAfter  = miutil::miTime::minDiff(info.next != nav.end() ? info.next->obstime() : afterUT1, d->obstime()) - 1;
 
-            const bool dryBefore = tDiffBefore > 1 || (notFirst && befr->original() == 0.0f);
-            const bool dryAfter  = tDiffAfter  > 1 || (notLast  && aftr->original() == 0.0f);
-            //std::cout << "td b=" << tDiffBefore << " a=" << tDiffAfter << " db=" << dryBefore << " da=" << dryAfter << std::endl;
+            if( isRainInterruption(info) ) {
+                std::cout << "rain interruption between " << *info.prev << " and " << *info.d << std::endl;
 
-            if( notFirst && dryBefore && !dryAfter && tDiffBefore <= maxRainInterrupt && befr->original() >= rainInterruptValue && d->original() >= rainInterruptValue ) {
-                std::cout << "rain interruption between " << *befr << " and " << *d << std::endl;
+                info.prev->controlinfo(interruptedrain_flagchange.apply(info.prev->controlinfo()));
+                Helpers::updateUseInfo(*info.prev);
+                Helpers::updateCfailed(*info.prev, "QC2-plu-interruptedrain-0", CFAILED_STRING);
 
-                befr->controlinfo(interruptedrain_flagchange.apply(befr->controlinfo()));
-                Helpers::updateUseInfo(*befr);
-                Helpers::updateCfailed(*befr, "QC2-plu-interruptedrain-0", CFAILED_STRING);
-
-                d->controlinfo(interruptedrain_flagchange.apply(d->controlinfo()));
-                Helpers::updateUseInfo(*d);
-                Helpers::updateCfailed(*d, "QC2-plu-interruptedrain-1", CFAILED_STRING);
+                info.d->controlinfo(interruptedrain_flagchange.apply(info.d->controlinfo()));
+                Helpers::updateUseInfo(*info.d);
+                Helpers::updateCfailed(*info.d, "QC2-plu-interruptedrain-1", CFAILED_STRING);
 
                 kvDataList_t toWrite;
-                toWrite.push_back(*befr);
-                toWrite.push_back(*d);
+                toWrite.push_back(*info.prev);
+                toWrite.push_back(*info.d);
                 updateData(toWrite);
-            } else if( dryBefore && dryAfter && d->original() >= veryUnlikelySingle ) {
-                std::cout << "very unlikely value for single point " << *d << std::endl;
+            } else if( isHighSingle(info) ) {
+                std::cout << "very unlikely value for single point " << *info.d << std::endl;
 
-                d->controlinfo(highsingle_flagchange.apply(d->controlinfo()));
-                Helpers::updateUseInfo(*d);
-                Helpers::updateCfailed(*d, "QC2-plu-highsingle", CFAILED_STRING);
-                updateData(*d);
-            } else if( dryBefore && !dryAfter && d->original() > veryUnlikelyStart ) {
-                std::cout << "very unlikely value for start point " << *d << std::endl;
+                info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
+                Helpers::updateUseInfo(*info.d);
+                Helpers::updateCfailed(*info.d, "QC2-plu-highsingle", CFAILED_STRING);
+                updateData(*info.d);
+            } else if( isHighStart(info) ) {
+                std::cout << "very unlikely value for start point " << *info.d << std::endl;
 
-                d->controlinfo(highstart_flagchange.apply(d->controlinfo()));
-                Helpers::updateUseInfo(*d);
-                Helpers::updateCfailed(*d, "QC2-plu-highstart", CFAILED_STRING);
-                updateData(*d);
+                info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
+                Helpers::updateUseInfo(*info.d);
+                Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
+                updateData(*info.d);
             }
         }
     }
+}
+
+bool PlumaticAlgorithm::isRainInterruption(const Info& info)
+{
+    if( !(info.dryMinutesAfter<1
+          && info.dryMinutesBefore <= maxRainInterrupt
+          && info.prev != info.nav.end()
+          && info.prev->original() >= rainInterruptValue
+          && info.d->original() >= rainInterruptValue) )
+        return false;
+
+    // check that there is some rain before and after the "interrruption"
+    int nBefore = 1;
+    kvDataList_it before = info.prev, b0;
+    while( (b0 = info.nav.previousNot0(before)) != info.nav.end() && miutil::miTime::minDiff(before->obstime(), b0->obstime()) == 1 ) {
+        before = b0;
+        nBefore += 1;
+    }
+
+    int nAfter = 2; // info.d and info.next are already after the gap
+    kvDataList_it after = info.next, a0;
+    while( (a0 = info.nav.nextNot0(after)) != info.nav.end() && miutil::miTime::minDiff(a0->obstime(), after->obstime()) == 1 ) {
+        after = a0;
+        nAfter += 1;
+    }
+    std::cout << "nBefore = " << nBefore << " nAfter = " << nAfter << " for " << *info.d << std::endl;
+    return (nAfter >= minRainBeforeAndAfter && nBefore >= minRainBeforeAndAfter);
+}
+
+bool PlumaticAlgorithm::isHighSingle(const Info& info)
+{
+    return info.dryMinutesBefore>=1
+        && info.dryMinutesAfter>=1
+        && info.d->original() >= veryUnlikelySingle;
+}
+
+bool PlumaticAlgorithm::isHighStart(const Info& info)
+{
+    return info.dryMinutesBefore>=1
+        && info.dryMinutesAfter<1
+        && info.d->original() > veryUnlikelyStart;
 }
