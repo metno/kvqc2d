@@ -162,7 +162,7 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
     ReadProgramOptions params;
     Configure(params, 10, 19);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(6, bc->count());
 
     float acc_of_corrected = 0;
@@ -235,7 +235,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
     ReadProgramOptions params;
     Configure(params, 13, 17);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(4, bc->count());
 
     const float expected_corrected[4] = { 0.9, 2.8, 28.3, 6.3 };
@@ -248,7 +248,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
     }
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 }
 
@@ -263,7 +263,7 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
         << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00',    6.3, 110, '2011-10-14 05:00:00', 302, 0, 0,    6.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00',    6.7, 110, '2011-10-15 05:00:00', 302, 0, 0,    6.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   12.8, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-19 00:31:53', 302, 0, 0, -32767, '0000003000000000', '9999900000000000', '');"
         << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00',    0.6, 110, '2011-10-19 06:11:12', 302, 0, 0,    0.6, '0140000000000000', '7020400000000001', 'QC1-2-72.b12');"
 
@@ -304,11 +304,11 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
     ReadProgramOptions params;
     Configure(params, 16, 17);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     params.UT0 = "2011-10-15 06:00:00";
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 }
 
@@ -337,7 +337,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
     ReadProgramOptions params;
     Configure(params, 14, 17);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     sql.str("");
@@ -347,7 +347,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
         << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 }
 
@@ -360,10 +360,10 @@ TEST_F(RedistributionTest, TwoSeries)
         << "INSERT INTO data VALUES (83880, '2011-10-11 06:00:00',     -1, 110, '2011-10-11 06:03:01', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (83880, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (83880, '2011-10-13 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   12.8, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00',    6.5, 110, '2011-10-13 05:04:36', 302, 0, 0,    6.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   12.8, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-19 00:31:53', 302, 0, 0, -32767, '0000003000000000', '9999900000000000', '');"
         << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00',    0.6, 110, '2011-10-19 06:11:12', 302, 0, 0,    0.6, '0140000000000000', '7020400000000001', 'QC1-2-72.b12');"
 
@@ -404,7 +404,7 @@ TEST_F(RedistributionTest, TwoSeries)
     ReadProgramOptions params;
     Configure(params, 11, 18);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(4, bc->count());
 
     const float expected_corrected[4] = { 9.4, 3.4, 10.3, 2.5 };
@@ -428,28 +428,28 @@ TEST_F(RedistributionTest, MissingRows)
         << "INSERT INTO data VALUES (83880, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         // missing some rows here
         << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   10.0, 110, '2011-10-17 09:11:19', 302, 0, 0,   10.0, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
 
         << "INSERT INTO data VALUES (83520, '2011-10-12 06:00:00',    0.1, 110, '2011-10-12 06:59:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    2.5, 110, '2011-10-13 07:48:30', 302, 0, 0,    2.5, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (83520, '2011-10-14 06:00:00',    2.6, 110, '2011-10-14 06:11:24', 302, 0, 0,    2.6, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',    5.7, 110, '2011-10-15 07:16:28', 302, 0, 0,    5.7, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (83520, '2011-10-16 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (83520, '2011-10-17 06:00:00',   11.4, 110, '2011-10-17 06:23:10', 302, 0, 0,   11.4, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    2.0, 110, '2011-10-13 07:48:30', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-14 06:00:00',    2.0, 110, '2011-10-14 06:11:24', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',    2.0, 110, '2011-10-15 07:16:28', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-16 06:00:00',    2.0, 110, '2011-10-16 08:10:34', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-17 06:00:00',    2.0, 110, '2011-10-17 06:23:10', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
 
-        << "INSERT INTO data VALUES (84190, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 06:16:56', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    4.5, 110, '2011-10-13 06:23:40', 302, 0, 0,    4.5, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84190, '2011-10-14 06:00:00',    0.1, 110, '2011-10-14 06:05:03', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',    0.2, 110, '2011-10-16 15:13:23', 302, 0, 0,    0.2, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84190, '2011-10-16 06:00:00',    6.4, 110, '2011-10-16 15:13:23', 302, 0, 0,    6.4, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84190, '2011-10-17 06:00:00',      2, 110, '2011-10-17 06:19:35', 302, 0, 0,      2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-12 06:00:00',    2.0, 110, '2011-10-12 06:16:56', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    2.0, 110, '2011-10-13 06:23:40', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-14 06:00:00',    2.0, 110, '2011-10-14 06:05:03', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',    2.0, 110, '2011-10-16 15:13:23', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-16 06:00:00',    2.0, 110, '2011-10-16 15:13:23', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-17 06:00:00',    2.0, 110, '2011-10-17 06:19:35', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
 
-        << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 05:29:19', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00',    2.1, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.1, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    0.6, 110, '2011-10-14 05:34:52', 302, 0, 0,    0.6, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');";
+        << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',    2.0, 110, '2011-10-12 05:29:19', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     ReadProgramOptions params;
@@ -458,17 +458,115 @@ TEST_F(RedistributionTest, MissingRows)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(5, bc->count());
 
-    // const float expected_corrected[4] = { 9.4, 3.4, 10.3, 2.5 };
-    // const char* expected_controlinfo[4] = { "0000001000007000", "0140004000007000", "0000001000007000", "0140004000007000" };
-    // const miutil::miTime expected_obstime[4] = { "2011-10-13 06:00:00", "2011-10-14 06:00:00", "2011-10-16 06:00:00", "2011-10-17 06:00:00" };
-    // for(int i=0; i<bc->count(); ++i) {
-    //     const kvalobs::kvData& d = bc->updates()[i];
-    //     SCOPED_TRACE(testing::Message() << "Update #" << i);
-    //     EXPECT_EQ(83880, d.stationID());
-    //     EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
-    //     EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring());
-    //     EXPECT_EQ(expected_obstime[i], d.obstime());
-    // }
+    for(int i=0; i<bc->count(); ++i) {
+        const kvalobs::kvData& d = bc->updates()[i];
+        SCOPED_TRACE(testing::Message() << "Update #" << i);
+        EXPECT_EQ(83880, d.stationID());
+        EXPECT_FLOAT_EQ(2.0f, d.corrected());
+    }
+}
+
+TEST_F(RedistributionTest, ReRun)
+{
+    // redistribute also if station has missing rows
+    std::ostringstream sql;
+    sql // some data are fake
+        << "INSERT INTO data VALUES (83880, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
+        // missing some rows here
+        << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   10.0, 110, '2011-10-17 09:11:19', 302, 0, 0,   10.0, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+
+        << "INSERT INTO data VALUES (83520, '2011-10-12 06:00:00',    0.1, 110, '2011-10-12 06:59:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    2.0, 110, '2011-10-13 07:48:30', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-14 06:00:00',    2.0, 110, '2011-10-14 06:11:24', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',    2.0, 110, '2011-10-15 07:16:28', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-16 06:00:00',    2.0, 110, '2011-10-16 08:10:34', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-17 06:00:00',    2.0, 110, '2011-10-17 06:23:10', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (84190, '2011-10-12 06:00:00',    2.0, 110, '2011-10-12 06:16:56', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    2.0, 110, '2011-10-13 06:23:40', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-14 06:00:00',    2.0, 110, '2011-10-14 06:05:03', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',    2.0, 110, '2011-10-16 15:13:23', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-16 06:00:00',    2.0, 110, '2011-10-16 15:13:23', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-17 06:00:00',    2.0, 110, '2011-10-17 06:19:35', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',    2.0, 110, '2011-10-12 05:29:19', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00',    2.0, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.0, '0110000000001000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    Configure(params, 12, 17);
+
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(5, bc->count());
+
+    std::list<kvalobs::kvData> series;
+    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_EQ(6, series.size());
+
+    for(int i=0; i<bc->count(); ++i) {
+        const kvalobs::kvData& d = bc->updates()[i];
+        SCOPED_TRACE(testing::Message() << "Update #" << i);
+        EXPECT_EQ(83880, d.stationID());
+        EXPECT_FLOAT_EQ(2.0f, d.corrected());
+    }
+
+    std::stringstream config;
+    config << "Start_YYYY = 2011" << std::endl
+           << "Start_MM   =   10" << std::endl
+           << "Start_DD   =   12" << std::endl
+           << "Start_hh   =   06" << std::endl
+           << "End_YYYY   = 2011" << std::endl
+           << "End_MM     =   10" << std::endl
+           << "End_DD     =   17" << std::endl
+           << "End_hh     =   06" << std::endl
+           << "InterpCode=2"  << std::endl
+           << "Step_DD=1"  << std::endl
+           << "ParamId=110"  << std::endl
+           << "TypeIds=302"  << std::endl
+           << "TypeIds=402"  << std::endl
+           << "endpoint_cflags     = ___.__4.___.7__0" << std::endl //changed wrt. default configuration
+           << "missingpoint_cflags = ___.__1.___.7__0" << std::endl //changed wrt. default configuration
+           << "neighbor_cflags     = ___.___.___.1__." << std::endl
+           << "neighbor_uflags     = __0.___.___.___." << std::endl
+           << "before_cflags       = ___.__[04].___.___." << std::endl
+           << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
+           << "InterpolationDistance=50.0"  << std::endl;
+    params.Parse(config);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
+
+    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_EQ(6, series.size());
+
+    sql.str("");
+    sql << "UPDATE data SET original = 3.0, corrected = 3.0 WHERE obstime = '2011-10-13 06:00:00' AND stationid IN (83520, 84190, 84070);"
+        << "UPDATE data SET original = 1.0, corrected = 1.0 WHERE obstime = '2011-10-14 06:00:00' AND stationid IN (83520, 84190, 84070);";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_EQ(6, series.size());
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(5, bc->count());
+
+    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_EQ(6, series.size());
+
+    const float expected_corrected[45] = { 3.0, 1.0, 2.0, 2.0, 2.0 };
+    for(int i=0; i<bc->count(); ++i) {
+        const kvalobs::kvData& d = bc->updates()[i];
+        SCOPED_TRACE(testing::Message() << "Update #" << i);
+        EXPECT_EQ(83880, d.stationID());
+        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
+    }
 }
 
 TEST_F(RedistributionTest, OneOfTwoTypeids)
@@ -496,7 +594,7 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
     ReadProgramOptions params;
     Configure(params, 11, 18);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 
     const float expected_corrected[2] = { 9.8, 0.2 };
@@ -532,14 +630,14 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
     ReadProgramOptions params;
     Configure(params, 11, 18);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     sql.str("");
     sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190) AND obstime = '2011-10-13 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 }
 
@@ -571,14 +669,14 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
     ReadProgramOptions params;
     Configure(params, 11, 18);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     sql.str("");
     sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190, 84070) AND obstime = '2011-10-13 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(3, bc->count());
 }
 
@@ -629,7 +727,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "InterpolationDistance=5.0" << std::endl;
     params.Parse(config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     std::stringstream confiG;
@@ -655,7 +753,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
         // neighbors within 50 km => action
            << "InterpolationDistance=50.0" << std::endl;
     params.Parse(confiG);
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(4, bc->count());
 }
 
@@ -684,7 +782,7 @@ TEST_F(RedistributionTest, BoneDry)
     ReadProgramOptions params;
     Configure(params, 11, 18);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 
     const float expected_corrected[2] = { -1, 0.1 };
@@ -732,7 +830,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
     ReadProgramOptions params;
     Configure(params, 10, 17);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     sql.str("");
@@ -742,7 +840,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
         << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(4, bc->count());
 }
 
@@ -812,7 +910,7 @@ TEST_F(RedistributionTest, Release113)
     params.UT1 = "2011-05-16 06:00:00";
 
     // with bad fd flags, make sure that the redistribution does not run
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 
     // now fix the fd flags and make sure that the redistribution runs
@@ -820,7 +918,7 @@ TEST_F(RedistributionTest, Release113)
     sql << "UPDATE data SET controlinfo = '0000003000002000' WHERE stationid = 66100 AND obstime BETWEEN '2011-05-07 06:00:00' AND '2011-05-12 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(10, bc->count());
 }
 
@@ -886,7 +984,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
         << "INSERT INTO data VALUES (83880, '2011-10-14 06:00:00',    6.3, 110, '2011-10-14 05:00:00', 302, 0, 0,    6.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (83880, '2011-10-15 06:00:00',    6.7, 110, '2011-10-15 05:00:00', 302, 0, 0,    6.5, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
         << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
-        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   12.8, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
         << "INSERT INTO data VALUES (83880, '2011-10-18 06:00:00', -32767, 110, '2011-10-19 00:31:53', 302, 0, 0, -32767, '0000003000000000', '9999900000000000', '');"
         << "INSERT INTO data VALUES (83880, '2011-10-19 06:00:00',    0.6, 110, '2011-10-19 06:11:12', 302, 0, 0,    0.6, '0140000000000000', '7020400000000001', 'QC1-2-72.b12');"
 
@@ -927,7 +1025,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
     ReadProgramOptions params;
     Configure(params, 13, 17);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 
     const float expected_corrected[2] = { 10.5, 2.3 };
@@ -948,6 +1046,6 @@ TEST_F(RedistributionTest, Bugzilla1333)
     }
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(0, bc->count());
 }

@@ -38,8 +38,8 @@
 #include <milog/milog.h>
 #include "foreach.h"
 
-#define DBG(x) do { LOGDEBUG(x); /*std::cout << x << std::endl;*/ } while(false);
-#define INF(x) do { LOGINFO(x);  /*std::cout << x << std::endl;*/ } while(false);
+#define DBG(x) do { LOGDEBUG(x); /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
+#define INF(x) do { LOGINFO(x);  /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
 
 namespace C = Constraint;
 namespace O = Ordering;
@@ -94,12 +94,13 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         && C::Obstime(Helpers::plusDay(beforeMissing.obstime(), 1), stepTime(endpoint.obstime()));
     database()->selectData(mdata, cMissing, O::Obstime().desc());
 
+    DBG("  missingdata.size=" << mdata.size());
     foreach(const kvalobs::kvData& md, mdata)
         DBG("    missingdata md=" << md);
 
     foreach(const kvalobs::kvData& m, mdata) {
         if( !missingpoint_flags.matches(m) ) {
-            DBG("missing values do not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint);
+            DBG("'missing' value " << m << " does not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint);
             return false;
         }
     }
@@ -127,7 +128,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
     mdata.push_front(endpoint);
 
     foreach(const kvalobs::kvData& md, mdata)
-        DBG("  final missingdata md=" << md);
+        DBG("  final redistribution series: " << md);
 
     return true;
 }
@@ -145,6 +146,7 @@ bool RedistributionAlgorithm::findPointBeforeMissing(const kvalobs::kvData& endp
 
     // TODO use MAX(...) in SQL, we are not interested in the others anyhow
     database()->selectData(startdata, cBeforeMissing, O::Obstime().desc());
+    DBG("  startdata.size=" << startdata.size());
     foreach(const kvalobs::kvData& sd, startdata)
         DBG("    startdata sd=" << sd);
     if( !startdata.empty() ) {
@@ -223,8 +225,7 @@ void RedistributionAlgorithm::run(const ReadProgramOptions& params)
 
         // get series back in time from endpoint to last missing
         dataList_t accumulation;
-        //const miutil::miTime fakeTableTime("2121-01-01 00:00:00.12345");
-        const miutil::miTime fakeTableTime = miutil::miTime::nowTime();
+        const miutil::miTime fakeTableTime("2121-01-01 00:00:00.12345");
         if( !findMissing(endpoint, beforeMissing, fakeTableTime, accumulation) )
             continue;
 
@@ -274,6 +275,9 @@ void RedistributionAlgorithm::redistributePrecipitation(dataList_t& before, data
     // where nT_S has time T and stationid S
     // forward iterating through ndata yields n3_1 n3_2 n3_3 n2_1 n2_2 n1_1 n1_2 n1_4 (backwards in time)
     
+    std::vector<float> corrected;
+    corrected.reserve(before.size());
+
     std::vector<bool> hasNeigboursWithPrecipitation;
     float weightedNeighborsAccumulated = 0;
     dataList_t::const_iterator itN = ndata.begin();
@@ -305,30 +309,40 @@ void RedistributionAlgorithm::redistributePrecipitation(dataList_t& before, data
         const float weightedNeighbors = sumWeightedValues/sumWeights;
         weightedNeighborsAccumulated += weightedNeighbors;
     
-        itB->corrected(weightedNeighbors);
-        itB->controlinfo(update_flagchange.apply(itB->controlinfo()));
-        Helpers::updateUseInfo(*itB);
+        corrected.push_back(weightedNeighbors);
         cfailed << ",QC2-redist";
         Helpers::updateCfailed(*itB, cfailed.str(), CFAILED_STRING);
     }
+    DBG("corrected: " << corrected.size() << " before:" << before.size());
     
+    bool hasChanges = false;
     float corrected_sum = 0;
     const float scale = dry2real(before.front().original()) / weightedNeighborsAccumulated;
+    std::vector<float>::iterator itC = corrected.begin();
     foreach(kvalobs::kvData& b, before) {
-        const float b_corrected = round<float, 1>(b.corrected() * scale);
-        corrected_sum += b_corrected;
-        b.corrected(real2dry(b_corrected)); // bugzilla 1304: by default assume dry
+        *itC = round<float, 1>(*itC * scale);
+        const kvalobs::kvControlInfo b_controlinfo(update_flagchange.apply(b.controlinfo()));
+        if( b_controlinfo.flagstring() != b.controlinfo().flagstring() ) {
+            DBG("b_controlinfo['" << b_controlinfo.flagstring() << " != b.controlinfo[" << b.controlinfo().flagstring() << "]");
+            hasChanges = true;
+        }
+        corrected_sum += *itC;
+        *itC = real2dry(*itC); // bugzilla 1304: by default assume dry
+        b.controlinfo(b_controlinfo);
+        Helpers::updateUseInfo(b);
+        ++itC;
     }
 
     // make sure that sum of re-distributed is the same as the original accumulated value
     std::vector<bool>::const_iterator itNP = hasNeigboursWithPrecipitation.begin();
+    itC = corrected.begin();
     float delta = round<float,1>(corrected_sum - dry2real(before.front().original()));
-    itB = before.begin();
-    for( ; delta > 0.0f && itB != before.end(); ++itB, ++itNP ) {
-        const float oc = itB->corrected();
+    for( ; delta > 0.0f && itC != corrected.end(); ++itC, ++itNP ) {
+        const float oc = *itC;
+        DBG("oc=" << oc);
         if( (*itNP && oc >= delta+0.1) || (!*itNP && oc>0.05) ) {
             const float nc = std::max(round<float, 1>(oc - delta), 0.0f);
-            itB->corrected(nc);
+            *itC = nc;
             delta = round<float, 1>(delta - (oc - nc));
         }
     }
@@ -336,18 +350,33 @@ void RedistributionAlgorithm::redistributePrecipitation(dataList_t& before, data
         LOGWARN("Could not avoid difference between distributed sum and accumulated value at endpoint=" << before.front());
     }
 
-    // we accumulated the corrections in time-reversed order, while we want to send it with increasing time => push_front
-    toWrite = dataList_t(before.rbegin(), before.rend());
+    itC = corrected.begin();
+    foreach(kvalobs::kvData& b, before) {
+        DBG("*itC[" << *itC << "], b.corrected[" << b.corrected() << "], equal? " << equal(*itC, b.corrected()) );
+        if( !equal(*itC, b.corrected()) )
+            hasChanges = true;
+        b.corrected(*itC);
+        ++itC;
+    }
+
+    DBG("hasChanges=" << hasChanges);
+    if( hasChanges )
+        // we accumulated the corrections in time-reversed order, while we want to send it with increasing time => push_front
+        toWrite = dataList_t(before.rbegin(), before.rend());
 }
 
 // ------------------------------------------------------------------------
 
 void RedistributionAlgorithm::updateOrInsertData(const dataList_t& toStore, const miutil::miTime& fakeTableTime)
 {
+    const miutil::miTime now = miutil::miTime::nowTime();
     dataList_t toUpdate, toInsert;
     foreach(const kvalobs::kvData& d, toStore) {
         if( d.tbtime() == fakeTableTime ) {
-            toInsert.push_back(d);
+            // cannot set tbtime in libkvcpp-dev 2.2.0-lucid2
+            kvalobs::kvData dd(d.stationID(), d.obstime(), d.original(), d.paramID(), now, d.typeID(), d.sensor(),
+                               d.level(), d.corrected(), d.controlinfo(), d.useinfo(), d.cfailed());
+            toInsert.push_back(dd);
         } else {
             toUpdate.push_back(d);
         }

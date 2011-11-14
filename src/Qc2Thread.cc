@@ -77,16 +77,19 @@ void Qc2Work::operator() ()
         // XXX will this run all algorithms? -- 16:20 start for 20min, 16:25 start for other => other run?
         miutil::miTime now = miutil::miTime::nowTime();
         now.addSec(-now.sec());
+        LOGINFO("now = " << now);
 
         foreach(const std::string& cf, config_files) {
             params.Parse( cf );
             const miutil::miTime runAt(now.year(), now.month(), now.day(), params.RunAtHour, params.RunAtMinute, 0);
+            LOGINFO("runAt = " << runAt);
             if( runAt > lastEnd && runAt <= now ) {
                 if( runAt < now )
                     LOGINFO("Algorithm scheduled for "
                             << std::setw(2) << std::setfill('0') << runAt.hour() << ':'
                             << std::setw(2) << std::setfill('0') << runAt.min() << " is delayed");
                 try {
+                    LOGINFO("trying to run " << params.Algorithm);
                     Processor.select(params);
                 } catch ( dnmi::db::SQLException & ex ) {
                     LOGERROR( "Exception: " << ex.what() << std::endl );

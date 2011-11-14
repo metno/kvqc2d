@@ -207,13 +207,13 @@ void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& t
         return;
     std::ostringstream sql;
     if( (toUpdate.size() + toInsert.size()) > 1 )
-        sql << "BEGIN; ";
+        sql << "BEGIN; " << std::endl;
     foreach(const kvalobs::kvData& i, toInsert)
-        sql << "INSERT INTO " << i.tableName() << " VALUES" << i.toSend() << "; ";
+        sql << "INSERT INTO " << i.tableName() << " VALUES" << i.toSend() << "; " << std::endl;
     foreach(const kvalobs::kvData& u, toUpdate)
-        sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
+        sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; " << std::endl;
     if( (toUpdate.size() + toInsert.size()) > 1 )
-        sql << "COMMIT; " << std::endl;
+        sql << "COMMIT; " << std::endl << std::endl;
 
     // std::cout << "------------------------------------------------------------------------" << std::endl;
     // std::cout << __PRETTY_FUNCTION__ << " sql='" << sql.str() << "'" << std::endl;
