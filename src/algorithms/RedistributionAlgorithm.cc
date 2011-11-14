@@ -383,7 +383,3 @@ void RedistributionAlgorithm::updateOrInsertData(const dataList_t& toStore, cons
     }
     storeData(toUpdate, toInsert);
 }
-
-//
-// MISSING: re-running the redistribution, and writing only if changed
-//
