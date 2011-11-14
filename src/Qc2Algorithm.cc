@@ -34,19 +34,22 @@ void Qc2Algorithm::fillStationIDList(std::list<int>& idList)
     fillStationLists(stations, idList);
 }
 
-void Qc2Algorithm::updateData(const kvalobs::kvData& toWrite)
+void Qc2Algorithm::updateSingle(const kvalobs::kvData& update)
 {
-    database()->insertData(toWrite, true);
-    broadcaster()->queueChanged(toWrite);
-    broadcaster()->sendChanges();
+    const std::list<kvalobs::kvData> toUpdate(1, update);
+    storeData(toUpdate);
 }
 
-void Qc2Algorithm::updateData(const std::list<kvalobs::kvData>& toWrite)
+void Qc2Algorithm::storeData(const std::list<kvalobs::kvData>& toUpdate, const std::list<kvalobs::kvData>& toInsert)
 {
-    database()->insertData(toWrite, true);
-    foreach(const kvalobs::kvData& w, toWrite) {
-        broadcaster()->queueChanged(w);
-        LOGINFO(mName + ": " + Helpers::kvqc2logstring(w) );
+    database()->storeData(toUpdate, toInsert);
+    foreach(const kvalobs::kvData& i, toInsert) {
+        broadcaster()->queueChanged(i);
+        LOGINFO(mName + " NEW ROW: " + Helpers::kvqc2logstring(i) );
+    }
+    foreach(const kvalobs::kvData& u, toUpdate) {
+        broadcaster()->queueChanged(u);
+        LOGINFO(mName + ": " + Helpers::kvqc2logstring(u) );
     }
     broadcaster()->sendChanges();
 }

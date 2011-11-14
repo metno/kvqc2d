@@ -125,7 +125,7 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
                     dwrite.controlinfo(fc.apply(dwrite.controlinfo()));
                     Helpers::updateCfailed(dwrite, "QC2d-2-A", params.CFAILED_STRING);
                     Helpers::updateUseInfo(dwrite);
-                    updateData(dwrite);
+                    updateSingle(dwrite);
                 }
             }
         }

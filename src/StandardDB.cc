@@ -61,21 +61,19 @@ void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, con
         throw DBException("Database problem with SELECT stationparam " + where);
 }
 
-void StandardDB::insertData(const kvDataList_t& d, bool update) throw (DBException)
+void StandardDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
 {
-    if( d.empty() )
+    if( toUpdate.empty() && toInsert.empty() )
         return;
     std::ostringstream sql;
-    if( d.size()>1 )
+    if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "BEGIN; ";
-    foreach(const kvalobs::kvData& data, d) {
-        if( update )
-            sql << "UPDATE " << data.tableName() << " " << data.toUpdate() << "; ";
-        else
-            sql << "INSERT INTO " << data.tableName() << " VALUES" << data.toSend() << "; ";
-    }
-    if( d.size()>1 )
+    foreach(const kvalobs::kvData& i, toInsert)
+        sql << "INSERT INTO " << i.tableName() << " VALUES" << i.toSend() << "; ";
+    foreach(const kvalobs::kvData& u, toUpdate)
+        sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
+    if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl;
     if( !mDbGate.exec(sql.str()) )
-        throw DBException("Database problem with " + std::string(update ? " UPDATE: " : " INSERT: ") + mDbGate.getErrorStr());
+        throw DBException("Database problem with UPDATE/INSERT: " + mDbGate.getErrorStr());
 }

@@ -117,7 +117,7 @@ void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int
            << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
            << "neighbor_cflags     = ___.___.___.1__." << std::endl
            << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_uflags       = ___.___.___.___." << std::endl
+           << "before_cflags       = ___.__[04].___.___." << std::endl
            << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
            << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
@@ -420,6 +420,57 @@ TEST_F(RedistributionTest, TwoSeries)
     }
 }
 
+TEST_F(RedistributionTest, MissingRows)
+{
+    // redistribute also if station has missing rows
+    std::ostringstream sql;
+    sql // some data are fake
+        << "INSERT INTO data VALUES (83880, '2011-10-12 06:00:00',    0.3, 110, '2011-10-12 05:11:04', 302, 0, 0,    0.3, '0140000000001000', '7020400000000001', 'QC1-2-72.b12');"
+        // missing some rows here
+        << "INSERT INTO data VALUES (83880, '2011-10-16 06:00:00', -32767, 110, '2011-10-17 00:30:56', 302, 0, 0, -32767, '0000003000002000', '7899900000000000', 'QC1-7-110');"
+        << "INSERT INTO data VALUES (83880, '2011-10-17 06:00:00',   12.8, 110, '2011-10-17 09:11:19', 302, 0, 0,   38.3, '0140004000002000', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
+
+        << "INSERT INTO data VALUES (83520, '2011-10-12 06:00:00',    0.1, 110, '2011-10-12 06:59:40', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-13 06:00:00',    2.5, 110, '2011-10-13 07:48:30', 302, 0, 0,    2.5, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-14 06:00:00',    2.6, 110, '2011-10-14 06:11:24', 302, 0, 0,    2.6, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-15 06:00:00',    5.7, 110, '2011-10-15 07:16:28', 302, 0, 0,    5.7, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-16 06:00:00',   54.2, 110, '2011-10-16 08:10:34', 302, 0, 0,   54.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (83520, '2011-10-17 06:00:00',   11.4, 110, '2011-10-17 06:23:10', 302, 0, 0,   11.4, '0110000000001000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (84190, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 06:16:56', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-13 06:00:00',    4.5, 110, '2011-10-13 06:23:40', 302, 0, 0,    4.5, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-14 06:00:00',    0.1, 110, '2011-10-14 06:05:03', 302, 0, 0,    0.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-15 06:00:00',    0.2, 110, '2011-10-16 15:13:23', 302, 0, 0,    0.2, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-16 06:00:00',    6.4, 110, '2011-10-16 15:13:23', 302, 0, 0,    6.4, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84190, '2011-10-17 06:00:00',      2, 110, '2011-10-17 06:19:35', 302, 0, 0,      2, '0110000000001000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (84070, '2011-10-12 06:00:00',     -1, 110, '2011-10-12 05:29:19', 302, 0, 0,     -1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-13 06:00:00',    2.1, 110, '2011-10-14 05:34:52', 302, 0, 0,    2.1, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-14 06:00:00',    0.6, 110, '2011-10-14 05:34:52', 302, 0, 0,    0.6, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-15 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-16 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (84070, '2011-10-17 06:00:00',   1.00, 110, '2011-10-14 05:34:52', 302, 0, 0,   1.00, '0110000000001000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    Configure(params, 12, 17);
+
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(5, bc->count());
+
+    // const float expected_corrected[4] = { 9.4, 3.4, 10.3, 2.5 };
+    // const char* expected_controlinfo[4] = { "0000001000007000", "0140004000007000", "0000001000007000", "0140004000007000" };
+    // const miutil::miTime expected_obstime[4] = { "2011-10-13 06:00:00", "2011-10-14 06:00:00", "2011-10-16 06:00:00", "2011-10-17 06:00:00" };
+    // for(int i=0; i<bc->count(); ++i) {
+    //     const kvalobs::kvData& d = bc->updates()[i];
+    //     SCOPED_TRACE(testing::Message() << "Update #" << i);
+    //     EXPECT_EQ(83880, d.stationID());
+    //     EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
+    //     EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring());
+    //     EXPECT_EQ(expected_obstime[i], d.obstime());
+    // }
+}
+
 TEST_F(RedistributionTest, OneOfTwoTypeids)
 {
     // may only redistribute among same typeid
@@ -572,7 +623,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
            << "neighbor_cflags     = ___.___.___.1__." << std::endl
            << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_uflags       = ___.___.___.___." << std::endl
+           << "before_cflags       = ___.__[04].___.___." << std::endl
            << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
         // only neighbors within 5 km => none
            << "InterpolationDistance=5.0" << std::endl;
@@ -599,7 +650,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
            << "neighbor_cflags     = ___.___.___.1__." << std::endl
            << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_uflags       = ___.___.___.___." << std::endl
+           << "before_cflags       = ___.__[04].___.___." << std::endl
            << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
         // neighbors within 50 km => action
            << "InterpolationDistance=50.0" << std::endl;

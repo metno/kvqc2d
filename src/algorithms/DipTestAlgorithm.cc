@@ -230,5 +230,5 @@ void DipTestAlgorithm::writeChanges(const kvalobs::kvData& dip, const kvalobs::k
     std::list<kvalobs::kvData> write;
     write.push_back(wdip);
     write.push_back(wafter);
-    updateData(write);
+    storeData(write);
 }

@@ -172,6 +172,17 @@ LevelImpl& LevelImpl::add(int lvl)
 
 const char* LevelImpl::level = "level";
 
+std::string SameDeviceImpl::sql() const
+{
+    std::ostringstream s;
+    s << "stationid=" << mStationID << " AND "
+      << "paramid="   << mParamID   << " AND "
+      << "typeid="    << mTypeID    << " AND "
+      << "sensor='"   << mSensor    << "' AND "
+      << "level="     << mLevel;
+    return s.str();
+}
+
 std::string AndImpl::sql() const
 {
     const std::string sqlA = mA.sql(), sqlB = mB.sql();

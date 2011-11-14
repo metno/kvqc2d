@@ -83,15 +83,21 @@ public:
     virtual void selectStations(kvStationList_t&) throw (DBException) = 0;
 
     /**
-     * Insert data to table tblName (or main table), replacing existing data if replace is true.
+     * Update and insert data.
      */
-    virtual void insertData(const kvDataList_t&, bool replace=false) throw (DBException) = 0;
+    virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException) = 0;
 
     /**
-     * Insert single data item to table tblName (or main table), replacing existing data if replace is true.
-     * Calls insert.
+     * Updates single data item in its table.
+     * Calls storeData.
      */
-    void insertData(const kvalobs::kvData&, bool replace=false) throw (DBException);
+    void updateSingle(const kvalobs::kvData& toUpdate) throw (DBException);
+
+    /**
+     * Insert a single data item to its table.
+     * Calls storeData.
+     */
+    void insertSingle(const kvalobs::kvData& toInsert) throw (DBException);
 
 };
 

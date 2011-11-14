@@ -44,7 +44,7 @@ public:
     virtual void selectData(kvDataList_t&, const miutil::miString& where)  throw (DBException);
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void selectStations(kvStationList_t&) throw (DBException);
-    virtual void insertData(const kvDataList_t&, bool replace) throw (DBException);
+    virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
     void exec(const std::string& statement) throw (DBException);
 private:
     sqlite3 *db;

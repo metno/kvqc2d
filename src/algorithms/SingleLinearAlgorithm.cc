@@ -170,5 +170,5 @@ void SingleLinearAlgorithm::writeChanges(const kvalobs::kvData& middle, const fl
     Helpers::updateCfailed(dwrite, "QC2d-2", CFAILED_STRING);
     Helpers::updateUseInfo(dwrite);
 
-    updateData(dwrite);
+    updateSingle(dwrite);
 }

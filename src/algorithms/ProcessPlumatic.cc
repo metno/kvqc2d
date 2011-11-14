@@ -129,6 +129,12 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 
             CheckResult ri = isRainInterruption(info), hsi = isHighSingle(info), hst = isHighStart(info);
 
+//
+// KNOWN PROBLEMS: device out of service, not clear how to detect this
+// MISSING: sliding aggregation + flagging of large aggregation values
+// WISHLIST: list of stations to avoid querying all stations
+//
+
             if( ri != NO ) {
                 if( ri == YES ) {
                     std::cout << "  rain interruption since " << *info.prev << std::endl;
@@ -144,7 +150,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
                     kvDataList_t toWrite;
                     toWrite.push_back(*info.prev);
                     toWrite.push_back(*info.d);
-                    updateData(toWrite);
+                    storeData(toWrite);
                 } else {
                     std::cout << "  maybe rain interruption since " << std::flush;
                     if( info.prev != nav.end())
@@ -159,7 +165,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
                     info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
                     Helpers::updateUseInfo(*info.d);
                     Helpers::updateCfailed(*info.d, "QC2-plu-highsingle", CFAILED_STRING);
-                    updateData(*info.d);
+                    updateSingle(*info.d);
                 } else {
                     std::cout << "  maybe unlikely value for single point" << std::endl;
                 }
@@ -170,7 +176,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
                     info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
                     Helpers::updateUseInfo(*info.d);
                     Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
-                    updateData(*info.d);
+                    updateSingle(*info.d);
                 } else {
                     std::cout << "  maybe unlikely value for start point" << std::endl;
                 }

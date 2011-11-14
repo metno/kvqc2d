@@ -203,6 +203,16 @@ private:
 };
 typedef SQLBuilderPointer<LevelImpl> Level;
 
+class SameDeviceImpl : public DBConstraintImpl {
+public:
+    SameDeviceImpl(const kvalobs::kvData& d)
+        : mStationID(d.stationID()), mParamID(d.paramID()), mTypeID(d.typeID()), mSensor(d.sensor()), mLevel(d.level()) { }
+    virtual std::string sql() const;
+private:
+    int mStationID, mParamID, mTypeID, mSensor, mLevel;
+};
+typedef SQLBuilderPointer<SameDeviceImpl> SameDevice;
+
 class AndImpl : public DBConstraintImpl {
 public:
     AndImpl(const DBConstraint& a, const DBConstraint& b)

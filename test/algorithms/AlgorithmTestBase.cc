@@ -201,16 +201,24 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
         throw DBException(sql);
 }
 
-void SqliteTestDB::insertData(const kvDataList_t& dl, bool replace) throw (DBException)
+void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
 {
+    if( toUpdate.empty() && toInsert.empty() )
+        return;
     std::ostringstream sql;
-    foreach(const kvalobs::kvData& d, dl) {
-        if( replace ) {
-            sql << "UPDATE data " << d.toUpdate() << ";" << std::endl;
-        } else {
-            sql << "INSERT INTO data VALUES(" << d.toUpload() << ");" << std::endl;
-        }
-    }
+    if( (toUpdate.size() + toInsert.size()) > 1 )
+        sql << "BEGIN; ";
+    foreach(const kvalobs::kvData& i, toInsert)
+        sql << "INSERT INTO " << i.tableName() << " VALUES" << i.toSend() << "; ";
+    foreach(const kvalobs::kvData& u, toUpdate)
+        sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
+    if( (toUpdate.size() + toInsert.size()) > 1 )
+        sql << "COMMIT; " << std::endl;
+
+    // std::cout << "------------------------------------------------------------------------" << std::endl;
+    // std::cout << __PRETTY_FUNCTION__ << " sql='" << sql.str() << "'" << std::endl;
+    // std::cout << "------------------------------------------------------------------------" << std::endl;
+
     exec(sql.str());
 }
 

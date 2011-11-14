@@ -20,12 +20,14 @@ public:
 private:
     void configure(const ReadProgramOptions& params);
     std::list<int> findNeighbors(int stationID);
-    void getMissingBefore(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, dataList_t& bdata);
-    bool checkAndTrimSeries(dataList_t& bdata);
-    bool checkPointBeforeMissing(const dataList_t& accumulation);
+
+    bool findMissing(const kvalobs::kvData& endpoint, const kvalobs::kvData& beforeMissing, const miutil::miTime& fakeTableTime, dataList_t& mdata);
+    bool findPointBeforeMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, kvalobs::kvData& latestBefore);
+
     bool getNeighborData(const dataList_t& accumulation, dataList_t& ndata);
-    void redistributeDry(dataList_t& accumulation);
-    void redistributePrecipitation(dataList_t& accumulation);
+    void redistributeDry(const dataList_t& accumulation, dataList_t& toWrite);
+    void redistributePrecipitation(dataList_t& accumulation, dataList_t& toWrite);
+    void updateOrInsertData(const dataList_t& toStore, const miutil::miTime& fakeTableTime);
     
     miutil::miTime stepTime(const miutil::miTime& time);
 

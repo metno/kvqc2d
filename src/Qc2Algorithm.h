@@ -59,8 +59,8 @@ public:
     void fillStationIDList(std::list<int>& idList);
 
 protected:
-    void updateData(const kvalobs::kvData& toWrite);
-    void updateData(const std::list<kvalobs::kvData>& toWrite);
+    void updateSingle(const kvalobs::kvData& update);
+    void storeData(const std::list<kvalobs::kvData>& toUpdate, const std::list<kvalobs::kvData>& toInsert = std::list<kvalobs::kvData>());
 
 private:
     DBInterface* mDatabase;

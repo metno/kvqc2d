@@ -69,8 +69,14 @@ void DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& wh
     return selectData(r, WHERE(where) + ORDER_BY(order_by));
 }
 
-void DBInterface::insertData(const kvalobs::kvData& d, bool replace) throw (DBException)
+void DBInterface::updateSingle(const kvalobs::kvData& update) throw (DBException)
 {
-    const kvDataList_t datalist(1, d);
-    return insertData(datalist, replace);
+    const kvDataList_t toUpdate(1, update), toInsert;
+    return storeData(toUpdate, toInsert);
+}
+
+void DBInterface::insertSingle(const kvalobs::kvData& insert) throw (DBException)
+{
+    const kvDataList_t toUpdate, toInsert(1, insert);
+    return storeData(toUpdate, toInsert);
 }
