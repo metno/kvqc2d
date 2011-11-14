@@ -1878,8 +1878,8 @@ void PlumaticTest::Configure(ReadProgramOptions& params)
            << "End_MM     =   11" << std::endl
            << "End_DD     =   10" << std::endl
            << "End_hh     =   12" << std::endl
-           << "highstart_flagchange  = _A_.__.____.___." << std::endl
-           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "highstart_flagchange       = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange      = _B_.__.____.___." << std::endl
            << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
            << "ParamId=" << pid << std::endl;
     params.Parse(config);
@@ -1935,8 +1935,8 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
            << "End_MM     =   11" << std::endl
            << "End_DD     =   01" << std::endl
            << "End_hh     =   15" << std::endl
-           << "highstart_flagchange  = _A_.__.____.___." << std::endl
-           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "highstart_flagchange       = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange      = _B_.__.____.___." << std::endl
            << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
            << "ParamId=105" << std::endl;
     params.Parse(config);
@@ -1996,8 +1996,8 @@ TEST_F(PlumaticTest, HighStartStartEnd)
            << "End_MM     =   11" << std::endl
            << "End_DD     =   01" << std::endl
            << "End_hh     =   13" << std::endl
-           << "highstart_flagchange  = _A_.__.____.___." << std::endl
-           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "highstart_flagchange       = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange      = _B_.__.____.___." << std::endl
            << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
            << "ParamId=105" << std::endl;
     params.Parse(config);
@@ -2011,8 +2011,8 @@ TEST_F(PlumaticTest, RainInterrupt)
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 21:00:00', 0,   105, '2011-10-01 23:05:51', 4, 0, 0, 0,   '0101000000000000', '7000000000000000', '');"
 
-        << "INSERT INTO data VALUES (27270, '2011-10-01 21:51:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
-        << "INSERT INTO data VALUES (27270, '2011-10-01 21:52:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 21:52:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 21:53:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         // rain interruption, but too long => high start
         << "INSERT INTO data VALUES (27270, '2011-10-01 21:59:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-01 22:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
@@ -2044,21 +2044,29 @@ TEST_F(PlumaticTest, RainInterrupt)
     Configure(params);
     
     ASSERT_NO_THROW(algo->run(params));
-    ASSERT_EQ(6, bc->count());
+    ASSERT_EQ(1+3+3+1, bc->count());
+
+    std::list<kvalobs::kvData> series;
+    ASSERT_NO_THROW(db->selectData(series, "WHERE obstime BETWEEN '2011-10-01 23:57:00' AND '2011-10-02 00:03:00';"));
+    ASSERT_EQ(7, series.size());
 
     EXPECT_EQ("2011-10-01 21:59:00", bc->updates()[0].obstime());
-    EXPECT_EQ("2011-10-01 22:19:00", bc->updates()[1].obstime());
-    EXPECT_EQ("2011-10-01 22:23:00", bc->updates()[2].obstime());
-    EXPECT_EQ("2011-10-01 23:58:00", bc->updates()[3].obstime());
-    EXPECT_EQ("2011-10-02 00:02:00", bc->updates()[4].obstime());
-    EXPECT_EQ("2011-10-02 00:15:00", bc->updates()[5].obstime());
+    EXPECT_EQ("2011-10-01 22:20:00", bc->updates()[1].obstime());
+    EXPECT_EQ("2011-10-01 22:21:00", bc->updates()[2].obstime());
+    EXPECT_EQ("2011-10-01 22:22:00", bc->updates()[3].obstime());
+    EXPECT_EQ("2011-10-01 23:59:00", bc->updates()[4].obstime());
+    EXPECT_EQ("2011-10-02 00:00:00", bc->updates()[6].obstime()); // unusual time ordering due to update
+    EXPECT_EQ("2011-10-02 00:01:00", bc->updates()[5].obstime());
+    EXPECT_EQ("2011-10-02 00:15:00", bc->updates()[7].obstime());
 
     EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
-    EXPECT_EQ("0C01000000000000", bc->updates()[1].controlinfo().flagstring());
-    EXPECT_EQ("0C01000000000000", bc->updates()[2].controlinfo().flagstring());
-    EXPECT_EQ("0C01000000000000", bc->updates()[3].controlinfo().flagstring());
-    EXPECT_EQ("0C01000000000000", bc->updates()[4].controlinfo().flagstring());
-    EXPECT_EQ("0A01000000000000", bc->updates()[5].controlinfo().flagstring());
+    EXPECT_EQ("0C00000000000000", bc->updates()[1].controlinfo().flagstring());
+    EXPECT_EQ("0C00000000000000", bc->updates()[2].controlinfo().flagstring());
+    EXPECT_EQ("0C00000000000000", bc->updates()[3].controlinfo().flagstring());
+    EXPECT_EQ("0C00000000000000", bc->updates()[4].controlinfo().flagstring());
+    EXPECT_EQ("0C01000000000000", bc->updates()[6].controlinfo().flagstring()); // unusual time ordering due to update
+    EXPECT_EQ("0C00000000000000", bc->updates()[5].controlinfo().flagstring());
+    EXPECT_EQ("0A01000000000000", bc->updates()[7].controlinfo().flagstring());
 }
 
 TEST_F(PlumaticTest, RainInterruptStartEnd)
@@ -2087,8 +2095,8 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
            << "End_MM     =   11" << std::endl
            << "End_DD     =   01" << std::endl
            << "End_hh     =   14" << std::endl
-           << "highstart_flagchange  = _A_.__.____.___." << std::endl
-           << "highsingle_flagchange = _B_.__.____.___." << std::endl
+           << "highstart_flagchange       = _A_.__.____.___." << std::endl
+           << "highsingle_flagchange      = _B_.__.____.___." << std::endl
            << "interruptedrain_flagchange = _C_.__.____.___." << std::endl
            << "ParamId=105" << std::endl;
     params.Parse(config);

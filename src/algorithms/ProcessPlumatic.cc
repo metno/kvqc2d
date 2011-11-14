@@ -41,6 +41,10 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
+#define DBG(x) do { LOGDEBUG(x); /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
+#define INF(x) do { LOGINFO(x);  /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
+#define DBGV(x) DBG(##x "='" << x << "'")
+
 namespace C = Constraint;
 namespace O = Ordering;
 
@@ -48,7 +52,7 @@ namespace {
 
 const float veryUnlikelySingle = 0.2;
 const float veryUnlikelyStart  = 0.3;
-const int   maxRainInterrupt = 5;
+const int   maxRainInterrupt = 4;
 const int   minRainBeforeAndAfter = 2;
 const float rainInterruptValue = 0.3;
 
@@ -94,8 +98,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange");
     const std::string CFAILED_STRING = params.CFAILED_STRING;
 
-    LOGINFO("Plumatic Control");
-
+    // select stationid from obs_pgm where paramid = 105;
     std::list<kvalobs::kvStation> StationList;
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
@@ -119,7 +122,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
         info.afterUT1  = afterUT1;
 
         for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
-            std::cout << "data point = " << *d << std::endl;
+            DBG("data point = " << *d);
 
             info.d = d;
             info.prev = nav.previousNot0(d);
@@ -129,61 +132,77 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 
             CheckResult ri = isRainInterruption(info), hsi = isHighSingle(info), hst = isHighStart(info);
 
-//
-// KNOWN PROBLEMS: device out of service, not clear how to detect this
-// MISSING: sliding aggregation + flagging of large aggregation values
-// WISHLIST: list of stations to avoid querying all stations
-//
-
             if( ri != NO ) {
                 if( ri == YES ) {
-                    std::cout << "  rain interruption since " << *info.prev << std::endl;
-                    
-                    info.prev->controlinfo(interruptedrain_flagchange.apply(info.prev->controlinfo()));
-                    Helpers::updateUseInfo(*info.prev);
-                    Helpers::updateCfailed(*info.prev, "QC2-plu-interruptedrain-0", CFAILED_STRING);
-                    
-                    info.d->controlinfo(interruptedrain_flagchange.apply(info.d->controlinfo()));
-                    Helpers::updateUseInfo(*info.d);
-                    Helpers::updateCfailed(*info.d, "QC2-plu-interruptedrain-1", CFAILED_STRING);
-                    
-                    kvDataList_t toWrite;
-                    toWrite.push_back(*info.prev);
-                    toWrite.push_back(*info.d);
-                    storeData(toWrite);
+                    DBG("  rain interruption since " << *info.prev);
+
+                    kvDataList_t toUpdate, toInsert;
+                    const miutil::miTime now = miutil::miTime::nowTime();
+                    miutil::miTime t = info.prev->obstime(); t.addMin(1);
+                    for(; t<info.d->obstime(); t.addMin(1)) {
+                        DBG("t=" << t);
+
+                        kvalobs::kvData gap;
+                        bool needInsert = true;
+                        kvDataList_t::const_iterator it = info.prev;
+                        for( ; it != info.d; ++it ) {
+                            if( t == it->obstime() ) {
+                                needInsert = false;
+                                break;
+                            }
+                        }
+                        if( needInsert ) {
+                            gap = kvalobs::kvData(info.d->stationID(), t, -32767.0f, info.d->paramID(),
+                                                  now, info.d->typeID(), info.d->sensor(), info.d->level(), 0.0f,
+                                                  kvalobs::kvControlInfo("0000000000000000"),
+                                                  kvalobs::kvUseInfo("0000000000000000"),
+                                                  "QC2-missing-row");
+                            DBG("insert gap=" << gap);
+                        } else {
+                            gap = *it;
+                            DBG("update gap=" << gap);
+                        }
+                        gap.controlinfo(interruptedrain_flagchange.apply(gap.controlinfo()));
+                        Helpers::updateUseInfo(gap);
+                        Helpers::updateCfailed(gap, "QC2h-1-interruptedrain", CFAILED_STRING);
+                        if( needInsert )
+                            toInsert.push_back(gap);
+                        else
+                            toUpdate.push_back(gap);
+                    }
+
+                    storeData(toUpdate, toInsert);
                 } else {
-                    std::cout << "  maybe rain interruption since " << std::flush;
-                    if( info.prev != nav.end())
-                        std::cout << *info.prev << std::endl;
-                    else
-                        std::cout << params.UT0 << std::endl;
+                    if( info.prev != nav.end() ) {
+                        DBG("  maybe rain interruption since " << *info.prev);
+                    } else {
+                        DBG("  maybe rain interruption since start (" << params.UT0 << ')');
+                    }
                 }
             } else if( hsi != NO ) {
                 if( hsi == YES ) {
-                    std::cout << "  very unlikely value for single point" << std::endl;
+                    DBG("  very unlikely value for single point");
                     
                     info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
                     Helpers::updateUseInfo(*info.d);
-                    Helpers::updateCfailed(*info.d, "QC2-plu-highsingle", CFAILED_STRING);
+                    Helpers::updateCfailed(*info.d, "QC2h-1-highsingle", CFAILED_STRING);
                     updateSingle(*info.d);
                 } else {
-                    std::cout << "  maybe unlikely value for single point" << std::endl;
+                    DBG("  maybe unlikely value for single point");
                 }
             } else if( hst != NO ) {
                 if( hst == YES ) {
-                    std::cout << "  very unlikely value for start point" << std::endl;
+                    DBG("  very unlikely value for start point");
                     
                     info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
                     Helpers::updateUseInfo(*info.d);
                     Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
                     updateSingle(*info.d);
                 } else {
-                    std::cout << "  maybe unlikely value for start point" << std::endl;
+                    DBG("  maybe unlikely value for start point");
                 }
             }
-            std::cout << " -- done" << std::endl;
         }
-        std::cout << " -- finished" << std::endl;
     }
 }
 
