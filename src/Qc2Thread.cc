@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  $Id$
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2007-2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -40,6 +38,7 @@
 #include <puTools/miTime.h>
 
 #include <boost/version.hpp>
+#include <map>
 #include "foreach.h"
 
 Qc2Work::Qc2Work( Qc2App &app_, const std::string& logpath )
@@ -74,29 +73,34 @@ void Qc2Work::operator() ()
         std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files);
 
-        // XXX will this run all algorithms? -- 16:20 start for 20min, 16:25 start for other => other run?
         miutil::miTime now = miutil::miTime::nowTime();
-        now.addSec(-now.sec());
+        now.addSec(-now.sec()); // set seconds to 0
         LOGINFO("now = " << now);
 
+        // sort algorithms to be run by scheduled time
+        typedef std::multimap<miutil::miTime, std::string> queue_t;
+        queue_t queue;
         foreach(const std::string& cf, config_files) {
             params.Parse( cf );
             const miutil::miTime runAt(now.year(), now.month(), now.day(),
                                        params.RunAtHour < 0 ? now.hour() : params.RunAtHour, params.RunAtMinute, 0);
-            LOGINFO("runAt = " << runAt);
-            if( runAt > lastEnd && runAt <= now ) {
-                if( runAt < now )
-                    LOGINFO("Algorithm scheduled for "
-                            << std::setw(2) << std::setfill('0') << runAt.hour() << ':'
-                            << std::setw(2) << std::setfill('0') << runAt.min() << " is delayed");
-                try {
-                    LOGINFO("trying to run " << params.Algorithm);
-                    Processor.select(params);
-                } catch ( dnmi::db::SQLException & ex ) {
-                    LOGERROR("Exception: " << ex.what());
-                } catch ( ... ) {
-                    LOGERROR("Unknown exception: ...");
-                }
+            LOGINFO("Algorithm='" << params.Algorithm << "' runAt = " << runAt);
+            if( runAt > lastEnd && runAt <= now )
+                queue.insert(queue_t::value_type(runAt, cf));
+        }
+
+        foreach(queue_t::value_type tc, queue) {
+            params.Parse( tc.second );
+            if( tc.first < now )
+                LOGINFO("Algorithm " << params.Algorithm << " scheduled for "
+                        << std::setw(2) << std::setfill('0') << tc.first.hour() << ':'
+                        << std::setw(2) << std::setfill('0') << tc.first.min() << " is delayed");
+            try {
+                Processor.select(params);
+            } catch ( dnmi::db::SQLException & ex ) {
+                LOGERROR("Exception: " << ex.what());
+            } catch ( ... ) {
+                LOGERROR("Unknown exception: ...");
             }
         }
         lastEnd = now;
