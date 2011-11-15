@@ -39,7 +39,7 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
-//#define NDEBUG
+#define NDEBUG
 #include "debug.h"
 
 namespace C = Constraint;
@@ -115,7 +115,7 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 
             const float NewCorrected = calculateCorrected(series.front(), d, series.back());
             if( equal(NewCorrected, NO_UPDATE) ) {
-                DBG("no update for d=" << d);
+                //DBG("no update for d=" << d);
                 continue;
             }
 
