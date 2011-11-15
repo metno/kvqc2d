@@ -200,7 +200,7 @@ std::string OrImpl::sql() const
         return sqlB;
     if( sqlB.empty() )
         return sqlA;
-    return "(" +sqlA + ") OR (" + sqlB + ")";
+    return "((" +sqlA + ") OR (" + sqlB + "))";
 }
 
 std::string NotImpl::sql() const
