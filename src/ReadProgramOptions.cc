@@ -148,7 +148,9 @@ void ReadProgramOptions::Parse(std::istream& input)
         throw ConfigException("Problems parsing kvqc2d algorithm configuration:\n" + errors.str() + "Giving up!");
     }
 
-    const miutil::miTime now = miutil::miTime::nowTime();
+    miutil::miTime now = miutil::miTime::nowTime();
+    now.addSec(-now.sec());
+    now.addMin(-now.min());
 
     // see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:config_summary (bottom) for some hints
     // also https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:configuration
