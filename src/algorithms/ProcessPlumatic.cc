@@ -43,7 +43,7 @@
 
 #define DBG(x) do { LOGDEBUG(x); /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
 #define INF(x) do { LOGINFO(x);  /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
-#define DBGV(x) DBG(##x "='" << x << "'")
+#define DBGV(x) DBG( #x "='" << x << "'" )
 
 namespace C = Constraint;
 namespace O = Ordering;

@@ -65,7 +65,7 @@ TEST_F(FlagMatcherTest, Is)
 
 TEST_F(FlagMatcherTest, Parse)
 {
-    FlagMatcher fm("___.___.___.[23]__0");
+    FlagMatcher fm("___.___.___.[23]__0", FlagMatcher::CONTROLINFO);
 
     EXPECT_TRUE(fm.isAllowed(f_fhqc, 0));
     EXPECT_TRUE(fm.isAllowed(f_fd, 3));
@@ -73,6 +73,40 @@ TEST_F(FlagMatcherTest, Parse)
     EXPECT_FALSE(fm.isAllowed(f_fhqc, 1));
     EXPECT_FALSE(fm.isAllowed(f_fd, 1));
     EXPECT_FALSE(fm.isAllowed(f_fd, 4));
+}
+
+TEST_F(FlagMatcherTest, ParseNames)
+{
+    FlagMatcher fm;
+    EXPECT_TRUE(fm.parseControlinfo("fhqc=0"));
+    EXPECT_TRUE(fm.parseControlinfo("fmis=[1234]"));
+    EXPECT_TRUE(fm.parseControlinfo("fmis=)05678(,fd=[01],fr=0"));
+    EXPECT_FALSE(fm.parseControlinfo("fd=0,fd=1"));
+    EXPECT_FALSE(fm.parseControlinfo("fd=0,__."));
+    EXPECT_FALSE(fm.parseControlinfo("false=0"));
+    EXPECT_FALSE(fm.parseControlinfo("fd=0,"));
+    EXPECT_FALSE(fm.parseControlinfo("fr="));
+    EXPECT_FALSE(fm.parseControlinfo("fr=6fmis=8"));
+    EXPECT_FALSE(fm.parseControlinfo("U2=0"));
+
+    EXPECT_TRUE(fm.parseUseinfo("U2=0"));
+    EXPECT_TRUE(fm.parseUseinfo("U0=[37]"));
+    EXPECT_TRUE(fm.parseUseinfo("U0=[37],U2=0"));
+
+    EXPECT_FALSE(fm.parseUseinfo("U1==9"));
+    EXPECT_FALSE(fm.parseUseinfo("fhqc=9"));
+
+    FlagMatcher fm1("fd=[23],fhqc=0", FlagMatcher::CONTROLINFO);
+    EXPECT_TRUE(fm1.isAllowed(f_fhqc, 0));
+    EXPECT_TRUE(fm1.isAllowed(f_fd, 3));
+    EXPECT_FALSE(fm1.isAllowed(f_fhqc, 1));
+    EXPECT_FALSE(fm1.isAllowed(f_fd, 1));
+    EXPECT_FALSE(fm1.isAllowed(f_fd, 4));
+
+    FlagMatcher fm2("U2=)1(", FlagMatcher::USEINFO);
+    EXPECT_TRUE(fm2.isAllowed(2, 0));
+    EXPECT_TRUE(fm2.isAllowed(1, 1));
+    EXPECT_FALSE(fm2.isAllowed(2, 1));
 }
 
 TEST_F(FlagMatcherTest, SQLtext)

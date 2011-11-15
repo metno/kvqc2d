@@ -52,7 +52,12 @@ public:
 
     FlagUpdater& reset();
 
-    bool parse(const std::string& flagstring);
+    bool parse(const std::string& flagstring)
+        { return parseNames(flagstring) || parsePattern(flagstring); }
+
+    bool parsePattern(const std::string& flagstring);
+
+    bool parseNames(const std::string& flagstring);
 
     kvalobs::kvControlInfo apply(const kvalobs::kvControlInfo& flag) const;
 

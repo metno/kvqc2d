@@ -45,14 +45,14 @@ TEST(FlagChangeTest, NoMatchButUpdate)
 
 TEST(FlagChangeTest, MatchAndUpdate)
 {
-    EXPECT_EQ("0000007000002000", FlagChange("___.__3.___.___.->___.__7.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
+    EXPECT_EQ("0000007000002000", FlagChange("fmis=3->___.__7.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
     EXPECT_EQ("77AABBFF00554455", FlagChange("___.___.___.__88->___.___.___.__55").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
 }
 
 TEST(FlagChangeTest, MismatchNoUpdate)
 {
     EXPECT_EQ("0000003000002000", FlagChange("___.__5.___.___.->___.__7.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
-    EXPECT_EQ("77AABBFF00554488", FlagChange("___.___.___._5_8->___.___.___.__55").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
+    EXPECT_EQ("77AABBFF00554488", FlagChange("fpre=5,fhqc=8->___.___.___.__55").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
 }
 
 TEST(FlagChangeTest, Parse)

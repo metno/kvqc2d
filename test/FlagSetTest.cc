@@ -47,18 +47,18 @@ TEST(FlagSetTest, SingleMatch)
 TEST(FlagSetTest, MultiMatch)
 {
     FlagSet fs;
-    ASSERT_TRUE (fs.parse("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_."));
+    ASSERT_TRUE (fs.parse("fcc=[234]|___._[012]_.___._)0123456789ABC(_.", FlagMatcher::CONTROLINFO));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("0020000000000A00")));
     ASSERT_FALSE(fs.matches(kvalobs::kvControlInfo("0010050000000A00")));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("0010020000000F00")));
 
     fs.reset();
-    ASSERT_TRUE (fs.parse("__0.___.___.___."));
+    ASSERT_TRUE (fs.parse("U2=0", FlagMatcher::USEINFO));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("AA0ABCDEFABCDEF8")));
     ASSERT_FALSE(fs.matches(kvalobs::kvControlInfo("AA1ABCDEFABCDEF8")));
 
     fs.reset();
-    ASSERT_TRUE (fs.parse(""));
+    ASSERT_TRUE (fs.parse("", FlagMatcher::CONTROLINFO));
     ASSERT_TRUE (fs.matches(kvalobs::kvControlInfo("AA1ABCDEFABCDEF8")));
 }
 
@@ -67,8 +67,8 @@ TEST(FlagSetTest, SQLtext)
     EXPECT_EQ("", FlagSet().setDefaultIfEmpty(true).sql("ci"));
     EXPECT_EQ("0=1", FlagSet().setDefaultIfEmpty(false).sql("ci"));
 
-    const std::string sql1 = FlagSet("__0.___.___.___.").sql("ci");
-    const std::string sql2 = FlagSet("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_.").sql("ci");
+    const std::string sql1 = FlagSet("__0.___.___.___.", FlagMatcher::CONTROLINFO).sql("ci");
+    const std::string sql2 = FlagSet("__[234].___.___.___.|___._[012]_.___._)0123456789ABC(_.", FlagMatcher::CONTROLINFO).sql("ci");
 #ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
     EXPECT_EQ("substr(ci,3,1) IN ('0')", sql1);
     EXPECT_EQ("(substr(ci,3,1) IN ('2','3','4') OR (substr(ci,6,1) IN ('0','1','2') AND substr(ci,14,1) IN ('D','E','F')))", sql2);

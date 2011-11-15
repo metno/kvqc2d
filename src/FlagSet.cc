@@ -13,7 +13,7 @@ bool FlagSet::matches(const kvalobs::kvDataFlag& flags) const
     return false;
 }
 
-bool FlagSet::parse(const std::string& flagstring)
+bool FlagSet::parse(const std::string& flagstring, FlagMatcher::FlagType type)
 {
     if( flagstring.empty() )
         return true;
@@ -24,7 +24,7 @@ bool FlagSet::parse(const std::string& flagstring)
         if( nextSeparator == std::string::npos )
             nextSeparator = flagstring.size();
         FlagMatcher fm;
-        if( !fm.parse(flagstring.substr(lastSeparator, nextSeparator - lastSeparator)) ) {
+        if( !fm.parse(flagstring.substr(lastSeparator, nextSeparator - lastSeparator), type) ) {
             mError = true;
             return false;
         }

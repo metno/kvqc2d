@@ -60,9 +60,11 @@ public:
     template<typename T>
     std::vector<T> getMultiParameter(const std::string& name) const;
 
-    void getFlagSet(FlagSet& f, const std::string& name) const;
     void getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
     void getFlagChange(FlagChange& fc, const std::string& name) const;
+
+private:
+    void getFlagSet(FlagSet& f, const std::string& name, FlagMatcher::FlagType type) const;
 
 public:
     static const std::string CFG_EXT;

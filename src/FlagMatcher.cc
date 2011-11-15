@@ -33,6 +33,9 @@
 #include <sstream>
 #include <iostream>
 
+#define DBG(x) do { std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl; } while(false);
+#define DBGV(x) DBG( #x "='" << x << "'" )
+
 namespace {
 
 char int2char(int i)
@@ -141,36 +144,18 @@ static int char2int(char c)
     return (c>='0' && c<='9') ? (c - '0') : (c - 'A' + 10);
 }
 
-bool FlagMatcher::parse(const std::string& flagstring)
+bool FlagMatcher::parsePattern(const std::string& flagstring)
 {
     reset();
 
-    unsigned int c=0, f=0;
+    unsigned int c=0;
+    int f=0;
     for(; f<16 && c<flagstring.size(); ++f) {
-        char fc = flagstring[c++];
+        char fc = flagstring[c];
         if( fc == '_' || fc == '.' ) {
             // no constraint on flag f
-        } else if( fc == '[' || fc == ')' ) {
-            // multiple permitted / forbidden flags
-            while(c<flagstring.size()) {
-                char fcc = flagstring[c++];
-                if( (fc == ')' && fcc == '(') || (fc=='[' && fcc==']') ) {
-                    // end of inclusion/exclusion
-                    break;
-                }
-                if( (fcc>='0' && fcc<='9') || (fcc>='A' && fcc<='F') ) {
-                    if( fc == '[' )
-                        permit(f, char2int(fcc));
-                    else
-                        forbid(f, char2int(fcc));
-                } else {
-                    return false;
-                }
-            }
-        } else if( (fc>='0' && fc<='9') || (fc>='A' && fc<='F') ) {
-            // single permitted flag
-            permit(f, char2int(fc));
-        } else {
+            c += 1;
+        } else if( !parsePermittedValues(f, flagstring, c) ) {
             return false;
         }
     }
@@ -179,3 +164,76 @@ bool FlagMatcher::parse(const std::string& flagstring)
     return true;
 }
 
+bool FlagMatcher::parsePermittedValues(int f, const std::string& flagstring, unsigned int& c)
+{
+    char fc = flagstring[c++];
+    if( fc == '[' || fc == ')' ) {
+        // multiple permitted / forbidden flags
+        while(c<flagstring.size()) {
+            char fcc = flagstring[c++];
+            if( (fc == ')' && fcc == '(') || (fc=='[' && fcc==']') ) {
+                // end of inclusion/exclusion
+                break;
+            }
+            if( (fcc>='0' && fcc<='9') || (fcc>='A' && fcc<='F') ) {
+                if( fc == '[' )
+                    permit(f, char2int(fcc));
+                else
+                    forbid(f, char2int(fcc));
+            } else {
+                return false;
+            }
+        }
+        return true;
+    } else if( (fc>='0' && fc<='9') || (fc>='A' && fc<='F') ) {
+        // single permitted flag
+        permit(f, char2int(fc));
+        return true;
+    } else {
+        return false;
+    }
+ }
+
+bool FlagMatcher::parseNames(const std::string& flagstring, const char* flagnames[])
+{
+    reset();
+
+    unsigned int start=0, usedflags=0;
+    while( start < flagstring.size() ) {
+        const size_t equal = flagstring.find('=', start);
+        if( equal == std::string::npos )
+            return false;
+        const std::string flagname = flagstring.substr(start, equal - start);
+        int flag = 0;
+        for(; flag<N_FLAGS; ++flag) {
+            if( flagname == flagnames[flag] )
+                break;
+        }
+        if( flag == N_FLAGS || (usedflags & (1<<flag)) != 0 )
+            return false;
+        usedflags |= (1<<flag);
+        start = equal + 1;
+        if( start >= flagstring.size() )
+            return false;
+        if( !parsePermittedValues(flag, flagstring, start) ) {
+            return false;
+        }
+        if( start < flagstring.size() ) {
+            if( flagstring[start++] != ',' )
+                break;
+            if( start == flagstring.size() )
+                return false;
+        }
+    }
+    return start == flagstring.size();
+}
+
+const char* FlagMatcher::CONTROLINFO_NAMES[N_FLAGS] = {
+    "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fmis", "ftime",
+    "fw", "fstat", "fcp", "fclim", "fd", "fpre", "fcombi", "fhqc"
+};
+
+const char* FlagMatcher::USEINFO_NAMES[N_FLAGS] = {
+    "U0", "U1", "U2", "U3", "U4", "U5", "U6", "U7",
+    "U8", "U9", "U10", "U11", "U12", "U13", "U14", "U15"
+};

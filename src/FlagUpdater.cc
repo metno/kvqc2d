@@ -29,6 +29,7 @@
 
 #include "FlagUpdater.h"
 
+#include "FlagMatcher.h"
 #include <sstream>
 #include <iostream>
 
@@ -44,7 +45,46 @@ static int char2int(char c)
     return (c>='0' && c<='9') ? (c - '0') : (c - 'A' + 10);
 }
 
-bool FlagUpdater::parse(const std::string& flagstring)
+bool FlagUpdater::parseNames(const std::string& flagstring)
+{
+    reset();
+
+    unsigned int start=0, usedflags=0;
+    while( start < flagstring.size() ) {
+        const size_t equal = flagstring.find('=', start);
+        if( equal == std::string::npos )
+            return false;
+        const std::string flagname = flagstring.substr(start, equal - start);
+        int flag = 0;
+        for(; flag<N_FLAGS; ++flag) {
+            if( flagname == FlagMatcher::CONTROLINFO_NAMES[flag] )
+                break;
+        }
+        if( flag == N_FLAGS || (usedflags & (1<<flag)) != 0 )
+            return false;
+        usedflags |= (1<<flag);
+        start = equal + 1;
+        if( start >= flagstring.size() )
+            return false;
+
+        char fc = flagstring[start++];
+        if( (fc>='0' && fc<='9') || (fc>='A' && fc<='F') ) {
+            mSet[flag] = char2int(fc);
+        } else {
+            return false;
+        }
+
+        if( start < flagstring.size() ) {
+            if( flagstring[start++] != ',' )
+                break;
+            if( start == flagstring.size() )
+                return false;
+        }
+    }
+    return start == flagstring.size();
+}
+
+bool FlagUpdater::parsePattern(const std::string& flagstring)
 {
     reset();
 

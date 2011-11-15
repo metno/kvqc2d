@@ -43,8 +43,8 @@ public:
     FlagSet(const FlagMatcher& fm)
         : mMatchers(1, fm), mError(false), mDefaultIfEmpty(true) { }
 
-    FlagSet(const std::string& fs)
-        : mError(false), mDefaultIfEmpty(true) { parse(fs); }
+    FlagSet(const std::string& fs, FlagMatcher::FlagType type)
+        : mError(false), mDefaultIfEmpty(true) { parse(fs, type); }
 
     FlagSet& add(const FlagMatcher& fm)
         { mMatchers.push_back(fm); return *this; }
@@ -66,7 +66,7 @@ public:
     FlagSet& reset()
         { mMatchers.clear(); mError = false; return *this; }
 
-    bool parse(const std::string& flagstring);
+    bool parse(const std::string& flagstring, FlagMatcher::FlagType type);
 
     std::string sql(const std::string& column) const;
 

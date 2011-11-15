@@ -37,12 +37,13 @@ class FlagMatcher {
 
 public:
     enum { N_FLAGS = 16, N_VALUES = 16 };
+    enum FlagType { USEINFO, CONTROLINFO };
 
     FlagMatcher()
         { reset(); }
 
-    FlagMatcher(const std::string& flagstring)
-        { parse(flagstring); }
+    FlagMatcher(const std::string& flagstring, FlagType type)
+        { parse(flagstring, type); }
 
     FlagMatcher& permit(int flag, int value)
         { mPermitted[flag] |= (1<<value); return *this; }
@@ -71,12 +72,24 @@ public:
 
     bool matches(const kvalobs::kvDataFlag& flags) const;
 
-    bool parse(const std::string& flagstring);
+    bool parseControlinfo(const std::string& flagstring)
+        { return parseNames(flagstring, CONTROLINFO_NAMES) || parsePattern(flagstring); }
+    bool parseUseinfo(const std::string& flagstring)
+        { return parseNames(flagstring, USEINFO_NAMES) || parsePattern(flagstring); }
+    bool parse(const std::string& flagstring, FlagType type)
+        { return type == CONTROLINFO ? parseControlinfo(flagstring) : parseUseinfo(flagstring); }
+
+    static const char* CONTROLINFO_NAMES[N_FLAGS];
+    static const char* USEINFO_NAMES[N_FLAGS];
 
 private:
     unsigned int allowedBits(int flag) const
         { const unsigned int p = mPermitted[flag]; return (p ? p : (1<<N_VALUES)-1) & ~mForbidden[flag]; }
 
+    bool parsePattern(const std::string& flagstring);
+    bool parsePermittedValues(int flag, const std::string& flagstring, unsigned int& pos);
+    bool parseNames(const std::string& flagstring, const char* flagnames[]);
+    
     unsigned int mPermitted[N_FLAGS];
     unsigned int mForbidden[N_FLAGS];
 };

@@ -59,10 +59,6 @@ void extractTime(const ConfigParser& c, const std::string& prefix, miutil::miTim
     time = miutil::miTime(Year, Month, Day, Hour, Minute, Second);
 }
 
-//const char* flagnames[16] = { "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fmis", "ftime",
-//                              "fw", "fstat", "fcp", "fclim", "fd", "fpre", "fcombi", "fhqc"
-//};
-
 } // anonymous namespace
 
 const std::string ReadProgramOptions::CFG_EXT = ".cfg2";
@@ -177,14 +173,14 @@ void ReadProgramOptions::Parse(std::istream& input)
     rejected           = c.get("RejectedValue")        .convert<float>(0, -32766.0); // Original Rejected Data Value
 }
 
-void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name) const
+void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name, FlagMatcher::FlagType type) const
 {
     flags.reset();
     if( !c.has(name) )
         throw ConfigException("no such flag spec: '" + name + "'");
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
-        if( !flags.parse(item.value(i)) )
+        if( !flags.parse(item.value(i), type) )
             throw ConfigException("error parsing flag '" + name + "' from '" + item.value(i) + "'");
     }
 }
@@ -195,9 +191,9 @@ void ReadProgramOptions::getFlagSetCU(FlagSetCU& fcu, const std::string& name) c
     if( !hasC && !hasU )
         throw ConfigException("no setting for '" + name + "'");
     if( hasC )
-        getFlagSet(fcu.controlflags(), name + "_cflags");
+        getFlagSet(fcu.controlflags(), name + "_cflags", FlagMatcher::CONTROLINFO);
     if( hasU )
-        getFlagSet(fcu.useflags(),     name + "_uflags");
+        getFlagSet(fcu.useflags(),     name + "_uflags", FlagMatcher::USEINFO);
 }
 
 void ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) const

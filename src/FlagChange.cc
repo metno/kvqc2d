@@ -20,7 +20,7 @@ bool FlagChange::parse(const std::string& flagstring)
         } else if( nextAssign == lastSeparator ) {
             nextAssign += 2;
         } else {
-            if( !fm.parse(flagstring.substr(lastSeparator, nextAssign - lastSeparator)) )
+            if( !fm.parseControlinfo(flagstring.substr(lastSeparator, nextAssign - lastSeparator)) )
                 return false;
             nextAssign += 2;
         }
