@@ -38,8 +38,8 @@
 #include <milog/milog.h>
 #include "foreach.h"
 
-#define DBG(x) do { LOGDEBUG(x); /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
-#define INF(x) do { LOGINFO(x);  /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
+#define NDEBUG
+#include "debug.h"
 
 namespace C = Constraint;
 namespace O = Ordering;
@@ -94,9 +94,11 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         && C::Obstime(Helpers::plusDay(beforeMissing.obstime(), 1), stepTime(endpoint.obstime()));
     database()->selectData(mdata, cMissing, O::Obstime().desc());
 
+#ifndef NDEBUG
     DBG("  missingdata.size=" << mdata.size());
     foreach(const kvalobs::kvData& md, mdata)
         DBG("    missingdata md=" << md);
+#endif
 
     foreach(const kvalobs::kvData& m, mdata) {
         if( !missingpoint_flags.matches(m) ) {
@@ -127,8 +129,10 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
     }
     mdata.push_front(endpoint);
 
+#ifndef NDEBUG
     foreach(const kvalobs::kvData& md, mdata)
         DBG("  final redistribution series: " << md);
+#endif
 
     return true;
 }
@@ -146,9 +150,13 @@ bool RedistributionAlgorithm::findPointBeforeMissing(const kvalobs::kvData& endp
 
     // TODO use MAX(...) in SQL, we are not interested in the others anyhow
     database()->selectData(startdata, cBeforeMissing, O::Obstime().desc());
+
+#ifndef NDEBUG
     DBG("  startdata.size=" << startdata.size());
     foreach(const kvalobs::kvData& sd, startdata)
         DBG("    startdata sd=" << sd);
+#endif
+
     if( !startdata.empty() ) {
         latestBefore = startdata.front();
         DBG("latestBefore=" << latestBefore);

@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  $Id$                                                       
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2007-2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -41,9 +39,8 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
-#define DBG(x) do { LOGDEBUG(x); /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
-#define INF(x) do { LOGINFO(x);  /*std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl;*/ } while(false);
-#define DBGV(x) DBG( #x "='" << x << "'" )
+#define NDEBUG
+#include "debug.h"
 
 namespace C = Constraint;
 namespace O = Ordering;

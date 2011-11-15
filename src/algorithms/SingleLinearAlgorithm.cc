@@ -39,6 +39,9 @@
 #include <puTools/miTime.h>
 #include "foreach.h"
 
+//#define NDEBUG
+#include "debug.h"
+
 namespace C = Constraint;
 namespace O = Ordering;
 using Helpers::equal;
@@ -99,23 +102,24 @@ void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
             // may not check neighbor flags here, as the corrected value from calculateCorrected depends on neighbor availability
-            const C::DBConstraint cNeighbors = C::Station(d.stationID()) && C::Paramid(d.paramID()) && C::Typeid(d.typeID())
+            const C::DBConstraint cNeighbors = C::SameDevice(d)
                 && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
+            DBGV(cNeighbors.sql());
 
             std::list<kvalobs::kvData> series;
             database()->selectData(series, cNeighbors, O::Obstime());
             if( series.size() != 2 ) {
-                LOGDEBUG("got " << series.size() << " neighbors at d=" << d);
+                DBG("got " << series.size() << " neighbors at d=" << d);
                 continue;
             }
 
             const float NewCorrected = calculateCorrected(series.front(), d, series.back());
             if( equal(NewCorrected, NO_UPDATE) ) {
-                LOGDEBUG("no update for d=" << d);
+                DBG("no update for d=" << d);
                 continue;
             }
 
-            LOGDEBUG("about to store corrected=" << NewCorrected << " for d=" << d);
+            DBG("about to store corrected=" << NewCorrected << " for d=" << d);
             writeChanges(d, NewCorrected);
         }
     }
