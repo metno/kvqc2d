@@ -219,8 +219,8 @@ bool FlagMatcher::parseNames(const std::string& flagstring, const char* flagname
             return false;
         }
         if( start < flagstring.size() ) {
-            if( flagstring[start++] != ',' )
-                break;
+            if( flagstring[start++] != '&' )
+                return false;
             if( start == flagstring.size() )
                 return false;
         }
