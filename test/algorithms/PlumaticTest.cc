@@ -1921,7 +1921,6 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.3, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
-        // high single at start, may not do anything
         << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
@@ -1942,7 +1941,9 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
     params.Parse(config);
     
     ASSERT_NO_THROW(algo->run(params));
-    ASSERT_EQ(0, bc->count());
+    ASSERT_EQ(1, bc->count());
+    EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
+    EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
 }
 
 TEST_F(PlumaticTest, HighStart)
@@ -1976,8 +1977,7 @@ TEST_F(PlumaticTest, HighStart)
 TEST_F(PlumaticTest, HighStartStartEnd)
 {
     std::ostringstream sql;
-    sql // high value at start, may not do anything
-        << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.5, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.5, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-01 12:01:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-01 12:02:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
@@ -2003,7 +2003,9 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     params.Parse(config);
     
     ASSERT_NO_THROW(algo->run(params));
-    ASSERT_EQ(0, bc->count());
+    ASSERT_EQ(1, bc->count());
+    EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
+    EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
 }
 
 TEST_F(PlumaticTest, RainInterrupt)
@@ -2073,7 +2075,7 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.3, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
-        // rain interruption at start, may not do anything
+        // rain interruption at start, too short => high start at 12:00 and 12:03
         << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 0.4, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
         << "INSERT INTO data VALUES (27270, '2011-10-01 12:05:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
@@ -2102,5 +2104,9 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
     params.Parse(config);
     
     ASSERT_NO_THROW(algo->run(params));
-    ASSERT_EQ(0, bc->count());
+    ASSERT_EQ(2, bc->count());
+    EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
+    EXPECT_EQ("2011-10-01 12:03:00", bc->updates()[1].obstime());
+    EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_EQ("0A01000000000000", bc->updates()[1].controlinfo().flagstring());
 }

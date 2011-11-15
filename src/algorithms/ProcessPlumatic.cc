@@ -103,25 +103,30 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
-    miutil::miTime beforeUT0 = params.UT0, afterUT1 = params.UT1;
+    miutil::miTime UT0 = params.UT0, UT1 = params.UT1;
+    UT0.addMin(-maxRainInterrupt-minRainBeforeAndAfter);
+
+    miutil::miTime beforeUT0 = UT0, afterUT1 = UT1;
     beforeUT0.addMin(-1);
     afterUT1 .addMin( 1);
 
     foreach(const kvalobs::kvStation& station, StationList) {
         const C::DBConstraint cSeries = C::Station(station.stationID())
-            && C::Paramid(pid) && C::Obstime(params.UT0 ,params.UT1);
+            && C::Paramid(pid) && C::Obstime(UT0, UT1);
 
         kvDataList_t data;
         database()->selectData(data, cSeries, O::Obstime());
         if( data.empty() )
             continue;
-        
+
         Navigator nav(data.begin(), data.end());
         Info info(nav);
         info.beforeUT0 = beforeUT0;
         info.afterUT1  = afterUT1;
 
         for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
+            if( d->obstime() < params.UT0 )
+                continue;
             DBG("data point = " << *d);
 
             info.d = d;
@@ -208,20 +213,14 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info& info)
 {
-    // std::cout << "    checking for interrupted rain" << std::endl;
     if( info.d->original() < rainInterruptValue )
         return NO;
-    // std::cout << "    above threshold" << std::endl;
     if( info.prev == info.nav.end() )
         return (info.dryMinutesBefore > maxRainInterrupt ? NO : DONT_KNOW);
-    // std::cout << "    not first" << std::endl;
     if( info.dryMinutesBefore > maxRainInterrupt  || info.dryMinutesBefore < 1 )
         return NO;
-    // std::cout << "    short enough interrupt" << std::endl;
     if( info.prev->original() < rainInterruptValue )
         return NO;
-
-    // std::cout << "    looks good" << std::endl;
 
     // check that there is some rain before and after the "interrruption"
     int nBefore = 1;
@@ -230,17 +229,16 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info&
         before = b0;
         nBefore += 1;
     }
-    // std::cout << "    nBefore = " << nBefore << " start = " << (b0 == info.nav.end()) << std::endl;
-    if( b0 == info.nav.end() && nBefore < minRainBeforeAndAfter )
-        return DONT_KNOW;
+    DBG("    nBefore = " << nBefore << " start = " << (b0 == info.nav.end()));
 
-    int nAfter = 2; // info.d and info.next are already after the gap
+    int nAfter = 2; // info.d and info.next are already after the gap, so we have minimum 2 after
     kvDataList_it after = info.next, a0;
     while( (a0 = info.nav.nextNot0(after)) != info.nav.end() && miutil::miTime::minDiff(a0->obstime(), after->obstime()) == 1 ) {
         after = a0;
         nAfter += 1;
     }
-    // std::cout << "    nAfter = " << nAfter << " end = " << (a0 == info.nav.end()) << std::endl;
+    DBG("    nAfter = " << nAfter << " end = " << (a0 == info.nav.end()));
+
     if( a0 == info.nav.end() && nAfter < minRainBeforeAndAfter )
         return DONT_KNOW;
 
