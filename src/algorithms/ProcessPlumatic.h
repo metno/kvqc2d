@@ -14,6 +14,7 @@ public:
         : Qc2Algorithm("Plumatic") { }
 
     virtual void run(const ReadProgramOptions& params);
+    virtual void configure(const ReadProgramOptions& params);
 
 private:
     class Navigator {
@@ -55,6 +56,16 @@ private:
     CheckResult isRainInterruption(const Info& info);
     CheckResult isHighSingle(const Info& info);
     CheckResult isHighStart(const Info& info);
+
+    void flagRainInterruption(const Info& info);
+    void flagHighSingle(const Info& info);
+    void flagHighStart(const Info& info);
+
+private:
+    int pid;
+    FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;
+    std::string CFAILED_STRING;
+
 };
 
 #endif

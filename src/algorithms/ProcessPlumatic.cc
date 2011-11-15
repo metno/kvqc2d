@@ -86,14 +86,18 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataLi
     return it;
 }
 
-void PlumaticAlgorithm::run(const ReadProgramOptions& params)
+void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
 {
-    const int pid = params.getParameter<int>("ParamId");
-    FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;
+    pid = params.getParameter<int>("ParamId");
     params.getFlagChange(highstart_flagchange,  "highstart_flagchange");
     params.getFlagChange(highsingle_flagchange, "highsingle_flagchange");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange");
-    const std::string CFAILED_STRING = params.CFAILED_STRING;
+    CFAILED_STRING = params.CFAILED_STRING;
+}
+
+void PlumaticAlgorithm::run(const ReadProgramOptions& params)
+{
+    configure(params);
 
     // select stationid from obs_pgm where paramid = 105;
     std::list<kvalobs::kvStation> StationList;
@@ -137,43 +141,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
             if( ri != NO ) {
                 if( ri == YES ) {
                     DBG("  rain interruption since " << *info.prev);
-
-                    kvDataList_t toUpdate, toInsert;
-                    const miutil::miTime now = miutil::miTime::nowTime();
-                    miutil::miTime t = info.prev->obstime(); t.addMin(1);
-                    for(; t<info.d->obstime(); t.addMin(1)) {
-                        DBG("t=" << t);
-
-                        kvalobs::kvData gap;
-                        bool needInsert = true;
-                        kvDataList_t::const_iterator it = info.prev;
-                        for( ; it != info.d; ++it ) {
-                            if( t == it->obstime() ) {
-                                needInsert = false;
-                                break;
-                            }
-                        }
-                        if( needInsert ) {
-                            gap = kvalobs::kvData(info.d->stationID(), t, -32767.0f, info.d->paramID(),
-                                                  now, info.d->typeID(), info.d->sensor(), info.d->level(), 0.0f,
-                                                  kvalobs::kvControlInfo("0000000000000000"),
-                                                  kvalobs::kvUseInfo("0000000000000000"),
-                                                  "QC2-missing-row");
-                            DBG("insert gap=" << gap);
-                        } else {
-                            gap = *it;
-                            DBG("update gap=" << gap);
-                        }
-                        gap.controlinfo(interruptedrain_flagchange.apply(gap.controlinfo()));
-                        Helpers::updateUseInfo(gap);
-                        Helpers::updateCfailed(gap, "QC2h-1-interruptedrain", CFAILED_STRING);
-                        if( needInsert )
-                            toInsert.push_back(gap);
-                        else
-                            toUpdate.push_back(gap);
-                    }
-
-                    storeData(toUpdate, toInsert);
+                    flagRainInterruption(info);
                 } else {
                     if( info.prev != nav.end() ) {
                         DBG("  maybe rain interruption since " << *info.prev);
@@ -184,22 +152,14 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
             } else if( hsi != NO ) {
                 if( hsi == YES ) {
                     DBG("  very unlikely value for single point");
-                    
-                    info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
-                    Helpers::updateUseInfo(*info.d);
-                    Helpers::updateCfailed(*info.d, "QC2h-1-highsingle", CFAILED_STRING);
-                    updateSingle(*info.d);
+                    flagHighSingle(info);
                 } else {
                     DBG("  maybe unlikely value for single point");
                 }
             } else if( hst != NO ) {
                 if( hst == YES ) {
                     DBG("  very unlikely value for start point");
-                    
-                    info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
-                    Helpers::updateUseInfo(*info.d);
-                    Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
-                    updateSingle(*info.d);
+                    flagHighStart(info);
                 } else {
                     DBG("  maybe unlikely value for start point");
                 }
@@ -270,4 +230,60 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
     if( info.dryMinutesAfter == 1 && info.next == info.nav.end() )
         return DONT_KNOW;
     return YES;
+}
+
+void PlumaticAlgorithm::flagRainInterruption(const Info& info)
+{
+    kvDataList_t toUpdate, toInsert;
+    const miutil::miTime now = miutil::miTime::nowTime();
+    miutil::miTime t = info.prev->obstime(); t.addMin(1);
+    for(; t<info.d->obstime(); t.addMin(1)) {
+        DBG("t=" << t);
+
+        kvalobs::kvData gap;
+        bool needInsert = true;
+        kvDataList_t::const_iterator it = info.prev;
+        for( ; it != info.d; ++it ) {
+            if( t == it->obstime() ) {
+                needInsert = false;
+                break;
+            }
+        }
+        if( needInsert ) {
+            gap = kvalobs::kvData(info.d->stationID(), t, -32767.0f, info.d->paramID(),
+                                  now, info.d->typeID(), info.d->sensor(), info.d->level(), 0.0f,
+                                  kvalobs::kvControlInfo("0000000000000000"),
+                                  kvalobs::kvUseInfo("0000000000000000"),
+                                  "QC2-missing-row");
+            DBG("insert gap=" << gap);
+        } else {
+            gap = *it;
+            DBG("update gap=" << gap);
+        }
+        gap.controlinfo(interruptedrain_flagchange.apply(gap.controlinfo()));
+        Helpers::updateUseInfo(gap);
+        Helpers::updateCfailed(gap, "QC2h-1-interruptedrain", CFAILED_STRING);
+        if( needInsert )
+            toInsert.push_back(gap);
+        else
+            toUpdate.push_back(gap);
+    }
+
+    storeData(toUpdate, toInsert);
+}
+
+void PlumaticAlgorithm::flagHighSingle(const Info& info)
+{
+    info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
+    Helpers::updateUseInfo(*info.d);
+    Helpers::updateCfailed(*info.d, "QC2h-1-highsingle", CFAILED_STRING);
+    updateSingle(*info.d);
+}
+
+void PlumaticAlgorithm::flagHighStart(const Info& info)
+{
+    info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
+    Helpers::updateUseInfo(*info.d);
+    Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
+    updateSingle(*info.d);
 }
