@@ -81,7 +81,8 @@ void Qc2Work::operator() ()
 
         foreach(const std::string& cf, config_files) {
             params.Parse( cf );
-            const miutil::miTime runAt(now.year(), now.month(), now.day(), params.RunAtHour, params.RunAtMinute, 0);
+            const miutil::miTime runAt(now.year(), now.month(), now.day(),
+                                       params.RunAtHour < 0 ? now.hour() : params.RunAtHour, params.RunAtMinute, 0);
             LOGINFO("runAt = " << runAt);
             if( runAt > lastEnd && runAt <= now ) {
                 if( runAt < now )
@@ -92,9 +93,9 @@ void Qc2Work::operator() ()
                     LOGINFO("trying to run " << params.Algorithm);
                     Processor.select(params);
                 } catch ( dnmi::db::SQLException & ex ) {
-                    LOGERROR( "Exception: " << ex.what() << std::endl );
+                    LOGERROR("Exception: " << ex.what());
                 } catch ( ... ) {
-                    LOGERROR( "Unknown exception: con->exec(ctbl) .....\n" );
+                    LOGERROR("Unknown exception: ...");
                 }
             }
         }
