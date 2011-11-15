@@ -77,18 +77,22 @@ void Qc2Work::operator() ()
         now.addSec(-now.sec()); // set seconds to 0
         LOGINFO("now = " << now);
 
+        // XXX if an algorithm is scheduled hourly and the previous algorithm is taking 2 hours, it will be run only once
+
         // sort algorithms to be run by scheduled time
         typedef std::multimap<miutil::miTime, std::string> queue_t;
         queue_t queue;
         foreach(const std::string& cf, config_files) {
             params.Parse( cf );
+            const int hour = params.RunAtHour < 0 ? now.hour() : params.RunAtHour;
             const miutil::miTime runAt(now.year(), now.month(), now.day(),
-                                       params.RunAtHour < 0 ? now.hour() : params.RunAtHour, params.RunAtMinute, 0);
+                                       hour, params.RunAtMinute, 0);
             LOGINFO("Algorithm='" << params.Algorithm << "' runAt = " << runAt);
             if( runAt > lastEnd && runAt <= now )
                 queue.insert(queue_t::value_type(runAt, cf));
         }
 
+        // run queued algorithms
         foreach(queue_t::value_type tc, queue) {
             params.Parse( tc.second );
             if( tc.first < now )
