@@ -403,8 +403,8 @@ bool DataUpdate::isModified() const
 {
     return mNew
         || mOrigCorrected != mData.corrected()
-        || mOrigControl   != mData.controlinfo()
-        || mOrigCfailed   != mData.cfailed();
+        || mOrigControl   != mData.controlinfo();
+    // || mOrigCfailed   != mData.cfailed(); // this does not work because text is appended instead of overwritten
 }
 
 DataUpdate& DataUpdate::controlinfo(const kvalobs::kvControlInfo& ci)

@@ -175,6 +175,10 @@ TEST_F(PlumaticTest, HighSingle)
 
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
     EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highsingle") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, HighSingleStartEnd)
@@ -192,6 +196,10 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
     EXPECT_EQ("010B000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, HighStart)
@@ -223,6 +231,10 @@ TEST_F(PlumaticTest, HighStart)
 
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
     EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highstart") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, HighStartStartEnd)
@@ -245,6 +257,10 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
     EXPECT_EQ("010A000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, RainInterrupt)
@@ -314,6 +330,10 @@ TEST_F(PlumaticTest, RainInterrupt)
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-interruptedrain") != std::string::npos);
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, RainInterruptStartEnd)
@@ -343,6 +363,10 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
     EXPECT_EQ("010A000000000000", bc->updates()[1].controlinfo().flagstring());
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
     EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highstart") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, PluviometerResolution02)
@@ -406,6 +430,10 @@ TEST_F(PlumaticTest, PluviometerResolution02)
     }
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highsingle") != std::string::npos);
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, Aggregation2Not3)
@@ -433,6 +461,10 @@ TEST_F(PlumaticTest, Aggregation2Not3)
         EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
         EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-2"));
     }
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, Aggregation3Not2A)
@@ -462,6 +494,10 @@ TEST_F(PlumaticTest, Aggregation3Not2A)
         EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
         EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-3"));
     }
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, Aggregation3Not2B)
@@ -492,6 +528,10 @@ TEST_F(PlumaticTest, Aggregation3Not2B)
         EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
         EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-3"));
     }
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, Aggregation2And3)
@@ -522,6 +562,10 @@ TEST_F(PlumaticTest, Aggregation2And3)
         EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
         EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-2"));
     }
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, AggregationOverHighStart)
@@ -546,8 +590,6 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
     ASSERT_EQ("010A000000000000", bc->updates()[0].controlinfo().flagstring());
     ASSERT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
 
-    std::cout << "------------------------------------------------------------------------" << std::endl;
-
     // remove high start, and run again
     bc->clear();
     sql.str("");
@@ -564,6 +606,10 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
         EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
         EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-2"));
     }
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(PlumaticTest, AggregationAfterHighStart)
@@ -596,4 +642,8 @@ TEST_F(PlumaticTest, AggregationAfterHighStart)
         EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
         EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-2"));
     }
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run(params));
+    ASSERT_EQ(0, bc->count());
 }
