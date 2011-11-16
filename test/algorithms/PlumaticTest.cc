@@ -1877,9 +1877,11 @@ void PlumaticTest::Configure(ReadProgramOptions& params, int bm, int bd, int bh,
         "End_MM     =   " << em << "\n"
         "End_DD     =   " << ed << "\n"
         "End_hh     =   " << eh << "\n"
-        "highstart_flagchange       = _A_.__.____.___.\n"
-        "highsingle_flagchange      = _B_.__.____.___.\n"
-        "interruptedrain_flagchange = _C_.__.____.___.\n"
+        "highstart_flagchange       = fs=A\n"
+        "highsingle_flagchange      = fs=B\n"
+        "interruptedrain_flagchange = fs=C\n"
+        "aggregation_flagchange     = fr=9\n"
+        "discarded_cflags           = fr=9|fs=[ABC]\n"
         "stations = 0.1:27270;0.2:30270\n"
         "ParamId = 105\n";
     params.Parse(config);
@@ -1913,8 +1915,8 @@ TEST_F(PlumaticTest, HighSingle)
     EXPECT_EQ("2011-10-01 22:01:00", bc->updates()[0].obstime());
     EXPECT_EQ("2011-10-01 23:39:00", bc->updates()[1].obstime());
 
-    EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
-    EXPECT_EQ("0B01000000000000", bc->updates()[1].controlinfo().flagstring());
+    EXPECT_EQ("010B000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_EQ("010B000000000000", bc->updates()[1].controlinfo().flagstring());
 
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
     EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highsingle") != std::string::npos);
@@ -1933,7 +1935,7 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(1, bc->count());
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
-    EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_EQ("010B000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
 }
 
@@ -1961,8 +1963,8 @@ TEST_F(PlumaticTest, HighStart)
     EXPECT_EQ("2011-10-01 22:43:00", bc->updates()[0].obstime());
     EXPECT_EQ("2011-10-01 23:01:00", bc->updates()[1].obstime());
 
-    EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
-    EXPECT_EQ("0A01000000000000", bc->updates()[1].controlinfo().flagstring());
+    EXPECT_EQ("010A000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_EQ("010A000000000000", bc->updates()[1].controlinfo().flagstring());
 
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
     EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highstart") != std::string::npos);
@@ -1986,7 +1988,7 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(1, bc->count());
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
-    EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_EQ("010A000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
 
@@ -2044,17 +2046,13 @@ TEST_F(PlumaticTest, RainInterrupt)
     EXPECT_EQ("2011-10-01 21:59:00", bc->updates()[i++].obstime());
     EXPECT_EQ("2011-10-02 00:00:00", bc->updates()[i++].obstime());
     EXPECT_EQ("2011-10-02 00:15:00", bc->updates()[i++].obstime());
-    i=0;
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0A01000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C01000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0A01000000000000", bc->updates()[i++].controlinfo().flagstring());
+    i=5;
+    EXPECT_EQ("010A000000000000", bc->updates()[i++].controlinfo().flagstring());
+    EXPECT_EQ("010C000000000000", bc->updates()[i++].controlinfo().flagstring());
+    EXPECT_EQ("010A000000000000", bc->updates()[i++].controlinfo().flagstring());
     i=0;
     while( i<5 ) {
+        EXPECT_EQ("000C000000000000", bc->updates()[i].controlinfo().flagstring());
         EXPECT_TRUE(bc->updates()[i  ].cfailed().find("QC2h-1-interruptedrain") != std::string::npos);
         EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2-missing-row") != std::string::npos);
     }
@@ -2086,8 +2084,8 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
     ASSERT_EQ(2, bc->count());
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
     EXPECT_EQ("2011-10-01 12:03:00", bc->updates()[1].obstime());
-    EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
-    EXPECT_EQ("0A01000000000000", bc->updates()[1].controlinfo().flagstring());
+    EXPECT_EQ("010B000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_EQ("010A000000000000", bc->updates()[1].controlinfo().flagstring());
     EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
     EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
@@ -2142,17 +2140,43 @@ TEST_F(PlumaticTest, PluviometerResolution02)
     EXPECT_EQ("2011-10-01 23:32:00", bc->updates()[i++].obstime());
     EXPECT_EQ("2011-10-01 23:07:00", bc->updates()[i++].obstime());
     EXPECT_EQ("2011-10-01 23:11:00", bc->updates()[i++].obstime());
-    i=0;
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0B01000000000000", bc->updates()[i++].controlinfo().flagstring());
-    EXPECT_EQ("0A01000000000000", bc->updates()[i++].controlinfo().flagstring());
+    i=3;
+    EXPECT_EQ("010B000000000000", bc->updates()[i++].controlinfo().flagstring());
+    EXPECT_EQ("010A000000000000", bc->updates()[i++].controlinfo().flagstring());
     i=0;
     while( i<3 ) {
+        EXPECT_EQ("000C000000000000", bc->updates()[i].controlinfo().flagstring());
         EXPECT_TRUE(bc->updates()[i  ].cfailed().find("QC2h-1-interruptedrain") != std::string::npos);
         EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2-missing-row") != std::string::npos);
     }
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highsingle") != std::string::npos);
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
+}
+
+
+TEST_F(PlumaticTest, Aggregation2)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // sliding sum too high for the next three
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 9.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:05:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    Configure(params);
+
+    ASSERT_NO_THROW(algo->run(params));
+    EXPECT_EQ(3, bc->count());
+
+    miutil::miTime t("2011-10-01 12:03:00");
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
+        const kvalobs::kvData& u = bc->updates()[i];
+        EXPECT_EQ(t, u.obstime());
+        EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
+        EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-2"));
+    }
 }

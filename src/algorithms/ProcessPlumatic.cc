@@ -89,9 +89,11 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataLi
 void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
 {
     pid = params.getParameter<int>("ParamId");
+    params.getFlagSetCU(discarded_flags, "discarded");
     params.getFlagChange(highstart_flagchange,  "highstart_flagchange");
     params.getFlagChange(highsingle_flagchange, "highsingle_flagchange");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange");
+    params.getFlagChange(aggregation_flagchange, "aggregation_flagchange");
     CFAILED_STRING = params.CFAILED_STRING;
     mStationlist = params.getParameter<std::string>("stations");
     UT0 = params.UT0;
@@ -179,7 +181,52 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
             }
         }
     }
+    
+    checkSlidingSum(data, 2, 8.0f);
+    checkSlidingSum(data, 3, 9.0f);
+
     storeUpdates(data);
+}
+
+void PlumaticAlgorithm::checkSlidingSum(kvDataList_t& data, const int length, const float maxi)
+{
+    std::ostringstream cfailed;
+    cfailed << "QC2h-1-aggregation-" << length;
+    kvDataList_it head = data.begin(), tail = data.begin();
+    float sum = 0;
+    std::list<kvDataList_it> discarded;
+    //std::list<kvDataList_it> flagged;
+    for(; head != data.end(); ++head) {
+        DBG("head=" << *head << " tail=" << *tail);
+        for( ; minutesBetween(head->obstime(), tail->obstime()) > length; ++tail ) {
+            if( tail->original()>0 )
+                sum -= tail->original();
+            DBGV(sum);
+            if( tail == discarded.front() ) {
+                discarded.pop_front();
+                DBGV(discarded.size());
+            }
+            //if( tail == flagged.front() ) {
+            //    flagged.pop_front();
+            //    DBGV(flagged.size());
+            //}
+        }
+        if( head->original()>0 )
+            sum += head->original();
+        DBGV(sum);
+        if( discarded_flags.matches(head->data()) ) {
+            discarded.push_back(head);
+            DBGV(discarded.size());
+        }
+        if( sum >= maxi /*&& flagged.empty()*/ && discarded.empty() ) {
+            //flagged.push_back(head);
+            //DBGV(flagged.size());
+            kvDataList_it stop = head; stop++;
+            for(kvDataList_it mark = tail; mark != stop; ++mark)
+                mark->controlinfo(aggregation_flagchange.apply(mark->controlinfo()))
+                    . cfailed(cfailed.str(), CFAILED_STRING);
+        }
+    }
 }
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info& info)

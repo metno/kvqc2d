@@ -112,6 +112,7 @@ private:
         { return miutil::miTime::minDiff(t0, t1); }
 
     void checkStation(int stationid, float mmpv);
+    void checkSlidingSum(kvDataList_t& data, int length, float maxi);
 
     CheckResult isRainInterruption(const Info& info);
     CheckResult isHighSingle(const Info& info);
@@ -125,7 +126,8 @@ private:
 
 private:
     int pid;
-    FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;
+    FlagSetCU discarded_flags;
+    FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
     std::string CFAILED_STRING;
     miutil::miString mStationlist;
     miutil::miTime UT0, UT0extended, UT1;
