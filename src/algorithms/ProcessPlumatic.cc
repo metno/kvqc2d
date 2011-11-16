@@ -145,7 +145,6 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
     for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
         if( d->obstime() < UT0 )
             continue;
-        //DBG("data point = " << *d);
 
         info.d    = d;
         info.prev = nav.previousNot0(d);
@@ -157,28 +156,28 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 
         if( ri != NO ) {
             if( ri == YES ) {
-                DBG("  rain interruption since " << *info.prev);
+                DBG("  rain interruption since " << *info.prev << ' ' << *d);
                 flagRainInterruption(info, data);
             } else {
                 if( info.prev != nav.end() ) {
-                    DBG("  maybe rain interruption since " << *info.prev);
+                    DBG("maybe rain interruption since " << *info.prev << ' ' << *d);
                 } else {
-                    DBG("  maybe rain interruption since start (" << UT0 << ')');
+                    DBG("maybe rain interruption since start (" << UT0 << ") " << *d);
                 }
             }
         } else if( hsi != NO ) {
             if( hsi == YES ) {
-                DBG("  very unlikely value for single point");
+                DBG("very unlikely value for single point " << *d);
                 flagHighSingle(info);
             } else {
-                DBG("  maybe unlikely value for single point");
+                DBG("maybe unlikely value for single point " << *d);
             }
         } else if( hst != NO ) {
             if( hst == YES ) {
-                DBG("  very unlikely value for start point");
+                DBG("very unlikely value for start point " << *d);
                 flagHighStart(info);
             } else {
-                DBG("  maybe unlikely value for start point");
+                DBG("maybe unlikely value for start point " << *d);
             }
         }
     }
