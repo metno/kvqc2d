@@ -47,11 +47,11 @@ namespace O = Ordering;
 
 namespace {
 
-const float veryUnlikelySingle = 0.2;
-const float veryUnlikelyStart  = 0.3;
-const int   maxRainInterrupt = 4;
-const int   minRainBeforeAndAfter = 2;
-const float rainInterruptValue = 0.3;
+const int vippsUnlikelySingle   = 2;
+const int vippsUnlikelyStart    = 3;
+const int vippsRainInterrupt    = 3;
+const int maxRainInterrupt      = 4;
+const int minRainBeforeAndAfter = 2;
 
 }; // anonymous namespace
 
@@ -93,90 +93,104 @@ void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
     params.getFlagChange(highsingle_flagchange, "highsingle_flagchange");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange");
     CFAILED_STRING = params.CFAILED_STRING;
+    mStationlist = params.getParameter<std::string>("stations");
+    UT0 = params.UT0;
+    UT0extended = params.UT0;
+    UT0extended.addMin(-maxRainInterrupt-minRainBeforeAndAfter);
+    UT1 = params.UT1;
 }
 
 void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 {
     configure(params);
 
-    // select stationid from obs_pgm where paramid = 105;
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
-    fillStationLists(StationList, StationIds);
+    // use script stinfosys-vipp.pl or reprogram and select stationid from obs_pgm where paramid = 105;
 
-    miutil::miTime UT0 = params.UT0, UT1 = params.UT1;
-    UT0.addMin(-maxRainInterrupt-minRainBeforeAndAfter);
-
-    miutil::miTime beforeUT0 = UT0, afterUT1 = UT1;
-    beforeUT0.addMin(-1);
-    afterUT1 .addMin( 1);
-
-    foreach(const kvalobs::kvStation& station, StationList) {
-        const C::DBConstraint cSeries = C::Station(station.stationID())
-            && C::Paramid(pid) && C::Obstime(UT0, UT1);
-
-        kvDataList_t data;
-        database()->selectData(data, cSeries, O::Obstime());
-        if( data.empty() )
-            continue;
-
-        Navigator nav(data.begin(), data.end());
-        Info info(nav);
-        info.beforeUT0 = beforeUT0;
-        info.afterUT1  = afterUT1;
-
-        for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
-            if( d->obstime() < params.UT0 )
-                continue;
-            DBG("data point = " << *d);
-
-            info.d = d;
-            info.prev = nav.previousNot0(d);
-            info.next = nav.nextNot0(d);
-            info.dryMinutesBefore = minutesBetween(d->obstime(), info.prev != nav.end() ? info.prev->obstime() : beforeUT0) - 1;
-            info.dryMinutesAfter  = minutesBetween(info.next != nav.end() ? info.next->obstime() : afterUT1, d->obstime()) - 1;
-
-            CheckResult ri = isRainInterruption(info), hsi = isHighSingle(info), hst = isHighStart(info);
-
-            if( ri != NO ) {
-                if( ri == YES ) {
-                    DBG("  rain interruption since " << *info.prev);
-                    flagRainInterruption(info);
-                } else {
-                    if( info.prev != nav.end() ) {
-                        DBG("  maybe rain interruption since " << *info.prev);
-                    } else {
-                        DBG("  maybe rain interruption since start (" << params.UT0 << ')');
-                    }
-                }
-            } else if( hsi != NO ) {
-                if( hsi == YES ) {
-                    DBG("  very unlikely value for single point");
-                    flagHighSingle(info);
-                } else {
-                    DBG("  maybe unlikely value for single point");
-                }
-            } else if( hst != NO ) {
-                if( hst == YES ) {
-                    DBG("  very unlikely value for start point");
-                    flagHighStart(info);
-                } else {
-                    DBG("  maybe unlikely value for start point");
-                }
-            }
+    const std::vector<miutil::miString> msl = mStationlist.split(';');
+    foreach(const miutil::miString& mmpv_stations, msl) {
+        std::vector<miutil::miString> m_s = mmpv_stations.split(':', false);
+        if( m_s.size() != 2 )
+            throw ConfigException("cannot parse 'stations' parameter");
+        const float mmpv = atof(m_s[0].c_str());
+        if( mmpv < 0.09 )
+            throw ConfigException("invalid mm-per-vipp in 'stations' parameter");
+        const std::vector<miutil::miString> s = m_s[1].split(',');
+        foreach(miutil::miString stationidText, s) {
+            int stationid = atoi(stationidText.c_str());
+            checkStation(stationid, mmpv);
         }
     }
 }
 
+void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
+{
+    const C::DBConstraint cSeries = C::Station(stationid)
+        && C::Paramid(pid) && C::Obstime(UT0extended, UT1);
+
+    kvDataOList_t datao;
+    database()->selectData(datao, cSeries, O::Obstime());
+    if( datao.empty() )
+        return;
+    kvDataList_t data(datao.begin(), datao.end());
+
+    Navigator nav(data.begin(), data.end());
+    Info info(nav);
+    info.mmpv = mmpv;
+    info.beforeUT0 = UT0extended; info.beforeUT0.addMin(-1);
+    info.afterUT1  = UT1;         info.afterUT1 .addMin( 1);
+
+    for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
+        if( d->obstime() < UT0 )
+            continue;
+        //DBG("data point = " << *d);
+
+        info.d    = d;
+        info.prev = nav.previousNot0(d);
+        info.next = nav.nextNot0(d);
+        info.dryMinutesBefore = minutesBetween(d->obstime(), info.prev != nav.end() ? info.prev->obstime() : info.beforeUT0) - 1;
+        info.dryMinutesAfter  = minutesBetween(info.next != nav.end() ? info.next->obstime() : info.afterUT1, d->obstime()) - 1;
+
+        CheckResult ri = isRainInterruption(info), hsi = isHighSingle(info), hst = isHighStart(info);
+
+        if( ri != NO ) {
+            if( ri == YES ) {
+                DBG("  rain interruption since " << *info.prev);
+                flagRainInterruption(info, data);
+            } else {
+                if( info.prev != nav.end() ) {
+                    DBG("  maybe rain interruption since " << *info.prev);
+                } else {
+                    DBG("  maybe rain interruption since start (" << UT0 << ')');
+                }
+            }
+        } else if( hsi != NO ) {
+            if( hsi == YES ) {
+                DBG("  very unlikely value for single point");
+                flagHighSingle(info);
+            } else {
+                DBG("  maybe unlikely value for single point");
+            }
+        } else if( hst != NO ) {
+            if( hst == YES ) {
+                DBG("  very unlikely value for start point");
+                flagHighStart(info);
+            } else {
+                DBG("  maybe unlikely value for start point");
+            }
+        }
+    }
+    storeUpdates(data);
+}
+
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info& info)
 {
-    if( info.d->original() < rainInterruptValue )
+    if( info.d->original() < info.mmpv*vippsRainInterrupt )
         return NO;
     if( info.prev == info.nav.end() )
         return (info.dryMinutesBefore > maxRainInterrupt ? NO : DONT_KNOW);
     if( info.dryMinutesBefore > maxRainInterrupt  || info.dryMinutesBefore < 1 )
         return NO;
-    if( info.prev->original() < rainInterruptValue )
+    if( info.prev->original() < info.mmpv*vippsRainInterrupt )
         return NO;
 
     // check that there is some rain before and after the "interrruption"
@@ -204,8 +218,7 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info&
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
 {
-    // std::cout << "    checking for high single" << std::endl;
-    if( info.d->original() < veryUnlikelySingle)
+    if( info.d->original() < info.mmpv*vippsUnlikelySingle)
         return NO;
     if( info.dryMinutesBefore<1 || info.dryMinutesAfter<1 )
         return NO;
@@ -218,8 +231,7 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
 {
-    // std::cout << "    checking for high start" << std::endl;
-    if( info.d->original() <= veryUnlikelyStart)
+    if( info.d->original() <= info.mmpv*vippsUnlikelyStart)
         return NO;
     if( info.dryMinutesBefore < 1 )
         return NO;
@@ -232,17 +244,15 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
     return YES;
 }
 
-void PlumaticAlgorithm::flagRainInterruption(const Info& info)
+void PlumaticAlgorithm::flagRainInterruption(Info& info, kvDataList_t& data)
 {
-    kvDataList_t toUpdate, toInsert;
     const miutil::miTime now = miutil::miTime::nowTime();
     miutil::miTime t = info.prev->obstime(); t.addMin(1);
     for(; t<info.d->obstime(); t.addMin(1)) {
         DBG("t=" << t);
 
-        kvalobs::kvData gap;
         bool needInsert = true;
-        kvDataList_t::const_iterator it = info.prev;
+        kvDataList_t::iterator it = info.prev;
         for( ; it != info.d; ++it ) {
             if( t == it->obstime() ) {
                 needInsert = false;
@@ -250,40 +260,110 @@ void PlumaticAlgorithm::flagRainInterruption(const Info& info)
             }
         }
         if( needInsert ) {
-            gap = kvalobs::kvData(info.d->stationID(), t, -32767.0f, info.d->paramID(),
-                                  now, info.d->typeID(), info.d->sensor(), info.d->level(), 0.0f,
-                                  kvalobs::kvControlInfo("0000000000000000"),
-                                  kvalobs::kvUseInfo("0000000000000000"),
-                                  "QC2-missing-row");
-            DBG("insert gap=" << gap);
+            DataUpdate insert(info.d->data(), t, now, 0.0f, "0000000000000000");
+            insert.controlinfo(interruptedrain_flagchange.apply(insert.controlinfo()))
+                .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
+            data.insert(info.d, insert);
         } else {
-            gap = *it;
-            DBG("update gap=" << gap);
+            it->controlinfo(interruptedrain_flagchange.apply(it->controlinfo()))
+                .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
         }
-        gap.controlinfo(interruptedrain_flagchange.apply(gap.controlinfo()));
-        Helpers::updateUseInfo(gap);
-        Helpers::updateCfailed(gap, "QC2h-1-interruptedrain", CFAILED_STRING);
-        if( needInsert )
-            toInsert.push_back(gap);
-        else
-            toUpdate.push_back(gap);
     }
+}
 
+void PlumaticAlgorithm::flagHighSingle(Info& info)
+{
+    info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()))
+        .cfailed("QC2-plu-highstart", CFAILED_STRING);
+}
+
+void PlumaticAlgorithm::flagHighStart(Info& info)
+{
+    info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()))
+        .cfailed("QC2-plu-highstart", CFAILED_STRING);
+}
+
+void PlumaticAlgorithm::storeUpdates(const kvDataList_t& data)
+{
+    kvDataOList_t toInsert, toUpdate;
+    foreach(const DataUpdate& du, data) {
+        if( du.isModified() ) {
+            DBG(du);
+            if( du.isNew() )
+                toInsert.push_back(du.data());
+            else
+                toUpdate.push_back(du.data());
+        }
+    }
+#ifndef NDEBUG
+    if( toInsert.empty() && toUpdate.empty() )
+        DBG("no updates/inserts");
+#endif
     storeData(toUpdate, toInsert);
 }
 
-void PlumaticAlgorithm::flagHighSingle(const Info& info)
+// ########################################################################
+
+DataUpdate::DataUpdate()
+    : mNew(false)
+    , mOrigControl("0000000000000000")
+    , mOrigCorrected(-32767.0f)
+    , mOrigCfailed("")
 {
-    info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()));
-    Helpers::updateUseInfo(*info.d);
-    Helpers::updateCfailed(*info.d, "QC2h-1-highsingle", CFAILED_STRING);
-    updateSingle(*info.d);
 }
 
-void PlumaticAlgorithm::flagHighStart(const Info& info)
+DataUpdate::DataUpdate(const kvalobs::kvData& data)
+    : mData(data)
+    , mNew(false)
+    , mOrigControl(mData.controlinfo())
+    , mOrigCorrected(mData.corrected())
+    , mOrigCfailed(mData.cfailed())
 {
-    info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()));
-    Helpers::updateUseInfo(*info.d);
-    Helpers::updateCfailed(*info.d, "QC2-plu-highstart", CFAILED_STRING);
-    updateSingle(*info.d);
+}
+
+DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+                       float corrected, const std::string& controlinfo)
+    : mData(templt.stationID(), obstime, -32767, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
+            templt.level(), corrected, kvalobs::kvControlInfo(controlinfo), kvalobs::kvUseInfo(), "QC2-missing-row")
+    , mNew(true)
+    , mOrigControl(mData.controlinfo())
+    , mOrigCorrected(mData.corrected())
+    , mOrigCfailed(mData.cfailed())
+{
+    Helpers::updateUseInfo(mData);
+}
+
+bool DataUpdate::isModified() const
+{
+    return mNew
+        || mOrigCorrected != mData.corrected()
+        || mOrigControl   != mData.controlinfo()
+        || mOrigCfailed   != mData.cfailed();
+}
+
+DataUpdate& DataUpdate::controlinfo(const kvalobs::kvControlInfo& ci)
+{
+    mData.controlinfo(ci);
+    Helpers::updateUseInfo(mData);
+    return *this;
+}
+
+DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
+{
+    Helpers::updateCfailed(mData, cf, extra);
+    return *this;
+}
+
+std::ostream& operator<<(std::ostream& out, const DataUpdate& du)
+{
+    out << du.data();
+    if( du.isModified() ) {
+        out << '{';
+        if( du.isNew() )
+            out << 'n';
+        else
+            out << 'm';
+        out << '}';
+    }
+    return out;
 }
