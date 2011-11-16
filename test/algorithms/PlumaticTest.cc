@@ -1915,6 +1915,9 @@ TEST_F(PlumaticTest, HighSingle)
 
     EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_EQ("0B01000000000000", bc->updates()[1].controlinfo().flagstring());
+
+    EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
+    EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highsingle") != std::string::npos);
 }
 
 TEST_F(PlumaticTest, HighSingleStartEnd)
@@ -1931,6 +1934,7 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
     ASSERT_EQ(1, bc->count());
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
     EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
 }
 
 TEST_F(PlumaticTest, HighStart)
@@ -1959,6 +1963,9 @@ TEST_F(PlumaticTest, HighStart)
 
     EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_EQ("0A01000000000000", bc->updates()[1].controlinfo().flagstring());
+
+    EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
+    EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
 
 TEST_F(PlumaticTest, HighStartStartEnd)
@@ -1980,6 +1987,7 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     ASSERT_EQ(1, bc->count());
     EXPECT_EQ("2011-10-01 12:00:00", bc->updates()[0].obstime());
     EXPECT_EQ("0A01000000000000", bc->updates()[0].controlinfo().flagstring());
+    EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
 
 TEST_F(PlumaticTest, RainInterrupt)
@@ -2045,6 +2053,14 @@ TEST_F(PlumaticTest, RainInterrupt)
     EXPECT_EQ("0A01000000000000", bc->updates()[i++].controlinfo().flagstring());
     EXPECT_EQ("0C01000000000000", bc->updates()[i++].controlinfo().flagstring());
     EXPECT_EQ("0A01000000000000", bc->updates()[i++].controlinfo().flagstring());
+    i=0;
+    while( i<5 ) {
+        EXPECT_TRUE(bc->updates()[i  ].cfailed().find("QC2h-1-interruptedrain") != std::string::npos);
+        EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2-missing-row") != std::string::npos);
+    }
+    EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
+    EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-interruptedrain") != std::string::npos);
+    EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
 
 TEST_F(PlumaticTest, RainInterruptStartEnd)
@@ -2072,6 +2088,8 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
     EXPECT_EQ("2011-10-01 12:03:00", bc->updates()[1].obstime());
     EXPECT_EQ("0B01000000000000", bc->updates()[0].controlinfo().flagstring());
     EXPECT_EQ("0A01000000000000", bc->updates()[1].controlinfo().flagstring());
+    EXPECT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highsingle") != std::string::npos);
+    EXPECT_TRUE(bc->updates()[1].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
 
 TEST_F(PlumaticTest, PluviometerResolution02)
@@ -2130,4 +2148,11 @@ TEST_F(PlumaticTest, PluviometerResolution02)
     EXPECT_EQ("0C00000000000000", bc->updates()[i++].controlinfo().flagstring());
     EXPECT_EQ("0B01000000000000", bc->updates()[i++].controlinfo().flagstring());
     EXPECT_EQ("0A01000000000000", bc->updates()[i++].controlinfo().flagstring());
+    i=0;
+    while( i<3 ) {
+        EXPECT_TRUE(bc->updates()[i  ].cfailed().find("QC2h-1-interruptedrain") != std::string::npos);
+        EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2-missing-row") != std::string::npos);
+    }
+    EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highsingle") != std::string::npos);
+    EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }

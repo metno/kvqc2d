@@ -104,7 +104,7 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
 {
     configure(params);
 
-    // use script stinfosys-vipp.pl or reprogram and select stationid from obs_pgm where paramid = 105;
+    // use script stinfosys-vipp-pluviometer.pl or change program and use "select stationid from obs_pgm where paramid = 105;"
 
     const std::vector<miutil::miString> msl = mStationlist.split(';');
     foreach(const miutil::miString& mmpv_stations, msl) {
@@ -112,8 +112,8 @@ void PlumaticAlgorithm::run(const ReadProgramOptions& params)
         if( m_s.size() != 2 )
             throw ConfigException("cannot parse 'stations' parameter");
         const float mmpv = atof(m_s[0].c_str());
-        if( mmpv < 0.09 )
-            throw ConfigException("invalid mm-per-vipp in 'stations' parameter");
+        if( mmpv <= 0.0f )
+            throw ConfigException("invalid mm-per-vipp <= 0 in 'stations' parameter");
         const std::vector<miutil::miString> s = m_s[1].split(',');
         foreach(miutil::miString stationidText, s) {
             int stationid = atoi(stationidText.c_str());
@@ -274,13 +274,13 @@ void PlumaticAlgorithm::flagRainInterruption(Info& info, kvDataList_t& data)
 void PlumaticAlgorithm::flagHighSingle(Info& info)
 {
     info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()))
-        .cfailed("QC2-plu-highstart", CFAILED_STRING);
+        .cfailed("QC2h-1-highsingle", CFAILED_STRING);
 }
 
 void PlumaticAlgorithm::flagHighStart(Info& info)
 {
     info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()))
-        .cfailed("QC2-plu-highstart", CFAILED_STRING);
+        .cfailed("QC2h-1-highstart", CFAILED_STRING);
 }
 
 void PlumaticAlgorithm::storeUpdates(const kvDataList_t& data)
