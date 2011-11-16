@@ -1883,6 +1883,7 @@ void PlumaticTest::Configure(ReadProgramOptions& params, int bm, int bd, int bh,
         "aggregation_flagchange     = fr=9\n"
         "discarded_cflags           = fr=9|fs=[ABC]\n"
         "stations = 0.1:27270;0.2:30270\n"
+        "sliding_alarms = 2<8.4;3<10.2\n"
         "ParamId = 105\n";
     params.Parse(config);
 }
@@ -2153,8 +2154,7 @@ TEST_F(PlumaticTest, PluviometerResolution02)
     EXPECT_TRUE(bc->updates()[i++].cfailed().find("QC2h-1-highstart") != std::string::npos);
 }
 
-
-TEST_F(PlumaticTest, Aggregation2)
+TEST_F(PlumaticTest, Aggregation2Not3)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
@@ -2173,6 +2173,95 @@ TEST_F(PlumaticTest, Aggregation2)
     EXPECT_EQ(3, bc->count());
 
     miutil::miTime t("2011-10-01 12:03:00");
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
+        const kvalobs::kvData& u = bc->updates()[i];
+        EXPECT_EQ(t, u.obstime());
+        EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
+        EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-2"));
+    }
+}
+
+TEST_F(PlumaticTest, Aggregation3Not2A)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // sliding sum of three too high for the next three
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 4.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:05:00', 4.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:06:00', 4.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:07:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    Configure(params);
+
+    ASSERT_NO_THROW(algo->run(params));
+    EXPECT_EQ(3, bc->count());
+
+    miutil::miTime t("2011-10-01 12:04:00");
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
+        const kvalobs::kvData& u = bc->updates()[i];
+        EXPECT_EQ(t, u.obstime());
+        EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
+        EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-3"));
+    }
+}
+
+TEST_F(PlumaticTest, Aggregation3Not2B)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // sliding sum of two three high for the next three
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 3.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:05:00', 5.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:06:00', 3.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:07:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    Configure(params);
+
+    ASSERT_NO_THROW(algo->run(params));
+    EXPECT_EQ(3, bc->count());
+
+    miutil::miTime t("2011-10-01 12:04:00");
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
+        const kvalobs::kvData& u = bc->updates()[i];
+        EXPECT_EQ(t, u.obstime());
+        EXPECT_EQ("0901000000000000", u.controlinfo().flagstring());
+        EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-3"));
+    }
+}
+
+TEST_F(PlumaticTest, Aggregation2And3)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO data VALUES (27270, '2011-10-01 12:00:00', 0.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:03:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        // sliding sum of two too high for the next three
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:04:00', 5.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:05:00', 5.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:06:00', 5.0, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 12:07:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');"
+
+        << "INSERT INTO data VALUES (27270, '2011-10-01 13:00:00', 0.1, 105, '2011-10-02 00:05:52', 4, 0, 0, 0.1, '0101000000000000', '7000000000000000', '');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ReadProgramOptions params;
+    Configure(params);
+
+    ASSERT_NO_THROW(algo->run(params));
+    EXPECT_EQ(3, bc->count());
+
+    miutil::miTime t("2011-10-01 12:04:00");
     for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
         const kvalobs::kvData& u = bc->updates()[i];
         EXPECT_EQ(t, u.obstime());

@@ -96,6 +96,7 @@ void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
     params.getFlagChange(aggregation_flagchange, "aggregation_flagchange");
     CFAILED_STRING = params.CFAILED_STRING;
     mStationlist = params.getParameter<std::string>("stations");
+    mSlidingAlarms = params.getParameter<std::string>("sliding_alarms");
     UT0 = params.UT0;
     UT0extended = params.UT0;
     UT0extended.addMin(-maxRainInterrupt-minRainBeforeAndAfter);
@@ -182,14 +183,33 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
         }
     }
     
-    checkSlidingSum(data, 2, 8.0f);
-    checkSlidingSum(data, 3, 9.0f);
+    checkSlidingSums(data);
 
     storeUpdates(data);
 }
 
+void PlumaticAlgorithm::checkSlidingSums(kvDataList_t& data)
+{
+    int lastlength = 2;
+    const std::vector<miutil::miString> msa = mSlidingAlarms.split(';');
+    foreach(const miutil::miString& length_max, msa) {
+        std::vector<miutil::miString> l_m = length_max.split('<', false);
+        if( l_m.size() != 2 )
+            throw ConfigException("cannot parse 'sliding_alarms' parameter");
+        const int length = atoi(l_m[0].c_str());
+        if( length < lastlength )
+            throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
+        const float maxi = atof(l_m[1].c_str());
+        if( maxi <= 0.0f )
+            throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
+        checkSlidingSum( data, length, maxi );
+        lastlength = length;
+    }
+}
+
 void PlumaticAlgorithm::checkSlidingSum(kvDataList_t& data, const int length, const float maxi)
 {
+    DBG("length=" << length << " maxi=" << maxi);
     std::ostringstream cfailed;
     cfailed << "QC2h-1-aggregation-" << length;
     kvDataList_it head = data.begin(), tail = data.begin();
@@ -197,8 +217,8 @@ void PlumaticAlgorithm::checkSlidingSum(kvDataList_t& data, const int length, co
     std::list<kvDataList_it> discarded;
     //std::list<kvDataList_it> flagged;
     for(; head != data.end(); ++head) {
-        DBG("head=" << *head << " tail=" << *tail);
-        for( ; minutesBetween(head->obstime(), tail->obstime()) > length; ++tail ) {
+        DBG("head=" << *head << " tail=" << *tail << "minutes=" << minutesBetween(head->obstime(), tail->obstime()));
+        for( ; minutesBetween(head->obstime(), tail->obstime()) >= length; ++tail ) {
             if( tail->original()>0 )
                 sum -= tail->original();
             DBGV(sum);
@@ -403,7 +423,7 @@ DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
 
 std::ostream& operator<<(std::ostream& out, const DataUpdate& du)
 {
-    out << du.data();
+    out << du.data() << "[cf='" << du.data().cfailed() << ']';
     if( du.isModified() ) {
         out << '{';
         if( du.isNew() )
