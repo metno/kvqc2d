@@ -34,6 +34,7 @@
 
 DataUpdate::DataUpdate()
     : mNew(false)
+    , mForcedModified(false)
     , mOrigControl("0000000000000000")
     , mOrigCorrected(-32767.0f)
     , mOrigCfailed("")
@@ -45,6 +46,7 @@ DataUpdate::DataUpdate()
 DataUpdate::DataUpdate(const kvalobs::kvData& data)
     : mData(data)
     , mNew(false)
+    , mForcedModified(false)
     , mOrigControl(mData.controlinfo())
     , mOrigCorrected(mData.corrected())
     , mOrigCfailed(mData.cfailed())
@@ -58,6 +60,7 @@ DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obst
     : mData(templt.stationID(), obstime, -32767, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
             templt.level(), corrected, kvalobs::kvControlInfo(controlinfo), kvalobs::kvUseInfo(), "QC2-missing-row")
     , mNew(true)
+    , mForcedModified(false)
     , mOrigControl(mData.controlinfo())
     , mOrigCorrected(mData.corrected())
     , mOrigCfailed(mData.cfailed())
@@ -69,7 +72,7 @@ DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obst
 
 bool DataUpdate::isModified() const
 {
-    return mNew
+    return mNew || mForcedModified
         || mOrigCorrected != mData.corrected()
         || mOrigControl   != mData.controlinfo();
     // || mOrigCfailed   != mData.cfailed(); // this does not work because text is appended instead of overwritten

@@ -33,6 +33,9 @@ public:
     float original() const
         { return mData.original(); }
 
+    float corrected() const
+        { return mData.corrected(); }
+
     miutil::miTime obstime() const
         { return mData.obstime(); }
 
@@ -46,12 +49,15 @@ public:
 
     DataUpdate& cfailed(const std::string& cf, const std::string& extra="");
 
+    DataUpdate& forceModified()
+        { mForcedModified = true; return *this; }
+
     bool operator<(const DataUpdate& other) const
         { return obstime() < other.obstime(); }
 
 private:
     kvalobs::kvData mData;
-    bool mNew;
+    bool mNew, mForcedModified;
     kvalobs::kvControlInfo mOrigControl;
     float mOrigCorrected;
     std::string mOrigCfailed;
