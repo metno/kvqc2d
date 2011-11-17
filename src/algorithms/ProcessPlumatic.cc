@@ -99,7 +99,19 @@ void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
     mSlidingAlarms = params.getParameter<std::string>("sliding_alarms");
     UT0 = params.UT0;
     UT0extended = params.UT0;
-    UT0extended.addMin(-maxRainInterrupt-minRainBeforeAndAfter);
+
+    int lookback = maxRainInterrupt+minRainBeforeAndAfter;
+    const std::vector<miutil::miString> msa = mSlidingAlarms.split(';');
+    foreach(const miutil::miString& length_max, msa) {
+        std::vector<miutil::miString> l_m = length_max.split('<', false);
+        if( l_m.size() != 2 )
+            throw ConfigException("cannot parse 'sliding_alarms' parameter");
+        const int length = atoi(l_m[0].c_str());
+        if( lookback < length )
+            lookback = length;
+    }
+    UT0extended.addMin(-lookback);
+
     UT1 = params.UT1;
 }
 
