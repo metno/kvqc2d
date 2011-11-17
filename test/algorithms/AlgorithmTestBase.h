@@ -36,7 +36,7 @@
 #include <sqlite3.h>
 #include <vector>
 
-class SqliteTestDB: public DBInterface {
+class SqliteTestDB : public DBInterface {
 public:
     SqliteTestDB();
     ~SqliteTestDB();
@@ -45,6 +45,8 @@ public:
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
+
+    // test helpers
     void exec(const std::string& statement) throw (DBException);
 private:
     sqlite3 *db;
@@ -74,9 +76,58 @@ public:
     const updates_t& updates() const
         { return mUpdates; }
 
+    const kvalobs::kvData& update(int i) const
+        { return mUpdates[i]; }
+
 private:
     updates_t mUpdates;
 };
+
+// #######################################################################
+
+class DataList : public std::list<kvalobs::kvData> {
+public:
+    DataList(int stationid, int paramid, int tid)
+        : mStationId(stationid), mParamId(paramid), mTypeId(tid) { }
+
+    DataList& setStation(int sid)
+        { mStationId = sid; return *this; }
+    DataList& setParam(int pid)
+        { mParamId = pid; return *this; }
+    DataList& setType(int tid)
+        { mTypeId = tid; return *this; }
+
+    DataList& add(int stationid, const miutil::miTime& obstime, float original, int paramid, int type, float corrected, const std::string& controlinfo, const std::string& cfailed);
+
+    DataList& add(int stationid, const miutil::miTime& obstime, float original, int paramid, int type, const std::string& controlinfo, const std::string& cfailed)
+        { return add(stationid, obstime, original, paramid, type, original, controlinfo, cfailed); }
+
+    DataList& add(const miutil::miTime& obstime, float original, float corrected, const std::string& controlinfo, const std::string& cfailed)
+        { return add(mStationId, obstime, original, mParamId, mTypeId, corrected, controlinfo, cfailed); }
+
+    DataList& add(const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
+        { return add(obstime, original, original, controlinfo, cfailed); }
+
+    void insert(SqliteTestDB* db);
+    void update(SqliteTestDB* db);
+
+private:
+    int mStationId, mParamId, mTypeId;
+};
+
+// ########################################################################
+
+::testing::AssertionResult AssertObstime(const char* e_expr, const char* /*a_expr*/,
+                                         const miutil::miTime& e, const kvalobs::kvData& a);
+
+#define EXPECT_OBSTIME(e, a) EXPECT_PRED_FORMAT2(AssertObstime, e, a)
+#define ASSERT_OBSTIME(e, a) ASSERT_PRED_FORMAT2(AssertObstime, e, a)
+
+::testing::AssertionResult AssertObsControlCfailed(const char* eo_expr, const char* eci_expr, const char* ecf_expr, const char* a_expr,
+                                                   const miutil::miTime& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a);
+
+#define EXPECT_OBS_CONTROL_CFAILED(eo, eci, ecf, a) EXPECT_PRED_FORMAT4(AssertObsControlCfailed, eo, eci, ecf, a)
+#define ASSERT_OBS_CONTROL_CFAILED(eo, eci, ecf, a) ASSERT_PRED_FORMAT4(AssertObsControlCfailed, eo, eci, ecf, a)
 
 // #######################################################################
 
@@ -84,6 +135,7 @@ class AlgorithmTestBase: public ::testing::Test {
 public:
     void SetUp();
     void TearDown();
+
 protected:
     SqliteTestDB* db;
     TestBroadcaster* bc;

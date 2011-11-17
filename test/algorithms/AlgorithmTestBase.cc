@@ -215,9 +215,11 @@ void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& t
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl << std::endl;
 
-    // std::cout << "------------------------------------------------------------------------" << std::endl;
-    // std::cout << __PRETTY_FUNCTION__ << " sql='" << sql.str() << "'" << std::endl;
-    // std::cout << "------------------------------------------------------------------------" << std::endl;
+#if 0
+    std::cout << "------------------------------------------------------------------------" << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " sql='" << sql.str() << "'" << std::endl;
+    std::cout << "------------------------------------------------------------------------" << std::endl;
+#endif
 
     exec(sql.str());
 }
@@ -235,6 +237,77 @@ void SqliteTestDB::exec(const std::string& statement) throw (DBException)
 
 // #######################################################################
 
+DataList& DataList::add(int stationid, const miutil::miTime& obstime, float original, int paramid,
+                      int type, float corrected, const std::string& controlinfo, const std::string& cfailed)
+{
+    kvalobs::kvControlInfo ci(controlinfo);
+    kvalobs::kvUseInfo ui;
+    ui.setUseFlags(ci);
+    push_back(kvalobs::kvData(stationid, obstime, original, paramid, obstime, type, 0, 0, corrected, ci, ui, cfailed));
+    return *this;
+}
+
+void DataList::insert(SqliteTestDB* db)
+{
+    std::list<kvalobs::kvData> toUpdate;
+    db->storeData(toUpdate, *this);
+    clear();
+}
+
+void DataList::update(SqliteTestDB* db)
+{
+    // cannot use storeData because it does not modify the original value
+    std::ostringstream sql;
+    sql << "BEGIN;";
+    foreach(const kvalobs::kvData& d, *this) {
+        sql << "UPDATE data SET original=" << d.original() << ", corrected=" << d.corrected()
+            << ", controlinfo='" << d.controlinfo().flagstring() << "', useinfo='" << d.useinfo().flagstring() 
+            << "', cfailed='" << d.cfailed() << "' " << d.uniqueKey() << ';';
+    }
+    sql << "COMMIT;";
+    db->exec(sql.str());
+    clear();
+}
+
+// ########################################################################
+
+::testing::AssertionResult AssertObstime(const char* e_expr, const char* /*a_expr*/,
+                                         const miutil::miTime& e, const kvalobs::kvData& a)
+{
+    if( e == a.obstime() )
+        return ::testing::AssertionSuccess();
+ 
+    ::testing::Message msg;
+    msg << e_expr << " != " << e_expr << " (" << e.isoTime() << " and " << a.obstime().isoTime() << ")";
+    return ::testing::AssertionFailure(msg);
+}
+
+::testing::AssertionResult AssertObsControlCfailed(const char* eo_expr, const char* eci_expr, const char* ecf_expr, const char* /*a_expr*/,
+                                                   const miutil::miTime& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a)
+{
+    bool failed = false;
+    ::testing::Message msg;
+    if( eo != a.obstime() ) {
+        msg << "(obstime " << eo_expr << " != " << a.obstime().isoTime() << ")";
+        failed = true;
+    }
+    if( eci != a.controlinfo().flagstring() ) {
+        if( failed )
+            msg << "; ";
+        msg << "(controlinfo " << eci_expr << " != " << a.controlinfo().flagstring() << ")";
+        failed = true;
+    }
+    if( a.cfailed().find(ecf) == std::string::npos ) {
+        if( failed )
+            msg << "; ";
+        msg << "(cfailed " << ecf_expr << " not in " << a.cfailed() << ")";
+        failed = true;
+    }
+    return failed ? ::testing::AssertionFailure(msg) : ::testing::AssertionSuccess();
+}
+
+// ########################################################################
+
 void AlgorithmTestBase::SetUp()
 {
     db = new SqliteTestDB();
@@ -246,4 +319,3 @@ void AlgorithmTestBase::TearDown()
     delete bc;
     delete db;
 }
-
