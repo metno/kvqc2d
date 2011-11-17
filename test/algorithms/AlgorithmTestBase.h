@@ -108,6 +108,9 @@ public:
     DataList& add(const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
         { return add(obstime, original, original, controlinfo, cfailed); }
 
+    DataList& add(int stationid, const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
+        { return add(stationid, obstime, original, mParamId, mTypeId, original, controlinfo, cfailed); }
+
     void insert(SqliteTestDB* db);
     void update(SqliteTestDB* db);
 
