@@ -241,14 +241,10 @@ TEST_F(RedistributionTest, Station83880History2011117)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(4, bc->count());
 
-    const float expected_corrected[4] = { 0.9, 2.8, 28.3, 6.3 };
-    const char* expected_controlinfo[4] = { "0000001000007000", "0000001000007000", "0000001000007000", "0140004000007000" };
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        EXPECT_EQ(83880, d.stationID()) << " at index " << i;
-        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected()) << " at index " << i;
-        EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring()) << " at index " << i;
-    }
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0000001000007000",  0.9, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000",  2.8, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 28.3, bc->update(2));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  6.3, bc->update(3));
 
     bc->clear();
     ASSERT_NO_THROW(algo->run(params));
@@ -412,17 +408,10 @@ TEST_F(RedistributionTest, TwoSeries)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(4, bc->count());
 
-    const float expected_corrected[4] = { 9.4, 3.4, 10.3, 2.5 };
-    const char* expected_controlinfo[4] = { "0000001000007000", "0140004000007000", "0000001000007000", "0140004000007000" };
-    const miutil::miTime expected_obstime[4] = { "2011-10-13 06:00:00", "2011-10-14 06:00:00", "2011-10-16 06:00:00", "2011-10-17 06:00:00" };
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        SCOPED_TRACE(testing::Message() << "Update #" << i);
-        EXPECT_EQ(83880, d.stationID());
-        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
-        EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring());
-        EXPECT_EQ(expected_obstime[i], d.obstime());
-    }
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  9.4, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  3.4, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 10.3, bc->update(2));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  2.5, bc->update(3));
 }
 
 // ------------------------------------------------------------------------
@@ -464,12 +453,9 @@ TEST_F(RedistributionTest, MissingRows)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(5, bc->count());
 
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        SCOPED_TRACE(testing::Message() << "Update #" << i);
-        EXPECT_EQ(83880, d.stationID());
-        EXPECT_FLOAT_EQ(2.0f, d.corrected());
-    }
+    for(int i=0; i<bc->count()-1; ++i)
+        EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000", 2.0, bc->update(4));
 }
 
 // ------------------------------------------------------------------------
@@ -515,12 +501,9 @@ TEST_F(RedistributionTest, ReRun)
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        SCOPED_TRACE(testing::Message() << "Update #" << i);
-        EXPECT_EQ(83880, d.stationID());
-        EXPECT_FLOAT_EQ(2.0f, d.corrected());
-    }
+    for(int i=0; i<bc->count()-1; ++i)
+        EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000", 2.0, bc->update(4));
 
     std::stringstream config;
     config << "Start_YYYY = 2011" << std::endl
@@ -567,13 +550,11 @@ TEST_F(RedistributionTest, ReRun)
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
-    const float expected_corrected[45] = { 3.0, 1.0, 2.0, 2.0, 2.0 };
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        SCOPED_TRACE(testing::Message() << "Update #" << i);
-        EXPECT_EQ(83880, d.stationID());
-        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
-    }
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 3.0, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0000001000007000", 1.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000", 2.0, bc->update(2));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 2.0, bc->update(3));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000", 2.0, bc->update(4));
 }
 
 // ------------------------------------------------------------------------
@@ -606,17 +587,8 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 
-    const float expected_corrected[2] = { 9.8, 0.2 };
-    const char* expected_controlinfo[2] = { "0000001000007000", "0140004000007000" };
-    const miutil::miTime expected_obstime[2] = { "2011-10-13 06:00:00", "2011-10-14 06:00:00" };
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        SCOPED_TRACE(testing::Message() << "Update #" << i);
-        EXPECT_EQ(84070, d.stationID());
-        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
-        EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring());
-        EXPECT_EQ(expected_obstime[i], d.obstime());
-    }
+    EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-13 06:00:00", "0000001000007000", 9.8, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-14 06:00:00", "0140004000007000", 0.2, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -800,17 +772,8 @@ TEST_F(RedistributionTest, BoneDry)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 
-    const float expected_corrected[2] = { -1, 0.1 };
-    const char* expected_controlinfo[2] = { "0000001000007000", "0140004000007000" };
-    const miutil::miTime expected_obstime[2] = { "2011-10-13 06:00:00", "2011-10-14 06:00:00" };
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        SCOPED_TRACE(testing::Message() << "Update #" << i);
-        EXPECT_EQ(83880, d.stationID());
-        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected());
-        EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring());
-        EXPECT_EQ(expected_obstime[i], d.obstime());
-    }
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -1053,22 +1016,15 @@ TEST_F(RedistributionTest, Bugzilla1333)
     ASSERT_NO_THROW(algo->run(params));
     ASSERT_EQ(2, bc->count());
 
-    const float expected_corrected[2] = { 10.5, 2.3 };
-    const char* expected_controlinfo[2] = { "0000001000007000", "0140004000007000" };
-    const char* expected_cfailed_end[2] = { ",QC2N_83520_84190,QC2-redist", ",QC2N_83520_84190,QC2-redist" };
-    for(int i=0; i<bc->count(); ++i) {
-        const kvalobs::kvData& d = bc->updates()[i];
-        EXPECT_EQ(83880, d.stationID()) << " at index " << i;
-        EXPECT_FLOAT_EQ(expected_corrected[i], d.corrected()) << " at index " << i;
-        EXPECT_EQ(expected_controlinfo[i], d.controlinfo().flagstring()) << " at index " << i;
-        EXPECT_TRUE(Helpers::endsWith(d.cfailed(), expected_cfailed_end[i])) << " at index " << i << " cfailed=" << d.cfailed();
-    }
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 10.5, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  2.3, bc->update(1));
+
+    EXPECT_CFAILED(",QC2N_83520_84190,QC2-redist", bc->update(0));
+    EXPECT_CFAILED(",QC2N_83520_84190,QC2-redist", bc->update(1));
 
     std::list<kvalobs::kvData> cfailedWithQC2;
-    ASSERT_NO_THROW(db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%'"));
-    foreach(const kvalobs::kvData& d, cfailedWithQC2) {
-        EXPECT_EQ(83880, d.stationID()) << " data=" << d;
-    }
+    ASSERT_NO_THROW(db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%' AND stationid != 83880"));
+    ASSERT_TRUE(cfailedWithQC2.empty());
 
     bc->clear();
     ASSERT_NO_THROW(algo->run(params));

@@ -29,6 +29,7 @@
 
 #include "AlgorithmTestBase.h"
 
+#include "Helpers.h"
 #include <kvalobs/kvQueries.h>
 #include "foreach.h"
 #include <cstdlib>
@@ -301,6 +302,36 @@ void DataList::update(SqliteTestDB* db)
         if( failed )
             msg << "; ";
         msg << "(cfailed " << ecf_expr << " not in " << a.cfailed() << ")";
+        failed = true;
+    }
+    return failed ? ::testing::AssertionFailure(msg) : ::testing::AssertionSuccess();
+}
+
+::testing::AssertionResult AssertStationObsControlCorrected(const char* es_expr, const char* eo_expr, const char* eci_expr, const char* eco_expr, const char* /*a_expr*/,
+                                                            int es, const miutil::miTime& eo, const std::string& eci, float eco, const kvalobs::kvData& a)
+{
+    bool failed = false;
+    ::testing::Message msg;
+    if( es != a.stationID() ) {
+        msg << "(station " << es_expr << " != " << a.stationID() << ")";
+        failed = true;
+    }
+    if( eo != a.obstime() ) {
+        if( failed )
+            msg << "; ";
+        msg << "(obstime " << eo_expr << " != " << a.obstime().isoTime() << ")";
+        failed = true;
+    }
+    if( eci != a.controlinfo().flagstring() ) {
+        if( failed )
+            msg << "; ";
+        msg << "(controlinfo " << eci_expr << " != " << a.controlinfo().flagstring() << ")";
+        failed = true;
+    }
+    if( !Helpers::equal(a.corrected(), eco) ) {
+        if( failed )
+            msg << "; ";
+        msg << "(corrected " << eco_expr << " != " << a.corrected() << ")";
         failed = true;
     }
     return failed ? ::testing::AssertionFailure(msg) : ::testing::AssertionSuccess();

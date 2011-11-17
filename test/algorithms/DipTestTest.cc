@@ -69,19 +69,21 @@ void DipTestTest::Configure(ReadProgramOptions& params, std::stringstream& confi
 
 TEST_F(DipTestTest, Bugzilla1327)
 {
-    std::ostringstream sql;
-    sql << "INSERT INTO data VALUES(90800, '2011-08-13 12:00:00', 3.2, 90, '2011-08-13 11:56:01.916558', 330, 0, 0, 3.2, '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 13:00:00', 3.0, 90, '2011-08-13 12:56:03.835825', 330, 0, 0, 3,   '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 14:00:00', 3.7, 90, '2011-08-13 13:56:04.3525',   330, 0, 0, 3.7, '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 15:00:00', 4.1, 90, '2011-08-13 14:56:04.557816', 330, 0, 0, 4.1, '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 16:00:00', 4.3, 90, '2011-08-13 15:56:00.973292', 330, 0, 0, 4.3, '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 17:00:00', 64,  90, '2011-08-13 16:56:04.387755', 330, 0, 0, 64,  '0412000000000000', '7020300000000002','QC1-1-90,QC1-3a-90');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 18:00:00', 2,   90, '2011-08-13 17:56:02.55036',  330, 0, 0, 2,   '0112000000000000', '7010300000000001','QC1-3a-90');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 19:00:00', 2.9, 90, '2011-08-13 18:56:01.775408', 330, 0, 0, 2.9, '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 20:00:00', 2,   90, '2011-08-13 19:55:59.784935', 330, 0, 0, 2,   '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 21:00:00', 3.3, 90, '2011-08-13 20:55:59.73048',  330, 0, 0, 3.3, '0111000000000000', '7000000000000000','');"
-        << "INSERT INTO data VALUES(90800, '2011-08-13 22:00:00', 2.7, 90, '2011-08-13 21:56:01.502523', 330, 0, 0, 2.7, '0111000000000000', '7000000000000000','');";
+    DataList data(90800, 90, 330);
+    data.add("2011-08-13 12:00:00", 3.2, "0111000000000000", "")
+        .add("2011-08-13 13:00:00", 3.0, "0111000000000000", "")
+        .add("2011-08-13 14:00:00", 3.7, "0111000000000000", "")
+        .add("2011-08-13 15:00:00", 4.1, "0111000000000000", "")
+        .add("2011-08-13 16:00:00", 4.3, "0111000000000000", "")
+        .add("2011-08-13 17:00:00", 64,  "0412000000000000", "QC1-1-90,QC1-3a-90")
+        .add("2011-08-13 18:00:00", 2,   "0112000000000000", "QC1-3a-90")
+        .add("2011-08-13 19:00:00", 2.9, "0111000000000000", "")
+        .add("2011-08-13 20:00:00", 2,   "0111000000000000", "")
+        .add("2011-08-13 21:00:00", 3.3, "0111000000000000", "")
+        .add("2011-08-13 22:00:00", 2.7, "0111000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
 
+    std::ostringstream sql;
     sql << "INSERT INTO station VALUES(90800, 70.2457, 19.5005, 21, 0, 'TORSVÅG FYR', 1033, 90800, NULL, NULL, NULL, 8, 't', '1933-01-01 00:00:00');";
 
     sql << "INSERT INTO station_param VALUES(90800, 90, 0, 0,   1,  31, -1, 'QC1-1-90', 'max;highest;high;low;lowest;min\n93;35.5;32.3;0.0;0.0;0', NULL, '1500-01-01 00:00:00');"
@@ -155,18 +157,18 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
 
     sql << "INSERT INTO station VALUES (18230, 59.9228, 10.8342, 90, 0, 'ALNA', 1487, 18230, NULL, NULL, NULL, 8, 't', '2007-12-03 00:00:00');";
 
-    sql << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 1, 31, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;20.4;15.4;0;0;0', '', '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 60, 90, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;20.9;15.9;0;0;0', '', '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 91, 120, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;22;17;0;0;0', '', '1500-01-01 00:00:00');"
+    sql << "INSERT INTO station_param VALUES (18230, 87, 0, 0,   1 , 31, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;20.4;15.4;0;0;0', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (18230, 87, 0, 0,  60,  90, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;20.9;15.9;0;0;0', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (18230, 87, 0, 0,  91, 120, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;22;17;0;0;0',     '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 152, 181, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;20.4;15.4;0;0;0', '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 182, 212, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;20.9;15.9;0;0;0', '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 213, 243, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;27.6;22.6;0;0;0', '', '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 244, 273, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;23;18;0;0;0', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 244, 273, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;23;18;0;0;0',     '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 305, 334, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;27.6;22.6;0;0;0', '', '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 335, 365, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;24;19;0;0;0', '', '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 335, 365, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;24;19;0;0;0',     '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 274, 304, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;25.1;20.1;0;0;0', '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 121, 151, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;19.4;14.4;0;0;0', '', '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 32, 59, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;26.5;21.5;0;0;0', '', '1500-01-01 00:00:00');";
+        << "INSERT INTO station_param VALUES (18230, 87, 0, 0, 32, 59, -1, 'QC1-1-87', 'max;highest;high;low;lowest;min\n98;26.5;21.5;0;0;0',   '', '1500-01-01 00:00:00');";
 
     sql << "INSERT INTO station_param VALUES (0, 87, 0, 0, 0, 365, -1, 'QC1-3a-87', 'max\n10.0', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES (0, 87, 0, 0, 0, 365, -1, 'QC1-3b-87', 'no\n5', NULL, '1500-01-01 00:00:00');"
@@ -261,13 +263,10 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 12320, 104, t1, t2));
     ASSERT_EQ(2, series.size());
-    std::list<kvalobs::kvData>::const_iterator it = series.begin();
-    EXPECT_EQ("1109000000100100", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1-A"));
-    EXPECT_FLOAT_EQ(381.6, it->corrected());
-    it++;
-    EXPECT_EQ("1104000000100100", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1"));
+
+    EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 20:00:00", "1109000000100100", 381.6, bc->update(0));
+    EXPECT_CFAILED(",QC2d-1-A", bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 21:00:00", "1104000000100100", 381.6, bc->update(1));
 
     bc->clear();
     algo->run(params);
@@ -319,13 +318,10 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 12320, 104, t1, t2));
     ASSERT_EQ(2, series.size());
-    std::list<kvalobs::kvData>::const_iterator it = series.begin();
-    EXPECT_EQ("1109000000100100", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1-L"));
-    EXPECT_FLOAT_EQ(381.6, it->corrected());
-    it++;
-    EXPECT_EQ("1104000000100100", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), ",QC2d-1"));
+
+    EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 20:00:00", "1109000000100100", 381.6, bc->update(0));
+    EXPECT_CFAILED(",QC2d-1-L", bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 21:00:00", "1104000000100100", 381.6, bc->update(1));
 
     bc->clear();
     algo->run(params);
@@ -521,6 +517,7 @@ TEST_F(DipTestTest, Bugzilla1320)
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 90800, 90, t1, t2));
     ASSERT_EQ(2, series.size());
+
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1-L"));
