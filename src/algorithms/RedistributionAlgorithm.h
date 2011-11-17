@@ -5,6 +5,7 @@
 
 #include "Qc2Algorithm.h"
 #include "algorithms/DataUpdate.h"
+#include <boost/shared_ptr.hpp>
 
 class RedistributionNeighbors;
 
@@ -40,10 +41,10 @@ private:
 public:
     RedistributionAlgorithm();
 
-    virtual void run(const ReadProgramOptions& params);
+    virtual void configure(const ReadProgramOptions& params);
+    virtual void run();
 
 private:
-    void configure(const ReadProgramOptions& params);
     std::list<int> findNeighbors(int stationID);
 
     bool findMissing(const kvalobs::kvData& endpoint, const kvalobs::kvData& beforeMissing, updateList_t& accumulation);
@@ -60,9 +61,6 @@ private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;
     FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags;
     FlagChange update_flagchange;
-    miutil::miTime UT0;
-    float missing, rejected;
-    std::string CFAILED_STRING;
     std::vector<int> pids;
     std::vector<int> tids;
 };

@@ -70,23 +70,20 @@ bool SingleLinearAlgorithm::isNeighborOk(const kvalobs::kvData& n)
 
 void SingleLinearAlgorithm::configure(const ReadProgramOptions& params)
 {
+    Qc2Algorithm::configure(params);
+
     params.getFlagSetCU(missing_flags, "missing");
     params.getFlagSetCU(neighbor_flags, "neighbor");
     params.getFlagChange(update_flagchange, "update_flagchange");
     params.getFlagChange(missing_flagchange, "missing_flagchange");
-    missing = params.missing;
-    rejected = params.rejected;
-    CFAILED_STRING = params.CFAILED_STRING;
     pids = params.getMultiParameter<int>("ParamId");
 }
 
 // ------------------------------------------------------------------------
 
-void SingleLinearAlgorithm::run(const ReadProgramOptions& params)
+void SingleLinearAlgorithm::run()
 {
-    configure(params);
-
-    for(miutil::miTime ProcessTime = params.UT1; ProcessTime >= params.UT0; ProcessTime.addHour(-1)) {
+    for(miutil::miTime ProcessTime = UT1; ProcessTime >= UT0; ProcessTime.addHour(-1)) {
         const C::DBConstraint cSingleMissing =
             C::ControlUseinfo(missing_flags)
             && C::Paramid(pids)

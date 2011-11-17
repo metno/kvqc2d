@@ -10,13 +10,15 @@ public:
     GapInterpolationAlgorithm()
         : Qc2Algorithm("GapInterpolate") { }
 
-    virtual void run(const ReadProgramOptions& params);
-
-private:
-    void configure(const ReadProgramOptions& params);
+    virtual void configure(const ReadProgramOptions& params);
+    virtual void run();
 
 private:
     int Ngap;
+    std::vector<int> pids;
+    int tid;
+    long StartDay;
+    FlagChange fc;
 };
 
 #endif

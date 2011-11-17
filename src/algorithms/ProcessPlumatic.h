@@ -17,8 +17,8 @@ public:
     PlumaticAlgorithm()
         : Qc2Algorithm("Plumatic") { }
 
-    virtual void run(const ReadProgramOptions& params);
     virtual void configure(const ReadProgramOptions& params);
+    virtual void run();
 
 private:
     class Navigator {
@@ -77,9 +77,8 @@ private:
     int pid;
     FlagSetCU discarded_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
-    std::string CFAILED_STRING;
     miutil::miString mStationlist, mSlidingAlarms;
-    miutil::miTime UT0, UT0extended, UT1;
+    miutil::miTime UT0extended;
 };
 
 // ########################################################################

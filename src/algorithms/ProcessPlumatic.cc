@@ -88,16 +88,16 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataLi
 
 void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
 {
+    Qc2Algorithm::configure(params);
+
     pid = params.getParameter<int>("ParamId");
     params.getFlagSetCU(discarded_flags, "discarded");
     params.getFlagChange(highstart_flagchange,  "highstart_flagchange");
     params.getFlagChange(highsingle_flagchange, "highsingle_flagchange");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange");
     params.getFlagChange(aggregation_flagchange, "aggregation_flagchange");
-    CFAILED_STRING = params.CFAILED_STRING;
     mStationlist = params.getParameter<std::string>("stations");
     mSlidingAlarms = params.getParameter<std::string>("sliding_alarms");
-    UT0 = params.UT0;
     UT0extended = params.UT0;
 
     int lookback = maxRainInterrupt+minRainBeforeAndAfter;
@@ -111,14 +111,10 @@ void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
             lookback = length;
     }
     UT0extended.addMin(-lookback);
-
-    UT1 = params.UT1;
 }
 
-void PlumaticAlgorithm::run(const ReadProgramOptions& params)
+void PlumaticAlgorithm::run()
 {
-    configure(params);
-
     // use script stinfosys-vipp-pluviometer.pl or change program and use "select stationid from obs_pgm where paramid = 105;"
 
     const std::vector<miutil::miString> msl = mStationlist.split(';');
@@ -378,70 +374,4 @@ void PlumaticAlgorithm::storeUpdates(const kvDataList_t& data)
         DBG("no updates/inserts");
 #endif
     storeData(toUpdate, toInsert);
-}
-
-// ########################################################################
-
-DataUpdate::DataUpdate()
-    : mNew(false)
-    , mOrigControl("0000000000000000")
-    , mOrigCorrected(-32767.0f)
-    , mOrigCfailed("")
-{
-}
-
-DataUpdate::DataUpdate(const kvalobs::kvData& data)
-    : mData(data)
-    , mNew(false)
-    , mOrigControl(mData.controlinfo())
-    , mOrigCorrected(mData.corrected())
-    , mOrigCfailed(mData.cfailed())
-{
-}
-
-DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
-                       float corrected, const std::string& controlinfo)
-    : mData(templt.stationID(), obstime, -32767, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
-            templt.level(), corrected, kvalobs::kvControlInfo(controlinfo), kvalobs::kvUseInfo(), "QC2-missing-row")
-    , mNew(true)
-    , mOrigControl(mData.controlinfo())
-    , mOrigCorrected(mData.corrected())
-    , mOrigCfailed(mData.cfailed())
-{
-    Helpers::updateUseInfo(mData);
-}
-
-bool DataUpdate::isModified() const
-{
-    return mNew
-        || mOrigCorrected != mData.corrected()
-        || mOrigControl   != mData.controlinfo();
-    // || mOrigCfailed   != mData.cfailed(); // this does not work because text is appended instead of overwritten
-}
-
-DataUpdate& DataUpdate::controlinfo(const kvalobs::kvControlInfo& ci)
-{
-    mData.controlinfo(ci);
-    Helpers::updateUseInfo(mData);
-    return *this;
-}
-
-DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
-{
-    Helpers::updateCfailed(mData, cf, extra);
-    return *this;
-}
-
-std::ostream& operator<<(std::ostream& out, const DataUpdate& du)
-{
-    out << du.data() << "[cf='" << du.data().cfailed() << ']';
-    if( du.isModified() ) {
-        out << '{';
-        if( du.isNew() )
-            out << 'n';
-        else
-            out << 'm';
-        out << '}';
-    }
-    return out;
 }

@@ -102,7 +102,8 @@ TEST_F(SingleLinearTest, test1)
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
@@ -137,7 +138,8 @@ TEST_F(SingleLinearTest, test2)
     ReadProgramOptions params;
     params.Parse(config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
     std::list<kvalobs::kvData> series;
@@ -215,7 +217,8 @@ TEST_F(SingleLinearTest, testFromWiki)
     params.Parse(config);
 
     // wiki step 3
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
@@ -234,7 +237,7 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 4, run again, no more updates allowed
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
     // wiki step 5
@@ -244,7 +247,7 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
@@ -266,7 +269,7 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
@@ -283,7 +286,7 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 8, run again, no more updates allowed
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
 
@@ -350,14 +353,15 @@ TEST_F(SingleLinearTest, testFromKro)
     ReadProgramOptions params;
     params.Parse(config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
     sql.str("");
     sql << "UPDATE data SET useinfo='7000000000000000', controlinfo='0110100000100010', original=1.5, corrected=1.5 WHERE obstime='2011-10-10 12:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
     std::list<kvalobs::kvData> series;

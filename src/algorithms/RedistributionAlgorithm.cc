@@ -189,15 +189,13 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
 
 void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
 {
+    Qc2Algorithm::configure(params);
+
     params.getFlagSetCU(endpoint_flags, "endpoint");
     params.getFlagSetCU(missingpoint_flags, "missingpoint");
     params.getFlagSetCU(before_flags, "before");
     params.getFlagSetCU(neighbor_flags, "neighbor");
     params.getFlagChange(update_flagchange, "update_flagchange");
-    UT0      = params.UT0;
-    missing  = params.missing;
-    rejected = params.rejected;
-    CFAILED_STRING = params.CFAILED_STRING;
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
 
@@ -206,14 +204,12 @@ void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
 
 // ------------------------------------------------------------------------
 
-void RedistributionAlgorithm::run(const ReadProgramOptions& params)
+void RedistributionAlgorithm::run()
 {
-    configure(params);
-
     dataList_t edata;
     const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
             && C::Paramid(pids) && C::Typeid(tids)
-            && C::Obstime(UT0, params.UT1);
+            && C::Obstime(UT0, UT1);
     database()->selectData(edata, cEndpoints, (O::Stationid(), O::Obstime().asc()));
     
     int lastStationId = -1;

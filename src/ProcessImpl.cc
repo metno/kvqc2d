@@ -53,8 +53,11 @@ public:
     DummyAlgorithm()
         : Qc2Algorithm("Dummy") { }
 
-    virtual void run(const ReadProgramOptions&) {
-        LOGINFO("Dummy algorithm.");
+    virtual void configure(const ReadProgramOptions&) {
+        LOGINFO("Dummy algorithm configuration.");
+    }
+    virtual void run() {
+        LOGINFO("Dummy algorithm run.");
     }
 };
 
@@ -97,7 +100,9 @@ int ProcessImpl::select(const ReadProgramOptions& params)
     if( a != mAlgorithms.end() ) {
         LOGINFO("Case '" + algorithm + "'");
         try {
-            a->second->run(params);
+            a->second->configure(params);
+// TODO check for overconfiguration
+            a->second->run();
             LOGINFO(algorithm + " Completed");
         } catch(DBException& dbe) {
             LOGERROR(algorithm + ": Database exception: " + dbe.what());

@@ -121,7 +121,8 @@ TEST_F(DipTestTest, Bugzilla1327)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
 
     ASSERT_EQ(2, bc->count());
 
@@ -142,7 +143,7 @@ TEST_F(DipTestTest, Bugzilla1327)
     EXPECT_FLOAT_EQ(2, it->corrected());
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
 
@@ -192,7 +193,8 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
@@ -210,7 +212,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
 
@@ -254,7 +256,8 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
@@ -269,7 +272,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 21:00:00", "1104000000100100", 381.6, bc->update(1));
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
 
@@ -309,7 +312,8 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
@@ -324,7 +328,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 21:00:00", "1104000000100100", 381.6, bc->update(1));
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
 
@@ -409,7 +413,8 @@ TEST_F(DipTestTest, JumpTooMuch)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
 
@@ -449,7 +454,8 @@ TEST_F(DipTestTest, AfterHQC)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
     // after setting the HQC flag back to 0, the DipTest should perform updates
@@ -457,7 +463,7 @@ TEST_F(DipTestTest, AfterHQC)
     sql << "UPDATE data SET controlinfo='1102000000100100' WHERE stationid = 12320 AND obstime = '2018-09-25 20:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 }
 
@@ -508,7 +514,8 @@ TEST_F(DipTestTest, Bugzilla1320)
     ReadProgramOptions params;
     Configure(params, config);
 
-    algo->run(params);
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
     std::list<kvalobs::kvData> series;
@@ -527,6 +534,6 @@ TEST_F(DipTestTest, Bugzilla1320)
     EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
 
     bc->clear();
-    algo->run(params);
+    ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }

@@ -23,19 +23,17 @@ class SingleLinearAlgorithm : public Qc2Algorithm {
 public:
     SingleLinearAlgorithm();
 
-    virtual void run(const ReadProgramOptions& params);
+    virtual void configure(const ReadProgramOptions& params);
+    virtual void run();
 
 private:
     bool isNeighborOk(const kvalobs::kvData& n);
-    void configure(const ReadProgramOptions& params);
     float calculateCorrected(const kvalobs::kvData& before, const kvalobs::kvData& middle, const kvalobs::kvData& after);
     void writeChanges(const kvalobs::kvData& middle, const float NewCorrected);
 
 private:
     FlagSetCU missing_flags, neighbor_flags;
     FlagChange update_flagchange, missing_flagchange;
-    float missing, rejected;
-    std::string CFAILED_STRING;
     std::vector<int> pids;
 };
 

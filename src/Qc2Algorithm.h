@@ -35,7 +35,9 @@ public:
     Qc2Algorithm(const std::string& name);
     virtual ~Qc2Algorithm();
 
-    virtual void run(const ReadProgramOptions& params) = 0;
+    virtual void configure(const ReadProgramOptions& params);
+
+    virtual void run() = 0;
 
     void setBroadcaster(Broadcaster* b)
         { mBroadcaster = b; }
@@ -61,6 +63,11 @@ public:
 protected:
     void updateSingle(const kvalobs::kvData& update);
     void storeData(const std::list<kvalobs::kvData>& toUpdate, const std::list<kvalobs::kvData>& toInsert = std::list<kvalobs::kvData>());
+
+protected:
+    miutil::miTime UT0, UT1;
+    std::string CFAILED_STRING;
+    float missing, rejected;
 
 private:
     DBInterface* mDatabase;

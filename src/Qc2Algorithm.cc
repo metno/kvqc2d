@@ -53,3 +53,12 @@ void Qc2Algorithm::storeData(const std::list<kvalobs::kvData>& toUpdate, const s
     }
     broadcaster()->sendChanges();
 }
+
+void Qc2Algorithm::configure(const ReadProgramOptions& params)
+{
+    UT0            = params.UT0;
+    UT1            = params.UT1;
+    CFAILED_STRING = params.CFAILED_STRING;
+    missing        = params.missing;
+    rejected       = params.rejected;
+}

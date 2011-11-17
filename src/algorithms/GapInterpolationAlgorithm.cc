@@ -44,22 +44,23 @@ namespace O = Ordering;
 
 void GapInterpolationAlgorithm::configure( const ReadProgramOptions& params )
 {
+    Qc2Algorithm::configure(params);
+
     Ngap = params.getParameter("MaxHalfGap", 0);
+    pids = params.getMultiParameter<int>("ParamId");
+    tid = params.getParameter<int>("TypeId");
+    StartDay = params.UT0.date().julianDay();
+    params.getFlagChange(fc, "gap_flagchange");
 }
 
-void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
+void GapInterpolationAlgorithm::run()
 {
-    const std::vector<int> pids = params.getMultiParameter<int>("ParamId");
-    const int tid = params.getParameter<int>("TypeId");
-
-    const long StartDay = params.UT0.date().julianDay();
-
     std::list<kvalobs::kvStation> StationList;
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
 
     const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tid)
-                && C::Obstime(params.UT0, params.UT1) && C::Sensor(0) && C::Level(0));
+                && C::Obstime(UT0, UT1) && C::Sensor(0) && C::Level(0));
 
     foreach(const kvalobs::kvStation& station, StationList) {
         std::list<kvalobs::kvData> Qc2SeriesData;
@@ -117,13 +118,10 @@ void GapInterpolationAlgorithm::run( const ReadProgramOptions& params )
                     const float NewCorrected = round<float,1>(AkimaX.AkimaPoint(HourDec));
 
                     // Push the data back
-                    FlagChange fc;
-                    params.getFlagChange(fc, "gap_flagchange");
-
                     kvalobs::kvData dwrite(d);
                     dwrite.corrected(NewCorrected);
                     dwrite.controlinfo(fc.apply(dwrite.controlinfo()));
-                    Helpers::updateCfailed(dwrite, "QC2d-2-A", params.CFAILED_STRING);
+                    Helpers::updateCfailed(dwrite, "QC2d-2-A", CFAILED_STRING);
                     Helpers::updateUseInfo(dwrite);
                     updateSingle(dwrite);
                 }

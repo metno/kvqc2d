@@ -80,6 +80,8 @@ float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
 
 void DipTestAlgorithm::configure(const ReadProgramOptions& params)
 {
+    Qc2Algorithm::configure(params);
+
     fillParameterDeltaMap(params, PidValMap);
     fillStationIDList(StationIds);
 
@@ -90,20 +92,15 @@ void DipTestAlgorithm::configure(const ReadProgramOptions& params)
 
     params.getFlagChange(dip_flagchange, "dip_flagchange");
     params.getFlagChange(afterdip_flagchange, "afterdip_flagchange");
-
-    CFAILED_STRING = params.CFAILED_STRING;
-    missing = params.missing;
 }
 
-void DipTestAlgorithm::run(const ReadProgramOptions& params)
+void DipTestAlgorithm::run()
 {
-    configure(params);
-
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         const int pid = it->first, delta = it->second;
 
         const C::DBConstraint cDipCandidate = C::ControlUseinfo(candidate_flags)
-            && C::Station(StationIds) && C::Paramid(pid) && C::Obstime(params.UT0, params.UT1);
+            && C::Station(StationIds) && C::Paramid(pid) && C::Obstime(UT0, UT1);
 
         std::list<kvalobs::kvData> candidates;
         database()->selectData(candidates, cDipCandidate);
