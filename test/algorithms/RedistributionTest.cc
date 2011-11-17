@@ -113,8 +113,8 @@ void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int
            << "End_MM     =   10" << std::endl
            << "End_DD     =   " << endDay << std::endl
            << "End_hh     =   06" << std::endl
-           << "InterpCode=2"  << std::endl
-           << "Step_DD=1"  << std::endl
+           << "#InterpCode=2"  << std::endl
+           << "#Step_DD=1"  << std::endl
            << "ParamId=110"  << std::endl
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl
@@ -171,6 +171,7 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
     Configure(params, 10, 19);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(6, bc->count());
 
@@ -240,6 +241,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
     Configure(params, 13, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(4, bc->count());
 
@@ -307,11 +309,13 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
     Configure(params, 16, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
     params.UT0 = "2011-10-15 06:00:00";
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 }
@@ -343,6 +347,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
     Configure(params, 14, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -411,6 +416,7 @@ TEST_F(RedistributionTest, TwoSeries)
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(4, bc->count());
 
@@ -457,6 +463,7 @@ TEST_F(RedistributionTest, MissingRows)
     Configure(params, 12, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(5, bc->count());
 
@@ -502,6 +509,7 @@ TEST_F(RedistributionTest, ReRun)
     Configure(params, 12, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(5, bc->count());
 
@@ -522,8 +530,8 @@ TEST_F(RedistributionTest, ReRun)
            << "End_MM     =   10" << std::endl
            << "End_DD     =   17" << std::endl
            << "End_hh     =   06" << std::endl
-           << "InterpCode=2"  << std::endl
-           << "Step_DD=1"  << std::endl
+           << "#InterpCode=2"  << std::endl
+           << "#Step_DD=1"  << std::endl
            << "ParamId=110"  << std::endl
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl
@@ -538,6 +546,7 @@ TEST_F(RedistributionTest, ReRun)
 
     bc->clear();
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -594,6 +603,7 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -624,6 +634,7 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -666,6 +677,7 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -710,8 +722,8 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "End_MM     =   10" << std::endl
            << "End_DD     =   18" << std::endl
            << "End_hh     =   06" << std::endl
-           << "InterpCode=2"      << std::endl
-           << "Step_DD=1"         << std::endl
+           << "#InterpCode=2"      << std::endl
+           << "#Step_DD=1"         << std::endl
            << "ParamId=110"       << std::endl
            << "TypeIds=302"       << std::endl
            << "TypeIds=402"       << std::endl
@@ -726,6 +738,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
     params.Parse(config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -738,8 +751,6 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "End_MM     =   10" << std::endl
            << "End_DD     =   18" << std::endl
            << "End_hh     =   06" << std::endl
-           << "InterpCode=2"      << std::endl
-           << "Step_DD=1"         << std::endl
            << "ParamId=110"       << std::endl
            << "TypeIds=302"       << std::endl
            << "TypeIds=402"       << std::endl
@@ -753,6 +764,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "InterpolationDistance=50.0" << std::endl;
     params.Parse(confiG);
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(4, bc->count());
 }
@@ -784,6 +796,7 @@ TEST_F(RedistributionTest, BoneDry)
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -826,6 +839,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
     Configure(params, 10, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -909,6 +923,7 @@ TEST_F(RedistributionTest, Release113)
 
     // with bad fd flags, make sure that the redistribution does not run
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -1031,6 +1046,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
     Configure(params, 13, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 

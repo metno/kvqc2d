@@ -63,6 +63,9 @@ public:
     void getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
     void getFlagChange(FlagChange& fc, const std::string& name) const;
 
+    ErrorList check() const
+        { return c.checkUnrequested(); }
+
 private:
     void getFlagSet(FlagSet& f, const std::string& name, FlagMatcher::FlagType type) const;
 

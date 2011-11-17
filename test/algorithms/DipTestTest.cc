@@ -122,6 +122,7 @@ TEST_F(DipTestTest, Bugzilla1327)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
 
     ASSERT_EQ(2, bc->count());
@@ -194,6 +195,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -257,6 +259,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -313,6 +316,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -414,6 +418,7 @@ TEST_F(DipTestTest, JumpTooMuch)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }
@@ -455,6 +460,7 @@ TEST_F(DipTestTest, AfterHQC)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -515,6 +521,7 @@ TEST_F(DipTestTest, Bugzilla1320)
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 

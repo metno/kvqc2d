@@ -191,6 +191,10 @@ TEST(ConfigParserTest, UnusedOptions)
     std::vector<int> used2 = c.get("used2").convert<int>();
     std::vector<std::string> used3 = c.get("used3").convert<std::string>();
 
+    ASSERT_EQ("yes", used1);
+    ASSERT_EQ(3, used2.size());
+    ASSERT_EQ(2, used3.size());
+
     ErrorList e = c.checkUnrequested();
     ASSERT_EQ(2, e.size());
 }

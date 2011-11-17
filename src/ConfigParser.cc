@@ -4,17 +4,19 @@
 #include <fstream>
 #include "foreach.h"
 
-ConfigParser::ConfigParser()
+std::string ErrorList::format(const std::string& separator) const
 {
+    std::ostringstream errors;
+    //errors << '[' << mErrors.size() << "] ";
+    for(unsigned int i=0; i<mErrors.size(); ++i) {
+        errors << mErrors[i];
+        if( i+1 < mErrors.size() )
+            errors << separator;
+    }
+    return errors.str();
 }
 
-// ------------------------------------------------------------------------
-
-ConfigParser::~ConfigParser()
-{
-}
-
-// ------------------------------------------------------------------------
+// ########################################################################
 
 const std::string& ConfigParser::Item::value(unsigned int idx) const
 {
@@ -30,6 +32,18 @@ const std::string& ConfigParser::Item::value(unsigned int idx, const std::string
         return dflt;
     else
         return value(idx);
+}
+
+// ########################################################################
+
+ConfigParser::ConfigParser()
+{
+}
+
+// ------------------------------------------------------------------------
+
+ConfigParser::~ConfigParser()
+{
 }
 
 // ------------------------------------------------------------------------
@@ -119,7 +133,7 @@ ErrorList ConfigParser::checkUnrequested() const
     ErrorList errors;
     foreach(const mItems_t::value_type& ki, mItems) {
         if( ki.second.requestCount() == 0 )
-            errors.add() << "Unused option '" << ki.first << "'";
+            errors.add() << "unused option '" << ki.first << "'";
     }
     return errors;
 }

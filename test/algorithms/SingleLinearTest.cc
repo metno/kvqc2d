@@ -103,6 +103,7 @@ TEST_F(SingleLinearTest, test1)
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
@@ -139,6 +140,7 @@ TEST_F(SingleLinearTest, test2)
     params.Parse(config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
@@ -218,6 +220,7 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 3
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -354,6 +357,7 @@ TEST_F(SingleLinearTest, testFromKro)
     params.Parse(config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 

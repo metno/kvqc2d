@@ -171,6 +171,7 @@ TEST_F(PlumaticTest, HighSingle)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -195,6 +196,7 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
     Configure(params, 10, 1, 12, 11, 1, 15);
     
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:00:00", "010B000000000000", "QC2h-1-highsingle", bc->updates()[0]);
@@ -225,6 +227,7 @@ TEST_F(PlumaticTest, HighStart)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -254,6 +257,7 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     Configure(params, 10, 1, 12, 11, 1, 13);
     
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:00:00", "010A000000000000", "QC2h-1-highstart", bc->update(0));
@@ -303,6 +307,7 @@ TEST_F(PlumaticTest, RainInterrupt)
     Configure(params);
     
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
 
     std::list<kvalobs::kvData> series;
@@ -347,6 +352,7 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
     Configure(params, 10, 1, 12, 11, 1, 14);
     
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:00:00", "010B000000000000", "QC2h-1-highsingle", bc->update(0));
@@ -400,6 +406,7 @@ TEST_F(PlumaticTest, PluviometerResolution02)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(5, bc->count());
 
@@ -433,6 +440,7 @@ TEST_F(PlumaticTest, Aggregation2Not3)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(3, bc->count());
 
@@ -465,6 +473,7 @@ TEST_F(PlumaticTest, Aggregation3Not2A)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     EXPECT_EQ(3, bc->count());
 
@@ -502,6 +511,7 @@ TEST_F(PlumaticTest, Aggregation3Not2B)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     EXPECT_EQ(3, bc->count());
 
@@ -535,6 +545,7 @@ TEST_F(PlumaticTest, Aggregation2And3)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(3, bc->count());
 
@@ -566,6 +577,7 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
     ASSERT_EQ("2011-10-01 12:03:00", bc->updates()[0].obstime().isoTime());
@@ -607,6 +619,7 @@ TEST_F(PlumaticTest, AggregationAfterHighStart)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(3, bc->count());
 
@@ -637,6 +650,7 @@ TEST_F(PlumaticTest, Dry)
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 }

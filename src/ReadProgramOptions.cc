@@ -141,12 +141,8 @@ void ReadProgramOptions::Parse(const std::string& filename)
 
 void ReadProgramOptions::Parse(std::istream& input)
 {
-    if( !c.load(input) ) {
-        std::ostringstream errors;
-        for(int i=0; i<c.errors().size(); ++i)
-            errors << c.errors().get(i) << std::endl;
-        throw ConfigException("Problems parsing kvqc2d algorithm configuration:\n" + errors.str() + "Giving up!");
-    }
+    if( !c.load(input) )
+        throw ConfigException("Problems parsing kvqc2d algorithm configuration: " + c.errors().format("; ") + " -- giving up!");
 
     miutil::miTime now = miutil::miTime::nowTime();
     now.addSec(-now.sec());

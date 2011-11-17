@@ -101,7 +101,11 @@ int ProcessImpl::select(const ReadProgramOptions& params)
         LOGINFO("Case '" + algorithm + "'");
         try {
             a->second->configure(params);
-// TODO check for overconfiguration
+            const ErrorList errors = params.check();
+            if( !errors.empty() ) {
+                LOGERROR("Configuration error: " + errors.format("; "));
+                return 1;
+            }
             a->second->run();
             LOGINFO(algorithm + " Completed");
         } catch(DBException& dbe) {

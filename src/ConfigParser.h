@@ -49,6 +49,11 @@ public:
     Push add()
         { return Push(mErrors); }
 
+    operator bool() const
+        { return mErrors.empty(); }
+
+    std::string format(const std::string& separator) const;
+
 private:
     std::vector<std::string> mErrors;
 };
