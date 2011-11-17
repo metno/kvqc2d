@@ -61,20 +61,13 @@ public:
         friend class ConfigParser;
 
     public:
-        Item() { }
+        Item() : mRequested(0) { }
 
         int count() const
             { return mValues.size(); }
 
         int requestCount() const
             { return mRequested; }
-
-        const std::string& value(unsigned int idx) const;
-
-        const std::string& value(unsigned int idx, const std::string& dflt) const;
-
-        const std::vector<std::string>& values() const
-            { return mValues; }
 
         template<class T>
         T convert(unsigned int idx) const;
@@ -84,6 +77,14 @@ public:
 
         template<class T>
         std::vector<T> convert() const;
+
+    private:
+        const std::string& value(unsigned int idx) const;
+
+        const std::string& value(unsigned int idx, const std::string& dflt) const;
+
+        const std::vector<std::string>& values() const
+            { return mValues; }
 
     private:
         std::vector<std::string> mValues;
@@ -105,6 +106,8 @@ public:
     const ErrorList& errors() const
         { return mErrors; }
 
+    ErrorList checkUnrequested() const;
+
 private:
     typedef std::map<std::string, Item> mItems_t;
     mItems_t mItems;
@@ -116,6 +119,7 @@ private:
 template<class T>
 T ConfigParser::Item::convert(unsigned int idx) const
 {
+    mRequested += 1;
     T t;
     std::istringstream i(mValues[idx]);
     i >> t;
@@ -125,6 +129,7 @@ T ConfigParser::Item::convert(unsigned int idx) const
 template<class T>
 T ConfigParser::Item::convert(unsigned int idx, const T& dflt) const
 {
+    mRequested += 1;
     if( idx < mValues.size() ) {
         T t;
         const std::string v = mValues[idx];
@@ -139,6 +144,7 @@ T ConfigParser::Item::convert(unsigned int idx, const T& dflt) const
 template<class T>
 std::vector<T> ConfigParser::Item::convert() const
 {
+    mRequested += 1;
     std::vector<T> out;
     for(unsigned int i=0; i<mValues.size(); ++i ) {
         T t;
@@ -155,18 +161,21 @@ std::vector<T> ConfigParser::Item::convert() const
 template<>
 inline std::string ConfigParser::Item::convert<std::string>(unsigned int idx) const
 {
+    mRequested += 1;
     return mValues[idx];
 }
 
 template<>
 inline std::string ConfigParser::Item::convert(unsigned int idx, const std::string& dflt) const
 {
+    mRequested += 1;
     return ( idx < mValues.size() ) ? mValues[idx] : dflt;
 }
 
 template<>
 inline std::vector<std::string> ConfigParser::Item::convert<std::string>() const
 {
+    mRequested += 1;
     return mValues;
 }
 

@@ -2,6 +2,7 @@
 #include "ConfigParser.h"
 
 #include <fstream>
+#include "foreach.h"
 
 ConfigParser::ConfigParser()
 {
@@ -109,4 +110,16 @@ const ConfigParser::Item& ConfigParser::get(const std::string& key) const
         return it->second;
     else
         return empty_item;
+}
+
+// ------------------------------------------------------------------------
+
+ErrorList ConfigParser::checkUnrequested() const
+{
+    ErrorList errors;
+    foreach(const mItems_t::value_type& ki, mItems) {
+        if( ki.second.requestCount() == 0 )
+            errors.add() << "Unused option '" << ki.first << "'";
+    }
+    return errors;
 }

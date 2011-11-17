@@ -168,8 +168,8 @@ void ReadProgramOptions::Parse(std::istream& input)
         extractTime(c, "End",   UT1);
     }
 
-    Algorithm          = c.get("Algorithm")            .value(0, "NotSet"); // Algorithm Name
-    CFAILED_STRING     = c.get("CfailedString")        .value(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
+    Algorithm          = c.get("Algorithm")            .convert<std::string>(0, "NotSet"); // Algorithm Name
+    CFAILED_STRING     = c.get("CfailedString")        .convert<std::string>(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
 
     missing            = c.get("MissingValue")         .convert<float>(0, -32767.0); // Original Missing Data Value
     rejected           = c.get("RejectedValue")        .convert<float>(0, -32766.0); // Original Rejected Data Value
@@ -182,8 +182,9 @@ void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name, Fla
         throw ConfigException("no such flag spec: '" + name + "'");
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
-        if( !flags.parse(item.value(i), type) )
-            throw ConfigException("error parsing flag '" + name + "' from '" + item.value(i) + "'");
+        const std::string value = item.convert<std::string>(i);
+        if( !flags.parse(value, type) )
+            throw ConfigException("error parsing flag '" + name + "' from '" + value + "'");
     }
 }
 
@@ -205,7 +206,8 @@ void ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) 
         throw ConfigException("no such flag change: '" + name + "'");
     const ConfigParser::Item& item = c.get(name);
     for(int i=0; i<item.count(); ++i) {
-        if( !fc.parse(item.value(i)) )
-            throw ConfigException("error parsing flag update '" + name + "' from '" + item.value(i) + "'");
+        const std::string value = item.convert<std::string>(i);
+        if( !fc.parse(value) )
+            throw ConfigException("error parsing flag update '" + name + "' from '" + value + "'");
     }
 }
