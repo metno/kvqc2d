@@ -58,6 +58,8 @@ libkvqc2d_a_SOURCES = \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
 	algorithms/BasicStatistics.h \
+	algorithms/DataUpdate.cc \
+	algorithms/DataUpdate.h \
 	algorithms/DipTestAlgorithm.cc \
 	algorithms/DipTestAlgorithm.h \
 	algorithms/GapInterpolationAlgorithm.h \
