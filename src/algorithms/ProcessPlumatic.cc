@@ -307,7 +307,7 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
 {
-    if( info.d->original() <= info.mmpv*vippsUnlikelyStart) {
+    if( info.d->original() < info.mmpv*vippsUnlikelyStart) {
         DBG("original[=" << info.d->original() << "] < threshold[=" << info.mmpv*vippsUnlikelyStart <<"]");
         return NO;
     }
