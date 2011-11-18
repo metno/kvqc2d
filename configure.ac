@@ -5,13 +5,10 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_MACRO_DIR([m4])
 
-#AC_PROG_LIBTOOL presently we have no shared libraries
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-AC_SEARCH_LIBS([pj_init_plus], [proj])
-AC_SEARCH_LIBS([nc_create], [netcdf_c++])
 KV_FIND_OMNIORB4
 KV_POSTGRESQL
 PKG_CHECK_MODULES([PROG_DEPS], [puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
