@@ -28,17 +28,17 @@
 */
 
 #include "algorithms/AlgorithmTestBase.h"
-#include "FlagMatcher.h"
+#include "FlagPattern.h"
 #include "config.h"
 
-class FlagMatcherTest : public AlgorithmTestBase {
+class FlagPatternTest : public AlgorithmTestBase {
 };
 
 using namespace kvQCFlagTypes;
 
-TEST_F(FlagMatcherTest, Match)
+TEST_F(FlagPatternTest, Match)
 {
-    FlagMatcher fm;
+    FlagPattern fm;
     fm.permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0);
 
     EXPECT_TRUE(fm.matches(kvalobs::kvControlInfo("0000003000002000")));
@@ -47,9 +47,9 @@ TEST_F(FlagMatcherTest, Match)
     EXPECT_FALSE(fm.matches(kvalobs::kvControlInfo("0140004000002001")));
 }
 
-TEST_F(FlagMatcherTest, Is)
+TEST_F(FlagPatternTest, Is)
 {
-    FlagMatcher fm;
+    FlagPattern fm;
     fm.permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).forbid(f_fhqc, 1);
 
     EXPECT_TRUE(fm.isPermitted(f_fhqc, 0));
@@ -63,9 +63,9 @@ TEST_F(FlagMatcherTest, Is)
     EXPECT_FALSE(fm.isPermitted(f_fd, 1));
 }
 
-TEST_F(FlagMatcherTest, Parse)
+TEST_F(FlagPatternTest, Parse)
 {
-    FlagMatcher fm("___.___.___.[23]__0", FlagMatcher::CONTROLINFO);
+    FlagPattern fm("___.___.___.[23]__0", FlagPattern::CONTROLINFO);
 
     EXPECT_TRUE(fm.isAllowed(f_fhqc, 0));
     EXPECT_TRUE(fm.isAllowed(f_fd, 3));
@@ -75,9 +75,9 @@ TEST_F(FlagMatcherTest, Parse)
     EXPECT_FALSE(fm.isAllowed(f_fd, 4));
 }
 
-TEST_F(FlagMatcherTest, ParseNames)
+TEST_F(FlagPatternTest, ParseNames)
 {
-    FlagMatcher fm;
+    FlagPattern fm;
     EXPECT_TRUE(fm.parseControlinfo("fhqc=0"));
     EXPECT_TRUE(fm.parseControlinfo("fmis=[1234]"));
     EXPECT_TRUE(fm.parseControlinfo("fmis=)05678(&fd=[01]&fr=0"));
@@ -97,28 +97,28 @@ TEST_F(FlagMatcherTest, ParseNames)
     EXPECT_FALSE(fm.parseUseinfo("U1==9"));
     EXPECT_FALSE(fm.parseUseinfo("fhqc=9"));
 
-    FlagMatcher fm1("fd=[23]&fhqc=0", FlagMatcher::CONTROLINFO);
+    FlagPattern fm1("fd=[23]&fhqc=0", FlagPattern::CONTROLINFO);
     EXPECT_TRUE(fm1.isAllowed(f_fhqc, 0));
     EXPECT_TRUE(fm1.isAllowed(f_fd, 3));
     EXPECT_FALSE(fm1.isAllowed(f_fhqc, 1));
     EXPECT_FALSE(fm1.isAllowed(f_fd, 1));
     EXPECT_FALSE(fm1.isAllowed(f_fd, 4));
 
-    FlagMatcher fm2("U2=)1(", FlagMatcher::USEINFO);
+    FlagPattern fm2("U2=)1(", FlagPattern::USEINFO);
     EXPECT_TRUE(fm2.isAllowed(2, 0));
     EXPECT_TRUE(fm2.isAllowed(1, 1));
     EXPECT_FALSE(fm2.isAllowed(2, 1));
 }
 
-TEST_F(FlagMatcherTest, SQLtext)
+TEST_F(FlagPatternTest, SQLtext)
 {
-    EXPECT_EQ("", FlagMatcher().sql("ci"));
-    EXPECT_EQ("0=0", FlagMatcher().permit(f_fhqc, 0).reset().sql("ci", true));
-    EXPECT_EQ("0=1", FlagMatcher().permit(f_fhqc, 0).permit(f_fmis, 0).forbid(f_fmis, 0).sql("ci", true));
+    EXPECT_EQ("", FlagPattern().sql("ci"));
+    EXPECT_EQ("0=0", FlagPattern().permit(f_fhqc, 0).reset().sql("ci", true));
+    EXPECT_EQ("0=1", FlagPattern().permit(f_fhqc, 0).permit(f_fmis, 0).forbid(f_fmis, 0).sql("ci", true));
 
-    const std::string sql1 = FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql("ci");
-    const std::string sql2 = FlagMatcher().forbid(f_fmis, 4).permit(f_fhqc, 0).sql("controlinfo");
-    const std::string sql3 = FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).sql("ci");
+    const std::string sql1 = FlagPattern().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql("ci");
+    const std::string sql2 = FlagPattern().forbid(f_fmis, 4).permit(f_fhqc, 0).sql("controlinfo");
+    const std::string sql3 = FlagPattern().permit(f_fd, 2).permit(f_fd, 3).sql("ci");
 #ifdef HAVE_SQL_WITH_WORKING_SUBSTR_IN
     EXPECT_EQ("(substr(ci,13,1) IN ('2','3') AND substr(ci,16,1) IN ('0'))", sql1);
     EXPECT_EQ("(substr(controlinfo,7,1) NOT IN ('4') AND substr(controlinfo,16,1) IN ('0'))", sql2);
@@ -133,7 +133,7 @@ TEST_F(FlagMatcherTest, SQLtext)
 #endif
 }
 
-TEST_F(FlagMatcherTest, SQLquery)
+TEST_F(FlagPatternTest, SQLquery)
 {
     std::ostringstream sql;
     sql << "INSERT INTO data VALUES (83880, '2011-10-10 06:00:00',   16.9, 110, '2011-10-10 09:01:31', 302, 0, 0,   16.9, '0140004000002001', '7330900000000001', 'QC1-2-72.b12,QC1-7-110');"
@@ -150,19 +150,19 @@ TEST_F(FlagMatcherTest, SQLquery)
 
     std::list<kvalobs::kvData> series;
 
-    const std::string sql1 = FlagMatcher().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true);
+    const std::string sql1 = FlagPattern().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true);
     ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql1)) << "sql='" << sql1 << "'";
     EXPECT_EQ(4, series.size()) << "sql='" << sql1 << "'";
 
-    const std::string sql2 = FlagMatcher().sql(true);
+    const std::string sql2 = FlagPattern().sql(true);
     ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql2)) << "sql='" << sql2 << "'";
     EXPECT_EQ(10, series.size()) << "sql='" << sql2 << "'";
 
-    const std::string sql3 = FlagMatcher().forbid(f_fcc, 4).sql(true);
+    const std::string sql3 = FlagPattern().forbid(f_fcc, 4).sql(true);
     ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql3)) << "sql='" << sql3 << "'";
     EXPECT_EQ(5, series.size()) << "sql='" << sql3 << "'";
 
-    const std::string sql4 = FlagMatcher().permit(f_fcc, 1).sql(true);
+    const std::string sql4 = FlagPattern().permit(f_fcc, 1).sql(true);
     ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql4)) << "sql='" << sql4 << "'";
     EXPECT_EQ(1, series.size()) << "sql='" << sql4 << "'";
 }

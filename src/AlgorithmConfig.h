@@ -5,7 +5,7 @@
 
 #include "ConfigParser.h"
 #include "FlagChange.h"
-#include "FlagSet.h"
+#include "FlagPatterns.h"
 #include <puTools/miTime.h>
 
 #include <boost/filesystem/path.hpp>
@@ -24,11 +24,11 @@ public:
 
 ///Selects and reads the configuration files driving each of the Qc2 algorithms.
 
-class ReadProgramOptions{
+class AlgorithmConfig{
 
 public:
-    ReadProgramOptions();
-    ~ReadProgramOptions(){};
+    AlgorithmConfig();
+    ~AlgorithmConfig(){};
 
     typedef std::vector<unsigned char> vector_uchar;
 
@@ -67,7 +67,7 @@ public:
         { return c.checkUnrequested(); }
 
 private:
-    void getFlagSet(FlagSet& f, const std::string& name, FlagMatcher::FlagType type) const;
+    void getFlagSet(FlagPatterns& f, const std::string& name, FlagPattern::FlagType type) const;
 
 public:
     static const std::string CFG_EXT;
@@ -80,7 +80,7 @@ private:
 };
 
 template<typename T>
-T ReadProgramOptions::getParameter(const std::string& name, const T& dflt) const
+T AlgorithmConfig::getParameter(const std::string& name, const T& dflt) const
 {
     if( !c.has(name) )
         return dflt;
@@ -91,7 +91,7 @@ T ReadProgramOptions::getParameter(const std::string& name, const T& dflt) const
 }
 
 template<typename T>
-T ReadProgramOptions::getParameter(const std::string& name) const
+T AlgorithmConfig::getParameter(const std::string& name) const
 {
     if( !c.has(name) )
         throw ConfigException("no such setting: '" + name + "'");
@@ -102,7 +102,7 @@ T ReadProgramOptions::getParameter(const std::string& name) const
 }
 
 template<typename T>
-std::vector<T> ReadProgramOptions::getMultiParameter(const std::string& name) const
+std::vector<T> AlgorithmConfig::getMultiParameter(const std::string& name) const
 {
     if( !c.has(name) )
         throw ConfigException("no such setting: '" + name + "'");

@@ -4,7 +4,7 @@
 #define Qc2Algorithm_H
 
 #include "DBInterface.h"
-#include "ReadProgramOptions.h"
+#include "AlgorithmConfig.h"
 
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvData.h>
@@ -33,7 +33,7 @@ public:
     Qc2Algorithm(const std::string& name);
     virtual ~Qc2Algorithm();
 
-    virtual void configure(const ReadProgramOptions& params);
+    virtual void configure(const AlgorithmConfig& params);
 
     virtual void run() = 0;
 

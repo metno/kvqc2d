@@ -87,7 +87,7 @@ TEST_F(SingleLinearTest, test1)
            << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
            << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
            << "ParamId=" << pid << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     params.Parse(config);
 
     std::list<kvalobs::kvData> series;
@@ -136,7 +136,7 @@ TEST_F(SingleLinearTest, test2)
            << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
            << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
            << "ParamId=" << pid << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     params.Parse(config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -215,7 +215,7 @@ TEST_F(SingleLinearTest, testFromWiki)
            << "missing_cflags     = ___.__[1234]____.___0" << std::endl
            << "update_flagchange  = ___.___1___.___.;___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
            << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     params.Parse(config);
 
     // wiki step 3
@@ -353,7 +353,7 @@ TEST_F(SingleLinearTest, testFromKro)
            << "missing_cflags     = ___.__[1234]____.___0" << std::endl
            << "update_flagchange  = ___.___1___.___.;___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
            << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     params.Parse(config);
 
     ASSERT_NO_THROW(algo->configure(params));

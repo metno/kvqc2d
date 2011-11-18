@@ -27,13 +27,13 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "FlagUpdater.h"
+#include "FlagUpdate.h"
 
-#include "FlagMatcher.h"
+#include "FlagPattern.h"
 #include <sstream>
 #include <iostream>
 
-FlagUpdater& FlagUpdater::reset()
+FlagUpdate& FlagUpdate::reset()
 {
     for(int i=0; i<N_FLAGS; ++i)
         mSet[i] = NO_CHANGE;
@@ -45,7 +45,7 @@ static int char2int(char c)
     return (c>='0' && c<='9') ? (c - '0') : (c - 'A' + 10);
 }
 
-bool FlagUpdater::parseNames(const std::string& flagstring)
+bool FlagUpdate::parseNames(const std::string& flagstring)
 {
     reset();
 
@@ -57,7 +57,7 @@ bool FlagUpdater::parseNames(const std::string& flagstring)
         const std::string flagname = flagstring.substr(start, equal - start);
         int flag = 0;
         for(; flag<N_FLAGS; ++flag) {
-            if( flagname == FlagMatcher::CONTROLINFO_NAMES[flag] )
+            if( flagname == FlagPattern::CONTROLINFO_NAMES[flag] )
                 break;
         }
         if( flag == N_FLAGS || (usedflags & (1<<flag)) != 0 )
@@ -84,7 +84,7 @@ bool FlagUpdater::parseNames(const std::string& flagstring)
     return start == flagstring.size();
 }
 
-bool FlagUpdater::parsePattern(const std::string& flagstring)
+bool FlagUpdate::parsePattern(const std::string& flagstring)
 {
     reset();
 
@@ -105,7 +105,7 @@ bool FlagUpdater::parsePattern(const std::string& flagstring)
     return true;
 }
 
-kvalobs::kvControlInfo FlagUpdater::apply(const kvalobs::kvControlInfo& orig) const
+kvalobs::kvControlInfo FlagUpdate::apply(const kvalobs::kvControlInfo& orig) const
 {
     kvalobs::kvControlInfo flag = orig;
     for(int i=0; i<N_FLAGS; ++i) {

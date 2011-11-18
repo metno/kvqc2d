@@ -1,6 +1,6 @@
 
 #include <gtest/gtest.h>
-#include "ReadProgramOptions.h"
+#include "AlgorithmConfig.h"
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -8,11 +8,11 @@
 
 namespace fs = boost::filesystem;
 
-TEST(ReadProgramOptionsTest, testScanNoDir)
+TEST(AlgorithmConfigTest, testScanNoDir)
 {
     const char* no_dir = "/tmp/thisisnotaconfigurationfiledirectoryforqc2";
 
-    ReadProgramOptions po;
+    AlgorithmConfig po;
     po.setConfigPath( no_dir );
 
     std::vector<std::string> files;
@@ -33,13 +33,13 @@ TEST(ReadProgramOptionsTest, testScanNoDir)
 
 // ------------------------------------------------------------------------
 
-TEST(ReadProgramOptionsTest, testScanEmptyDir)
+TEST(AlgorithmConfigTest, testScanEmptyDir)
 {
     const char* dir = "/tmp/ReadProgramOptions_dir";
     fs::remove_all(dir);
     fs::create_directory(dir);
 
-    ReadProgramOptions po;
+    AlgorithmConfig po;
     po.setConfigPath( dir );
 
     std::vector<std::string> files;
@@ -54,19 +54,19 @@ TEST(ReadProgramOptionsTest, testScanEmptyDir)
 
 // ------------------------------------------------------------------------
 
-TEST(ReadProgramOptionsTest, testScanMixedDir)
+TEST(AlgorithmConfigTest, testScanMixedDir)
 {
     const fs::path dir("/tmp/ReadProgramOptions_dir");
     fs::remove_all( dir );
     fs::create_directory( dir );
 
-    fs::create_directory( dir / ("directory" + ReadProgramOptions::CFG_EXT) );
+    fs::create_directory( dir / ("directory" + AlgorithmConfig::CFG_EXT) );
     fs::create_directory( dir / "another_directory" );
-    fs::ofstream( (dir / ("01match" + ReadProgramOptions::CFG_EXT)) ) << "x=y" << std::endl;
-    fs::ofstream( (dir / ("00match" + ReadProgramOptions::CFG_EXT)) ) << "x=z" << std::endl;
-    fs::ofstream( (dir / ("nomatch" + ReadProgramOptions::CFG_EXT + "no")) ) << "x=a" << std::endl;
+    fs::ofstream( (dir / ("01match" + AlgorithmConfig::CFG_EXT)) ) << "x=y" << std::endl;
+    fs::ofstream( (dir / ("00match" + AlgorithmConfig::CFG_EXT)) ) << "x=z" << std::endl;
+    fs::ofstream( (dir / ("nomatch" + AlgorithmConfig::CFG_EXT + "no")) ) << "x=a" << std::endl;
 
-    ReadProgramOptions po;
+    AlgorithmConfig po;
     po.setConfigPath( dir );
 
     std::vector<std::string> files;
@@ -75,21 +75,21 @@ TEST(ReadProgramOptionsTest, testScanMixedDir)
     ASSERT_TRUE( fs::exists(dir) );
     ASSERT_TRUE( po.SelectConfigFiles(files) );
     ASSERT_EQ( 2, files.size() );
-    ASSERT_EQ( (dir / ("00match" + ReadProgramOptions::CFG_EXT)).native_file_string(), files[0] );
-    ASSERT_EQ( (dir / ("01match" + ReadProgramOptions::CFG_EXT)).native_file_string(), files[1] );
+    ASSERT_EQ( (dir / ("00match" + AlgorithmConfig::CFG_EXT)).native_file_string(), files[0] );
+    ASSERT_EQ( (dir / ("01match" + AlgorithmConfig::CFG_EXT)).native_file_string(), files[1] );
     
     fs::remove_all( dir );
 }
 
 // ------------------------------------------------------------------------
 
-TEST(ReadProgramOptionsTest, ParseFlagCU)
+TEST(AlgorithmConfigTest, ParseFlagCU)
 {
     std::stringstream config;
     config << "bad_uflags = heiho" << std::endl
            << "okay1_cflags = ___.ABC.DEF.___.|000.111.222.333." << std::endl
            << "okay2_cflags = ___.___.___.0123" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     ASSERT_NO_THROW(params.Parse(config));
 
     FlagSetCU fcu;
@@ -101,13 +101,13 @@ TEST(ReadProgramOptionsTest, ParseFlagCU)
 
 // ------------------------------------------------------------------------
 
-TEST(ReadProgramOptionsTest, ParseFlagChange)
+TEST(AlgorithmConfigTest, ParseFlagChange)
 {
     std::stringstream config;
     config << "bad1  = lalelu->boink" << std::endl
            << "bad2  = ___.ABC.DEF.___.|000.111.222.333." << std::endl
            << "okay1 = 012.345.678.ABC.->___.___.___.0123" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     ASSERT_NO_THROW(params.Parse(config));
 
     FlagChange fc;

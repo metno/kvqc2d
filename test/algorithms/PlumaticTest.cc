@@ -42,7 +42,7 @@ public:
     void SetUp();
     void TearDown();
     void InsertRealData();
-    void Configure(ReadProgramOptions& params, int bm=10, int bd=1, int bh=12, int em=11, int ed=10, int eh=12);
+    void Configure(AlgorithmConfig& params, int bm=10, int bd=1, int bh=12, int em=11, int ed=10, int eh=12);
 protected:
     PlumaticAlgorithm* algo;
 };
@@ -127,7 +127,7 @@ void PlumaticTest::TearDown()
 
 // ------------------------------------------------------------------------
 
-void PlumaticTest::Configure(ReadProgramOptions& params, int bm, int bd, int bh, int em, int ed, int eh)
+void PlumaticTest::Configure(AlgorithmConfig& params, int bm, int bd, int bh, int em, int ed, int eh)
 {
     std::stringstream config;
     config << "Start_YYYY = 2011\n"
@@ -166,7 +166,7 @@ TEST_F(PlumaticTest, HighSingle)
         .add("2011-10-02 00:00:00", 0,   "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -191,7 +191,7 @@ TEST_F(PlumaticTest, HighSingleStartEnd)
         .add("2011-10-01 13:00:00", 0.0, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 10, 1, 12, 11, 1, 15);
     
     ASSERT_NO_THROW(algo->configure(params));
@@ -222,7 +222,7 @@ TEST_F(PlumaticTest, HighStart)
         .add("2011-10-02 00:00:00", 0,   "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -252,7 +252,7 @@ TEST_F(PlumaticTest, HighStartStartEnd)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
     
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 10, 1, 12, 11, 1, 13);
     
     ASSERT_NO_THROW(algo->configure(params));
@@ -302,7 +302,7 @@ TEST_F(PlumaticTest, RainInterrupt)
         .add("2011-10-02 01:00:00", 0,   "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
     
     ASSERT_NO_THROW(algo->configure(params));
@@ -347,7 +347,7 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
         .add("2011-10-01 14:00:00", 0.0, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 10, 1, 12, 11, 1, 14);
     
     ASSERT_NO_THROW(algo->configure(params));
@@ -401,7 +401,7 @@ TEST_F(PlumaticTest, PluviometerResolution02)
         .add("2011-10-02 00:00:00", 0,   "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -435,7 +435,7 @@ TEST_F(PlumaticTest, Aggregation2Not3)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -468,7 +468,7 @@ TEST_F(PlumaticTest, Aggregation3Not2A)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -506,7 +506,7 @@ TEST_F(PlumaticTest, Aggregation3Not2B)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -540,7 +540,7 @@ TEST_F(PlumaticTest, Aggregation2And3)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -572,7 +572,7 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -614,7 +614,7 @@ TEST_F(PlumaticTest, AggregationAfterHighStart)
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -645,7 +645,7 @@ TEST_F(PlumaticTest, Dry)
         .add("2011-10-01 16:00:00", 0.0, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params);
 
     ASSERT_NO_THROW(algo->configure(params));

@@ -3,22 +3,22 @@ TESTS = kvqc2dTest
 check_PROGRAMS = kvqc2dTest
 
 kvqc2dTest_SOURCES= \
-        test_main.cc \
-	ConfigParserTest.cc \
-	FlagChangeTest.cc \
-	FlagMatcherTest.cc \
-	FlagSetTest.cc \
-	FlagUpdaterTest.cc \
-	HelpersTest.cc \
-	ReadProgramOptionsTest.cc \
-	algorithms/AlgorithmHelpersTest.cc \
-	algorithms/AlgorithmTestBase.h \
-	algorithms/AlgorithmTestBase.cc \
+	AlgorithmConfigTest.cc \
 	algorithms/AkimaSplineTest.cc \
+	algorithms/AlgorithmHelpersTest.cc \
+	algorithms/AlgorithmTestBase.cc \
+	algorithms/AlgorithmTestBase.h \
 	algorithms/DipTestTest.cc \
 	algorithms/PlumaticTest.cc \
 	algorithms/RedistributionTest.cc \
-	algorithms/SingleLinearTest.cc
+	algorithms/SingleLinearTest.cc \
+	ConfigParserTest.cc \
+	FlagChangeTest.cc \
+	FlagPatternsTest.cc \
+	FlagPatternTest.cc \
+	FlagUpdateTest.cc \
+	HelpersTest.cc \
+        test_main.cc
 
 AM_CXXFLAGS = -Wall -W \
 	$(TEST_DEPS_CFLAGS) \

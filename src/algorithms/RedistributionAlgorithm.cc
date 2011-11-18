@@ -185,7 +185,7 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
 
 // ------------------------------------------------------------------------
 
-void RedistributionAlgorithm::configure(const ReadProgramOptions& params)
+void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 

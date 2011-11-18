@@ -41,7 +41,7 @@ class RedistributionTest : public AlgorithmTestBase {
 public:
     void SetUp();
     void TearDown();
-    void Configure(ReadProgramOptions& params, int startDay, int endDay);
+    void Configure(AlgorithmConfig& params, int startDay, int endDay);
     void RoundingTest(const float* values, const float* expected, const int N);
 protected:
     RedistributionAlgorithm* algo;
@@ -100,7 +100,7 @@ void RedistributionTest::TearDown()
 }
 
 // ------------------------------------------------------------------------
-void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int endDay)
+void RedistributionTest::Configure(AlgorithmConfig& params, int startDay, int endDay)
 {
     std::stringstream config;
     config << "Start_YYYY = 2011" << std::endl
@@ -165,7 +165,7 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
     }
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 10, 19);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -235,7 +235,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
         .add("2011-10-19 06:00:00",    1.4, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 13, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -303,7 +303,7 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
         .add("2011-10-19 06:00:00",    1.4, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 16, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -341,7 +341,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
         .add("2011-10-18 06:00:00",   66.7, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 14, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -410,7 +410,7 @@ TEST_F(RedistributionTest, TwoSeries)
        .add("2011-10-19 06:00:00",    1.4, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -457,7 +457,7 @@ TEST_F(RedistributionTest, MissingRows)
         .add("2011-10-17 06:00:00",    2.0, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 12, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -503,7 +503,7 @@ TEST_F(RedistributionTest, ReRun)
         .add("2011-10-17 06:00:00",    2.0, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 12, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -597,7 +597,7 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
         .add("2011-10-14 06:00:00",     10, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -628,7 +628,7 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
         .add("2011-10-14 06:00:00",    0.1, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -671,7 +671,7 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
         .add("2011-10-14 06:00:00",     10, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -710,7 +710,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
         .add("2011-10-14 06:00:00",     10, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     std::stringstream config;
     config << "Start_YYYY = 2011" << std::endl
            << "Start_MM   =   10" << std::endl
@@ -790,7 +790,7 @@ TEST_F(RedistributionTest, BoneDry)
         .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 11, 18);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -833,7 +833,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
         .add("2011-10-16 06:00:00", -32767, "0000003000002000", "QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 10, 17);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -914,7 +914,7 @@ TEST_F(RedistributionTest, Release113)
         << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1, 'QC1-1-110x',  '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 5, 16);
     params.UT0 = "2011-05-05 06:00:00";
     params.UT1 = "2011-05-16 06:00:00";
@@ -1040,7 +1040,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
         .add("2011-10-19 06:00:00",    1.4, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, 13, 17);
 
     ASSERT_NO_THROW(algo->configure(params));

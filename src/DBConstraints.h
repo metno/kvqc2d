@@ -31,7 +31,7 @@
 #define DBCONSTRAINTS_H_
 
 #include "DBConstraintsBase.h"
-#include "FlagSet.h"
+#include "FlagPatterns.h"
 #include <kvalobs/kvStation.h>
 #include <puTools/miTime.h>
 
@@ -39,25 +39,25 @@ namespace Constraint {
 
 class ControlinfoImpl : public DBConstraintImpl {
 public:
-    ControlinfoImpl(const FlagMatcher& fm)
+    ControlinfoImpl(const FlagPattern& fm)
         : mFlagSet(fm) { }
-    ControlinfoImpl(const FlagSet& fs)
+    ControlinfoImpl(const FlagPatterns& fs)
         : mFlagSet(fs) { }
     virtual std::string sql() const;
 private:
-    FlagSet mFlagSet;
+    FlagPatterns mFlagSet;
 };
 typedef SQLBuilderPointer<ControlinfoImpl> Controlinfo;
 
 class UseinfoImpl : public DBConstraintImpl {
 public:
-    UseinfoImpl(const FlagMatcher& fm)
+    UseinfoImpl(const FlagPattern& fm)
         : mFlagSet(fm) { }
-    UseinfoImpl(const FlagSet& fs)
+    UseinfoImpl(const FlagPatterns& fs)
         : mFlagSet(fs) { }
     virtual std::string sql() const;
 private:
-    FlagSet mFlagSet;
+    FlagPatterns mFlagSet;
 };
 typedef SQLBuilderPointer<UseinfoImpl> Useinfo;
 

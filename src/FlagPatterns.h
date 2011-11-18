@@ -30,23 +30,23 @@
 #ifndef FLAGSET_H_
 #define FLAGSET_H_
 
-#include "FlagMatcher.h"
+#include "FlagPattern.h"
 #include <kvalobs/kvData.h>
 #include <string>
 #include <vector>
 
-class FlagSet {
+class FlagPatterns {
 public:
-    FlagSet()
+    FlagPatterns()
         : mError(false), mDefaultIfEmpty(true) { }
 
-    FlagSet(const FlagMatcher& fm)
+    FlagPatterns(const FlagPattern& fm)
         : mMatchers(1, fm), mError(false), mDefaultIfEmpty(true) { }
 
-    FlagSet(const std::string& fs, FlagMatcher::FlagType type)
+    FlagPatterns(const std::string& fs, FlagPattern::FlagType type)
         : mError(false), mDefaultIfEmpty(true) { parse(fs, type); }
 
-    FlagSet& add(const FlagMatcher& fm)
+    FlagPatterns& add(const FlagPattern& fm)
         { mMatchers.push_back(fm); return *this; }
 
     bool matches(const kvalobs::kvDataFlag& flags) const;
@@ -54,46 +54,46 @@ public:
     bool isEmpty() const
         { return mMatchers.empty(); }
 
-    FlagSet& setError()
+    FlagPatterns& setError()
         { mError = true; return *this; }
 
     bool hasError() const
         { return mError; }
 
-    FlagSet& setDefaultIfEmpty(bool d)
+    FlagPatterns& setDefaultIfEmpty(bool d)
         { mDefaultIfEmpty = d; return *this; }
 
-    FlagSet& reset()
+    FlagPatterns& reset()
         { mMatchers.clear(); mError = false; return *this; }
 
-    bool parse(const std::string& flagstring, FlagMatcher::FlagType type);
+    bool parse(const std::string& flagstring, FlagPattern::FlagType type);
 
     std::string sql(const std::string& column) const;
 
 private:
-    std::vector<FlagMatcher> mMatchers;
+    std::vector<FlagPattern> mMatchers;
     bool mError;
     bool mDefaultIfEmpty;
 };
 
 class FlagSetCU {
 public:
-    FlagSetCU& setC(const FlagSet& controlflags)
+    FlagSetCU& setC(const FlagPatterns& controlflags)
         { mControlflags = controlflags; return *this; }
 
-    FlagSetCU& setU(const FlagSet& useflags)
+    FlagSetCU& setU(const FlagPatterns& useflags)
         { mUseflags = useflags; return *this; }
 
-    FlagSet& controlflags()
+    FlagPatterns& controlflags()
         { return mControlflags; }
 
-    FlagSet& useflags()
+    FlagPatterns& useflags()
         { return mUseflags; }
 
-    const FlagSet& controlflags() const
+    const FlagPatterns& controlflags() const
         { return mControlflags; }
 
-    const FlagSet& useflags() const
+    const FlagPatterns& useflags() const
         { return mUseflags; }
 
     bool hasError() const
@@ -111,8 +111,8 @@ public:
     std::string sql() const;
 
 private:
-    FlagSet mControlflags;
-    FlagSet mUseflags;
+    FlagPatterns mControlflags;
+    FlagPatterns mUseflags;
 };
 
 #endif /* FLAGSET_H_ */

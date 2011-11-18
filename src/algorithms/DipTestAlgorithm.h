@@ -13,11 +13,11 @@ public:
     DipTestAlgorithm()
         : Qc2Algorithm("DipTest") { }
 
-    virtual void configure(const ReadProgramOptions& params);
+    virtual void configure(const AlgorithmConfig& params);
     virtual void run();
 
 private:
-    bool  fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map);
+    bool  fillParameterDeltaMap(const AlgorithmConfig& params, std::map<int, float>& map);
     float fetchDelta(const miutil::miTime& time, int pid);
     void  checkDipAndInterpolate(const kvalobs::kvData& candidate, float delta);
     bool  tryAkima(const kvalobs::kvData& candidate, float& interpolated);

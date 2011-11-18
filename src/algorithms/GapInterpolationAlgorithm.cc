@@ -39,7 +39,7 @@
 namespace C = Constraint;
 namespace O = Ordering;
 
-void GapInterpolationAlgorithm::configure( const ReadProgramOptions& params )
+void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 {
     Qc2Algorithm::configure(params);
 

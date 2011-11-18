@@ -36,7 +36,7 @@ class DipTestTest : public AlgorithmTestBase {
 public:
     void SetUp();
     void TearDown();
-    void Configure(ReadProgramOptions& params, std::stringstream& config);
+    void Configure(AlgorithmConfig& params, std::stringstream& config);
 protected:
     DipTestAlgorithm* algo;
 };
@@ -55,7 +55,7 @@ void DipTestTest::TearDown()
     AlgorithmTestBase::TearDown();
 }
 
-void DipTestTest::Configure(ReadProgramOptions& params, std::stringstream& config)
+void DipTestTest::Configure(AlgorithmConfig& params, std::stringstream& config)
 {
     config << "candidate_cflags     = ___2___.___.___0" << std::endl
            << "linear_before_cflags = ___1___.___.___." << std::endl
@@ -117,7 +117,7 @@ TEST_F(DipTestTest, Bugzilla1327)
            <<     "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
            <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
            <<     " 221 15.0, 222 15.0" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -190,7 +190,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
            <<     "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
            <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
            <<     " 221 15.0, 222 15.0" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -254,7 +254,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
            <<     "91 12.5, 92 15.0, 93 15.0, 94 15.0, 104 100, 105 3.0, 113 15.0, 123 60.0, 172 12.0, 174 12.0, 175 12.0,"
            <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
            <<     " 221 15.0, 222 15.0" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -311,7 +311,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
            << "End_DD     =   26" << std::endl
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 100" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -371,7 +371,7 @@ TEST_F(DipTestTest, DipTooSmall)
            << "End_DD     =   26" << std::endl
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 100" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     algo->run(params);
@@ -413,7 +413,7 @@ TEST_F(DipTestTest, JumpTooMuch)
            << "End_DD     =   26" << std::endl
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 50" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -455,7 +455,7 @@ TEST_F(DipTestTest, AfterHQC)
            << "End_DD     =   26" << std::endl
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 100" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));
@@ -516,7 +516,7 @@ TEST_F(DipTestTest, Bugzilla1320)
            << "End_DD     =   13" << std::endl
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 90 12.5" << std::endl;
-    ReadProgramOptions params;
+    AlgorithmConfig params;
     Configure(params, config);
 
     ASSERT_NO_THROW(algo->configure(params));

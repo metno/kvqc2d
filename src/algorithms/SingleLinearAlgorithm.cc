@@ -65,7 +65,7 @@ bool SingleLinearAlgorithm::isNeighborOk(const kvalobs::kvData& n)
 
 // ------------------------------------------------------------------------
 
-void SingleLinearAlgorithm::configure(const ReadProgramOptions& params)
+void SingleLinearAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 

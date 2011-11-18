@@ -39,8 +39,8 @@
 
 #include "Qc2App.h"
 #include "Qc2Connection.h"
-#include "ReadProgramOptions.h"
-#include "StandardBroadcaster.h"
+#include "AlgorithmConfig.h"
+#include "KvServicedBroadcaster.h"
 #include "KvalobsDB.h"
 
 #include <milog/milog.h>
@@ -53,7 +53,7 @@ public:
     DummyAlgorithm()
         : Qc2Algorithm("Dummy") { }
 
-    virtual void configure(const ReadProgramOptions&) {
+    virtual void configure(const AlgorithmConfig&) {
         LOGINFO("Dummy algorithm configuration.");
     }
     virtual void run() {
@@ -64,7 +64,7 @@ public:
 // ########################################################################
 
 AlgorithmDispatcher::AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & con_ )
-    : app( app_ ), con( con_ ), mDatabase(new KvalobsDB(&con)), mBroadcaster(new StandardBroadcaster(app))
+    : app( app_ ), con( con_ ), mDatabase(new KvalobsDB(&con)), mBroadcaster(new KvServicedBroadcaster(app))
 {
     Qc2Algorithm* algorithms[] = {
         new SingleLinearAlgorithm(),
@@ -92,7 +92,7 @@ AlgorithmDispatcher::~AlgorithmDispatcher()
     delete mDatabase;
 }
 
-int AlgorithmDispatcher::select(const ReadProgramOptions& params)
+int AlgorithmDispatcher::select(const AlgorithmConfig& params)
 {
     std::string algorithm = params.Algorithm;
     std::cout << "Algorithm setting is name='" << algorithm << "'" << std::endl;

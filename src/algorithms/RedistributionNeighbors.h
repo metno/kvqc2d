@@ -7,7 +7,7 @@
 #include <list>
 #include <map>
 
-class ReadProgramOptions;
+class AlgorithmConfig;
 
 class RedistributionNeighbors {
 public:
@@ -25,7 +25,7 @@ public:
 
     void setStationList(const stations_t& stations);
 
-    virtual void configure(const ReadProgramOptions& params) = 0;
+    virtual void configure(const AlgorithmConfig& params) = 0;
 
     virtual stationIDs_t findNeighbors(int aroundID) = 0;
 

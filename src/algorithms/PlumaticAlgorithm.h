@@ -17,7 +17,7 @@ public:
     PlumaticAlgorithm()
         : Qc2Algorithm("Plumatic") { }
 
-    virtual void configure(const ReadProgramOptions& params);
+    virtual void configure(const AlgorithmConfig& params);
     virtual void run();
 
 private:

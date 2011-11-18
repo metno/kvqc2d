@@ -27,27 +27,27 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "FlagUpdater.h"
+#include "FlagUpdate.h"
 #include <gtest/gtest.h>
 
-TEST(FlagUpdaterTest, NoUpdate)
+TEST(FlagUpdateTest, NoUpdate)
 {
-    EXPECT_EQ("0000003000002000", FlagUpdater("___.___.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
-    EXPECT_EQ("77AABBFF00554488", FlagUpdater("___.___.___.___.").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
+    EXPECT_EQ("0000003000002000", FlagUpdate("___.___.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
+    EXPECT_EQ("77AABBFF00554488", FlagUpdate("___.___.___.___.").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
 }
 
-TEST(FlagUpdaterTest, ParseAndUpdate)
+TEST(FlagUpdateTest, ParseAndUpdate)
 {
-    EXPECT_EQ("0000007000002000", FlagUpdater("___.__7.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
-    EXPECT_EQ("77AABBFF00554455", FlagUpdater("___.___.___.__55").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
+    EXPECT_EQ("0000007000002000", FlagUpdate("___.__7.___.___.").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
+    EXPECT_EQ("77AABBFF00554455", FlagUpdate("___.___.___.__55").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
 
-    EXPECT_EQ("0000007000002000", FlagUpdater("fmis=7").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
-    EXPECT_EQ("77AABBFF00554455", FlagUpdater("fcombi=5,fhqc=5").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
+    EXPECT_EQ("0000007000002000", FlagUpdate("fmis=7").apply(kvalobs::kvControlInfo("0000003000002000")).flagstring());
+    EXPECT_EQ("77AABBFF00554455", FlagUpdate("fcombi=5,fhqc=5").apply(kvalobs::kvControlInfo("77AABBFF00554488")).flagstring());
 }
 
-TEST(FlagUpdaterTest, ParseNames)
+TEST(FlagUpdateTest, ParseNames)
 {
-    FlagUpdater fu;
+    FlagUpdate fu;
     EXPECT_TRUE(fu.parse("fmis=7"));
     EXPECT_TRUE(fu.parse("fhqc=7,fmis=0"));
 

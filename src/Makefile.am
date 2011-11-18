@@ -6,56 +6,20 @@ kvqc2d_SOURCES = Qc2Main.cc
 noinst_LIBRARIES = libkvqc2d.a
 
 libkvqc2d_a_SOURCES = \
-	AlgorithmHelpers.cc \
-	AlgorithmHelpers.h \
-	CheckedDataHelper.cc \
-	CheckedDataHelper.h \
-	config_bottom.h \
-	ConfigParser.h \
-	ConfigParser.cc \
-	DBConstraintsBase.h \
-	DBConstraints.cc \
-	DBConstraints.h \
-	DBInterface.cc \
-	DBInterface.h \
-	debug.h \
-	FlagChange.cc \
-	FlagChange.h \
-	FlagMatcher.cc \
-	FlagMatcher.h \
-	FlagSet.cc \
-	FlagSet.h \
-	FlagUpdater.cc \
-	FlagUpdater.h \
-	foreach.h \
-	Helpers.cc \
-	Helpers.h \
-	InitLogger.cc \
-	InitLogger.h \
-	KvalobsDB.cc \
-	KvalobsDB.h \
+	AlgorithmConfig.cc \
+	AlgorithmConfig.h \
 	AlgorithmDispatcher.cc \
 	AlgorithmDispatcher.h \
-	Qc2Algorithm.cc \
-	Qc2Algorithm.h \
-	Qc2App.cc \
-	Qc2App.h \
-	Qc2Connection.h \
-	Qc2Connection.cc \
-	Qc2Thread.cc \
-	Qc2Thread.h \
-	ReadProgramOptions.cc \
-	ReadProgramOptions.h \
-	StandardBroadcaster.cc \
-	StandardBroadcaster.h \
+	AlgorithmHelpers.cc \
+	AlgorithmHelpers.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
 	algorithms/DataUpdate.cc \
 	algorithms/DataUpdate.h \
 	algorithms/DipTestAlgorithm.cc \
 	algorithms/DipTestAlgorithm.h \
-	algorithms/GapInterpolationAlgorithm.h \
 	algorithms/GapInterpolationAlgorithm.cc \
+	algorithms/GapInterpolationAlgorithm.h \
 	algorithms/GetStationParam.cc \
 	algorithms/GetStationParam.h \
 	algorithms/NeighborsDistance2.cc \
@@ -69,7 +33,43 @@ libkvqc2d_a_SOURCES = \
 	algorithms/RedistributionNeighbors.cc \
 	algorithms/RedistributionNeighbors.h \
 	algorithms/SingleLinearAlgorithm.cc \
-	algorithms/SingleLinearAlgorithm.h
+	algorithms/SingleLinearAlgorithm.h \
+	CheckedDataHelper.cc \
+	CheckedDataHelper.h \
+	config_bottom.h \
+	ConfigParser.cc \
+	ConfigParser.h \
+	DBConstraintsBase.h \
+	DBConstraints.cc \
+	DBConstraints.h \
+	DBInterface.cc \
+	DBInterface.h \
+	debug.h \
+	FlagChange.cc \
+	FlagChange.h \
+	FlagPattern.cc \
+	FlagPattern.h \
+	FlagPatterns.cc \
+	FlagPatterns.h \
+	FlagUpdate.cc \
+	FlagUpdate.h \
+	foreach.h \
+	Helpers.cc \
+	Helpers.h \
+	InitLogger.cc \
+	InitLogger.h \
+	KvalobsDB.cc \
+	KvalobsDB.h \
+	KvServicedBroadcaster.cc \
+	KvServicedBroadcaster.h \
+	Qc2Algorithm.cc \
+	Qc2Algorithm.h \
+	Qc2App.cc \
+	Qc2App.h \
+	Qc2Connection.cc \
+	Qc2Connection.h \
+	Qc2Thread.cc \
+	Qc2Thread.h
 
 AM_CXXFLAGS = -Wall -W \
 	$(PROG_DEPS_CFLAGS) \

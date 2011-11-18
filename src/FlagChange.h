@@ -30,8 +30,8 @@
 #ifndef FLAGCHANGE_H_
 #define FLAGCHANGE_H_
 
-#include "FlagMatcher.h"
-#include "FlagUpdater.h"
+#include "FlagPattern.h"
+#include "FlagUpdate.h"
 #include <string>
 #include <vector>
 
@@ -40,13 +40,13 @@ public:
     FlagChange()
         { }
 
-    FlagChange(const FlagMatcher& fm, const FlagUpdater& fu)
+    FlagChange(const FlagPattern& fm, const FlagUpdate& fu)
         : mMatchers(1, fm), mUpdaters(1, fu) { }
 
     FlagChange(const std::string& fs)
         { parse(fs); }
 
-    FlagChange& add(const FlagMatcher& fm, const FlagUpdater& fu)
+    FlagChange& add(const FlagPattern& fm, const FlagUpdate& fu)
         { mMatchers.push_back(fm); mUpdaters.push_back(fu); return *this; }
 
     kvalobs::kvControlInfo apply(const kvalobs::kvControlInfo& orig) const;
@@ -60,8 +60,8 @@ public:
     bool parse(const std::string& flagstring);
 
 private:
-    std::vector<FlagMatcher> mMatchers;
-    std::vector<FlagUpdater> mUpdaters;
+    std::vector<FlagPattern> mMatchers;
+    std::vector<FlagUpdate> mUpdaters;
 };
 
 #endif /* FLAGCHANGE_H_ */

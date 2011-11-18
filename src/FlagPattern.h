@@ -33,22 +33,22 @@
 #include <kvalobs/kvDataFlag.h>
 #include <string>
 
-class FlagMatcher {
+class FlagPattern {
 
 public:
     enum { N_FLAGS = 16, N_VALUES = 16 };
     enum FlagType { USEINFO, CONTROLINFO };
 
-    FlagMatcher()
+    FlagPattern()
         { reset(); }
 
-    FlagMatcher(const std::string& flagstring, FlagType type)
+    FlagPattern(const std::string& flagstring, FlagType type)
         { parse(flagstring, type); }
 
-    FlagMatcher& permit(int flag, int value)
+    FlagPattern& permit(int flag, int value)
         { mPermitted[flag] |= (1<<value); return *this; }
 
-    FlagMatcher& forbid(int flag, int value)
+    FlagPattern& forbid(int flag, int value)
         { mForbidden[flag] |= (1<<value); return *this; }
 
     bool isPermitted(int flag, int value) const
@@ -60,7 +60,7 @@ public:
     bool isAllowed(int flag, int value) const
         { return (allowedBits(flag) & (1<<value)) != 0; }
 
-    FlagMatcher& reset();
+    FlagPattern& reset();
 
     std::string sql(const std::string& column, bool needSQLText=false) const;
 

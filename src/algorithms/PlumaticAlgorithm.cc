@@ -83,7 +83,7 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataLi
     return it;
 }
 
-void PlumaticAlgorithm::configure(const ReadProgramOptions& params)
+void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 

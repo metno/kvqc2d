@@ -28,7 +28,7 @@
 */
 
 #include "config.h"
-#include "FlagMatcher.h"
+#include "FlagPattern.h"
 
 #include <sstream>
 #include <iostream>
@@ -59,14 +59,14 @@ int count_bits(unsigned int x)
 
 } // anonymous namespace
 
-FlagMatcher& FlagMatcher::reset()
+FlagPattern& FlagPattern::reset()
 {
     for(int i=0; i<N_FLAGS; ++i)
         mPermitted[i] = mForbidden[i] = 0;
     return *this;
 }
 
-std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
+std::string FlagPattern::sql(const std::string& column, bool needSQLText) const
 {
     std::ostringstream sql;
     bool enclose = false;
@@ -130,7 +130,7 @@ std::string FlagMatcher::sql(const std::string& column, bool needSQLText) const
     return "(" + sql1 + ")";
 }
 
-bool FlagMatcher::matches(const kvalobs::kvDataFlag& flags) const
+bool FlagPattern::matches(const kvalobs::kvDataFlag& flags) const
 {
     for(int i=0; i<N_FLAGS; ++i) {
         if( !isAllowed(i, flags.flag(i)) )
@@ -144,7 +144,7 @@ static int char2int(char c)
     return (c>='0' && c<='9') ? (c - '0') : (c - 'A' + 10);
 }
 
-bool FlagMatcher::parsePattern(const std::string& flagstring)
+bool FlagPattern::parsePattern(const std::string& flagstring)
 {
     reset();
 
@@ -164,7 +164,7 @@ bool FlagMatcher::parsePattern(const std::string& flagstring)
     return true;
 }
 
-bool FlagMatcher::parsePermittedValues(int f, const std::string& flagstring, unsigned int& c)
+bool FlagPattern::parsePermittedValues(int f, const std::string& flagstring, unsigned int& c)
 {
     char fc = flagstring[c++];
     if( fc == '[' || fc == ')' ) {
@@ -194,7 +194,7 @@ bool FlagMatcher::parsePermittedValues(int f, const std::string& flagstring, uns
     }
  }
 
-bool FlagMatcher::parseNames(const std::string& flagstring, const char* flagnames[])
+bool FlagPattern::parseNames(const std::string& flagstring, const char* flagnames[])
 {
     reset();
 
@@ -228,12 +228,12 @@ bool FlagMatcher::parseNames(const std::string& flagstring, const char* flagname
     return start == flagstring.size();
 }
 
-const char* FlagMatcher::CONTROLINFO_NAMES[N_FLAGS] = {
+const char* FlagPattern::CONTROLINFO_NAMES[N_FLAGS] = {
     "fqclevel", "fr", "fcc", "fs", "fnum", "fpos", "fmis", "ftime",
     "fw", "fstat", "fcp", "fclim", "fd", "fpre", "fcombi", "fhqc"
 };
 
-const char* FlagMatcher::USEINFO_NAMES[N_FLAGS] = {
+const char* FlagPattern::USEINFO_NAMES[N_FLAGS] = {
     "U0", "U1", "U2", "U3", "U4", "U5", "U6", "U7",
     "U8", "U9", "U10", "U11", "U12", "U13", "U14", "U15"
 };

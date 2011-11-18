@@ -33,24 +33,24 @@
 #include <kvalobs/kvDataFlag.h>
 #include <string>
 
-class FlagUpdater {
+class FlagUpdate {
 
 public:
     enum { N_FLAGS = 16, NO_CHANGE = -1 };
 
-    FlagUpdater()
+    FlagUpdate()
         { reset(); }
 
-    FlagUpdater(const std::string& flagstring)
+    FlagUpdate(const std::string& flagstring)
         { parse(flagstring); }
 
-    FlagUpdater& set(int flag, int value)
+    FlagUpdate& set(int flag, int value)
         { mSet[flag] = value; return *this; }
 
     int get(int flag) const
         { return mSet[flag]; }
 
-    FlagUpdater& reset();
+    FlagUpdate& reset();
 
     bool parse(const std::string& flagstring)
         { return parseNames(flagstring) || parsePattern(flagstring); }

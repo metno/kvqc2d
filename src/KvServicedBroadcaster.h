@@ -27,25 +27,23 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "StandardBroadcaster.h"
+#ifndef STANDARBROADCASTER_H_
+#define STANDARBROADCASTER_H_
 
-#include "Qc2App.h"
+#include "Qc2Algorithm.h"
+#include "CheckedDataHelper.h"
+#include <kvalobs/kvData.h>
+#include <kvalobs/kvStation.h>
+class Qc2App;
 
-StandardBroadcaster::StandardBroadcaster(Qc2App& app)
-    : checkedDataHelper(app)
-{
-}
+class KvServicedBroadcaster : public Broadcaster {
+public:
+    KvServicedBroadcaster(Qc2App& app);
+    virtual void queueChanged(const kvalobs::kvData& d);
+    virtual void sendChanges();
+private:
+    CheckedDataHelper checkedDataHelper;
+    kvalobs::kvStationInfoList stList;
+};
 
-void StandardBroadcaster::queueChanged(const kvalobs::kvData& d)
-{
-    stList.push_back(kvalobs::kvStationInfo(d.stationID(), d.obstime(), d.typeID()));
-}
-
-void StandardBroadcaster::sendChanges()
-{
-    if( stList.empty() )
-        return;
-
-    checkedDataHelper.sendDataToService(stList);
-    stList.clear();
-}
+#endif /* STANDARBROADCASTER_H_ */

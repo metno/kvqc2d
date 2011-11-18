@@ -9,7 +9,7 @@
 
 class Broadcaster;
 class DBInterface;
-class ReadProgramOptions;
+class AlgorithmConfig;
 class Qc2App;
 class Qc2Algorithm;
 
@@ -21,7 +21,7 @@ public:
     AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & con_ );
     ~AlgorithmDispatcher();
 
-    int select(const ReadProgramOptions& params);
+    int select(const AlgorithmConfig& params);
 
     Qc2App& getApp()
         { return app; }

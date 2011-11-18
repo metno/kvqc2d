@@ -31,7 +31,7 @@
 
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
-#include "ReadProgramOptions.h"
+#include "AlgorithmConfig.h"
 #include "foreach.h"
 
 namespace C = Constraint;
@@ -63,7 +63,7 @@ NeighborsDistance2::stationIDs_t NeighborsDistance2::findNeighbors(int aroundID)
 
 // ------------------------------------------------------------------------
 
-void NeighborsDistance2::configure(const ReadProgramOptions& params)
+void NeighborsDistance2::configure(const AlgorithmConfig& params)
 {
     mStationsByID.clear();
     mInterpolationLimit = params.getParameter("InterpolationDistance", 25);

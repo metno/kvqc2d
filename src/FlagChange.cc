@@ -12,7 +12,7 @@ bool FlagChange::parse(const std::string& flagstring)
         if( nextSeparator == std::string::npos )
             nextSeparator = flagstring.size();
 
-        FlagMatcher fm;
+        FlagPattern fm;
 
         std::size_t nextAssign = flagstring.find("->", lastSeparator);
         if( nextAssign == std::string::npos || nextAssign >= nextSeparator ) {
@@ -25,7 +25,7 @@ bool FlagChange::parse(const std::string& flagstring)
             nextAssign += 2;
         }
 
-        FlagUpdater fu;
+        FlagUpdate fu;
         if( !fu.parse(flagstring.substr(nextAssign, nextSeparator - nextAssign)) )
             return false;
 

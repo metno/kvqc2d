@@ -11,7 +11,7 @@ public:
 
     virtual ~NeighborsDistance2() { }
 
-    virtual void configure(const ReadProgramOptions& params);
+    virtual void configure(const AlgorithmConfig& params);
 
     virtual stationIDs_t findNeighbors(int aroundID);
 

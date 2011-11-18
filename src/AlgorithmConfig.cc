@@ -29,7 +29,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "ReadProgramOptions.h"
+#include "AlgorithmConfig.h"
 
 #include "Helpers.h"
 
@@ -61,15 +61,15 @@ void extractTime(const ConfigParser& c, const std::string& prefix, miutil::miTim
 
 } // anonymous namespace
 
-const std::string ReadProgramOptions::CFG_EXT = ".cfg2";
+const std::string AlgorithmConfig::CFG_EXT = ".cfg2";
 
-ReadProgramOptions::ReadProgramOptions()
+AlgorithmConfig::AlgorithmConfig()
 {
     fs::initial_path();
     setConfigPath( fs::path(kvPath("sysconfdir")) / "Qc2Config" );
 }
 
-void ReadProgramOptions::setConfigPath(const fs::path& path)
+void AlgorithmConfig::setConfigPath(const fs::path& path)
 {
     // this will throw an exception in some unusual cases on Windows systems
     mConfigPath = fs::complete( path );
@@ -77,7 +77,7 @@ void ReadProgramOptions::setConfigPath(const fs::path& path)
 
 ///Scans $KVALOBS/Qc2Config and searched for configuration files "*.cfg".
 
-bool ReadProgramOptions::SelectConfigFiles(std::vector<std::string>& config_files)
+bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
 {
     // TODO this has little to do with qc2 configuration files, move it elsewhere
     config_files.clear();
@@ -133,13 +133,13 @@ bool ReadProgramOptions::SelectConfigFiles(std::vector<std::string>& config_file
     return true;
 }
 
-void ReadProgramOptions::Parse(const std::string& filename)
+void AlgorithmConfig::Parse(const std::string& filename)
 {
     std::ifstream input(filename.c_str());
     Parse(input);
 }
 
-void ReadProgramOptions::Parse(std::istream& input)
+void AlgorithmConfig::Parse(std::istream& input)
 {
     if( !c.load(input) )
         throw ConfigException("Problems parsing kvqc2d algorithm configuration: " + c.errors().format("; ") + " -- giving up!");
@@ -171,7 +171,7 @@ void ReadProgramOptions::Parse(std::istream& input)
     rejected           = c.get("RejectedValue")        .convert<float>(0, -32766.0); // Original Rejected Data Value
 }
 
-void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name, FlagMatcher::FlagType type) const
+void AlgorithmConfig::getFlagSet(FlagPatterns& flags, const std::string& name, FlagPattern::FlagType type) const
 {
     flags.reset();
     if( !c.has(name) )
@@ -184,18 +184,18 @@ void ReadProgramOptions::getFlagSet(FlagSet& flags, const std::string& name, Fla
     }
 }
 
-void ReadProgramOptions::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
+void AlgorithmConfig::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
 {
     const bool hasC = c.has(name + "_cflags"), hasU = c.has(name + "_uflags");
     if( !hasC && !hasU )
         throw ConfigException("no setting for '" + name + "'");
     if( hasC )
-        getFlagSet(fcu.controlflags(), name + "_cflags", FlagMatcher::CONTROLINFO);
+        getFlagSet(fcu.controlflags(), name + "_cflags", FlagPattern::CONTROLINFO);
     if( hasU )
-        getFlagSet(fcu.useflags(),     name + "_uflags", FlagMatcher::USEINFO);
+        getFlagSet(fcu.useflags(),     name + "_uflags", FlagPattern::USEINFO);
 }
 
-void ReadProgramOptions::getFlagChange(FlagChange& fc, const std::string& name) const
+void AlgorithmConfig::getFlagChange(FlagChange& fc, const std::string& name) const
 {
     fc.reset();
     if( !c.has(name) )

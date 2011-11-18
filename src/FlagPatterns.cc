@@ -1,7 +1,7 @@
 
-#include "FlagSet.h"
+#include "FlagPatterns.h"
 
-bool FlagSet::matches(const kvalobs::kvDataFlag& flags) const
+bool FlagPatterns::matches(const kvalobs::kvDataFlag& flags) const
 {
     if( mError )
         return false;
@@ -13,7 +13,7 @@ bool FlagSet::matches(const kvalobs::kvDataFlag& flags) const
     return false;
 }
 
-bool FlagSet::parse(const std::string& flagstring, FlagMatcher::FlagType type)
+bool FlagPatterns::parse(const std::string& flagstring, FlagPattern::FlagType type)
 {
     if( flagstring.empty() )
         return true;
@@ -23,7 +23,7 @@ bool FlagSet::parse(const std::string& flagstring, FlagMatcher::FlagType type)
         std::size_t nextSeparator = flagstring.find("|", lastSeparator);
         if( nextSeparator == std::string::npos )
             nextSeparator = flagstring.size();
-        FlagMatcher fm;
+        FlagPattern fm;
         if( !fm.parse(flagstring.substr(lastSeparator, nextSeparator - lastSeparator), type) ) {
             mError = true;
             return false;
@@ -34,7 +34,7 @@ bool FlagSet::parse(const std::string& flagstring, FlagMatcher::FlagType type)
     return true;
 }
 
-std::string FlagSet::sql(const std::string& column) const
+std::string FlagPatterns::sql(const std::string& column) const
 {
     if( mError )
         return "0=1";

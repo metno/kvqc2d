@@ -32,7 +32,7 @@
 #include "AlgorithmDispatcher.h"
 #include "Qc2App.h"
 #include "Qc2Connection.h"
-#include "ReadProgramOptions.h"
+#include "AlgorithmConfig.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
@@ -69,7 +69,7 @@ void Qc2Work::operator() ()
     lastEnd.addMin(-1);
 
     while( !app.shutdown() ) {
-        ReadProgramOptions params;
+        AlgorithmConfig params;
         std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files);
 

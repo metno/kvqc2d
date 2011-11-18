@@ -10,7 +10,7 @@ public:
     GapInterpolationAlgorithm()
         : Qc2Algorithm("GapInterpolate") { }
 
-    virtual void configure(const ReadProgramOptions& params);
+    virtual void configure(const AlgorithmConfig& params);
     virtual void run();
 
 private:

@@ -46,7 +46,7 @@ namespace C = Constraint;
 namespace O = Ordering;
 using namespace kvQCFlagTypes;
 
-bool DipTestAlgorithm::fillParameterDeltaMap(const ReadProgramOptions& params, std::map<int, float>& map)
+bool DipTestAlgorithm::fillParameterDeltaMap(const AlgorithmConfig& params, std::map<int, float>& map)
 {
     const std::string pvf = params.getParameter<std::string>("ParValFilename");
 
@@ -75,7 +75,7 @@ float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
     return DeltaCheck;
 }
 
-void DipTestAlgorithm::configure(const ReadProgramOptions& params)
+void DipTestAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
