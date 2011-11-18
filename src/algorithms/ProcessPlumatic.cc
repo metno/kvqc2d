@@ -164,13 +164,13 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 
         if( ri != NO ) {
             if( ri == YES ) {
-                DBG("  rain interruption since " << *info.prev << ' ' << *d);
+                DBG("rain interruption between " << *info.prev << " and " << *d);
                 flagRainInterruption(info, data);
             } else {
                 if( info.prev != nav.end() ) {
-                    DBG("maybe rain interruption since " << *info.prev << ' ' << *d);
+                    DBG("maybe rain interruption between " << *info.prev << " and " << *d);
                 } else {
-                    DBG("maybe rain interruption since start (" << UT0 << ") " << *d);
+                    DBG("maybe rain interruption since start (" << UT0 << ") and until " << *d);
                 }
             }
         } else if( hsi != NO ) {
@@ -274,7 +274,7 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info&
         before = b0;
         nBefore += 1;
     }
-    DBG("    nBefore = " << nBefore << " start = " << (b0 == info.nav.end()));
+    //DBG("    nBefore = " << nBefore << " start = " << (b0 == info.nav.end()));
 
     int nAfter = 2; // info.d and info.next are already after the gap, so we have minimum 2 after
     kvDataList_it after = info.next, a0;
@@ -282,7 +282,7 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info&
         after = a0;
         nAfter += 1;
     }
-    DBG("    nAfter = " << nAfter << " end = " << (a0 == info.nav.end()));
+    //DBG("    nAfter = " << nAfter << " end = " << (a0 == info.nav.end()));
 
     if( a0 == info.nav.end() && nAfter < minRainBeforeAndAfter )
         return DONT_KNOW;
@@ -292,8 +292,10 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info&
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
 {
-    if( info.d->original() < info.mmpv*vippsUnlikelySingle)
+    if( info.d->original() < info.mmpv*vippsUnlikelySingle) {
+        DBG("original[=" << info.d->original() << "] < threshold[=" << info.mmpv*vippsUnlikelySingle <<"]");
         return NO;
+    }
     if( info.dryMinutesBefore<1 || info.dryMinutesAfter<1 )
         return NO;
     if( info.prev == info.nav.end() && info.dryMinutesBefore == 1 )
@@ -305,8 +307,10 @@ PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
 
 PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
 {
-    if( info.d->original() <= info.mmpv*vippsUnlikelyStart)
+    if( info.d->original() <= info.mmpv*vippsUnlikelyStart) {
+        DBG("original[=" << info.d->original() << "] < threshold[=" << info.mmpv*vippsUnlikelyStart <<"]");
         return NO;
+    }
     if( info.dryMinutesBefore < 1 )
         return NO;
     if( info.dryMinutesBefore == 1 && info.prev == info.nav.end() )

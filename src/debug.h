@@ -5,8 +5,9 @@
 #include <milog/milog.h>
 
 #ifndef NDEBUG
-#define DBG(x) do { LOGDEBUG(x); std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl; } while(false);
-#define INF(x) do { LOGINFO(x);  std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl; } while(false);
+#define DBGINF(x) std::cout << __FILE__ << ":" << __LINE__ << "[" << __FUNCTION__ << "]\n    " << x << std::endl
+#define DBG(x) do { LOGDEBUG(x); DBGINF(x); } while(false);
+#define INF(x) do { LOGINFO(x);  DBGINF(x); } while(false);
 #else
 #define DBG(x) do { /* nothing */ } while(false);
 #define INF(x) do { LOGINFO(x); } while(false);
