@@ -30,10 +30,7 @@
 #include "ProcessPlumatic.h"
 
 #include "AlgorithmHelpers.h"
-#include "Helpers.h"
-#include "Plumatic.h"
 #include "DBConstraints.h"
-#include "scone.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>

@@ -31,9 +31,6 @@
 
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
-#include "Helpers.h"
-#include "tround.h"
-#include "scone.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
@@ -132,7 +129,7 @@ float SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, c
     const int flag7 = middle.controlinfo().flag(7);
     if( isNeighborOk(before) && isNeighborOk(after) ) {
         if( flag7 == 0 || flag7 == 1 ) {
-            NewCorrected = round<float,1>( 0.5*(before.original()+after.original()) );
+            NewCorrected = Helpers::round( 0.5*(before.original()+after.original()) );
             if( (flag7 == 1) && equal(middle.corrected(), NewCorrected) ) {
                 NewCorrected = NO_UPDATE;
             }
@@ -150,7 +147,7 @@ float SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, c
                 if( !equal(middle.corrected(), rejected) ) // XXX this is new compared to Paul's version, but necessary to pass his test
                     NewCorrected = rejected;
             } else {
-                NewCorrected = round<float,1>( (before.original()+after.original())/2 );
+                NewCorrected = Helpers::round( (before.original()+after.original())/2 );
             }
         }
     }

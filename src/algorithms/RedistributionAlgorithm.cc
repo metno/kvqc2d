@@ -32,8 +32,6 @@
 #include "AlgorithmHelpers.h"
 #include "algorithms/NeighborsDistance2.h"
 #include "DBConstraints.h"
-#include "Helpers.h"
-#include "tround.h"
 
 #include <milog/milog.h>
 #include "foreach.h"
@@ -307,21 +305,21 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     float corrected_sum = 0;
     const float scale = dry2real(before.front().original()) / weightedNeighborsAccumulated;
     foreach(RedisUpdate& b, before) {
-        const float corr = round<float, 1>(scale * b.corrected());
+        const float corr = Helpers::round(scale * b.corrected());
         corrected_sum += corr;
         b.corrected(real2dry(corr)); // bugzilla 1304: by default assume dry
     }
 
     // make sure that sum of re-distributed is the same as the original accumulated value
-    float delta = round<float,1>(corrected_sum - dry2real(before.front().original()));
+    float delta = Helpers::round(corrected_sum - dry2real(before.front().original()));
     foreach(RedisUpdate& b, before) {
         if( delta <= 0.0f )
             break;
         const float corr = b.corrected(), threshold = b.hasNeighborsWithPrecipitation() ? (delta+0.1) : 0.05;
         if( corr >= threshold ) {
-            const float newCorr = std::max(round<float, 1>(corr - delta), 0.0f);
+            const float newCorr = std::max(Helpers::round(corr - delta), 0.0f);
             b.corrected(newCorr);
-            delta = round<float, 1>(delta - (corr - newCorr));
+            delta = Helpers::round(delta - (corr - newCorr));
         }
     }
     if( delta > 0.05 ) {

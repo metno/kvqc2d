@@ -8,7 +8,6 @@ noinst_LIBRARIES = libkvqc2d.a
 libkvqc2d_a_SOURCES = \
 	AlgorithmHelpers.cc \
 	AlgorithmHelpers.h \
-	CheckedDataCommandBase.h \
 	CheckedDataHelper.cc \
 	CheckedDataHelper.h \
 	config_bottom.h \
@@ -19,9 +18,6 @@ libkvqc2d_a_SOURCES = \
 	DBConstraints.h \
 	DBInterface.cc \
 	DBInterface.h \
-	kvMetadataTable.cc \
-	kvMetadataTable.h \
-	foreach.h \
 	FlagChange.cc \
 	FlagChange.h \
 	FlagMatcher.cc \
@@ -30,6 +26,7 @@ libkvqc2d_a_SOURCES = \
 	FlagSet.h \
 	FlagUpdater.cc \
 	FlagUpdater.h \
+	foreach.h \
 	Helpers.cc \
 	Helpers.h \
 	InitLogger.cc \
@@ -48,13 +45,10 @@ libkvqc2d_a_SOURCES = \
 	Qc2Thread.h \
 	ReadProgramOptions.cc \
 	ReadProgramOptions.h \
-	scone.h \
 	StandardBroadcaster.cc \
 	StandardBroadcaster.h \
 	StandardDB.cc \
 	StandardDB.h \
-	StopWatch.cc \
-	StopWatch.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
 	algorithms/BasicStatistics.h \
@@ -66,28 +60,18 @@ libkvqc2d_a_SOURCES = \
 	algorithms/GapInterpolationAlgorithm.cc \
 	algorithms/GetStationParam.cc \
 	algorithms/GetStationParam.h \
-	algorithms/kvQABaseTypes.h \
 	algorithms/NeighborsDistance2.cc \
 	algorithms/NeighborsDistance2.h \
 	algorithms/ParseParValFile.cc \
 	algorithms/ParseParValFile.h \
-	algorithms/Plumatic.cc \
-	algorithms/Plumatic.h \
 	algorithms/ProcessPlumatic.cc \
 	algorithms/ProcessPlumatic.h \
-	algorithms/proj++.cc \
-	algorithms/proj++.h \
 	algorithms/RedistributionAlgorithm.cc \
 	algorithms/RedistributionAlgorithm.h \
 	algorithms/RedistributionNeighbors.cc \
 	algorithms/RedistributionNeighbors.h \
 	algorithms/SingleLinearAlgorithm.cc \
-	algorithms/SingleLinearAlgorithm.h \
-	algorithms/StationSelection.cc \
-	algorithms/StationSelection.h \
-	algorithms/table_delaunay.cc \
-	algorithms/table_delaunay.h \
-	algorithms/tround.h 
+	algorithms/SingleLinearAlgorithm.h
 
 AM_CXXFLAGS = -Wall -W \
 	$(PROG_DEPS_CFLAGS) \

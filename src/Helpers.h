@@ -5,12 +5,13 @@
 #define Qc2Helpers_H 1
 
 #include <kvalobs/kvData.h>
+#include <limits>
 #include <map>
 #include <string>
 
 namespace Helpers {
 
-std::string kvqc2logstring(const kvalobs::kvData& kd);
+float round(float f);
 
 bool endsWith(const std::string& text, const std::string& tail);
 

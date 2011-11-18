@@ -2,7 +2,6 @@
 #include "Qc2Algorithm.h"
 
 #include "AlgorithmHelpers.h"
-#include "Helpers.h"
 #include "foreach.h"
 #include <milog/milog.h>
 
@@ -45,11 +44,11 @@ void Qc2Algorithm::storeData(const std::list<kvalobs::kvData>& toUpdate, const s
     database()->storeData(toUpdate, toInsert);
     foreach(const kvalobs::kvData& i, toInsert) {
         broadcaster()->queueChanged(i);
-        LOGINFO(mName + " NEW ROW: " + Helpers::kvqc2logstring(i) );
+        LOGINFO(mName << " NEW ROW: " << i);
     }
     foreach(const kvalobs::kvData& u, toUpdate) {
         broadcaster()->queueChanged(u);
-        LOGINFO(mName + ": " + Helpers::kvqc2logstring(u) );
+        LOGINFO(mName << ": " << u);
     }
     broadcaster()->sendChanges();
 }

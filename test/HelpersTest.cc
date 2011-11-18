@@ -70,3 +70,12 @@ TEST(HelpersTest, testMapFromList)
     ASSERT_FALSE(Helpers::fillMapFromList("1 2 : 3 fish", map, ':') );
     ASSERT_TRUE(map.empty());
 }
+
+TEST(HelpersTest, Round)
+{
+    EXPECT_FLOAT_EQ(28.3f, Helpers::round(28.34f));
+    EXPECT_FLOAT_EQ(28.3f, Helpers::round(28.25f));
+
+    EXPECT_FLOAT_EQ(-8.3f, Helpers::round(-8.25f));
+    EXPECT_FLOAT_EQ(-8.3f, Helpers::round(-8.31f));
+}

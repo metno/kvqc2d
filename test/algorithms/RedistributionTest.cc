@@ -32,8 +32,6 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/RedistributionAlgorithm.h"
 #include "AlgorithmHelpers.h"
-#include "Helpers.h"
-#include "algorithms/tround.h"
 #include "foreach.h"
 
 #include <algorithm>
@@ -132,16 +130,16 @@ void RedistributionTest::Configure(ReadProgramOptions& params, int startDay, int
 
 void RedistributionTest::RoundingTest(const float* values, const float* expected, const int N)
 {
-    const float rounded_acc = round<float,1>(std::accumulate(values, values+N, 0.0));
+    const float rounded_acc = Helpers::round(std::accumulate(values, values+N, 0.0));
 
     float rounded_values[N];
-    std::transform(values, values+N, rounded_values, round<float, 1>);
-    const float acc_of_rounded = round<float,1>(std::accumulate(rounded_values, rounded_values+N, 0.0)), scaling = rounded_acc / acc_of_rounded;
+    std::transform(values, values+N, rounded_values, Helpers::round);
+    const float acc_of_rounded = Helpers::round(std::accumulate(rounded_values, rounded_values+N, 0.0)), scaling = rounded_acc / acc_of_rounded;
 
     float interpolated_values[N];
     for(int i=0; i<N; ++i)
-        interpolated_values[i] = round<float,1>(rounded_values[i] * scaling);
-    const float acc_of_interpolated = round<float,1>(std::accumulate(interpolated_values, interpolated_values+N, 0.0));
+        interpolated_values[i] = Helpers::round(rounded_values[i] * scaling);
+    const float acc_of_interpolated = Helpers::round(std::accumulate(interpolated_values, interpolated_values+N, 0.0));
     const float delta = acc_of_interpolated - rounded_acc;
     ASSERT_LE(0.05, fabs(delta)) << "values do not expose problem under test";
 

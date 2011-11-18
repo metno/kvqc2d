@@ -30,6 +30,7 @@
 #ifndef ALGORITHMHELPERS_H_
 #define ALGORITHMHELPERS_H_
 
+#include "Helpers.h"
 #include <kvalobs/kvData.h>
 #include <kvalobs/kvStation.h>
 #include <puTools/miString.h>

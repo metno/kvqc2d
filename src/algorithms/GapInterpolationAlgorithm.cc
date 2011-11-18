@@ -32,9 +32,6 @@
 #include "AkimaSpline.h"
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
-#include "Helpers.h"
-#include "scone.h"
-#include "tround.h"
 
 #include <milog/milog.h>
 #include "foreach.h"
@@ -115,7 +112,7 @@ void GapInterpolationAlgorithm::run()
                 {
                     // Do Akima Interpolation
                     std::cout << d.stationID() << " " << d.obstime() << " " << d.original() << " " << d.corrected() << " Sub Akima " << AkimaX.AkimaPoint(HourDec) << std::endl;
-                    const float NewCorrected = round<float,1>(AkimaX.AkimaPoint(HourDec));
+                    const float NewCorrected = Helpers::round(AkimaX.AkimaPoint(HourDec));
 
                     // Push the data back
                     kvalobs::kvData dwrite(d);

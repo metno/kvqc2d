@@ -1,28 +1,19 @@
 
 #include "Helpers.h"
 
-#include "scone.h"
-
 namespace Helpers {
 
-std::string kvqc2logstring(const kvalobs::kvData& kd)
+float round(float f)
 {
-    std::string logstring =
-        StrmConvert(kd.stationID())+" "
-        +StrmConvert(kd.obstime().year())+"-"
-        +StrmConvert(kd.obstime().month())+"-"
-        +StrmConvert(kd.obstime().day())+" "
-        +StrmConvert(kd.obstime().hour())+":"
-        +StrmConvert(kd.obstime().min())+":"
-        +StrmConvert(kd.obstime().sec())+" "
-        +StrmConvert(kd.original())+" "
-        +StrmConvert(kd.paramID())+" "
-        +StrmConvert(kd.typeID())+" "
-        +StrmConvert(kd.sensor())+" "
-        +StrmConvert(kd.level())+" "
-        +StrmConvert(kd.corrected());
-
-    return logstring;
+    const float factor = 10;
+    f *= factor;
+    if( f < 0.0f )
+        f -= 0.5;
+    else
+        f += 0.5;
+    float ff = 0;
+    modff(f, &ff);
+    return ff / factor;
 }
 
 bool endsWith(const std::string& text, const std::string& tail)

@@ -40,14 +40,11 @@
 #include <kvalobs/kvStationInfo.h>
 #include "Qc2App.h"
 
-class CheckedDataCommandBase;
-
 class CheckedDataHelper
 {
     Qc2App  &app;
     dnmi::db::Connection *con;
 
-    friend class  CheckedDataCommandBase;
     bool  serviceAlive_;
 
 public:

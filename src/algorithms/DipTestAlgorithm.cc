@@ -35,12 +35,9 @@
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
 #include "GetStationParam.h"
-#include "Helpers.h"
 #include "ParseParValFile.h"
 #include "ProcessControl.h"
 #include "ReadProgramOptions.h"
-#include "scone.h"
-#include "tround.h"
 
 #include <kvalobs/kvDataFlag.h>
 #include <milog/milog.h>
@@ -68,7 +65,9 @@ bool DipTestAlgorithm::fillParameterDeltaMap(const ReadProgramOptions& params, s
 float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
 {
     DBInterface::kvStationParamList_t splist;
-    database()->selectStationparams(splist, 0, time, "QC1-3a-"+StrmConvert(pid) ); /// FIXME what time to use here?
+    std::ostringstream qcx;
+    qcx << "QC1-3a-" << pid;
+    database()->selectStationparams(splist, 0, time, qcx.str()); /// FIXME what time to use here?
     if( splist.empty() ) {
         LOGERROR("Empty station_param for stationid=0 list.");
         return -1e8; // FIXME throw an exception or so
@@ -148,7 +147,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
         return;
     }
 
-    float interpolated = round<float,1>( 0.5*(before.original() + after.original()) );
+    float interpolated = Helpers::round( 0.5*(before.original() + after.original()) );
 
     const bool AkimaPresent = tryAkima(candidate, interpolated);
 
@@ -193,10 +192,12 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     }
 
     const AkimaSpline AkimaX(xt,yt);
-    const float AkimaInterpolated = round<float,1>( AkimaX.AkimaPoint(N_BEFORE) );
+    const float AkimaInterpolated = Helpers::round( AkimaX.AkimaPoint(N_BEFORE) );
 
     DBInterface::kvStationParamList_t splist;
-    database()->selectStationparams(splist, candidate.stationID(), candidate.obstime(), "QC1-1-"+StrmConvert(candidate.paramID()));
+    std::ostringstream qcx;
+    qcx << "QC1-1-" << candidate.paramID();
+    database()->selectStationparams(splist, candidate.stationID(), candidate.obstime(), qcx.str());
     if( splist.empty() ) {
         LOGERROR("No station params for akima MinimumCheck for candidate=" << candidate << ". Assuming no akima interpolation.");
         return false;

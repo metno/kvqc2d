@@ -32,7 +32,6 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/ProcessPlumatic.h"
 #include "AlgorithmHelpers.h"
-#include "Helpers.h"
 #include "foreach.h"
 
 #include <algorithm>

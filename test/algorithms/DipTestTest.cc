@@ -31,7 +31,6 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/DipTestAlgorithm.h"
 #include "AlgorithmHelpers.h"
-#include "Helpers.h"
 
 class DipTestTest : public AlgorithmTestBase {
 public:

@@ -37,15 +37,15 @@
 #include <milog/milog.h>
 #include "InitLogger.h"
 #include <ostream>
-#include "StopWatch.h"
 #include <miconfparser/miconfparser.h>
 #include <fileutil/pidfileutil.h>
 #include "Qc2Thread.h"
 #include <puTools/miTime.h>
 #include <kvalobs/kvPath.h>
 
-#include "CheckedDataCommandBase.h"
 #include "CheckedDataHelper.h"
+
+#include <string>
 
 
 //For test
@@ -139,12 +139,10 @@ struct PidCreateDelete {
 
 int main( int argc, char** argv )
 {
-    stopwatch SW;
-    
     milog::LogContext logContext("kvqc2d ...");
     
-    string htmlpath;
-    string logpath_(htmlpath);
+    std::string htmlpath;
+    std::string logpath_(htmlpath);
     InitLogger( argc, argv, "kvqc2d", htmlpath );
     LOGINFO( "kvqc2d: starting ...." );
     
