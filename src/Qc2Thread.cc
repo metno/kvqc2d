@@ -83,13 +83,19 @@ void Qc2Work::operator() ()
         typedef std::multimap<miutil::miTime, std::string> queue_t;
         queue_t queue;
         foreach(const std::string& cf, config_files) {
-            params.Parse( cf );
-            const int hour = params.RunAtHour < 0 ? now.hour() : params.RunAtHour;
-            const miutil::miTime runAt(now.year(), now.month(), now.day(),
-                                       hour, params.RunAtMinute, 0);
-            LOGINFO("Algorithm='" << params.Algorithm << "' runAt = " << runAt);
-            if( runAt > lastEnd && runAt <= now )
-                queue.insert(queue_t::value_type(runAt, cf));
+            try {
+                params.Parse( cf );
+                const int hour = params.RunAtHour < 0 ? now.hour() : params.RunAtHour;
+                const miutil::miTime runAt(now.year(), now.month(), now.day(),
+                                           hour, params.RunAtMinute, 0);
+                LOGINFO("Algorithm='" << params.Algorithm << "' runAt = " << runAt);
+                if( runAt > lastEnd && runAt <= now )
+                    queue.insert(queue_t::value_type(runAt, cf));
+            } catch(ConfigException& ce) {
+                LOGERROR("Configuration parser exception: " << ce.what() << " while reading '" << cf << "'");
+            } catch ( ... ) {
+                LOGERROR("Unknown exception while reading '" << cf << "'");
+            }
         }
 
         // run queued algorithms
