@@ -30,7 +30,7 @@
 #define NEW_VERSION 1
 
 #include "AlgorithmTestBase.h"
-#include "algorithms/ProcessPlumatic.h"
+#include "algorithms/PlumaticAlgorithm.h"
 #include "AlgorithmHelpers.h"
 #include "foreach.h"
 

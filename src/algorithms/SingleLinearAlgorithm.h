@@ -3,12 +3,9 @@
 #ifndef SingleLinearAlgorithm_H
 #define SingleLinearAlgorithm_H 1
 
-#include "ProcessControl.h"
 #include "Qc2Algorithm.h"
 #include <kvalobs/kvData.h>
 
-#include <map>
-#include <string>
 #include <vector>
 
 /**

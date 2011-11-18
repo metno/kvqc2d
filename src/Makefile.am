@@ -18,6 +18,7 @@ libkvqc2d_a_SOURCES = \
 	DBConstraints.h \
 	DBInterface.cc \
 	DBInterface.h \
+	debug.h \
 	FlagChange.cc \
 	FlagChange.h \
 	FlagMatcher.cc \
@@ -31,10 +32,10 @@ libkvqc2d_a_SOURCES = \
 	Helpers.h \
 	InitLogger.cc \
 	InitLogger.h \
-	ProcessControl.cc \
-	ProcessControl.h \
-	ProcessImpl.cc \
-	ProcessImpl.h \
+	KvalobsDB.cc \
+	KvalobsDB.h \
+	AlgorithmDispatcher.cc \
+	AlgorithmDispatcher.h \
 	Qc2Algorithm.cc \
 	Qc2Algorithm.h \
 	Qc2App.cc \
@@ -47,11 +48,8 @@ libkvqc2d_a_SOURCES = \
 	ReadProgramOptions.h \
 	StandardBroadcaster.cc \
 	StandardBroadcaster.h \
-	StandardDB.cc \
-	StandardDB.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
-	algorithms/BasicStatistics.h \
 	algorithms/DataUpdate.cc \
 	algorithms/DataUpdate.h \
 	algorithms/DipTestAlgorithm.cc \
@@ -64,8 +62,8 @@ libkvqc2d_a_SOURCES = \
 	algorithms/NeighborsDistance2.h \
 	algorithms/ParseParValFile.cc \
 	algorithms/ParseParValFile.h \
-	algorithms/ProcessPlumatic.cc \
-	algorithms/ProcessPlumatic.h \
+	algorithms/PlumaticAlgorithm.cc \
+	algorithms/PlumaticAlgorithm.h \
 	algorithms/RedistributionAlgorithm.cc \
 	algorithms/RedistributionAlgorithm.h \
 	algorithms/RedistributionNeighbors.cc \

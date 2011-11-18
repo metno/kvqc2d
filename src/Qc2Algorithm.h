@@ -4,8 +4,6 @@
 #define Qc2Algorithm_H
 
 #include "DBInterface.h"
-#include "ProcessControl.h"
-#include "ProcessImpl.h"
 #include "ReadProgramOptions.h"
 
 #include <kvalobs/kvStation.h>
@@ -51,9 +49,6 @@ public:
     DBInterface* database() const
         { return mDatabase; }
 
-    ProcessControl checkFlags()
-        { return mCheckFlags; }
-
     const std::string& name() const
         { return mName; }
 
@@ -73,7 +68,6 @@ private:
     DBInterface* mDatabase;
     Broadcaster* mBroadcaster;
     std::string mName;
-    ProcessControl mCheckFlags;
 };
 
 #endif

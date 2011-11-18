@@ -34,10 +34,10 @@
 
 #include <kvalobs/kvDbGate.h>
 
-class StandardDB: public DBInterface {
+class KvalobsDB: public DBInterface {
 public:
-    StandardDB(dnmi::db::Connection* connection);
-    virtual ~StandardDB();
+    KvalobsDB(dnmi::db::Connection* connection);
+    virtual ~KvalobsDB();
 
     void setConnection(dnmi::db::Connection* connection)
         { mDbGate.set(connection); }

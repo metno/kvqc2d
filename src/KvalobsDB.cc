@@ -27,33 +27,33 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "StandardDB.h"
+#include "KvalobsDB.h"
 
 #include <kvalobs/kvQueries.h>
 #include "foreach.h"
 
-StandardDB::StandardDB(dnmi::db::Connection* connection)
+KvalobsDB::KvalobsDB(dnmi::db::Connection* connection)
     : mDbGate(connection)
 {
 }
 
-StandardDB::~StandardDB()
+KvalobsDB::~KvalobsDB()
 {
 }
 
-void StandardDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
+void KvalobsDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
 {
     if( !mDbGate.select(d, where) )
         throw DBException("Database problem with SELECT data " + where + ": " + mDbGate.getErrorStr());
 }
 
-void StandardDB::selectStations(kvStationList_t& s) throw (DBException)
+void KvalobsDB::selectStations(kvStationList_t& s) throw (DBException)
 {
     if( !mDbGate.select(s) )
         throw DBException("Database problem with SELECT stations: " + mDbGate.getErrorStr());
 }
 
-void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
+void KvalobsDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     const std::list<int> station(1, stationID);
     const std::string where = kvQueries::selectStationParam(station, time, qcx );
@@ -61,7 +61,7 @@ void StandardDB::selectStationparams(kvStationParamList_t& s, int stationID, con
         throw DBException("Database problem with SELECT stationparam " + where);
 }
 
-void StandardDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
+void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
 {
     if( toUpdate.empty() && toInsert.empty() )
         return;

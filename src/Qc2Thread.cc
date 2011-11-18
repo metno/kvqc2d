@@ -29,7 +29,7 @@
 
 #include "Qc2Thread.h"
 
-#include "ProcessImpl.h"
+#include "AlgorithmDispatcher.h"
 #include "Qc2App.h"
 #include "Qc2Connection.h"
 #include "ReadProgramOptions.h"
@@ -57,12 +57,12 @@ void Qc2Work::operator() ()
 
     if( !con ) {
         LOGERROR( "Could not get connection to database" );
-        // FIXME just continue if no database connection? will cause sefault when constructing ProcessImpl (*con)
+        // FIXME just continue if no database connection? will cause sefault when constructing AlgorithmDispatcher (*con)
     }
 
     LOGINFO( "%%%%%%%%%%%%%%%%%%%%%%%%" );
 
-    ProcessImpl Processor( app, *con);
+    AlgorithmDispatcher dispatcher( app, *con);
 
     miutil::miTime lastEnd = miutil::miTime::nowTime();
     lastEnd.addSec(-lastEnd.sec());
@@ -106,7 +106,7 @@ void Qc2Work::operator() ()
                         << std::setw(2) << std::setfill('0') << tc.first.hour() << ':'
                         << std::setw(2) << std::setfill('0') << tc.first.min() << " is delayed");
             try {
-                Processor.select(params);
+                dispatcher.select(params);
             } catch ( dnmi::db::SQLException & ex ) {
                 LOGERROR("Exception: " << ex.what());
             } catch ( ... ) {

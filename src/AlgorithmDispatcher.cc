@@ -29,19 +29,19 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "ProcessImpl.h"
+#include "AlgorithmDispatcher.h"
 
 #include "algorithms/SingleLinearAlgorithm.h"
 #include "algorithms/RedistributionAlgorithm.h"
 #include "algorithms/DipTestAlgorithm.h"
 #include "algorithms/GapInterpolationAlgorithm.h"
-#include "algorithms/ProcessPlumatic.h"
+#include "algorithms/PlumaticAlgorithm.h"
 
 #include "Qc2App.h"
 #include "Qc2Connection.h"
 #include "ReadProgramOptions.h"
 #include "StandardBroadcaster.h"
-#include "StandardDB.h"
+#include "KvalobsDB.h"
 
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
@@ -63,8 +63,8 @@ public:
 
 // ########################################################################
 
-ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
-    : app( app_ ), con( con_ ), mDatabase(new StandardDB(&con)), mBroadcaster(new StandardBroadcaster(app))
+AlgorithmDispatcher::AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & con_ )
+    : app( app_ ), con( con_ ), mDatabase(new KvalobsDB(&con)), mBroadcaster(new StandardBroadcaster(app))
 {
     Qc2Algorithm* algorithms[] = {
         new SingleLinearAlgorithm(),
@@ -83,7 +83,7 @@ ProcessImpl::ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ )
     }
 }
 
-ProcessImpl::~ProcessImpl()
+AlgorithmDispatcher::~AlgorithmDispatcher()
 {
     foreach(algorithms_t::value_type algo, mAlgorithms) {
         delete algo.second;
@@ -92,7 +92,7 @@ ProcessImpl::~ProcessImpl()
     delete mDatabase;
 }
 
-int ProcessImpl::select(const ReadProgramOptions& params)
+int AlgorithmDispatcher::select(const ReadProgramOptions& params)
 {
     std::string algorithm = params.Algorithm;
     std::cout << "Algorithm setting is name='" << algorithm << "'" << std::endl;

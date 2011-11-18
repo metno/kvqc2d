@@ -27,7 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "ProcessPlumatic.h"
+#include "PlumaticAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"

@@ -15,11 +15,11 @@ class Qc2Algorithm;
 
 ///Handles the interface to different processing algorithms.
 
-class ProcessImpl
+class AlgorithmDispatcher
 {
 public:
-    ProcessImpl( Qc2App &app_, dnmi::db::Connection & con_ );
-    ~ProcessImpl();
+    AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & con_ );
+    ~AlgorithmDispatcher();
 
     int select(const ReadProgramOptions& params);
 

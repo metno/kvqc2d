@@ -36,8 +36,6 @@
 #include "DBConstraints.h"
 #include "GetStationParam.h"
 #include "ParseParValFile.h"
-#include "ProcessControl.h"
-#include "ReadProgramOptions.h"
 
 #include <kvalobs/kvDataFlag.h>
 #include <milog/milog.h>
