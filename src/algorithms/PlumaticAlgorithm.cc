@@ -166,7 +166,7 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 
         if( ri != NO ) {
             if( ri == YES ) {
-                DBG("rain interruption between " << *info.prev << " and " << *d);
+                INF("rain interruption between " << *info.prev << " and " << *d);
                 flagRainInterruption(info, data);
             } else {
                 if( info.prev != nav.end() ) {
