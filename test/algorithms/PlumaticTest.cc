@@ -258,8 +258,11 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     ASSERT_NO_THROW(algo->configure(params));
     ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(1, bc->count());
+    ASSERT_EQ(4, bc->count());
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:00:00", "010A000000000000", "QC2h-1-highstart", bc->update(0));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:01:00", "010A000000000000", "QC2h-1-highstart", bc->update(1));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:02:00", "010A000000000000", "QC2h-1-highstart", bc->update(2));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:03:00", "010A000000000000", "QC2h-1-highstart", bc->update(3));
 
     bc->clear();
     ASSERT_NO_THROW(algo->run());
@@ -297,7 +300,7 @@ TEST_F(PlumaticTest, RainInterrupt)
         .add("2011-10-02 00:12:00", 0.1, "0101000000000000", "")
         // rain interruption, but not enough rain before => high start
         .add("2011-10-02 00:15:00", 0.5, "0101000000000000", "")
-        .add("2011-10-02 00:16:00", 0.2, "0101000000000000", "")
+        .add("2011-10-02 00:16:00", 0.1, "0101000000000000", "")
         
         .add("2011-10-02 01:00:00", 0,   "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
@@ -337,7 +340,7 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
     data.add("2011-10-01 12:00:00", 0.3, "0101000000000000", "")
         // rain interruption at start, too short => high start at 12:00 and 12:03
         .add("2011-10-01 12:03:00", 0.4, "0101000000000000", "")
-        .add("2011-10-01 12:04:00", 0.4, "0101000000000000", "")
+        .add("2011-10-01 12:04:00", 0.1, "0101000000000000", "")
         .add("2011-10-01 12:05:00", 0.1, "0101000000000000", "")
         
         .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "")
@@ -578,54 +581,19 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
     ASSERT_NO_THROW(algo->configure(params));
     ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(1, bc->count());
-    ASSERT_EQ("2011-10-01 12:03:00", bc->updates()[0].obstime().isoTime());
-    ASSERT_EQ("010A000000000000", bc->updates()[0].controlinfo().flagstring());
-    ASSERT_TRUE(bc->updates()[0].cfailed().find("QC2h-1-highstart") != std::string::npos);
+    ASSERT_EQ(2, bc->count());
+    ASSERT_OBS_CONTROL_CFAILED("2011-10-01 12:03:00", "010A000000000000", "QC2h-1-highstart", bc->update(0));
+    ASSERT_OBS_CONTROL_CFAILED("2011-10-01 12:04:00", "010A000000000000", "QC2h-1-highstart", bc->update(1));
 
-    // remove high start, and run again
+    // remove high start and flags, and run again
     bc->clear();
-    ASSERT_NO_THROW(data.add("2011-10-01 12:03:00", 0.2, "0101000000000000", "").update(db));
+    ASSERT_NO_THROW(data.add("2011-10-01 12:03:00", 0.2, "0101000000000000", "").add("2011-10-01 12:04:00", 8.2, "0101000000000000", "").update(db));
 
     ASSERT_NO_THROW(algo->run());
     EXPECT_EQ(2, bc->count());
 
     miutil::miTime t("2011-10-01 12:03:00");
     for(int i=0; i<bc->count(); ++i, t.addMin(1))
-        EXPECT_OBS_CONTROL_CFAILED(t, "0901000000000000", "QC2h-1-aggregation-2", bc->update(i));
-
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
-}
-
-// ------------------------------------------------------------------------
-
-TEST_F(PlumaticTest, AggregationAfterHighStart)
-{
-    DataList data(27270, 105, 4);
-    data.add("2011-10-01 12:00:00", 0.0, "0101000000000000", "")
-        // next is high start
-        .add("2011-10-01 12:03:00", 0.3, "0101000000000000", "")
-        // sliding sum of two too high for the next, but may only mark the next two because of high start
-        .add("2011-10-01 12:04:00", 8.2, "0101000000000000", "")
-        .add("2011-10-01 12:05:00", 0.3, "0101000000000000", "")
-
-        .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
-    ASSERT_NO_THROW(data.insert(db));
-
-    AlgorithmConfig params;
-    Configure(params);
-
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(3, bc->count());
-
-    miutil::miTime t("2011-10-01 12:03:00");
-    EXPECT_OBS_CONTROL_CFAILED(t, "010A000000000000", "QC2h-1-highstart", bc->update(0));
-    t.addMin(1);
-    for(int i=1; i<bc->count(); ++i, t.addMin(1))
         EXPECT_OBS_CONTROL_CFAILED(t, "0901000000000000", "QC2h-1-aggregation-2", bc->update(i));
 
     bc->clear();

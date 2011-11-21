@@ -64,7 +64,7 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::previousNot0(kvDa
         return end();
 
     --it;
-    while(it->original() == 0.0f) {
+    while(is0OrDiscarded(it)) {
         if( it == begin() )
             return end();
         --it;
@@ -78,9 +78,14 @@ PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataLi
     if( it == end() )
         return end();
     ++it;
-    while(it != end() && it->original() == 0.0f)
+    while(it != end() && is0OrDiscarded(it))
         ++it;
     return it;
+}
+
+bool PlumaticAlgorithm::Navigator::is0OrDiscarded(const kvDataList_it& it) const
+{
+    return (it->original() == 0.0f || discarded_flags.matches(it->data()));
 }
 
 void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
@@ -141,14 +146,14 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
         return;
     kvDataList_t data(datao.begin(), datao.end());
 
-    Navigator nav(data.begin(), data.end());
+    Navigator nav(data.begin(), data.end(), discarded_flags);
     Info info(nav);
     info.mmpv = mmpv;
     info.beforeUT0 = UT0extended; info.beforeUT0.addMin(-1);
     info.afterUT1  = UT1;         info.afterUT1 .addMin( 1);
 
     for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
-        if( d->obstime() < UT0 )
+        if( d->obstime() < UT0 || discarded_flags.matches(d->data()))
             continue;
 
         info.d    = d;

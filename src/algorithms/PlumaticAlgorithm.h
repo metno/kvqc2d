@@ -23,13 +23,13 @@ public:
 private:
     class Navigator {
     public:
-        Navigator(kvDataList_it begin, kvDataList_it end)
-            : mBegin(begin), mEnd(end), mLast(--end) { }
+        Navigator(kvDataList_it begin, kvDataList_it end, const FlagSetCU& df)
+            : mBegin(begin), mEnd(end), mLast(--end), discarded_flags(df) { }
 
         kvDataList_it previousNot0(kvDataList_it it);
         
         kvDataList_it nextNot0(kvDataList_it it);
-        
+
         kvDataList_it begin()
             { return mBegin; }
         
@@ -37,7 +37,11 @@ private:
             { return mEnd; }
 
     private:
+        bool is0OrDiscarded(const kvDataList_it& it) const;
+
+    private:
         const kvDataList_it mBegin, mEnd, mLast;
+        const FlagSetCU& discarded_flags;
     };
 
     struct Info {
