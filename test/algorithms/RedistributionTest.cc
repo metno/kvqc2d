@@ -561,16 +561,13 @@ TEST_F(RedistributionTest, ReRun)
 
     bc->clear();
     ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(5, bc->count());
+    ASSERT_EQ(2, bc->count());
 
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 3.0, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0000001000007000", 1.0, bc->update(1));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000", 2.0, bc->update(2));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 2.0, bc->update(3));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000", 2.0, bc->update(4));
 }
 
 // ------------------------------------------------------------------------

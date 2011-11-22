@@ -333,8 +333,8 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 void RedistributionAlgorithm::updateOrInsertData(const updateList_t& data)
 {
     bool hasChanges = false;
-#if 1
-    // XXX it is not specified if the whole series or just the modified rows should be stored
+#if 0
+    // perok 2011-11-21 store only rows with modified flags/corrected value
     foreach(const RedisUpdate& du, data) {
         if( du.isModified() ) {
             hasChanges = true;
