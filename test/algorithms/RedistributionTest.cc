@@ -111,8 +111,6 @@ void RedistributionTest::Configure(AlgorithmConfig& params, int startDay, int en
            << "End_MM     =   10" << std::endl
            << "End_DD     =   " << endDay << std::endl
            << "End_hh     =   06" << std::endl
-           << "#InterpCode=2"  << std::endl
-           << "#Step_DD=1"  << std::endl
            << "ParamId=110"  << std::endl
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl

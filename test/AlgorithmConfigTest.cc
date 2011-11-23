@@ -116,3 +116,18 @@ TEST(AlgorithmConfigTest, ParseFlagChange)
 
     EXPECT_NO_THROW(params.getFlagChange(fc, "okay1"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST(AlgorithmConfigTest, StartHH)
+{
+    std::stringstream config;
+    config << "Last_NDays = 4\n"
+           << "Start_hh = 06\n";
+    AlgorithmConfig params;
+    ASSERT_NO_THROW(params.Parse(config));
+
+    ASSERT_EQ(6, params.UT0.hour());
+    ASSERT_EQ(6, params.UT1.hour());
+    ASSERT_EQ(4*24, miutil::miTime::hourDiff(params.UT1, params.UT0));
+}

@@ -44,6 +44,9 @@
 #include <sstream>
 #include <vector>
 
+#define NDEBUG
+#include "debug.h"
+
 namespace fs = boost::filesystem;
 
 namespace {
@@ -57,6 +60,16 @@ void extractTime(const ConfigParser& c, const std::string& prefix, miutil::miTim
     const int Minute = c.get(prefix+"_mm")  .convert<int>(0, 0);
     const int Second = c.get(prefix+"_ss")  .convert<int>(0, 0);
     time = miutil::miTime(Year, Month, Day, Hour, Minute, Second);
+}
+
+void extractHHMMSS(const ConfigParser& c, const std::string& prefix, miutil::miTime& time)
+{
+    if( c.has(prefix + "_hh") )
+        time.addHour(-time.hour() + c.get(prefix + "_hh").convert<int>(0));
+    if( c.has(prefix + "_mm") )
+        time.addMin(-time.min()   + c.get(prefix + "_mm").convert<int>(0));
+    if( c.has(prefix + "_ss") )
+        time.addSec(-time.sec()   + c.get(prefix + "_ss").convert<int>(0));
 }
 
 } // anonymous namespace
@@ -154,10 +167,13 @@ void AlgorithmConfig::Parse(std::istream& input)
     RunAtMinute = c.get("RunAtMinute").convert<int>(0, 0); // Minute at which to run the algorithm
     RunAtHour   = c.get("RunAtHour")  .convert<int>(0, 2); // Hour at which to run the algorithm
 
-    UT0 = now;
-    UT1 = now;
+    UT1 = UT0 = now;
+
     if( c.has("Last_NDays") ) {
-        // Ho Ho Ho retain the option to run into the future
+        extractHHMMSS(c, "Start", UT0);
+        UT1 = UT0;
+        extractHHMMSS(c, "End", UT1);
+
         UT0.addDay( -c.get("Last_NDays").convert<int>(0) );
     } else {
         extractTime(c, "Start", UT0);
