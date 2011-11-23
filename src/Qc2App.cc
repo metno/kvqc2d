@@ -28,10 +28,19 @@
 */
 
 #include "Qc2App.h"
-#include <milog/milog.h>
-#include <kvalobs/kvPath.h>
-#include <signal.h>
+
+#include "AlgorithmRunner.h"
 #include "foreach.h"
+
+#include <kvalobs/kvPath.h>
+#include <milog/milog.h>
+#include <puTools/miTime.h>
+
+#include <boost/bind.hpp>
+#include <signal.h>
+#include <stdexcept>
+
+#include "debug.h"
 
 namespace{
     volatile sig_atomic_t sigTerm=0;
@@ -45,47 +54,98 @@ Qc2App::Qc2App(int argc, char **argv,
                const char *opt[][2])
     : KvApp(argc, argv, opt)
     , dbConnect(connect_)
-    , shutdown_(false)
-    , orbIsDown(false)
+    , mShouldShutdown(false)
+    , mCORBAThread(0)
 {
     setSigHandlers();
-
-    const std::string driver(kvPath("pkglibdir")+"/db/"+dbDriver);
-    if( dbMgr.loadDriver(driver, dbDriverId)){
-        LOGINFO("Database driver '" << dbDriverId<< "' loaded.");
-    } else {
-        LOGERROR("Database driver '" << driver << "' not loaded. Error " << dbMgr.getErr());
-        exit(1);
-    }
+    createPidFile("kvqc2d");
+    initializeDB(dbDriver);
+    initializeCORBA();
 }
 
 Qc2App::~Qc2App()
 {
+    shutdownCORBA();
+    deletePidFile();
+}
+
+void Qc2App::initializeDB(const std::string& dbDriver)
+{
+    const std::string driver(kvPath("pkglibdir")+"/db/"+dbDriver);
+    if( !dbMgr.loadDriver(driver, dbDriverId) ) {
+        std::ostringstream msg;
+        msg << "Database driver '" << driver << "' not loaded. Error " << dbMgr.getErr();
+        throw std::runtime_error(msg.str());
+    }
 }
 
 dnmi::db::Connection* Qc2App::getNewDbConnection()
 {
-    dnmi::db::Connection *con = dbMgr.connect(dbDriverId, dbConnect);
-    if( !con ) {
-        LOGERROR("Can't create a database connection  ("
-                 << dbDriverId << ")" << std::endl
-                 << "Connect string: <" << dbConnect << ">!");
-        return 0;
-    }
-
-    LOGINFO("New database connection (" << dbDriverId << ") created!");
-    return con;
+    return dbMgr.connect(dbDriverId, dbConnect);
 }
 
 void Qc2App::releaseDbConnection(dnmi::db::Connection *con)
 {
     dbMgr.releaseConnection(con);
-    LOGINFO("Database connection (" << dbDriverId << ") released");
+}
+
+void Qc2App::initializeCORBA()
+{
+    // part of initialization is in Qc2App/KvApp/CorbaApp constructor
+    getPoaMgr()->activate();
+    mCORBAThread = new boost::thread( boost::bind(&Qc2App::runCORBA, this) );
+}
+
+void Qc2App::runCORBA()
+{
+    try {
+        getOrb()->run();
+    } catch ( CORBA::SystemException& ) {
+        LOGFATAL( "CORBA::SystemException." );
+        startShutdown();
+    } catch ( CORBA::Exception& ) {
+        LOGFATAL( "CORBA::Exception." );
+        startShutdown();
+    } catch ( omniORB::fatalException& fe ) {
+        LOGFATAL( "omniORB::fatalException: file='" << fe.file() << "', line=" << fe.line() << ", msg='" << fe.errmsg() << "'");
+        startShutdown();
+    } catch ( ... ) {
+        LOGFATAL( "Unknown exception." );
+        startShutdown();
+    }
+}
+
+void Qc2App::shutdownCORBA()
+{
+    static boost::mutex shutdownMutex;
+    boost::mutex::scoped_lock lock(shutdownMutex);
+    if( mCORBAThread ) {
+        try {
+            getOrb()->shutdown(false);
+            getOrb()->destroy();
+        } catch ( CORBA::SystemException& ) {
+            LOGFATAL( "CORBA::SystemException during shutdown." );
+        } catch ( CORBA::Exception& ce ) {
+            LOGFATAL( "CORBA::Exception during shutdown." );
+        } catch ( ... ) {
+            LOGFATAL( "Unknown exception during shutdown." );
+        }
+        mCORBAThread->join();
+        delete mCORBAThread;
+        mCORBAThread = 0;
+    }
+}
+
+int Qc2App::run()
+{
+    AlgorithmRunner runner;
+    runner.runAlgorithms(*this);
+    return 0;
 }
 
 bool Qc2App::sendDataToKvService(const kvalobs::kvStationInfoList &info, bool &busy)
 {
-    if(info.empty()){
+    if( info.empty() ) {
         LOGDEBUG("No data to send to kvServiced.");
         return true;
     }
@@ -175,21 +235,10 @@ CKvalObs::CService::DataReadyInput_ptr Qc2App::lookUpKvService(bool forceNS, boo
     return refKvServiceDataReady;
 }
 
-bool Qc2App::shutdown()
+bool Qc2App::isShuttingDown()
 {
-    if(shutdown_ || sigTerm) {
-        boost::mutex::scoped_lock l(mutex);
-        if(!orbIsDown){
-            LOGDEBUG("shutdown CORBA!\n");
-            orbIsDown=true;
-            getOrb()->shutdown(false);
-        }
-    }
-    return shutdown_ || sigTerm;
+    return mShouldShutdown || sigTerm;
 }
-
-// FIXME this is a global variable also used in Qc2Main.cc : main
-pthread_t qc2thread_pid = 0;
 
 namespace {
 
@@ -198,7 +247,6 @@ void setSigHandlers()
     // see http://www.cs.utah.edu/dept/old/texinfo/glibc-manual-0.02/library_21.html
     // TODO keep ignoring signals if they were ignored
 
-    //  sigset_t     oldmask;
     struct sigaction act, oldact;
     
     act.sa_handler=sig_term;
@@ -220,12 +268,9 @@ void setSigHandlers()
     }
 }
 
-void sig_term(int i)
+void sig_term(int)
 {
-    //CERR("sig_term("<<i<<"): called!\n");
-    if( sigTerm == 0 && qc2thread_pid != 0 )
-        pthread_kill(qc2thread_pid, i);
-    sigTerm=1;
+    sigTerm = 1;
 }
 
 } // anonymous namespace

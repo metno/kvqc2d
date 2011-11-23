@@ -1,54 +1,33 @@
 // -*- c++ -*-
 
-#ifndef __Qc2App_h__
-#define __Qc2App_h__
+#ifndef QC2APP_H
+#define QC2APP_H
 
 #include <kvalobs/kvapp.h>
 #include <kvskel/kvService.hh>
 #include <kvalobs/kvStationInfo.h>
-#include <dnmithread/CommandQue.h>
 #include <kvdb/dbdrivermgr.h>
 
-/// Application type.
-/// The Qc2 application class: follows the standard Qc1 kvalobs model.
+#include <boost/thread.hpp>
 
 class Qc2App: public KvApp
 {
-    Qc2App(); //No implementation
-
-    dnmi::db::DriverManager              dbMgr;
-    std::string                          dbConnect;
-    std::string                          dbDriverId;
-    bool shutdown_;
-    bool                                 orbIsDown;
-
-    CKvalObs::CManager::CheckedInput_var refServiceCheckedInput;
-    CKvalObs::CService::DataReadyInput_var refKvServiceDataReady;
-
-    boost::mutex mutex;
-
 public:
     Qc2App(int argc, char **argv, 
            const std::string &driver,
            const std::string &connect_,
            const char *options[][2]=0);
+
     virtual ~Qc2App();
 
-    //For sending data to kvServiced
+    int run();
+
     bool sendDataToKvService(const kvalobs::kvStationInfoList &info_, bool &busy);
 
-    CKvalObs::CService::DataReadyInput_ptr lookUpKvService(bool forceNS,
-                                                           bool &usedNS);
+    void startShutdown()
+        { mShouldShutdown = true; }
 
-    /*
-     * force a shutdown
-     */
-    void doShutdown(){ shutdown_=true;}
-    /**
-     * shutdown returns true when the application is in 
-     * the terminating state.
-     */
-    bool shutdown();
+    bool isShuttingDown();
 
     /**
      * Creates a new connection to the database. The caller must
@@ -57,7 +36,27 @@ public:
     dnmi::db::Connection *getNewDbConnection();
     void                 releaseDbConnection(dnmi::db::Connection *con);
 
-  
+private:
+    void initializeDB(const std::string& dbDriver);
+    void initializeCORBA();
+    void runCORBA();
+    void shutdownCORBA();
+
+    CKvalObs::CService::DataReadyInput_ptr lookUpKvService(bool forceNS,
+                                                           bool &usedNS);
+
+    Qc2App(); //No implementation
+
+private:
+    dnmi::db::DriverManager dbMgr;
+    std::string dbConnect;
+    std::string dbDriverId;
+    bool mShouldShutdown;
+
+    CKvalObs::CManager::CheckedInput_var refServiceCheckedInput;
+    CKvalObs::CService::DataReadyInput_var refKvServiceDataReady;
+
+    boost::thread* mCORBAThread;
 };
 
 #endif

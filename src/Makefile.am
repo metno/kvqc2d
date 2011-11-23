@@ -12,6 +12,8 @@ libkvqc2d_a_SOURCES = \
 	AlgorithmDispatcher.h \
 	AlgorithmHelpers.cc \
 	AlgorithmHelpers.h \
+	AlgorithmRunner.cc \
+	AlgorithmRunner.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
 	algorithms/DataUpdate.cc \
@@ -65,9 +67,7 @@ libkvqc2d_a_SOURCES = \
 	Qc2Algorithm.cc \
 	Qc2Algorithm.h \
 	Qc2App.cc \
-	Qc2App.h \
-	Qc2Thread.cc \
-	Qc2Thread.h
+	Qc2App.h
 
 AM_CXXFLAGS = -Wall -W \
 	$(PROG_DEPS_CFLAGS) \

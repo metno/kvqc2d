@@ -27,7 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Qc2Thread.h"
+#include "AlgorithmRunner.h"
 
 #include "AlgorithmDispatcher.h"
 #include "Qc2App.h"
@@ -42,12 +42,7 @@
 #include <map>
 #include "foreach.h"
 
-Qc2Work::Qc2Work( Qc2App &app_ )
-    : app( app_ )
-{
-}
-
-void Qc2Work::run()
+void AlgorithmRunner::runAlgorithms(Qc2App& app)
 {
     std::auto_ptr<DBInterface> database(new KvalobsDB(app));
     std::auto_ptr<Broadcaster> broadcaster(new KvServicedBroadcaster(app));
@@ -61,7 +56,7 @@ void Qc2Work::run()
     lastEnd.addSec(-lastEnd.sec());
     lastEnd.addMin(-1);
 
-    while( !app.shutdown() ) {
+    while( !app.isShuttingDown() ) {
         AlgorithmConfig params;
         std::vector<std::string> config_files;
         params.SelectConfigFiles(config_files);
@@ -107,16 +102,15 @@ void Qc2Work::run()
             }
         }
         lastEnd = now;
-        if( app.shutdown() )
+        if( app.isShuttingDown() )
             break;
 #if BOOST_VERSION >= 103500
         sleep(59);   //check config files every minute 
 #elif !defined(BOOST_VERSION)
 #error "BOOST_VERSION not defined"
 #else
-        for(int i=0; i<59 && !app.shutdown(); ++i)
+        for(int i=0; i<59 && !app.isShuttingDown(); ++i)
             sleep(1);
 #endif
     }
-    LOGINFO( "Qc2Work: Thread terminating!" );
 }

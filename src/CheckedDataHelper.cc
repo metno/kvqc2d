@@ -37,7 +37,7 @@ bool CheckedDataHelper::sendDataToService(const kvalobs::kvStationInfoList &si)
     bool serviceOk=true;
     bool bussy=true;
     
-    while(serviceOk && bussy && !app.shutdown()) {
+    while(serviceOk && bussy && !app.isShuttingDown()) {
         serviceOk = app.sendDataToKvService(si, bussy);
         
         if( bussy ) {

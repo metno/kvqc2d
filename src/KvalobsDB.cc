@@ -29,16 +29,17 @@
 
 #include "KvalobsDB.h"
 
+#include "foreach.h"
 #include "Qc2App.h"
+
 #include <kvalobs/kvQueries.h>
 #include <milog/milog.h>
-#include "foreach.h"
 
 KvalobsDB::KvalobsDB(Qc2App& app)
     : mApp( app )
     , mConnection(0)
 {
-    while( !mApp.shutdown() ) {
+    while( !mApp.isShuttingDown() ) {
         mConnection = mApp.getNewDbConnection();
         if( mConnection ) {
             mDbGate = kvalobs::kvDbGate(mConnection);

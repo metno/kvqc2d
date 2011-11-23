@@ -29,22 +29,17 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <boost/thread/thread.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/exception.hpp>
-#include <boost/version.hpp>
 #include "Qc2App.h"
 #include <milog/milog.h>
 #include "InitLogger.h"
 #include <miconfparser/miconfparser.h>
 #include <fileutil/pidfileutil.h>
-#include "Qc2Thread.h"
 #include <kvalobs/kvPath.h>
 
 #include <string>
 
-
-//For test
 const char* options[][ 2 ] =
   {
     {"InitRef",
@@ -52,11 +47,6 @@ const char* options[][ 2 ] =
     },
     {0, 0}
   };
-
-///The kvalobs Qc2 main program.
-
-// FIXME this is a global variable used in Qc2App.cc : sig_term signal handler
-extern pthread_t qc2thread_pid;
 
 namespace {
 
@@ -117,17 +107,6 @@ std::string find_dbdriver()
     return dbdriver;
 }
 
-////////////////////////////////////////////////////////////////////////
-
-struct PidCreateDelete {
-    Qc2App& app;
-    PidCreateDelete(Qc2App& a, const std::string& pidfilename)
-        : app(a)
-        { app.createPidFile(pidfilename); }
-    ~PidCreateDelete()
-        { app.deletePidFile(); }
-};
-
 } // anonymous namespace
 
 // ########################################################################
@@ -148,54 +127,9 @@ int main( int argc, char** argv )
     Qc2App app( argc, argv, dbdriver, constr, options );
   
     if( !app.isOk() ) {
-        LOGFATAL( "FATAL: can't  initialize " << argv[ 0 ] << "!\n" );
+        LOGFATAL( "Initialization problem" );
         return 1;
     }
 
-    CORBA::ORB_ptr orb = app.getOrb();
-    PortableServer::POA_ptr poa = app.getPoa();
-    PortableServer::POAManager_var pman = app.getPoaMgr();   ///NEW
-    pman->activate();  ///NEW
-
- 
-    PidCreateDelete pid(app, "kvqc2d");
-    sleep(1);
-
-    Qc2Work Qc2Work( app );
-    boost::thread Qc2Thread( Qc2Work );
-#if BOOST_VERSION >= 103500
-    qc2thread_pid = Qc2Thread.native_handle(); // FIXME
-#elif !defined(BOOST_VERSION)
-#error "BOOST_VERSION not defined"
-#endif
-
-    int exitcode = 0;
-    try {
-        // This is where all the *InputImpl(app) and AdminImpl( App ) can be reinstalled if ti is needed
-        //app.createPidFile( "Qc2" );
-        orb->run();
-        orb->destroy();
-    } catch ( CORBA::SystemException& ) {
-        LOGFATAL( "Caught CORBA::SystemException." );
-        exitcode = 1;
-    } catch ( CORBA::Exception& ) {
-        LOGFATAL( "Caught CORBA::Exception." );
-        exitcode = 1;
-    } catch ( omniORB::fatalException & fe ) {
-        LOGFATAL( "Caught omniORB::fatalException:" << std::endl
-                  << "  file: " << fe.file() << std::endl
-                  << "  line: " << fe.line() << std::endl
-                  << "  mesg: " << fe.errmsg() );
-        exitcode = 1;
-    } catch ( ... ) {
-        LOGFATAL( "Caught unknown exception." );
-        exitcode = 1;
-    }
-
-    if( exitcode == 0 )
-        CERR( "kvqc2d: exit ....\n" );
-
-    Qc2Thread.join();
-
-    return exitcode;
+    return app.run();
 }

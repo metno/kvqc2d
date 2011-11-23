@@ -83,8 +83,6 @@ AlgorithmDispatcher::~AlgorithmDispatcher()
     foreach(algorithms_t::value_type algo, mAlgorithms) {
         delete algo.second;
     }
-    delete mBroadcaster;
-    delete mDatabase;
 }
 
 int AlgorithmDispatcher::select(const AlgorithmConfig& params)
