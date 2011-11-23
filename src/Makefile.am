@@ -66,8 +66,6 @@ libkvqc2d_a_SOURCES = \
 	Qc2Algorithm.h \
 	Qc2App.cc \
 	Qc2App.h \
-	Qc2Connection.cc \
-	Qc2Connection.h \
 	Qc2Thread.cc \
 	Qc2Thread.h
 

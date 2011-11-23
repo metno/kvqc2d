@@ -16,10 +16,8 @@ class Qc2App: public KvApp
 {
     Qc2App(); //No implementation
 
-    dnmi::thread::CommandQue             inQue;
     dnmi::db::DriverManager              dbMgr;
     std::string                          dbConnect;
-    std::string                          dbDriver;
     std::string                          dbDriverId;
     bool shutdown_;
     bool                                 orbIsDown;
@@ -30,14 +28,11 @@ class Qc2App: public KvApp
     boost::mutex mutex;
 
 public:
-    Qc2App(int argn, char **argv, 
-           const std::string &driver_,
+    Qc2App(int argc, char **argv, 
+           const std::string &driver,
            const std::string &connect_,
            const char *options[][2]=0);
     virtual ~Qc2App();
-
-    //inherited from KvApp
-    virtual bool isOk()const;
 
     //For sending data to kvServiced
     bool sendDataToKvService(const kvalobs::kvStationInfoList &info_, bool &busy);

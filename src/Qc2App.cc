@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  $Id$                                                       
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2007-2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -29,12 +27,11 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <signal.h>
-#include <stdlib.h>
 #include "Qc2App.h"
 #include <milog/milog.h>
-#include <string>
 #include <kvalobs/kvPath.h>
+#include <signal.h>
+#include "foreach.h"
 
 namespace{
     volatile sig_atomic_t sigTerm=0;
@@ -42,50 +39,33 @@ namespace{
     void     setSigHandlers();
 };
 
-
-using namespace dnmi::db;
-using namespace milog;
-
-Qc2App::Qc2App(int argn, char **argv,
-               const std::string &driver_,
+Qc2App::Qc2App(int argc, char **argv,
+               const std::string &dbDriver,
                const std::string &connect_,
                const char *opt[][2])
-    : KvApp(argn, argv, opt)
+    : KvApp(argc, argv, opt)
     , dbConnect(connect_)
-    , dbDriver(driver_)
     , shutdown_(false)
     , orbIsDown(false)
 {
-    std::string driver(kvPath("pkglibdir")+"/db/"+dbDriver);
     setSigHandlers();
 
-    LOGINFO("Loading driver for database engine <" << driver << ">!\n");
-    if(!dbMgr.loadDriver(driver, dbDriverId)){
-        LOGERROR("Can't load driver <" << driver << std::endl
-                 << dbMgr.getErr() << std::endl
-                 << "Check if the driver is in the directory $KVALOBS/lib/kvdb???");
+    const std::string driver(kvPath("pkglibdir")+"/db/"+dbDriver);
+    if( dbMgr.loadDriver(driver, dbDriverId)){
+        LOGINFO("Database driver '" << dbDriverId<< "' loaded.");
+    } else {
+        LOGERROR("Database driver '" << driver << "' not loaded. Error " << dbMgr.getErr());
         exit(1);
     }
-    LOGINFO("Driver <" << dbDriverId<< "> loaded!\n");
 }
 
 Qc2App::~Qc2App()
 {
 }
 
-bool Qc2App::isOk()const
-{
-    //TODO:
-    //For now!
-    return KvApp::isOk();
-}
-
-
 dnmi::db::Connection* Qc2App::getNewDbConnection()
 {
-    std::string ost = dbConnect;
-    Connection *con = dbMgr.connect(dbDriverId, dbConnect);
-
+    dnmi::db::Connection *con = dbMgr.connect(dbDriverId, dbConnect);
     if( !con ) {
         LOGERROR("Can't create a database connection  ("
                  << dbDriverId << ")" << std::endl
@@ -103,36 +83,30 @@ void Qc2App::releaseDbConnection(dnmi::db::Connection *con)
     LOGINFO("Database connection (" << dbDriverId << ") released");
 }
 
-bool Qc2App::sendDataToKvService(const kvalobs::kvStationInfoList &info_, bool &busy)
+bool Qc2App::sendDataToKvService(const kvalobs::kvStationInfoList &info, bool &busy)
 {
-    kvalobs::kvStationInfoList info=const_cast<kvalobs::kvStationInfoList&>(info_);
-    //  kvalobs::CIkvParamInfoList it;
-    CKvalObs::StationInfoList  stInfoList;
-    CORBA::Boolean             serviceBussy;
-    bool                       forceNS=false;
-    bool                       usedNS=false;
-    CKvalObs::CService::DataReadyInput_ptr service;
-
-    busy=false;
-
     if(info.empty()){
         LOGDEBUG("No data to send to kvServiced.");
         return true;
     }
 
+    CKvalObs::StationInfoList stInfoList;
     stInfoList.length(info.size());
-    kvalobs::IkvStationInfoList itInfoList=info.begin();
-
-    for(CORBA::Long k=0; itInfoList!=info.end(); k++, itInfoList++){
-        stInfoList[k].stationId=itInfoList->stationID();
-        stInfoList[k].obstime=CORBA::string_dup(itInfoList->obstime().isoTime().c_str());
-        stInfoList[k].typeId_=itInfoList->typeID();
+    CORBA::Long k=0;
+    foreach(const kvalobs::kvStationInfo& si, info) {
+        stInfoList[k].stationId = si.stationID();
+        stInfoList[k].obstime   = CORBA::string_dup(si.obstime().isoTime().c_str());
+        stInfoList[k].typeId_   = si.typeID();
+        k += 1;
     }
 
     try {
+        bool forceNS = false, usedNS = false;
+        busy = false;
         for(int i=0; i<2; i++) {
-            service=lookUpKvService(forceNS, usedNS);
+            CKvalObs::CService::DataReadyInput_ptr service = lookUpKvService(forceNS, usedNS);
             try {
+                CORBA::Boolean serviceBussy;
                 if(!service->dataReady(stInfoList, refServiceCheckedInput, serviceBussy)) {
                     if(serviceBussy)
                         busy=true;
@@ -166,9 +140,7 @@ bool Qc2App::sendDataToKvService(const kvalobs::kvStationInfoList &info_, bool &
 
     //Shall never happen!
     return false;
-
 }
-
 
 /*
  *lookUpManager will either return the refMgr or look up kvManagerInput'

@@ -18,27 +18,21 @@ class Qc2Algorithm;
 class AlgorithmDispatcher
 {
 public:
-    AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & con_ );
+    AlgorithmDispatcher();
     ~AlgorithmDispatcher();
 
     int select(const AlgorithmConfig& params);
 
-    Qc2App& getApp()
-        { return app; }
+    void setBroadcaster(Broadcaster* b);
 
-    dnmi::db::Connection& getConnection()
-        { return con; }
+    void setDatabase(DBInterface* db);
 
 private:
-    Qc2App & app;
-    std::string logpath_;
-    dnmi::db::Connection & con;
-
     typedef std::map<std::string, Qc2Algorithm*> algorithms_t;
     algorithms_t mAlgorithms;
 
-    DBInterface* mDatabase;
     Broadcaster* mBroadcaster;
+    DBInterface* mDatabase;
 };
 
 #endif

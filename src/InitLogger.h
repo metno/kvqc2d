@@ -28,15 +28,16 @@
   with KVALOBS; if not, write to the Free Software Foundation Inc., 
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#ifndef __initlogger_h__
-#define __initlogger_h__
+
+#ifndef INITLOGGER_H
+#define INITLOGGER_H 1
+
+#include <string>
 
 /**
  * @throws std::exception if log directories does not exist, and we are unable 
  * to create them.
  */
-void
-InitLogger(int argn, char **argv, const std::string &logname,
-	   std::string &htmlpath);
+void InitLogger(int argn, char **argv, const std::string &logname);
 
 #endif

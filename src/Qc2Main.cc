@@ -36,14 +36,10 @@
 #include "Qc2App.h"
 #include <milog/milog.h>
 #include "InitLogger.h"
-#include <ostream>
 #include <miconfparser/miconfparser.h>
 #include <fileutil/pidfileutil.h>
 #include "Qc2Thread.h"
-#include <puTools/miTime.h>
 #include <kvalobs/kvPath.h>
-
-#include "CheckedDataHelper.h"
 
 #include <string>
 
@@ -69,11 +65,10 @@ namespace {
 bool check_rundir()
 {
     boost::filesystem::path rundir( kvPath("localstatedir") + "/run" );
-    std::cout << kvPath("localstatedir")  << std::endl;
     if( !boost::filesystem::exists(rundir) ) {
         try {
             boost::filesystem::create_directories(rundir);
-        } catch( boost::filesystem::filesystem_error & e ) {
+        } catch( boost::filesystem::filesystem_error& e ) {
             LOGFATAL( e.what() );
             return false;
         }
@@ -87,13 +82,13 @@ bool check_rundir()
     if ( dnmi::file::isRunningPidFile( pidfile.native_file_string(), error ) ) {
         if ( error ) {
             LOGFATAL( "An error occured while reading the pidfile:" << std::endl
-                      << pidfile.native_file_string() << " remove the file if it exist and"
+                      << pidfile.native_file_string() << " remove the file if it exists and"
                       << std::endl << "kvqc2d is not running. "
                       << "If it is running and there is problems. Kill kvqc2d and" << std::endl
                       << "restart it." << std::endl << std::endl );
             return false;
         } else {
-            LOGFATAL( "Is kvqc2d allready running?" << std::endl
+            LOGFATAL( "Is kvqc2d already running?" << std::endl
                       << "If not remove the pidfile: " << pidfile.native_file_string() );
             return false;
         }
@@ -141,9 +136,7 @@ int main( int argc, char** argv )
 {
     milog::LogContext logContext("kvqc2d ...");
     
-    std::string htmlpath;
-    std::string logpath_(htmlpath);
-    InitLogger( argc, argv, "kvqc2d", htmlpath );
+    InitLogger( argc, argv, "kvqc2d" );
     LOGINFO( "kvqc2d: starting ...." );
     
     if( !check_rundir() )
@@ -168,7 +161,7 @@ int main( int argc, char** argv )
     PidCreateDelete pid(app, "kvqc2d");
     sleep(1);
 
-    Qc2Work Qc2Work( app, htmlpath );    //commented out while I test program options !!!!
+    Qc2Work Qc2Work( app );
     boost::thread Qc2Thread( Qc2Work );
 #if BOOST_VERSION >= 103500
     qc2thread_pid = Qc2Thread.native_handle(); // FIXME
@@ -202,7 +195,7 @@ int main( int argc, char** argv )
     if( exitcode == 0 )
         CERR( "kvqc2d: exit ....\n" );
 
-    // TODO shouldn't there be some kind of Qc2Thread.join() ?
+    Qc2Thread.join();
 
     return exitcode;
 }

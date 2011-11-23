@@ -38,10 +38,7 @@
 #include "algorithms/PlumaticAlgorithm.h"
 
 #include "Qc2App.h"
-#include "Qc2Connection.h"
 #include "AlgorithmConfig.h"
-#include "KvServicedBroadcaster.h"
-#include "KvalobsDB.h"
 
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
@@ -63,8 +60,8 @@ public:
 
 // ########################################################################
 
-AlgorithmDispatcher::AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & con_ )
-    : app( app_ ), con( con_ ), mDatabase(new KvalobsDB(&con)), mBroadcaster(new KvServicedBroadcaster(app))
+AlgorithmDispatcher::AlgorithmDispatcher()
+    : mBroadcaster(0), mDatabase(0)
 {
     Qc2Algorithm* algorithms[] = {
         new SingleLinearAlgorithm(),
@@ -78,8 +75,6 @@ AlgorithmDispatcher::AlgorithmDispatcher( Qc2App &app_, dnmi::db::Connection & c
     for(int i=0; i<N; ++i) {
         Qc2Algorithm* a = algorithms[i];
         mAlgorithms[ a->name() ] = a;
-        a->setBroadcaster(mBroadcaster);
-        a->setDatabase(mDatabase);
     }
 }
 
@@ -120,4 +115,18 @@ int AlgorithmDispatcher::select(const AlgorithmConfig& params)
         LOGINFO("Case ??: no valid algorithm specified");
     }
     return 0;
+}
+
+void AlgorithmDispatcher::setBroadcaster(Broadcaster* b)
+{
+    mBroadcaster = b;
+    foreach(algorithms_t::value_type& a, mAlgorithms)
+        a.second->setBroadcaster(b);
+}
+
+void AlgorithmDispatcher::setDatabase(DBInterface* db)
+{
+    mDatabase = db;
+    foreach(algorithms_t::value_type& a, mAlgorithms)
+        a.second->setDatabase(db);
 }

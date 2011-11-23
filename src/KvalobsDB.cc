@@ -29,16 +29,29 @@
 
 #include "KvalobsDB.h"
 
+#include "Qc2App.h"
 #include <kvalobs/kvQueries.h>
+#include <milog/milog.h>
 #include "foreach.h"
 
-KvalobsDB::KvalobsDB(dnmi::db::Connection* connection)
-    : mDbGate(connection)
+KvalobsDB::KvalobsDB(Qc2App& app)
+    : mApp( app )
+    , mConnection(0)
 {
+    while( !mApp.shutdown() ) {
+        mConnection = mApp.getNewDbConnection();
+        if( mConnection ) {
+            mDbGate = kvalobs::kvDbGate(mConnection);
+            break;
+        }
+        LOGINFO( "Cannot connect to database now, retry in 5 seconds." );
+        sleep( 5 );
+    }
 }
 
 KvalobsDB::~KvalobsDB()
 {
+    mApp.releaseDbConnection( mConnection );
 }
 
 void KvalobsDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)

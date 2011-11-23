@@ -28,104 +28,18 @@
   with KVALOBS; if not, write to the Free Software Foundation Inc., 
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <string.h>
-#include <string>
-#include <boost/filesystem/convenience.hpp>
-#include <milog/milog.h>
-#include <unistd.h>
+
 #include "InitLogger.h"
-#include <iostream>
-#include <stdexcept>
 #include <kvalobs/kvPath.h>
+#include <milog/milog.h>
 
-using namespace boost::filesystem;
-using namespace milog;
-using namespace std;
+#include <boost/filesystem/path.hpp>
+#include <iostream>
 
-namespace{
-    LogLevel getLogLevel(const char *c);
-}
-
-void
-InitLogger(int argn, char **argv, const std::string &logname,
-	   std::string &htmlpath )
-{
-    LogLevel     traceLevel= milog::DEBUG;
-    LogLevel     logLevel  = milog::INFO;
-    FLogStream   *fs;
-    StdErrStream *trace;
-    
-
-    const path localstate(kvPath("logdir"));
-    path filename = localstate;
-    path html = filename/"html";
-                                                      
-    if ( ! exists(html)  )
-      create_directories(html);
-    else if ( ! is_directory(html) )
-      throw std::runtime_error(html.native_file_string() + "exists but is not a directory");
-
-    htmlpath= html.native_directory_string();
-    filename/=logname +".log";
-    
-    for(int i=0; i<argn; i++){
-	if(strcmp("--tracelevel", argv[i])==0){
-	    i++;
-	    
-	    if(i<argn){
-	      traceLevel=getLogLevel(argv[i]);
-	    }
-	}else if(strcmp("--loglevel", argv[i])==0){
-	    i++;
-	    
-	    if(i<argn){
-		logLevel=getLogLevel(argv[i]);
-	    }
-	}
-    }
-    
-    try{
-	fs=new FLogStream(4);
-	
-	if(!fs->open(filename.native_file_string())){
-	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	    std::cerr << "------ Cant open the Logfile <" << filename.native_file_string() << ">\n";
-	    delete fs;
-	    exit(1);
-	}
-	
-	trace=new StdErrStream();
-    
-	if(!LogManager::createLogger(logname, trace)){
-	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	    std::cerr << "------ Cant create logger\n";
-	    exit(1);
-	}
-	
-	if(!LogManager::addStream(logname, fs)){
-	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	    std::cerr << "------ Cant add filelogging to the Logging system\n";
-	    exit(1);
-	}
-	
-	trace->loglevel(traceLevel);
-	fs->loglevel(logLevel);
-	
-	LogManager::setDefaultLogger(logname);
-    }
-    catch(...){
-	std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	std::cerr << "------ OUT OF MEMMORY!!!\n";
-	exit(1);
-    }
-
-    std::cerr << "Logging to file <" << filename.native_file_string() << ">!\n";
-    
-}
+namespace fs = boost::filesystem;
 
 namespace{
-    LogLevel getLogLevel(const char *str)
-    {
+    milog::LogLevel getLogLevel(const char *str) {
 	if(strcmp("FATAL", str)==0){
 	    return milog::FATAL;
 	}else if(strcmp("ERROR", str)==0){
@@ -151,5 +65,67 @@ namespace{
 	}
     }
 }
+
+void InitLogger(int argn, char **argv, const std::string &logname)
+{
+    milog::LogLevel     traceLevel= milog::DEBUG;
+    milog::LogLevel     logLevel  = milog::INFO;
+    milog::FLogStream *logFile;
+    milog::LogStream  *logConsole;
     
-	       
+    const fs::path localstate(kvPath("logdir"));
+    fs::path filename = localstate;
+    
+    filename /= logname + ".log";
+    
+    for(int i=0; i<argn; i++){
+	if(strcmp("--tracelevel", argv[i])==0){
+	    i++;
+	    
+	    if(i<argn){
+	      traceLevel=getLogLevel(argv[i]);
+	    }
+	}else if(strcmp("--loglevel", argv[i])==0){
+	    i++;
+	    
+	    if(i<argn){
+		logLevel=getLogLevel(argv[i]);
+	    }
+	}
+    }
+    
+    try {
+	logFile = new milog::FLogStream(4, 1<<20);
+	if( !logFile->open( filename.native_file_string()) ) {
+	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
+	    std::cerr << "------ Cant open the Logfile <" << filename.native_file_string() << ">\n";
+	    delete logFile;
+	    exit(1);
+	}
+	
+	logConsole = new milog::StdErrStream();
+    
+	if( !milog::LogManager::createLogger(logname, logConsole) ) {
+	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
+	    std::cerr << "------ Cant create logger\n";
+	    exit(1);
+	}
+	
+	if( !milog::LogManager::addStream(logname, logFile) ) {
+	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
+	    std::cerr << "------ Cant add filelogging to the Logging system\n";
+	    exit(1);
+	}
+	
+	logConsole->loglevel(traceLevel);
+	logFile   ->loglevel(logLevel);
+	
+	milog::LogManager::setDefaultLogger(logname);
+    } catch(...) {
+	std::cerr << "FATAL: Can't initialize the Logging system.\n";
+	std::cerr << "------ OUT OF MEMMORY!!!\n";
+	exit(1);
+    }
+
+    std::cerr << "Logging to file <" << filename.native_file_string() << ">!\n";
+}

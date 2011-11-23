@@ -1,22 +1,21 @@
 // -*- c++ -*-
 
-#ifndef __Qc2Thread_h__
-#define __Qc2Thread_h__
-
-#include <string>
+#ifndef QC2THREAD_H
+#define QC2THREAD_H 1
 
 class Qc2App;
-
-/// The main Qc2 thread.
 
 class Qc2Work {
 private:
     Qc2App& app;
-    std::string logpath_;
     
 public:
-    Qc2Work( Qc2App &app_, const std::string& logpath = "./log" );
-    void operator() ();
+    Qc2Work( Qc2App &app_ );
+
+    void operator() ()
+        { run(); }
+
+    void run();
 };
 
 #endif

@@ -31,8 +31,9 @@
 
 #include "AlgorithmDispatcher.h"
 #include "Qc2App.h"
-#include "Qc2Connection.h"
 #include "AlgorithmConfig.h"
+#include "KvalobsDB.h"
+#include "KvServicedBroadcaster.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
@@ -41,28 +42,20 @@
 #include <map>
 #include "foreach.h"
 
-Qc2Work::Qc2Work( Qc2App &app_, const std::string& logpath )
+Qc2Work::Qc2Work( Qc2App &app_ )
     : app( app_ )
-    , logpath_( logpath )
 {
 }
 
-void Qc2Work::operator() ()
+void Qc2Work::run()
 {
-    LOGINFO( "Qc2Work: starting work thread!\n" );
+    std::auto_ptr<DBInterface> database(new KvalobsDB(app));
+    std::auto_ptr<Broadcaster> broadcaster(new KvServicedBroadcaster(app));
 
-    // Establish The Connection
-    ConnectionHandler connectionHandler( app );
-    dnmi::db::Connection * con = connectionHandler.getConnection();
 
-    if( !con ) {
-        LOGERROR( "Could not get connection to database" );
-        // FIXME just continue if no database connection? will cause sefault when constructing AlgorithmDispatcher (*con)
-    }
-
-    LOGINFO( "%%%%%%%%%%%%%%%%%%%%%%%%" );
-
-    AlgorithmDispatcher dispatcher( app, *con);
+    AlgorithmDispatcher dispatcher;
+    dispatcher.setDatabase(database.get());
+    dispatcher.setBroadcaster(broadcaster.get());
 
     miutil::miTime lastEnd = miutil::miTime::nowTime();
     lastEnd.addSec(-lastEnd.sec());

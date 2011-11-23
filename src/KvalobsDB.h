@@ -31,16 +31,14 @@
 #define STANDARDDB_H_
 
 #include "DBInterface.h"
-
 #include <kvalobs/kvDbGate.h>
+
+class Qc2App;
 
 class KvalobsDB: public DBInterface {
 public:
-    KvalobsDB(dnmi::db::Connection* connection);
+    KvalobsDB(Qc2App& app);
     virtual ~KvalobsDB();
-
-    void setConnection(dnmi::db::Connection* connection)
-        { mDbGate.set(connection); }
 
     virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException);
     virtual void selectStations(kvStationList_t&) throw (DBException);
@@ -48,6 +46,8 @@ public:
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
 
 private:
+    Qc2App& mApp;
+    dnmi::db::Connection* mConnection;
     kvalobs::kvDbGate mDbGate;
 };
 
