@@ -413,6 +413,7 @@ TEST_F(SingleLinearTest, ParamOrdering)
     params.Parse(config);
 
     ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 

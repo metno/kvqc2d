@@ -883,7 +883,8 @@ TEST_F(RedistributionTest, Release113)
         << "INSERT INTO station VALUES(67150,   63.328, 10.2737,  13, 0,              'LEINSTRAND', NULL, 67150, NULL, NULL, NULL,  9, 't', '1960-01-01 00:00:00');"
         << "INSERT INTO station VALUES(68270,  63.2315, 10.4369, 173, 0,                 'L_KSMYR', NULL, 68270, NULL, NULL, NULL,  9, 't', '1960-01-01 00:00:00');"
 
-        << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1,   'QC1-1-110', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1',          NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1, 'QC1-1-110', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1', "
+        <<            "NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 274, 304, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 305, 334, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0, 335, 365, -1, 'QC1-2-72.b4', 'R1\n10', '', '1500-01-01 00:00:00');"
@@ -1058,4 +1059,44 @@ TEST_F(RedistributionTest, Bugzilla1333)
     bc->clear();
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, BadMeasurentHour)
+{
+   DataList data(83880, 110, 302);
+   data.add("2011-10-12 07:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+       .add("2011-10-13 07:00:00", -32767, "0000003000002000", "QC1-7-110")
+       .add("2011-10-14 07:00:00",   12.8, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+       .add("2011-10-12 07:00:00",    0.1, "0110000000001000", "")
+       .add("2011-10-13 07:00:00",    2.5, "0110000000001000", "")
+       .add("2011-10-14 07:00:00",    2.6, "0110000000001000", "")
+        .setStation(84190)
+       .add("2011-10-12 07:00:00",     -1, "0110000000001000", "")
+       .add("2011-10-13 07:00:00",    4.5, "0110000000001000", "")
+       .add("2011-10-14 07:00:00",    0.1, "0110000000001000", "")
+        .setStation(84070)
+       .add("2011-10-12 07:00:00",     -1, "0110000000001000", "")
+       .add("2011-10-13 07:00:00",    2.1, "0110000000001000", "")
+       .add("2011-10-14 07:00:00",    0.6, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(0, bc->count());
+
+    std::ostringstream sql;
+    sql << "UPDATE data SET obstime = '2011-10-12 06:00:00' WHERE obstime = '2011-10-12 07:00:00';"
+        << "UPDATE data SET obstime = '2011-10-13 06:00:00' WHERE obstime = '2011-10-13 07:00:00';"
+        << "UPDATE data SET obstime = '2011-10-14 06:00:00' WHERE obstime = '2011-10-14 07:00:00';";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
 }

@@ -102,6 +102,10 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 #endif
 
     foreach(const RedisUpdate& m, mdata) {
+        if( m.obstime().hour() != mMeasurementHour ) {
+            LOGWARN("missing point " << m << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            return false;
+        }
         if( !missingpoint_flags.matches(m.data()) ) {
             DBG("'missing' value " << m << " does not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint);
             return false;
@@ -158,6 +162,11 @@ bool RedistributionAlgorithm::findPointBeforeMissing(const kvalobs::kvData& endp
     if( !startdata.empty() ) {
         latestBefore = startdata.front();
         DBG("latestBefore=" << latestBefore);
+
+        if( latestBefore.obstime().hour() != mMeasurementHour ) {
+            LOGWARN("latestBefore " << latestBefore << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            return false;
+        }
         return( !equal(latestBefore.original(), missing)
                 && !equal(latestBefore.original(), rejected) );
     } else {
@@ -181,6 +190,13 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
         && C::Station(neighbors);
     database()->selectData(ndata, cNeighbors, (O::Obstime().desc(), O::Stationid()));
 
+    foreach(const kvalobs::kvData& n, ndata) {
+        if( n.obstime().hour() != mMeasurementHour ) {
+            LOGWARN("neighbor " << n << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            return false;
+        }
+    }
+
     return ndata.size() >= MIN_NEIGHBORS * before.size();
 }
 
@@ -197,6 +213,7 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(update_flagchange, "update_flagchange");
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
+    mMeasurementHour = params.getParameter<int>("measurement_hour", 6);
 
     mNeighbors->configure(params);
 }
@@ -214,6 +231,10 @@ void RedistributionAlgorithm::run()
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
+        if( endpoint.obstime().hour() != mMeasurementHour ) {
+            LOGWARN("endpoint " << endpoint << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            continue;
+        }
         const miutil::miTime earliestPossibleMissing = ( endpoint.stationID() != lastStationId ) ? UT0 : lastObstime;
         lastStationId = endpoint.stationID();
         lastObstime   = endpoint.obstime();
