@@ -80,21 +80,21 @@ void SingleLinearAlgorithm::configure(const AlgorithmConfig& params)
 
 void SingleLinearAlgorithm::run()
 {
-    for(miutil::miTime ProcessTime = UT1; ProcessTime >= UT0; ProcessTime.addHour(-1)) {
+    foreach(int pid, pids) {
         const C::DBConstraint cSingleMissing =
             C::ControlUseinfo(missing_flags)
-            && C::Paramid(pids)
-            && C::Obstime(ProcessTime); // TODO AND stationid BETWEEN 60 and 99999"?
+            && C::Paramid(pid)
+            && C::Obstime(UT0, UT1); // TODO AND stationid BETWEEN 60 and 99999"?
         std::list<kvalobs::kvData> Qc2Data;
         database()->selectData(Qc2Data, cSingleMissing);
         if( Qc2Data.empty() )
             continue;
 
-        miutil::miTime timeBefore = ProcessTime, timeAfter = ProcessTime;
-        timeBefore.addHour(-1);
-        timeAfter.addHour(1);
-
         foreach(const kvalobs::kvData& d, Qc2Data) {
+            miutil::miTime timeBefore = d.obstime(), timeAfter = d.obstime();
+            timeBefore.addHour(-1);
+            timeAfter.addHour(1);
+
             // may not check neighbor flags here, as the corrected value from calculateCorrected depends on neighbor availability
             const C::DBConstraint cNeighbors = C::SameDevice(d)
                 && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
