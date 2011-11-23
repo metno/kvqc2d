@@ -105,7 +105,7 @@ bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
         return false;
     }
 
-    LOGINFO("Scanning for files in '" << mConfigPath.native_file_string() << "'");
+    //LOGINFO("Scanning for files in '" << mConfigPath.native_file_string() << "'");
     try {
         const fs::directory_iterator end;
         for( fs::directory_iterator dit( mConfigPath ); dit != end; ++dit ) {
@@ -133,7 +133,7 @@ bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
                 const std::string& n = dit->path().file_string();
 #endif
                 config_files.push_back(n);
-                LOGINFO("Found configuration file '" << n << "'");
+                //LOGINFO("Found configuration file '" << n << "'");
             }
         }
 

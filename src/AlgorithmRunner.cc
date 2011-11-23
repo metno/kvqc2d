@@ -62,7 +62,7 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
 
         miutil::miTime now = miutil::miTime::nowTime();
         now.addSec(-now.sec()); // set seconds to 0
-        LOGINFO("now = " << now);
+        //LOGINFO("now = " << now);
 
         // XXX if an algorithm is scheduled hourly and the previous algorithm is taking 2 hours, it will be run only once
 
@@ -75,7 +75,6 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
                 const int hour = params.RunAtHour < 0 ? now.hour() : params.RunAtHour;
                 const miutil::miTime runAt(now.year(), now.month(), now.day(),
                                            hour, params.RunAtMinute, 0);
-                LOGINFO("Algorithm='" << params.Algorithm << "' runAt = " << runAt);
                 if( runAt > lastEnd && runAt <= now )
                     queue.insert(queue_t::value_type(runAt, cf));
             } catch(ConfigException& ce) {
