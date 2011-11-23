@@ -56,8 +56,8 @@ DataUpdate::DataUpdate(const kvalobs::kvData& data)
 // ------------------------------------------------------------------------
 
 DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
-                       float corrected, const std::string& controlinfo)
-    : mData(templt.stationID(), obstime, -32767, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
+                       float original, float corrected, const std::string& controlinfo)
+    : mData(templt.stationID(), obstime, original, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
             templt.level(), corrected, kvalobs::kvControlInfo(controlinfo), kvalobs::kvUseInfo(), "QC2-missing-row")
     , mNew(true)
     , mForcedModified(false)

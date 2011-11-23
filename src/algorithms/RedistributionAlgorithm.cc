@@ -113,7 +113,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         const miutil::miTime tdata = (it != mdata.end()) ? it->obstime() : beforeMissing.obstime();
         DBG("tdata=" << tdata << " t=" << t);
         while( t > tdata ) {
-            const RedisUpdate fake(endpoint, t, now, missing, "0000003000002000");
+            const RedisUpdate fake(endpoint, t, now, missing, missing, "0000003000002000");
             mdata.insert(it, fake);
             DBG("insert missing data " << fake);
             t = stepTime(t);

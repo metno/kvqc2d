@@ -318,11 +318,11 @@ TEST_F(PlumaticTest, RainInterrupt)
 
     ASSERT_EQ(1+3+3+1, bc->count());
     // unusual time ordering due to update/insert (inserts first, then updates)
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:20:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(0));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:21:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(1));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:22:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(2));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:59:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(3));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-02 00:01:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(4));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:20:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(0));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:21:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(1));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:22:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(2));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:59:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(3));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-02 00:01:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(4));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 21:59:00", "010A000000000000", "QC2h-1-highstart",                       bc->update(5));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-02 00:00:00", "010C000000000000", "QC2h-1-interruptedrain",                 bc->update(6));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-02 00:15:00", "010A000000000000", "QC2h-1-highstart",                       bc->update(7));
@@ -413,9 +413,9 @@ TEST_F(PlumaticTest, PluviometerResolution02)
     ASSERT_EQ(5, bc->count());
 
     // unusual time ordering due to update/insert (inserts first, then updates)
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:30:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(0));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:31:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(1));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:32:00", "000C000000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(2));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:30:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(0));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:31:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(1));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:32:00", "000C002000000000", "QC2-missing-row,QC2h-1-interruptedrain", bc->update(2));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:07:00", "010B000000000000", "QC2h-1-highsingle",                      bc->update(3));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 23:11:00", "010A000000000000", "QC2h-1-highstart",                       bc->update(4));
 

@@ -20,8 +20,8 @@ private:
             : DataUpdate(data), mHasNeigboursWithPrecipitation(false) { }
 
         RedisUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
-                    float corrected, const std::string& controlinfo)
-            : DataUpdate(templt, obstime, tbtime, corrected, controlinfo), mHasNeigboursWithPrecipitation(false) { }
+                    float original, float corrected, const std::string& controlinfo)
+            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo), mHasNeigboursWithPrecipitation(false) { }
 
         RedisUpdate& setHasNeighborsWithPrecipitation()
             { mHasNeigboursWithPrecipitation = true; return *this; }

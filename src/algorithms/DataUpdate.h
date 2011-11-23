@@ -17,7 +17,7 @@ public:
     DataUpdate(const kvalobs::kvData& data);
 
     DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
-               float corrected, const std::string& controlinfo);
+               float original, float corrected, const std::string& controlinfo);
 
     bool isModified() const;
 

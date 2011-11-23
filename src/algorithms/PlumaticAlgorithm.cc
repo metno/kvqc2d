@@ -341,7 +341,7 @@ void PlumaticAlgorithm::flagRainInterruption(Info& info, kvDataList_t& data)
             }
         }
         if( needInsert ) {
-            DataUpdate insert(info.d->data(), t, now, 0.0f, "0000000000000000");
+            DataUpdate insert(info.d->data(), t, now, 0.0, missing, "0008002000000000");
             insert.controlinfo(interruptedrain_flagchange.apply(insert.controlinfo()))
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
             data.insert(info.d, insert);
