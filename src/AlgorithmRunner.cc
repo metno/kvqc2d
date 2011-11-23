@@ -38,7 +38,6 @@
 #include <milog/milog.h>
 #include <puTools/miTime.h>
 
-#include <boost/version.hpp>
 #include <map>
 #include "foreach.h"
 
@@ -104,13 +103,6 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
         lastEnd = now;
         if( app.isShuttingDown() )
             break;
-#if BOOST_VERSION >= 103500
-        sleep(59);   //check config files every minute 
-#elif !defined(BOOST_VERSION)
-#error "BOOST_VERSION not defined"
-#else
-        for(int i=0; i<59 && !app.isShuttingDown(); ++i)
-            sleep(1);
-#endif
+        sleep(60); // check config files every minute 
     }
 }
