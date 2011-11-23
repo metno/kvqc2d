@@ -31,8 +31,11 @@
 #define ALGORITHMTESTBASE_H_
 
 #include <gtest/gtest.h>
+
+#include "Broadcaster.h"
 #include "DBInterface.h"
 #include "Qc2Algorithm.h"
+
 #include <sqlite3.h>
 #include <vector>
 

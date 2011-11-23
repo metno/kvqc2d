@@ -30,10 +30,11 @@
 #ifndef STANDARBROADCASTER_H_
 #define STANDARBROADCASTER_H_
 
-#include "Qc2Algorithm.h"
-#include "CheckedDataHelper.h"
+#include "Broadcaster.h"
+
 #include <kvalobs/kvData.h>
-#include <kvalobs/kvStation.h>
+#include <kvalobs/kvStationInfo.h>
+
 class Qc2App;
 
 class KvServicedBroadcaster : public Broadcaster {
@@ -42,8 +43,8 @@ public:
     virtual void queueChanged(const kvalobs::kvData& d);
     virtual void sendChanges();
 private:
-    CheckedDataHelper checkedDataHelper;
-    kvalobs::kvStationInfoList stList;
+    Qc2App& mApp;
+    kvalobs::kvStationInfoList mStationList;
 };
 
 #endif /* STANDARBROADCASTER_H_ */

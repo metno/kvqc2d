@@ -14,6 +14,7 @@ libkvqc2d_a_SOURCES = \
 	AlgorithmHelpers.h \
 	AlgorithmRunner.cc \
 	AlgorithmRunner.h \
+	Broadcaster.h \
 	algorithms/AkimaSpline.cc \
 	algorithms/AkimaSpline.h \
 	algorithms/DataUpdate.cc \
@@ -36,8 +37,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/RedistributionNeighbors.h \
 	algorithms/SingleLinearAlgorithm.cc \
 	algorithms/SingleLinearAlgorithm.h \
-	CheckedDataHelper.cc \
-	CheckedDataHelper.h \
 	config_bottom.h \
 	ConfigParser.cc \
 	ConfigParser.h \

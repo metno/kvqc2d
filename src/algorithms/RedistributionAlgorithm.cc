@@ -32,9 +32,10 @@
 #include "AlgorithmHelpers.h"
 #include "algorithms/NeighborsDistance2.h"
 #include "DBConstraints.h"
+#include "DBInterface.h"
+#include "foreach.h"
 
 #include <milog/milog.h>
-#include "foreach.h"
 
 #define NDEBUG
 #include "debug.h"

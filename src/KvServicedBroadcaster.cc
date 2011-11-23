@@ -31,21 +31,37 @@
 
 #include "Qc2App.h"
 
+#include <milog/milog.h>
+
 KvServicedBroadcaster::KvServicedBroadcaster(Qc2App& app)
-    : checkedDataHelper(app)
+    : mApp(app)
 {
 }
 
 void KvServicedBroadcaster::queueChanged(const kvalobs::kvData& d)
 {
-    stList.push_back(kvalobs::kvStationInfo(d.stationID(), d.obstime(), d.typeID()));
+    mStationList.push_back(kvalobs::kvStationInfo(d.stationID(), d.obstime(), d.typeID()));
 }
 
 void KvServicedBroadcaster::sendChanges()
 {
-    if( stList.empty() )
+    if( mStationList.empty() )
         return;
 
-    checkedDataHelper.sendDataToService(stList);
-    stList.clear();
+    const int WAIT_MAX = 120;
+    for(int i=0; i<WAIT_MAX; ++i) {
+        bool busy = true;
+        bool serviceOk = mApp.sendDataToKvService(mStationList, busy);
+        if( !serviceOk ) {
+            LOGWARN("kvServiced problem, keeping " << mStationList.size() << " changes in memory.");
+            return;
+        }
+        if( !busy ) {
+            mStationList.clear();
+            return;
+        }
+        LOGINFO("kvServiced busy, waiting 1s ...");
+        sleep(1);
+    }
+    LOGWARN("kvServiced busy for " << WAIT_MAX << "s, keeping " << mStationList.size() << " changes in memory.");
 }

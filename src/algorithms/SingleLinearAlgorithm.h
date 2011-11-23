@@ -3,8 +3,9 @@
 #ifndef SingleLinearAlgorithm_H
 #define SingleLinearAlgorithm_H 1
 
+#include "FlagChange.h"
+#include "FlagPatterns.h"
 #include "Qc2Algorithm.h"
-#include <kvalobs/kvData.h>
 
 #include <vector>
 

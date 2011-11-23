@@ -2,7 +2,10 @@
 #include "Qc2Algorithm.h"
 
 #include "AlgorithmHelpers.h"
+#include "Broadcaster.h"
+#include "DBInterface.h"
 #include "foreach.h"
+
 #include <milog/milog.h>
 
 Qc2Algorithm::Qc2Algorithm(const std::string& name)

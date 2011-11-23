@@ -31,10 +31,11 @@
 
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
+#include "DBInterface.h"
+#include "foreach.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
-#include "foreach.h"
 
 #define NDEBUG
 #include "debug.h"

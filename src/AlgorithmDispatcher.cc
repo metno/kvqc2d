@@ -37,13 +37,13 @@
 #include "algorithms/GapInterpolationAlgorithm.h"
 #include "algorithms/PlumaticAlgorithm.h"
 
-#include "Qc2App.h"
 #include "AlgorithmConfig.h"
+#include "DBInterface.h"
+#include "foreach.h"
+#include "Qc2App.h"
 
 #include <milog/milog.h>
 #include <kvalobs/kvDbGate.h>
-
-#include "foreach.h"
 
 class DummyAlgorithm : public Qc2Algorithm {
 public:

@@ -32,9 +32,10 @@
 #include "AkimaSpline.h"
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
+#include "DBInterface.h"
+#include "foreach.h"
 
 #include <milog/milog.h>
-#include "foreach.h"
 
 namespace C = Constraint;
 namespace O = Ordering;
