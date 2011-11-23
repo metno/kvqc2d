@@ -9,10 +9,9 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-KV_FIND_OMNIORB4
 KV_POSTGRESQL
-PKG_CHECK_MODULES([PROG_DEPS], [puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
-PKG_CHECK_MODULES([TEST_DEPS], [puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8 sqlite3 >= 3.3])
+PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
+PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8 sqlite3 >= 3.3])
 GTEST_LIB_CHECK
 
 AX_BOOST_BASE([1.33.1])

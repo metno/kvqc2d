@@ -1,6 +1,9 @@
-TESTS = kvqc2dTest
+TESTS = kvqc2dTest corbatest
 
-check_PROGRAMS = kvqc2dTest
+check_PROGRAMS = kvqc2dTest corbatest
+
+corbatest_SOURCES= \
+	dummy-kvserviced.cc
 
 kvqc2dTest_SOURCES= \
 	AlgorithmConfigTest.cc \
@@ -29,10 +32,12 @@ AM_CXXFLAGS = -Wall -W \
 #kvqc2dTest_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2dTest_LDFLAGS  += -fprofile-arcs
 
-kvqc2dTest_LDADD = ../src/libkvqc2d.a \
+LDADD = \
 	$(TEST_DEPS_LIBS) \
 	$(GTEST_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB)
+
+kvqc2dTest_LDADD = ../src/libkvqc2d.a $(LDADD)
 
 kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS) 
