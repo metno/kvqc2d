@@ -113,7 +113,7 @@ std::string find_dbdriver()
 
 int main( int argc, char** argv )
 {
-    milog::LogContext logContext("kvqc2d ...");
+    milog::LogContext logContext("kvqc2d");
     
     InitLogger( argc, argv, "kvqc2d" );
     LOGINFO( "kvqc2d: starting ...." );
@@ -124,12 +124,19 @@ int main( int argc, char** argv )
     const std::string dbdriver = find_dbdriver();
     const std::string constr( KvApp::createConnectString() );
 
-    Qc2App app( argc, argv, dbdriver, constr, options );
-  
-    if( !app.isOk() ) {
-        LOGFATAL( "Initialization problem" );
+    try {
+        Qc2App app( argc, argv, dbdriver, constr, options );
+        if( !app.isOk() ) {
+            LOGFATAL( "Initialization problem" );
+            return 1;
+        }
+        app.run();
+    } catch( std::exception& e ) {
+        LOGFATAL("Exception: " << e.what());
+        return 1;
+    } catch( ... ) {
+        LOGFATAL("Unknown exception");
         return 1;
     }
-
-    return app.run();
+    return 0;
 }

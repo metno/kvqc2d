@@ -75,8 +75,8 @@ void InitLogger(int argn, char **argv, const std::string &logname)
     
     const fs::path localstate(kvPath("logdir"));
     fs::path filename = localstate;
-    
     filename /= logname + ".log";
+    const std::string logfilename = filename.native_file_string();
     
     for(int i=0; i<argn; i++){
 	if(strcmp("--tracelevel", argv[i])==0){
@@ -96,9 +96,9 @@ void InitLogger(int argn, char **argv, const std::string &logname)
     
     try {
 	logFile = new milog::FLogStream(4, 1<<20);
-	if( !logFile->open( filename.native_file_string()) ) {
+	if( !logFile->open(logfilename) ) {
 	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	    std::cerr << "------ Cant open the Logfile <" << filename.native_file_string() << ">\n";
+	    std::cerr << "------ Cant open the Logfile '" << logfilename << "'\n";
 	    delete logFile;
 	    exit(1);
 	}
@@ -106,14 +106,12 @@ void InitLogger(int argn, char **argv, const std::string &logname)
 	logConsole = new milog::StdErrStream();
     
 	if( !milog::LogManager::createLogger(logname, logConsole) ) {
-	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	    std::cerr << "------ Cant create logger\n";
+	    std::cerr << "FATAL: Cannot create console logger" << std::endl;
 	    exit(1);
 	}
 	
 	if( !milog::LogManager::addStream(logname, logFile) ) {
-	    std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	    std::cerr << "------ Cant add filelogging to the Logging system\n";
+	    std::cerr << "FATAL: Cannot add file-logging" << std::endl;
 	    exit(1);
 	}
 	
@@ -122,10 +120,9 @@ void InitLogger(int argn, char **argv, const std::string &logname)
 	
 	milog::LogManager::setDefaultLogger(logname);
     } catch(...) {
-	std::cerr << "FATAL: Can't initialize the Logging system.\n";
-	std::cerr << "------ OUT OF MEMMORY!!!\n";
+	std::cerr << "FATAL: Can't initialize the Logging system." << std::endl;
 	exit(1);
     }
 
-    std::cerr << "Logging to file <" << filename.native_file_string() << ">!\n";
+    std::cerr << "Logging to file '" << logfilename << "'\n";
 }

@@ -40,7 +40,10 @@
 #include <signal.h>
 #include <stdexcept>
 
+#define NDEBUG 1
 #include "debug.h"
+
+//#define CORBA_IN_BACKGROUND 1
 
 namespace{
     volatile sig_atomic_t sigTerm=0;
@@ -92,13 +95,12 @@ void Qc2App::releaseDbConnection(dnmi::db::Connection *con)
 void Qc2App::initializeCORBA()
 {
     // part of initialization is in Qc2App/KvApp/CorbaApp constructor
-    getPoaMgr()->activate();
-    mCORBAThread = new boost::thread( boost::bind(&Qc2App::runCORBA, this) );
 }
 
 void Qc2App::runCORBA()
 {
     try {
+        getPoaMgr()->activate();
         getOrb()->run();
     } catch ( CORBA::SystemException& ) {
         LOGFATAL( "CORBA::SystemException." );
@@ -119,9 +121,13 @@ void Qc2App::shutdownCORBA()
 {
     static boost::mutex shutdownMutex;
     boost::mutex::scoped_lock lock(shutdownMutex);
+#ifdef CORBA_IN_BACKGROUND
     if( mCORBAThread ) {
+#endif /* CORBA_IN_BACKGROUND */
         try {
+#ifdef CORBA_IN_BACKGROUND
             getOrb()->shutdown(false);
+#endif /* CORBA_IN_BACKGROUND */
             getOrb()->destroy();
         } catch ( CORBA::SystemException& ) {
             LOGFATAL( "CORBA::SystemException during shutdown." );
@@ -130,17 +136,36 @@ void Qc2App::shutdownCORBA()
         } catch ( ... ) {
             LOGFATAL( "Unknown exception during shutdown." );
         }
+#ifdef CORBA_IN_BACKGROUND
         mCORBAThread->join();
         delete mCORBAThread;
         mCORBAThread = 0;
     }
+#endif /* CORBA_IN_BACKGROUND */
 }
 
-int Qc2App::run()
+void Qc2App::run()
+{
+#ifdef CORBA_IN_BACKGROUND
+    mCORBAThread = new boost::thread( boost::bind(&Qc2App::runCORBA, this) );
+    runAlgorithms();
+#else /* !CORBA_IN_BACKGROUND */
+    mCORBAThread = new boost::thread( boost::bind(&Qc2App::runAlgorithms, this) );
+    runCORBA();
+
+    mCORBAThread->join();
+    delete mCORBAThread;
+    mCORBAThread = 0;
+#endif /* !CORBA_IN_BACKGROUND */
+}
+
+void Qc2App::runAlgorithms()
 {
     AlgorithmRunner runner;
     runner.runAlgorithms(*this);
-    return 0;
+#ifndef CORBA_IN_BACKGROUND
+    getOrb()->shutdown(false);
+#endif /* CORBA_IN_BACKGROUND */
 }
 
 bool Qc2App::sendDataToKvService(const kvalobs::kvStationInfoList &info, bool &busy)

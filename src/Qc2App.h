@@ -20,7 +20,7 @@ public:
 
     virtual ~Qc2App();
 
-    int run();
+    void run();
 
     bool sendDataToKvService(const kvalobs::kvStationInfoList &info_, bool &busy);
 
@@ -41,6 +41,7 @@ private:
     void initializeCORBA();
     void runCORBA();
     void shutdownCORBA();
+    void runAlgorithms();
 
     CKvalObs::CService::DataReadyInput_ptr lookUpKvService(bool forceNS,
                                                            bool &usedNS);

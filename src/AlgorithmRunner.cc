@@ -29,23 +29,25 @@
 
 #include "AlgorithmRunner.h"
 
-#include "AlgorithmDispatcher.h"
-#include "Qc2App.h"
 #include "AlgorithmConfig.h"
+#include "AlgorithmDispatcher.h"
+#include "foreach.h"
 #include "KvalobsDB.h"
 #include "KvServicedBroadcaster.h"
+#include "Qc2App.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
 
 #include <map>
-#include "foreach.h"
+
+#define NDEBUG 1
+#include "debug.h"
 
 void AlgorithmRunner::runAlgorithms(Qc2App& app)
 {
     std::auto_ptr<DBInterface> database(new KvalobsDB(app));
     std::auto_ptr<Broadcaster> broadcaster(new KvServicedBroadcaster(app));
-
 
     AlgorithmDispatcher dispatcher;
     dispatcher.setDatabase(database.get());
@@ -62,7 +64,7 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
 
         miutil::miTime now = miutil::miTime::nowTime();
         now.addSec(-now.sec()); // set seconds to 0
-        //LOGINFO("now = " << now);
+        LOGINFO("now = " << now);
 
         // XXX if an algorithm is scheduled hourly and the previous algorithm is taking 2 hours, it will be run only once
 
@@ -102,6 +104,8 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
         lastEnd = now;
         if( app.isShuttingDown() )
             break;
-        sleep(60); // check config files every minute 
+        // check config files every minute 
+        for( int i=0; i<60 && !app.isShuttingDown(); ++i )
+            sleep(1);
     }
 }
