@@ -60,8 +60,8 @@ public:
     template<typename T>
     std::vector<T> getMultiParameter(const std::string& name) const;
 
-    void getFlagSetCU(FlagSetCU& fcu, const std::string& name) const;
-    void getFlagChange(FlagChange& fc, const std::string& name) const;
+    void getFlagSetCU(FlagSetCU& fcu, const std::string& name, const std::string& dfltC="", const std::string& dfltU="") const;
+    void getFlagChange(FlagChange& fc, const std::string& name, const std::string& dflt="") const;
 
     ErrorList check() const
         { return c.checkUnrequested(); }

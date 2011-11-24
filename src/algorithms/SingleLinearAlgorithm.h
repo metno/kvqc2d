@@ -3,6 +3,7 @@
 #ifndef SingleLinearAlgorithm_H
 #define SingleLinearAlgorithm_H 1
 
+#include "DataUpdate.h"
 #include "FlagChange.h"
 #include "FlagPatterns.h"
 #include "Qc2Algorithm.h"
@@ -26,12 +27,11 @@ public:
 
 private:
     bool isNeighborOk(const kvalobs::kvData& n);
-    float calculateCorrected(const kvalobs::kvData& before, const kvalobs::kvData& middle, const kvalobs::kvData& after);
-    void writeChanges(const kvalobs::kvData& middle, const float NewCorrected);
+    void calculateCorrected(const kvalobs::kvData& before, DataUpdate& middle, const kvalobs::kvData& after);
 
 private:
     FlagSetCU missing_flags, neighbor_flags;
-    FlagChange update_flagchange, missing_flagchange;
+    FlagChange ftime0_flagchange, ftime1_flagchange;
     std::vector<int> pids;
 };
 

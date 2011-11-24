@@ -200,26 +200,43 @@ void AlgorithmConfig::getFlagSet(FlagPatterns& flags, const std::string& name, F
     }
 }
 
-void AlgorithmConfig::getFlagSetCU(FlagSetCU& fcu, const std::string& name) const
+void AlgorithmConfig::getFlagSetCU(FlagSetCU& fcu, const std::string& name, const std::string& dfltC, const std::string& dfltU) const
 {
     const bool hasC = c.has(name + "_cflags"), hasU = c.has(name + "_uflags");
-    if( !hasC && !hasU )
+    if( !hasC && dfltC.empty() && !hasU && dfltU.empty() )
         throw ConfigException("no setting for '" + name + "'");
+
     if( hasC )
         getFlagSet(fcu.controlflags(), name + "_cflags", FlagPattern::CONTROLINFO);
+    else if( !dfltC.empty() && !hasU ) {
+        fcu.controlflags().reset();
+        if( !fcu.controlflags().parse(dfltC, FlagPattern::CONTROLINFO) )
+            throw ConfigException("error parsing default flags '" + dfltC + "' for '" + name + "_cflags'");
+    }
+
     if( hasU )
         getFlagSet(fcu.useflags(),     name + "_uflags", FlagPattern::USEINFO);
+    else if( !dfltU.empty() && !hasC ) {
+        fcu.useflags().reset();
+        if( !fcu.useflags().parse(dfltU, FlagPattern::USEINFO) )
+            throw ConfigException("error parsing default flags '" + dfltU + "' for '" + name + "_uflags'");
+    }
 }
 
-void AlgorithmConfig::getFlagChange(FlagChange& fc, const std::string& name) const
+void AlgorithmConfig::getFlagChange(FlagChange& fc, const std::string& name, const std::string& dflt) const
 {
     fc.reset();
-    if( !c.has(name) )
+    const bool has = c.has(name);
+    if( !has && dflt.empty() )
         throw ConfigException("no such flag change: '" + name + "'");
-    const ConfigParser::Item& item = c.get(name);
-    for(int i=0; i<item.count(); ++i) {
-        const std::string value = item.convert<std::string>(i);
-        if( !fc.parse(value) )
-            throw ConfigException("error parsing flag update '" + name + "' from '" + value + "'");
+    if( has ) {
+        const ConfigParser::Item& item = c.get(name);
+        for(int i=0; i<item.count(); ++i) {
+            const std::string value = item.convert<std::string>(i);
+            if( !fc.parse(value) )
+                throw ConfigException("error parsing flag update '" + name + "' from '" + value + "'");
+        }
+    } else {
+        fc.parse(dflt);
     }
 }

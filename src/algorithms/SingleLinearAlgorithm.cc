@@ -44,12 +44,6 @@ namespace C = Constraint;
 namespace O = Ordering;
 using Helpers::equal;
 
-namespace {
-
-const float NO_UPDATE = -99999.0;
-
-} // anonymous namespace
-
 // ########################################################################
 
 SingleLinearAlgorithm::SingleLinearAlgorithm()
@@ -70,10 +64,10 @@ void SingleLinearAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(missing_flags, "missing");
-    params.getFlagSetCU(neighbor_flags, "neighbor");
-    params.getFlagChange(update_flagchange, "update_flagchange");
-    params.getFlagChange(missing_flagchange, "missing_flagchange");
+    params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[1234]&fhqc=0|ftime=1&fmis=[14]&fhqc=0", "");
+    params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
+    params.getFlagChange(ftime0_flagchange, "ftime0_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
+    params.getFlagChange(ftime1_flagchange, "ftime1_flagchange", "fmis=1->fmis=3;fmis=4->fmis=2");
     pids = params.getMultiParameter<int>("ParamId");
 }
 
@@ -88,86 +82,62 @@ void SingleLinearAlgorithm::run()
             && C::Obstime(UT0, UT1); // TODO AND stationid BETWEEN 60 and 99999"?
         std::list<kvalobs::kvData> Qc2Data;
         database()->selectData(Qc2Data, cSingleMissing);
-        if( Qc2Data.empty() )
-            continue;
+        DBGV(Qc2Data.size());
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
             miutil::miTime timeBefore = d.obstime(), timeAfter = d.obstime();
             timeBefore.addHour(-1);
             timeAfter.addHour(1);
 
-            // may not check neighbor flags here, as the corrected value from calculateCorrected depends on neighbor availability
             const C::DBConstraint cNeighbors = C::SameDevice(d)
                 && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
             DBGV(cNeighbors.sql());
 
             std::list<kvalobs::kvData> series;
             database()->selectData(series, cNeighbors, O::Obstime());
+            DBGV(series.size());
             if( series.size() != 2 ) {
                 DBG("got " << series.size() << " neighbors at d=" << d);
                 continue;
             }
 
-            const float NewCorrected = calculateCorrected(series.front(), d, series.back());
-            if( equal(NewCorrected, NO_UPDATE) ) {
-                //DBG("no update for d=" << d);
-                continue;
-            }
+            DataUpdate update(d);
+            calculateCorrected(series.front(), update, series.back());
 
-            DBG("about to store corrected=" << NewCorrected << " for d=" << d);
-            writeChanges(d, NewCorrected);
+            if( update.isModified() )
+                updateSingle(update.data());
         }
     }
 }
 
 // ------------------------------------------------------------------------
             
-float SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, const kvalobs::kvData& middle, const kvalobs::kvData& after)
+void SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, DataUpdate& middle, const kvalobs::kvData& after)
 {
-    float NewCorrected = NO_UPDATE;
-
+    DBG("before corr=" << middle.data());
     // check that the neighbours are good
-    const int flag7 = middle.controlinfo().flag(7);
+    const int ftime = middle.controlinfo().flag(7);
     if( isNeighborOk(before) && isNeighborOk(after) ) {
-        if( flag7 == 0 || flag7 == 1 ) {
-            NewCorrected = Helpers::round( 0.5*(before.original()+after.original()) );
-            if( (flag7 == 1) && equal(middle.corrected(), NewCorrected) ) {
-                NewCorrected = NO_UPDATE;
-            }
+        DBGV(ftime);
+        if( ftime == 0 || ftime == 1 ) {
+            middle.corrected(Helpers::round( 0.5*(before.original()+after.original()) ));
+            if( ftime == 0 )
+                middle.controlinfo(ftime0_flagchange.apply(middle.controlinfo()));
+            middle.cfailed("QC2d-2", CFAILED_STRING);
         }
-    } else {
-        //NB for ftime=0 ... do nothing
-        
-        //For ftime=1, reset to missing value ...
-        if( flag7 == 1 ) {
-            const int flag6 = middle.controlinfo().flag(6);
-            if( flag6 == 1 || flag6 == 3 ) {
-                if( !equal(middle.corrected(), missing) ) // XXX this is new compared to Paul's version, but necessary to pass his test
-                    NewCorrected = missing;
-            } else if( flag6 == 2 || flag6 == 4 ) {
-                if( !equal(middle.corrected(), rejected) ) // XXX this is new compared to Paul's version, but necessary to pass his test
-                    NewCorrected = rejected;
-            } else {
-                NewCorrected = Helpers::round( (before.original()+after.original())/2 );
-            }
+    } else if( ftime == 1) {
+        const int fmis = middle.controlinfo().flag(6);
+        DBG("ftime=" << ftime << " fmis=" << fmis);
+        if( fmis == 1 || fmis == 3 ) {
+            middle.corrected(missing);
+        } else if( fmis == 2 || fmis == 4 ) {
+            middle.corrected(rejected);
+        } else {
+            // XXX this is not in the specification
+            middle.corrected(Helpers::round( 0.5*(before.original()+after.original()) ));
         }
+        middle.controlinfo(ftime1_flagchange.apply(middle.controlinfo()));
+        middle.cfailed("QC2d-2", CFAILED_STRING);
     }
-    return NewCorrected;
-}
-
-// ------------------------------------------------------------------------
-            
-void SingleLinearAlgorithm::writeChanges(const kvalobs::kvData& middle, const float NewCorrected)
-{
-    kvalobs::kvControlInfo fixflags = update_flagchange.apply(middle.controlinfo());
-    if( equal(NewCorrected, missing) || equal(NewCorrected, rejected) )
-        fixflags = missing_flagchange.apply(fixflags);
-        
-    kvalobs::kvData dwrite(middle);
-    dwrite.corrected(NewCorrected);
-    dwrite.controlinfo(fixflags);
-    Helpers::updateCfailed(dwrite, "QC2d-2", CFAILED_STRING);
-    Helpers::updateUseInfo(dwrite);
-
-    updateSingle(dwrite);
+    DBG("after corr=" << middle.data() << " mod=" << middle.isModified());
 }

@@ -53,12 +53,23 @@ void SingleLinearTest::TearDown()
     AlgorithmTestBase::TearDown();
 }
 
+#define ASSERT_CONFIGURE(algo, params)                  \
+    try {                                               \
+        algo->configure(params);                        \
+        if( !params.check() )                           \
+            FAIL() << params.check().format("; ");      \
+    } catch(ConfigException& ce) {                      \
+        FAIL() << ce.what();                            \
+    } catch(...) {                                      \
+        FAIL() << "unknown exception";                  \
+    }
+
 TEST_F(SingleLinearTest, test1)
 {
     DataList data(180, 211, 330);
     data.add("2011-10-01 09:00:00", 9.40,  "0111100000100010", "")
         .add("2011-10-01 10:00:00", 14.00, "0111100000100010", "")
-        .add("2011-10-01 11:00:00", 17.50, "0111102100100010", "")
+        .add("2011-10-01 11:00:00", 17.50, "0111104100100010", "")
         .add("2011-10-01 12:00:00", 18.00, "0211100000100012", "QC1-1-211,hqc")
         .add("2011-10-01 13:00:00", 19.60, "0211100000100012", "QC1-1-211,hqc")
         .add("2011-10-01 14:00:00", 19.80, "0211100000100012", "QC1-1-211,hqc")
@@ -73,19 +84,14 @@ TEST_F(SingleLinearTest, test1)
 
     const int pid = 211;
     std::stringstream config;
-    config << "Start_YYYY = 2011" << std::endl
-           << "Start_MM   =   09" << std::endl
-           << "Start_DD   =   10" << std::endl
-           << "Start_hh   =   22" << std::endl
-           << "End_YYYY   = 2011" << std::endl
-           << "End_MM     =   10" << std::endl
-           << "End_DD     =    1" << std::endl
-           << "End_hh     =   21" << std::endl
-           << "neighbor_cflags    = ___.__0.___.___." << std::endl
-           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
-           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
-           << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
-           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
+    config << "Start_YYYY = 2011\n"
+           << "Start_MM   =   09\n"
+           << "Start_DD   =   10\n"
+           << "Start_hh   =   22\n"
+           << "End_YYYY   = 2011\n"
+           << "End_MM     =   10\n"
+           << "End_DD     =    1\n"
+           << "End_hh     =   21\n"
            << "ParamId=" << pid << std::endl;
     AlgorithmConfig params;
     params.Parse(config);
@@ -102,45 +108,42 @@ TEST_F(SingleLinearTest, test1)
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_CONFIGURE(algo, params);
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(16.0, series.begin()->corrected());
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(0, bc->count());
 }
 
 TEST_F(SingleLinearTest, test2)
 {
     DataList data(180, 211, 330);
     data.add("2011-10-01 10:00:00",  14.00, 14.90, "0111100000100010", "")
-        .add("2011-10-01 11:00:00",  17.50, 17.50, "0111102100100010", "")
+        .add("2011-10-01 11:00:00",  17.50, 17.50, "0111104100100010", "")
         .add("2011-10-01 12:00:00", -32767, 18.60, "0211101000100012", "");
     ASSERT_NO_THROW(data.insert(db));
 
     const int pid = 211;
     std::stringstream config;
-    config << "Start_YYYY = 2011" << std::endl
-           << "Start_MM   =   09" << std::endl
-           << "Start_DD   =   10" << std::endl
-           << "Start_hh   =   22" << std::endl
-           << "End_YYYY   = 2011" << std::endl
-           << "End_MM     =   10" << std::endl
-           << "End_DD     =    1" << std::endl
-           << "End_hh     =   21" << std::endl
-           << "neighbor_cflags    = ___.__0.___.___." << std::endl
-           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
-           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
-           << "update_flagchange  = ___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
-           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl
+    config << "Start_YYYY = 2011\n"
+           << "Start_MM   =   09\n"
+           << "Start_DD   =   10\n"
+           << "Start_hh   =   22\n"
+           << "End_YYYY   = 2011\n"
+           << "End_MM     =   10\n"
+           << "End_DD     =    1\n"
+           << "End_hh     =   21\n"
            << "ParamId=" << pid << std::endl;
     AlgorithmConfig params;
     params.Parse(config);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_CONFIGURE(algo, params);
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(1, bc->count());
 
@@ -150,6 +153,10 @@ TEST_F(SingleLinearTest, test2)
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(params.rejected, series.begin()->corrected());
     ASSERT_EQ("0111102100100010", series.begin()->controlinfo().flagstring());
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(0, bc->count());
 }
 
 
@@ -196,30 +203,24 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     const int pid = 211;
     std::stringstream config;
-    config << "Start_YYYY=2025" << std::endl
-           << "Start_MM=9" << std::endl
-           << "Start_DD=16  " << std::endl
-           << "Start_hh=6" << std::endl
-           << "Start_mm=0" << std::endl
-           << "Start_ss=0" << std::endl
-           << "End_YYYY=2025" << std::endl
-           << "End_MM=9" << std::endl
-           << "End_DD=17 " << std::endl
-           << "End_hh=16" << std::endl
-           << "End_mm=0" << std::endl
-           << "End_ss=0" << std::endl
-           << "ParamId=" << pid << std::endl
-           << "neighbor_cflags    = ___.__0.___.___." << std::endl
-           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
-           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
-           << "update_flagchange  = ___.___1___.___.;___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
-           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl;
+    config << "Start_YYYY=2025\n"
+           << "Start_MM=9\n"
+           << "Start_DD=16  \n"
+           << "Start_hh=6\n"
+           << "Start_mm=0\n"
+           << "Start_ss=0\n"
+           << "End_YYYY=2025\n"
+           << "End_MM=9\n"
+           << "End_DD=17 \n"
+           << "End_hh=16\n"
+           << "End_mm=0\n"
+           << "End_ss=0\n"
+           << "ParamId=" << pid << "\n";
     AlgorithmConfig params;
     params.Parse(config);
 
     // wiki step 3
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_CONFIGURE(algo, params);
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -332,29 +333,23 @@ TEST_F(SingleLinearTest, testFromKro)
 
     const int pid = 211;
     std::stringstream config;
-    config << "Start_YYYY=2011" << std::endl
-           << "Start_MM=10" << std::endl
-           << "Start_DD=09  " << std::endl
-           << "Start_hh=6" << std::endl
-           << "Start_mm=0" << std::endl
-           << "Start_ss=0" << std::endl
-           << "End_YYYY=2011" << std::endl
-           << "End_MM=10" << std::endl
-           << "End_DD=11 " << std::endl
-           << "End_hh=6" << std::endl
-           << "End_mm=0" << std::endl
-           << "End_ss=0" << std::endl
-           << "ParamId=" << pid << std::endl
-           << "neighbor_cflags    = ___.__0.___.___." << std::endl
-           << "neighbor_uflags    = [37]_0.___.___.___." << std::endl
-           << "missing_cflags     = ___.__[1234]____.___0" << std::endl
-           << "update_flagchange  = ___.___1___.___.;___.__3____.___.->___.__1____.___.;___.__[02]____.___.->___.__4____.___." << std::endl
-           << "missing_flagchange = ___.__1____.___.->___.__3____.___.;___.__4____.___.->___.__2____.___." << std::endl;
+    config << "Start_YYYY=2011\n"
+           << "Start_MM=10\n"
+           << "Start_DD=09  \n"
+           << "Start_hh=6\n"
+           << "Start_mm=0\n"
+           << "Start_ss=0\n"
+           << "End_YYYY=2011\n"
+           << "End_MM=10\n"
+           << "End_DD=11 \n"
+           << "End_hh=6\n"
+           << "End_mm=0\n"
+           << "End_ss=0\n"
+           << "ParamId=" << pid << "\n";
     AlgorithmConfig params;
     params.Parse(config);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_CONFIGURE(algo, params);
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(0, bc->count());
 
@@ -402,18 +397,12 @@ TEST_F(SingleLinearTest, ParamOrdering)
            << "End_MM     =   09\n"
            << "End_DD     =   17\n"
            << "End_hh     =   13\n"
-           << "neighbor_cflags    = fmis=0\n"
-           << "neighbor_uflags    = U0=[37]&U2=0\n"
-           << "missing_cflags     = fmis=[1234]&fhqc=0\n"
-           << "update_flagchange  = fmis=3->fmis=1;fmis=2->fmis=4\n"
-           << "missing_flagchange = fmis=1->fmis=3;fmis=4->fmis=2\n"
            << "ParamId=212\n"
            << "ParamId=211\n";
     AlgorithmConfig params;
     params.Parse(config);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_CONFIGURE(algo, params);
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
@@ -422,4 +411,8 @@ TEST_F(SingleLinearTest, ParamOrdering)
     
     ASSERT_OBSTIME("2025-09-17 10:00:00", bc->update(1));
     ASSERT_EQ(211, bc->update(1).paramID());
+
+    bc->clear();
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(0, bc->count());
 }
