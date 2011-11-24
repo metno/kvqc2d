@@ -88,7 +88,6 @@ AlgorithmDispatcher::~AlgorithmDispatcher()
 int AlgorithmDispatcher::select(const AlgorithmConfig& params)
 {
     std::string algorithm = params.Algorithm;
-    std::cout << "Algorithm setting is name='" << algorithm << "'" << std::endl;
     algorithms_t::iterator a = mAlgorithms.find(algorithm);
     if( a != mAlgorithms.end() ) {
         LOGINFO("Case '" + algorithm + "'");
