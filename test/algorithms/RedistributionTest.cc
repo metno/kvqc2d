@@ -166,10 +166,8 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
     AlgorithmConfig params;
     Configure(params, 10, 19);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(6, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 6);
 
     float acc_of_corrected = 0;
     for(int i=0; i<bc->count(); ++i) {
@@ -236,19 +234,15 @@ TEST_F(RedistributionTest, Station83880History2011117)
     AlgorithmConfig params;
     Configure(params, 13, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(4, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 4);
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0000001000007000",  0.9, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000",  2.8, bc->update(1));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 28.3, bc->update(2));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  6.3, bc->update(3));
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 }
 
 // ------------------------------------------------------------------------
@@ -304,16 +298,12 @@ TEST_F(RedistributionTest, SeriesPossiblyIncomplete)
     AlgorithmConfig params;
     Configure(params, 16, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     params.UT0 = "2011-10-15 06:00:00";
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
 }
 
 // ------------------------------------------------------------------------
@@ -342,10 +332,8 @@ TEST_F(RedistributionTest, StartOfDatabase)
     AlgorithmConfig params;
     Configure(params, 14, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     data.add(83880, "2011-10-15 06:00:00", 54.2, "0110000000001000", "")
         .add(83520, "2011-10-15 06:00:00", 54.2, "0110000000001000", "")
@@ -353,8 +341,7 @@ TEST_F(RedistributionTest, StartOfDatabase)
         .add(84070, "2011-10-15 06:00:00", 54.2, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 }
 
 // ------------------------------------------------------------------------
@@ -411,10 +398,8 @@ TEST_F(RedistributionTest, TwoSeries)
     AlgorithmConfig params;
     Configure(params, 11, 18);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(4, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 4);
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  9.4, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  3.4, bc->update(1));
@@ -458,10 +443,8 @@ TEST_F(RedistributionTest, MissingRows)
     AlgorithmConfig params;
     Configure(params, 12, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(5, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 5);
 
     for(int i=0; i<bc->count()-1; ++i)
         EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
@@ -504,10 +487,8 @@ TEST_F(RedistributionTest, ReRun)
     AlgorithmConfig params;
     Configure(params, 12, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(5, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 5);
 
     std::list<kvalobs::kvData> series;
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
@@ -540,11 +521,8 @@ TEST_F(RedistributionTest, ReRun)
            << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
@@ -557,9 +535,7 @@ TEST_F(RedistributionTest, ReRun)
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 
     ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
@@ -595,10 +571,8 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
     AlgorithmConfig params;
     Configure(params, 11, 18);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
 
     EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-13 06:00:00", "0000001000007000", 9.8, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-14 06:00:00", "0140004000007000", 0.2, bc->update(1));
@@ -626,17 +600,14 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
     AlgorithmConfig params;
     Configure(params, 11, 18);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     data.setStation(83520).add("2011-10-13 06:00:00", 1.0, "0110000000001000", "")
         .setStation(84190).add("2011-10-13 06:00:00", 1.0, "0110000000001000", "");
     ASSERT_NO_THROW(data.update(db));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 }
 
 // ------------------------------------------------------------------------
@@ -669,17 +640,14 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
     AlgorithmConfig params;
     Configure(params, 11, 18);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     std::ostringstream sql;
     sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190, 84070) AND obstime = '2011-10-13 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(3, bc->count());
+    ASSERT_RUN(algo, bc, 3);
 }
 
 // ------------------------------------------------------------------------
@@ -730,10 +698,8 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "InterpolationDistance=5.0" << std::endl;
     params.Parse(config);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     std::stringstream confiG;
     confiG << "Start_YYYY = 2011" << std::endl
@@ -756,10 +722,9 @@ TEST_F(RedistributionTest, NeighborsTooFar)
         // neighbors within 50 km => action
            << "InterpolationDistance=50.0" << std::endl;
     params.Parse(confiG);
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(4, bc->count());
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 4);
 }
 
 // ------------------------------------------------------------------------
@@ -831,10 +796,8 @@ TEST_F(RedistributionTest, IncompleteSeries)
     AlgorithmConfig params;
     Configure(params, 10, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     data.setStation(83880).add("2011-10-17 06:00:00",   12.8, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
         .setStation(83520).add("2011-10-17 06:00:00",    8.2, "0110000000001000", "")
@@ -842,8 +805,7 @@ TEST_F(RedistributionTest, IncompleteSeries)
         .setStation(84070).add("2011-10-17 06:00:00", -32767, "0000003000002000", "QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(4, bc->count());
+    ASSERT_RUN(algo, bc, 4);
 }
 
 // ------------------------------------------------------------------------
@@ -916,18 +878,15 @@ TEST_F(RedistributionTest, Release113)
     params.UT1 = "2011-05-16 06:00:00";
 
     // with bad fd flags, make sure that the redistribution does not run
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     // now fix the fd flags and make sure that the redistribution runs
     sql.str("");
     sql << "UPDATE data SET controlinfo = '0000003000002000' WHERE stationid = 66100 AND obstime BETWEEN '2011-05-07 06:00:00' AND '2011-05-12 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(10, bc->count());
+    ASSERT_RUN(algo, bc, 10);
 }
 
 #if 0
@@ -1039,10 +998,8 @@ TEST_F(RedistributionTest, Bugzilla1333)
     AlgorithmConfig params;
     Configure(params, 13, 17);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 10.5, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  2.3, bc->update(1));
@@ -1054,9 +1011,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
     ASSERT_NO_THROW(db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%' AND stationid != 83880"));
     ASSERT_TRUE(cfailedWithQC2.empty());
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 }
 
 // ------------------------------------------------------------------------
@@ -1084,10 +1039,8 @@ TEST_F(RedistributionTest, BadMeasurentHour)
     AlgorithmConfig params;
     Configure(params, 11, 18);
 
-    ASSERT_NO_THROW(algo->configure(params));
-    ASSERT_TRUE(params.check()) << params.check().format("; ");
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
 
     std::ostringstream sql;
     sql << "UPDATE data SET obstime = '2011-10-12 06:00:00' WHERE obstime = '2011-10-12 07:00:00';"
@@ -1095,6 +1048,5 @@ TEST_F(RedistributionTest, BadMeasurentHour)
         << "UPDATE data SET obstime = '2011-10-14 06:00:00' WHERE obstime = '2011-10-14 07:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 }

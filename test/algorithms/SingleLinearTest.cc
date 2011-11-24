@@ -53,17 +53,6 @@ void SingleLinearTest::TearDown()
     AlgorithmTestBase::TearDown();
 }
 
-#define ASSERT_CONFIGURE(algo, params)                  \
-    try {                                               \
-        algo->configure(params);                        \
-        if( !params.check() )                           \
-            FAIL() << params.check().format("; ");      \
-    } catch(ConfigException& ce) {                      \
-        FAIL() << ce.what();                            \
-    } catch(...) {                                      \
-        FAIL() << "unknown exception";                  \
-    }
-
 TEST_F(SingleLinearTest, test1)
 {
     DataList data(180, 211, 330);
@@ -109,16 +98,13 @@ TEST_F(SingleLinearTest, test1)
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(1, bc->count());
+    ASSERT_RUN(algo, bc, 1);
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(16.0, series.begin()->corrected());
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 }
 
 TEST_F(SingleLinearTest, test2)
@@ -144,8 +130,7 @@ TEST_F(SingleLinearTest, test2)
     params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(1, bc->count());
+    ASSERT_RUN(algo, bc, 1);
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
@@ -154,9 +139,7 @@ TEST_F(SingleLinearTest, test2)
     ASSERT_FLOAT_EQ(params.rejected, series.begin()->corrected());
     ASSERT_EQ("0111102100100010", series.begin()->controlinfo().flagstring());
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 }
 
 
@@ -221,8 +204,7 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     // wiki step 3
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2025-09-16 12:00:00"), t1("2025-09-17 10:00:00");
@@ -239,18 +221,14 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("QC2d-2", series.begin()->cfailed());
 
     // wiki step 4, run again, no more updates allowed
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 
     // wiki step 5
     data.add("2025-09-17 09:00:00", 5.0, "0111000000000010", "")
         .add("2025-09-16 11:00:00", 7.2, "0111000000000010", "");
     ASSERT_NO_THROW(data.update(db));
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
     ASSERT_EQ(1, series.size());
@@ -270,9 +248,7 @@ TEST_F(SingleLinearTest, testFromWiki)
            "UPDATE data SET useinfo='7010000000000000' WHERE stationid=87120 and obstime='2025-09-16 11:00:00' and paramid=211;";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 
     ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
     ASSERT_EQ(1, series.size());
@@ -287,9 +263,7 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("QC2d-2,QC2d-2,QC2d-2", series.begin()->cfailed());
 
     // wiki step 8, run again, no more updates allowed
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 }
 
 TEST_F(SingleLinearTest, testFromKro)
@@ -350,14 +324,12 @@ TEST_F(SingleLinearTest, testFromKro)
     params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 
     data.add("2011-10-10 12:00:00", 1.5, "0110100000100010", "");
     ASSERT_NO_THROW(data.update(db));
 
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(1, bc->count());
+    ASSERT_RUN(algo, bc, 1);
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2011-10-10 13:00:00");
@@ -403,8 +375,7 @@ TEST_F(SingleLinearTest, ParamOrdering)
     params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(2, bc->count());
+    ASSERT_RUN(algo, bc, 2);
 
     ASSERT_OBSTIME("2025-09-17 09:00:00", bc->update(0));
     ASSERT_EQ(212, bc->update(0).paramID());
@@ -412,7 +383,5 @@ TEST_F(SingleLinearTest, ParamOrdering)
     ASSERT_OBSTIME("2025-09-17 10:00:00", bc->update(1));
     ASSERT_EQ(211, bc->update(1).paramID());
 
-    bc->clear();
-    ASSERT_NO_THROW(algo->run());
-    ASSERT_EQ(0, bc->count());
+    ASSERT_RUN(algo, bc, 0);
 }

@@ -144,6 +144,29 @@ private:
 #define EXPECT_STATION_OBS_CONTROL_CORR(es, eo, eci, eco, a) EXPECT_PRED_FORMAT5(AssertStationObsControlCorrected, es, eo, eci, eco, a)
 #define ASSERT_STATION_OBS_CONTROL_CORR(es, eo, eci, eco, a) ASSERT_PRED_FORMAT5(AssertStationObsControlCorrected, es, eo, eci, eco, a)
 
+#define ASSERT_CONFIGURE(algo, params)                  \
+    try {                                               \
+        algo->configure(params);                        \
+        if( !params.check() )                           \
+            FAIL() << params.check().format("; ");      \
+    } catch(ConfigException& ce) {                      \
+        FAIL() << ce.what();                            \
+    } catch(...) {                                      \
+        FAIL() << "unknown exception";                  \
+    }
+
+#define ASSERT_RUN(ALGO, BROADCASTER, COUNT)                            \
+    try {                                                               \
+        BROADCASTER->clear();                                           \
+        ALGO->run();                                                    \
+        if( BROADCASTER->count() != COUNT )                             \
+            FAIL() << "Expected " << COUNT << ", but got " << BROADCASTER->count() << " updates."; \
+    } catch(std::exception& e) {                                        \
+        FAIL() << "Exception in run(): " << e.what();                   \
+    } catch(...) {                                                      \
+        FAIL() << "Unknown exception in run()";                         \
+    }
+
 // #######################################################################
 
 class AlgorithmTestBase: public ::testing::Test {
