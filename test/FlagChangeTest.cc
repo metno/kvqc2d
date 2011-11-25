@@ -69,4 +69,7 @@ TEST(FlagChangeTest, Parse)
 
     EXPECT_FALSE(fc.reset().parse("___.__5.___.___.->___.__7.___.___.->"));
     EXPECT_FALSE(fc.reset().parse("___.__5.___.___. ___.__7.___.___.->___.__7.___.___."));
+
+    EXPECT_FALSE(fc.reset().parse("___.__5.___.___. ___.__7.___.___.->___.__7.___.___."));
+    EXPECT_FALSE(fc.reset().parse("fd=7;fmis=3->fmis01;fmis=0->fmis=4"));
 }

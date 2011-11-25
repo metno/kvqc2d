@@ -113,6 +113,7 @@ TEST(AlgorithmConfigTest, ParseFlagChange)
     FlagChange fc;
     EXPECT_THROW(params.getFlagChange(fc, "bad1"), ConfigException);
     EXPECT_THROW(params.getFlagChange(fc, "bad2"), ConfigException);
+    EXPECT_THROW(params.getFlagChange(fc, "bad3", "fd=7;fmis=3->fmis01;fmis=0->fmis=4"), ConfigException);
 
     EXPECT_NO_THROW(params.getFlagChange(fc, "okay1"));
 }

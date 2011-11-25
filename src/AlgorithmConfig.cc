@@ -237,6 +237,7 @@ void AlgorithmConfig::getFlagChange(FlagChange& fc, const std::string& name, con
                 throw ConfigException("error parsing flag update '" + name + "' from '" + value + "'");
         }
     } else {
-        fc.parse(dflt);
+        if( !fc.parse(dflt) )
+            throw ConfigException("error parsing default flag update '" + dflt + "' for '" + name + "'");
     }
 }

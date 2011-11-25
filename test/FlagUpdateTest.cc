@@ -54,4 +54,6 @@ TEST(FlagUpdateTest, ParseNames)
     EXPECT_FALSE(fu.parse("fhqc=x"));
     EXPECT_FALSE(fu.parse("hqc=7"));
     EXPECT_FALSE(fu.parse("fhqc=7fmis=[87]"));
+
+    EXPECT_FALSE(fu.parse("fmis01"));
 }
