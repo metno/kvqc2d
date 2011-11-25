@@ -380,7 +380,6 @@ TEST_F(PlumaticTest, PluviometerResolution02)
         .add("2011-10-01 23:33:00", 0.8, "0101000000000000", "")
         .add("2011-10-01 23:34:00", 0.2, "0101000000000000", "")
 
-
         .add("2011-10-02 00:00:00", 0,   "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
 
@@ -545,7 +544,10 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
     ASSERT_OBS_CONTROL_CFAILED("2011-10-01 12:04:00", "010A000000000000", "QC2h-1-highstart", bc->update(1));
 
     // remove high start and flags, and run again
-    ASSERT_NO_THROW(data.add("2011-10-01 12:03:00", 0.2, "0101000000000000", "").add("2011-10-01 12:04:00", 8.2, "0101000000000000", "").update(db));
+    ASSERT_NO_THROW(data
+                    .add("2011-10-01 12:03:00", 0.2, "0101000000000000", "")
+                    .add("2011-10-01 12:04:00", 8.2, "0101000000000000", "")
+                    .update(db));
 
     ASSERT_RUN(algo, bc, 2);
 
