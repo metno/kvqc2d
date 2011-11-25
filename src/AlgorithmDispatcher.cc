@@ -61,7 +61,7 @@ public:
 // ########################################################################
 
 AlgorithmDispatcher::AlgorithmDispatcher()
-    : mBroadcaster(0), mDatabase(0)
+    : mBroadcaster(0), mDatabase(0), mNotifier(0)
 {
     Qc2Algorithm* algorithms[] = {
         new SingleLinearAlgorithm(),
@@ -90,7 +90,7 @@ int AlgorithmDispatcher::select(const AlgorithmConfig& params)
     std::string algorithm = params.Algorithm;
     algorithms_t::iterator a = mAlgorithms.find(algorithm);
     if( a != mAlgorithms.end() ) {
-        LOGINFO("Case '" + algorithm + "'");
+        LOGINFO("Running '" + algorithm + "'");
         try {
             a->second->configure(params);
             const ErrorList errors = params.check();
@@ -108,8 +108,7 @@ int AlgorithmDispatcher::select(const AlgorithmConfig& params)
             LOGERROR(algorithm + ": Exception -- please report bug in https://kvoss.bugs.met.no");
         }
     } else {
-        std::cout << "Algorithm '" << algorithm << " not known." << std::endl;
-        LOGINFO("Case ??: no valid algorithm specified");
+        LOGINFO("Unknown algorithm '" << algorithm << "' specified");
     }
     return 0;
 }
@@ -126,4 +125,11 @@ void AlgorithmDispatcher::setDatabase(DBInterface* db)
     mDatabase = db;
     foreach(algorithms_t::value_type& a, mAlgorithms)
         a.second->setDatabase(db);
+}
+
+void AlgorithmDispatcher::setNotifier(Notifier* n)
+{
+    mNotifier = n;
+    foreach(algorithms_t::value_type& a, mAlgorithms)
+        a.second->setNotifier(n);
 }

@@ -113,10 +113,8 @@ std::string find_dbdriver()
 
 int main( int argc, char** argv )
 {
-    milog::LogContext logContext("kvqc2d");
-    
     InitLogger( argc, argv, "kvqc2d" );
-    LOGINFO( "kvqc2d: starting ...." );
+    milog::LogContext logContext("kvqc2d");
     
     if( !check_rundir() )
         return 1;

@@ -104,15 +104,19 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 
     foreach(const RedisUpdate& m, mdata) {
         if( m.obstime().hour() != mMeasurementHour ) {
-            warning() << "missing point " << m << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour;
+            warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
+                      << mMeasurementHour << " not found in missing point " << m
+                      << " for accumulation ending in " << endpoint;
             return false;
         }
         if( !missingpoint_flags.matches(m.data()) ) {
-            warning() << "missing value " << m << " does not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint;
+            warning() << "flags missingpoint_*flags do not match missing value "
+                      << m << " for accumulation ending in " << endpoint;
             return false;
         }
         if( m.controlinfo().flag(f_fhqc) != 0 ) {
-            warning() << "missing point has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), stop check for accumulation ending in " << endpoint;
+            warning() << "missing point has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc)
+                      << ") for accumulation ending in " << endpoint;
             return false;
         }
 
@@ -170,7 +174,9 @@ bool RedistributionAlgorithm::findPointBeforeMissing(const kvalobs::kvData& endp
         DBG("latestBefore=" << latestBefore);
 
         if( latestBefore.obstime().hour() != mMeasurementHour ) {
-            warning() << "latestBefore " << latestBefore << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour;
+            warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
+                      << " not seen in point "  << latestBefore
+                      << " before accumulation ending in " << endpoint;
             return false;
         }
         return( !equal(latestBefore.original(), missing)
@@ -198,12 +204,18 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
 
     foreach(const kvalobs::kvData& n, ndata) {
         if( n.obstime().hour() != mMeasurementHour ) {
-            warning() << "neighbor " << n << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour;
+            warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
+                      << " not seen in neighbor " << n << " for accumulation ending in " << endpoint;
             return false;
         }
     }
 
-    return ndata.size() >= MIN_NEIGHBORS * before.size();
+    if( ndata.size() < MIN_NEIGHBORS * before.size() ) {
+        warning() << "not enough neighbor data for accumulation ending in " << before.front();
+        return false;
+    }
+
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -239,8 +251,8 @@ void RedistributionAlgorithm::run()
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
         if( endpoint.obstime().hour() != mMeasurementHour ) {
-            warning() << "accumulation endpoint " << endpoint << " does not match measurement_hour="
-                      << std::setw(2) << std::setfill('0') << mMeasurementHour;
+            warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
+                      << " not seen in accumulation endpoint "  << endpoint;
             continue;
         }
 
@@ -249,14 +261,15 @@ void RedistributionAlgorithm::run()
         lastObstime   = endpoint.obstime();
 
         if( endpoint.controlinfo().flag(f_fhqc) != 0 ) {
-            warning() << "accumulation endpoint has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), not checking further.";
+            warning() << "fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc)
+                      << ") for accumulation endpoint " << endpoint;
             continue;
         }
 
         // find the oldest point before the accumulated value which is "good"
         kvalobs::kvData beforeMissing;
         if( !findPointBeforeMissing(endpoint, earliestPossibleMissing, beforeMissing) ) {
-            warning() << "could not find at least one non-missing data point before accumulation ending in " << endpoint;
+            warning() << "could not find non-missing data point before accumulation ending in " << endpoint;
             continue;
         }
 
@@ -293,10 +306,9 @@ void RedistributionAlgorithm::redistributeDry(updateList_t& accumulation)
 bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 {
     dataList_t ndata;
-    if( !getNeighborData(before, ndata) ) {
-        warning() << "too few valid neighbors for accumulation ending in " << before.front() << ", giving up";
+    if( !getNeighborData(before, ndata) )
         return false;
-    }
+
     // neighbor data are in ndata like this:
     // [endpoint] n3_1 n3_2 n3_3
     // [miss 1]   n2_1 n2_2
@@ -326,7 +338,8 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             }
         }
         if( goodNeighbors < MIN_NEIGHBORS ) {
-            warning() << "not enough good neighbors for accumulation ending in " << before.front() << " at t=" << b.obstime();
+            warning() << "not enough good neighbors at t=" << b.obstime()
+                      << " for accumulation ending in " << before.front();
             return false;
         }
         const float weightedNeighbors = sumWeightedValues/sumWeights;
@@ -359,7 +372,8 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         }
     }
     if( delta > 0.05 ) {
-        warning() << "Could not avoid difference between distributed sum and accumulated value at endpoint=" << before.front();
+        warning() << "could not avoid difference between distributed sum"
+                  << " and accumulated value at endpoint=" << before.front();
     }
     return true;
 }

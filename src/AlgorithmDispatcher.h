@@ -7,9 +7,10 @@
 #include <map>
 #include <string>
 
+class AlgorithmConfig;
 class Broadcaster;
 class DBInterface;
-class AlgorithmConfig;
+class Notifier;
 class Qc2App;
 class Qc2Algorithm;
 
@@ -27,12 +28,15 @@ public:
 
     void setDatabase(DBInterface* db);
 
+    void setNotifier(Notifier* n);
+
 private:
     typedef std::map<std::string, Qc2Algorithm*> algorithms_t;
     algorithms_t mAlgorithms;
 
     Broadcaster* mBroadcaster;
     DBInterface* mDatabase;
+    Notifier* mNotifier;
 };
 
 #endif

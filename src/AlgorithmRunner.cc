@@ -34,6 +34,7 @@
 #include "foreach.h"
 #include "KvalobsDB.h"
 #include "KvServicedBroadcaster.h"
+#include "LogfileNotifier.h"
 #include "Qc2App.h"
 
 #include <milog/milog.h>
@@ -48,10 +49,12 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
 {
     std::auto_ptr<DBInterface> database(new KvalobsDB(app));
     std::auto_ptr<Broadcaster> broadcaster(new KvServicedBroadcaster(app));
+    std::auto_ptr<Notifier>    notifier(new LogfileNotifier);
 
     AlgorithmDispatcher dispatcher;
     dispatcher.setDatabase(database.get());
     dispatcher.setBroadcaster(broadcaster.get());
+    dispatcher.setNotifier(notifier.get());
 
     miutil::miTime lastEnd = miutil::miTime::nowTime();
     lastEnd.addSec(-lastEnd.sec());

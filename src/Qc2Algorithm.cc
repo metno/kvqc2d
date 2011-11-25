@@ -52,7 +52,7 @@ void Qc2Algorithm::storeData(const std::list<kvalobs::kvData>& toUpdate, const s
     }
     foreach(const kvalobs::kvData& u, toUpdate) {
         broadcaster()->queueChanged(u);
-        LOGINFO(mName << ": " << u);
+        LOGINFO(mName << " UPDATE:  " << u);
     }
     broadcaster()->sendChanges();
 }

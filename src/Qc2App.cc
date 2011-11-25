@@ -99,6 +99,7 @@ void Qc2App::initializeCORBA()
 
 void Qc2App::runCORBA()
 {
+    INF("CORBA starting");
     try {
         getPoaMgr()->activate();
         getOrb()->run();
@@ -115,6 +116,7 @@ void Qc2App::runCORBA()
         LOGFATAL( "Unknown exception." );
         startShutdown();
     }
+    INF("CORBA finished");
 }
 
 void Qc2App::shutdownCORBA()
