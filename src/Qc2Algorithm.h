@@ -4,6 +4,7 @@
 #define Qc2Algorithm_H
 
 #include "AlgorithmConfig.h"
+#include "Notifier.h"
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvData.h>
 #include <list>
@@ -41,6 +42,21 @@ public:
     const std::string& name() const
         { return mName; }
 
+    void setNotifier(Notifier* n)
+        { mNotifier = n; }
+
+    Message debug()
+        { return Message(Message::DEBUG, mNotifier); }
+
+    Message info()
+        { return Message(Message::INFO, mNotifier); }
+
+    Message warning()
+        { return Message(Message::WARNING, mNotifier); }
+
+    Message error()
+        { return Message(Message::ERROR, mNotifier); }
+
     void fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList);
     void fillStationIDList(std::list<int>& idList);
 
@@ -56,6 +72,7 @@ protected:
 private:
     DBInterface* mDatabase;
     Broadcaster* mBroadcaster;
+    Notifier* mNotifier;
     std::string mName;
 };
 

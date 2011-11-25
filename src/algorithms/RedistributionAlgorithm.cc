@@ -104,16 +104,16 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 
     foreach(const RedisUpdate& m, mdata) {
         if( m.obstime().hour() != mMeasurementHour ) {
-            LOGWARN("missing point " << m << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            warning() << "missing point " << m << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour;
             return false;
         }
         if( !missingpoint_flags.matches(m.data()) ) {
-            DBG("'missing' value " << m << " does not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint);
+            warning() << "missing value " << m << " does not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint;
             return false;
         }
         if( m.controlinfo().flag(f_fhqc) != 0 ) {
-            LOGWARN("missing point has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), stop check for accumulation ending in " << endpoint);
-            continue;
+            warning() << "missing point has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), stop check for accumulation ending in " << endpoint;
+            return false;
         }
 
     }
@@ -170,7 +170,7 @@ bool RedistributionAlgorithm::findPointBeforeMissing(const kvalobs::kvData& endp
         DBG("latestBefore=" << latestBefore);
 
         if( latestBefore.obstime().hour() != mMeasurementHour ) {
-            LOGWARN("latestBefore " << latestBefore << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            warning() << "latestBefore " << latestBefore << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour;
             return false;
         }
         return( !equal(latestBefore.original(), missing)
@@ -198,7 +198,7 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
 
     foreach(const kvalobs::kvData& n, ndata) {
         if( n.obstime().hour() != mMeasurementHour ) {
-            LOGWARN("neighbor " << n << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            warning() << "neighbor " << n << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour;
             return false;
         }
     }
@@ -239,8 +239,8 @@ void RedistributionAlgorithm::run()
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
         if( endpoint.obstime().hour() != mMeasurementHour ) {
-            LOGWARN("accumulation endpoint " << endpoint << " does not match measurement_hour="
-                    << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            warning() << "accumulation endpoint " << endpoint << " does not match measurement_hour="
+                      << std::setw(2) << std::setfill('0') << mMeasurementHour;
             continue;
         }
 
@@ -249,14 +249,14 @@ void RedistributionAlgorithm::run()
         lastObstime   = endpoint.obstime();
 
         if( endpoint.controlinfo().flag(f_fhqc) != 0 ) {
-            LOGWARN("accumulation endpoint has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), not checking further.");
+            warning() << "accumulation endpoint has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), not checking further.";
             continue;
         }
 
         // find the oldest point before the accumulated value which is "good"
         kvalobs::kvData beforeMissing;
         if( !findPointBeforeMissing(endpoint, earliestPossibleMissing, beforeMissing) ) {
-            INF("could not find data before accumulation ending in " << endpoint);
+            warning() << "could not find at least one non-missing data point before accumulation ending in " << endpoint;
             continue;
         }
 
@@ -294,7 +294,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 {
     dataList_t ndata;
     if( !getNeighborData(before, ndata) ) {
-        LOGINFO("too few valid neighbors for accumulation series ending with " << before.front() << ", giving up");
+        warning() << "too few valid neighbors for accumulation ending in " << before.front() << ", giving up";
         return false;
     }
     // neighbor data are in ndata like this:
@@ -326,7 +326,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             }
         }
         if( goodNeighbors < MIN_NEIGHBORS ) {
-            INF("not enough good neighbors for accumulation ending in " << before.front() << " at t=" << b.obstime());
+            warning() << "not enough good neighbors for accumulation ending in " << before.front() << " at t=" << b.obstime();
             return false;
         }
         const float weightedNeighbors = sumWeightedValues/sumWeights;
@@ -359,7 +359,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         }
     }
     if( delta > 0.05 ) {
-        LOGWARN("Could not avoid difference between distributed sum and accumulated value at endpoint=" << before.front());
+        warning() << "Could not avoid difference between distributed sum and accumulated value at endpoint=" << before.front();
     }
     return true;
 }

@@ -11,6 +11,7 @@
 Qc2Algorithm::Qc2Algorithm(const std::string& name)
     : mDatabase(0)
     , mBroadcaster(0)
+    , mNotifier(0)
     , mName(name)
 {
 }

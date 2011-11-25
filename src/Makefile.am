@@ -63,6 +63,10 @@ libkvqc2d_a_SOURCES = \
 	KvalobsDB.h \
 	KvServicedBroadcaster.cc \
 	KvServicedBroadcaster.h \
+	LogfileNotifier.cc \
+	LogfileNotifier.h \
+	Notifier.cc \
+	Notifier.h \
 	Qc2Algorithm.cc \
 	Qc2Algorithm.h \
 	Qc2App.cc \

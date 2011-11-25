@@ -994,7 +994,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
 
 // ------------------------------------------------------------------------
 
-TEST_F(RedistributionTest, BadMeasurentHour)
+TEST_F(RedistributionTest, BadMeasurementHour)
 {
    DataList data(83880, 110, 302);
    data.add("2011-10-12 07:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
