@@ -114,12 +114,6 @@ void RedistributionTest::Configure(AlgorithmConfig& params, int startDay, int en
            << "ParamId=110"  << std::endl
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl
-           << "endpoint_cflags     = ___.__4.___.2__0" << std::endl
-           << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
-           << "neighbor_cflags     = ___.___.___.1__." << std::endl
-           << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_cflags       = ___.__[04].___.___." << std::endl
-           << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
            << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
 }
@@ -512,12 +506,8 @@ TEST_F(RedistributionTest, ReRun)
            << "ParamId=110"  << std::endl
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl
-           << "endpoint_cflags     = ___.__4.___.7__0" << std::endl //changed wrt. default configuration
-           << "missingpoint_cflags = ___.__1.___.7__0" << std::endl //changed wrt. default configuration
-           << "neighbor_cflags     = ___.___.___.1__." << std::endl
-           << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_cflags       = ___.__[04].___.___." << std::endl
-           << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
+           << "endpoint_cflags     = fmis=4&fd=7" << std::endl //changed wrt. default configuration
+           << "missingpoint_cflags = fmis=1&fd=7" << std::endl //changed wrt. default configuration
            << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
 
@@ -688,12 +678,6 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "ParamId=110"       << std::endl
            << "TypeIds=302"       << std::endl
            << "TypeIds=402"       << std::endl
-           << "endpoint_cflags     = ___.__4.___.2__0" << std::endl
-           << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
-           << "neighbor_cflags     = ___.___.___.1__." << std::endl
-           << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_cflags       = ___.__[04].___.___." << std::endl
-           << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
         // only neighbors within 5 km => none
            << "InterpolationDistance=5.0" << std::endl;
     params.Parse(config);
@@ -713,12 +697,6 @@ TEST_F(RedistributionTest, NeighborsTooFar)
            << "ParamId=110"       << std::endl
            << "TypeIds=302"       << std::endl
            << "TypeIds=402"       << std::endl
-           << "endpoint_cflags     = ___.__4.___.2__0" << std::endl
-           << "missingpoint_cflags = ___.__3.___.2__0" << std::endl
-           << "neighbor_cflags     = ___.___.___.1__." << std::endl
-           << "neighbor_uflags     = __0.___.___.___." << std::endl
-           << "before_cflags       = ___.__[04].___.___." << std::endl
-           << "update_flagchange   = ___.___.___.7__.;___.__3.___.___.->___.__1.___.___.;___.__0.___.___.->___.__4.___.___." << std::endl
         // neighbors within 50 km => action
            << "InterpolationDistance=50.0" << std::endl;
     params.Parse(confiG);

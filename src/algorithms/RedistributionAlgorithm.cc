@@ -43,6 +43,7 @@
 namespace C = Constraint;
 namespace O = Ordering;
 using Helpers::equal;
+using kvQCFlagTypes::f_fhqc;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
@@ -110,6 +111,11 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
             DBG("'missing' value " << m << " does not match 'missingpoint' flags between before=" << beforeMissing << " and endpoint=" << endpoint);
             return false;
         }
+        if( m.controlinfo().flag(f_fhqc) != 0 ) {
+            LOGWARN("missing point has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), stop check for accumulation ending in " << endpoint);
+            continue;
+        }
+
     }
 
     miutil::miTime t = stepTime(endpoint.obstime()), now = miutil::miTime::nowTime();
@@ -206,11 +212,12 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(endpoint_flags, "endpoint");
-    params.getFlagSetCU(missingpoint_flags, "missingpoint");
-    params.getFlagSetCU(before_flags, "before");
-    params.getFlagSetCU(neighbor_flags, "neighbor");
-    params.getFlagChange(update_flagchange, "update_flagchange");
+    params.getFlagSetCU(endpoint_flags,     "endpoint",     "fmis=4&fd=2",      "");
+    params.getFlagSetCU(missingpoint_flags, "missingpoint", "fmis=3&fd=2",      "");
+    params.getFlagSetCU(before_flags,       "before",       "fmis=[04]",        "");
+    params.getFlagSetCU(neighbor_flags,     "neighbor",     "fd=1",             "U2=0");
+    params.getFlagChange(update_flagchange, "update_flagchange", "fd=7;fmis=3->fmis=1;fmis=0->fmis=4");
+
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
     mMeasurementHour = params.getParameter<int>("measurement_hour", 6);
@@ -232,17 +239,24 @@ void RedistributionAlgorithm::run()
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
         if( endpoint.obstime().hour() != mMeasurementHour ) {
-            LOGWARN("endpoint " << endpoint << " does not match measurement_hour=" << std::setw(2) << std::setfill('0') << mMeasurementHour);
+            LOGWARN("accumulation endpoint " << endpoint << " does not match measurement_hour="
+                    << std::setw(2) << std::setfill('0') << mMeasurementHour);
             continue;
         }
+
         const miutil::miTime earliestPossibleMissing = ( endpoint.stationID() != lastStationId ) ? UT0 : lastObstime;
         lastStationId = endpoint.stationID();
         lastObstime   = endpoint.obstime();
 
+        if( endpoint.controlinfo().flag(f_fhqc) != 0 ) {
+            LOGWARN("accumulation endpoint has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc) << "), not checking further.");
+            continue;
+        }
+
         // find the oldest point before the accumulated value which is "good"
         kvalobs::kvData beforeMissing;
         if( !findPointBeforeMissing(endpoint, earliestPossibleMissing, beforeMissing) ) {
-            INF("no non-missing value before endpoint " << endpoint);
+            INF("could not find data before accumulation ending in " << endpoint);
             continue;
         }
 
