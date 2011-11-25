@@ -83,13 +83,13 @@ void DipTestAlgorithm::configure(const AlgorithmConfig& params)
     fillParameterDeltaMap(params, PidValMap);
     fillStationIDList(StationIds);
 
-    params.getFlagSetCU(akima_flags, "akima");
-    params.getFlagSetCU(candidate_flags, "candidate");
-    params.getFlagSetCU(linear_before_flags, "linear_before");
-    params.getFlagSetCU(linear_after_flags, "linear_after");
+    params.getFlagSetCU(akima_flags,         "akima",         "",            "U2=0");
+    params.getFlagSetCU(candidate_flags,     "candidate",     "fs=2&fhqc=0", "");
+    params.getFlagSetCU(linear_before_flags, "linear_before", "fs=1",        "");
+    params.getFlagSetCU(linear_after_flags,  "linear_after",  "fs=2&fhqc=0", "");
 
-    params.getFlagChange(dip_flagchange, "dip_flagchange");
-    params.getFlagChange(afterdip_flagchange, "afterdip_flagchange");
+    params.getFlagChange(dip_flagchange,      "dip_flagchange",      "fs=9");
+    params.getFlagChange(afterdip_flagchange, "afterdip_flagchange", "fs=4");
 }
 
 void DipTestAlgorithm::run()

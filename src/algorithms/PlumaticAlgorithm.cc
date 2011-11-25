@@ -94,14 +94,16 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     Qc2Algorithm::configure(params);
 
     pid = params.getParameter<int>("ParamId");
-    params.getFlagSetCU(discarded_flags, "discarded");
-    params.getFlagChange(highstart_flagchange,  "highstart_flagchange");
-    params.getFlagChange(highsingle_flagchange, "highsingle_flagchange");
-    params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange");
-    params.getFlagChange(aggregation_flagchange, "aggregation_flagchange");
     mStationlist = params.getParameter<std::string>("stations");
     mSlidingAlarms = params.getParameter<std::string>("sliding_alarms");
     UT0extended = params.UT0;
+
+    params.getFlagSetCU(discarded_flags, "discarded", "fr=9|fs=8|fmis=2", "");
+
+    params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
+    params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
+    params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
+    params.getFlagChange(aggregation_flagchange,     "aggregation_flagchange",     "fr=9");
 
     int lookback = maxRainInterrupt+minRainBeforeAndAfter;
     const std::vector<miutil::miString> msa = mSlidingAlarms.split(';');
