@@ -39,20 +39,12 @@ KvalobsDB::KvalobsDB(Qc2App& app)
     : mApp( app )
     , mConnection(0)
 {
-    while( !mApp.isShuttingDown() ) {
-        mConnection = mApp.getNewDbConnection();
-        if( mConnection ) {
-            mDbGate = kvalobs::kvDbGate(mConnection);
-            break;
-        }
-        LOGINFO( "Cannot connect to database now, retry in 5 seconds." );
-        sleep( 5 );
-    }
+    connect();
 }
 
 KvalobsDB::~KvalobsDB()
 {
-    mApp.releaseDbConnection( mConnection );
+    disconnect();
 }
 
 void KvalobsDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
@@ -88,6 +80,35 @@ void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toIn
         sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl;
-    if( !mDbGate.exec(sql.str()) )
-        throw DBException("Database problem with UPDATE/INSERT: " + mDbGate.getErrorStr());
+    if( !mDbGate.exec(sql.str()) ) {
+        std::string message = "Database problem with UPDATE/INSERT: " + mDbGate.getErrorStr();
+        if( !mDbGate.exec("ROLLBACK;") ) {
+            message += "; ROLLBACK also failed; trying to re-connect (timeout messages may appear before this message)";
+            connect();
+        }
+        throw DBException(message);
+    }
+}
+
+void KvalobsDB::connect()
+{
+    if( mConnection != 0 )
+        disconnect();
+    while( !mApp.isShuttingDown() ) {
+        mConnection = mApp.getNewDbConnection();
+        if( mConnection ) {
+            mDbGate = kvalobs::kvDbGate(mConnection);
+            break;
+        }
+        LOGINFO( "Cannot connect to database now, retry in 5 seconds." );
+        sleep( 5 );
+    }
+}
+
+void KvalobsDB::disconnect()
+{
+    if( mConnection != 0 ) {
+        mApp.releaseDbConnection( mConnection );
+        mConnection = 0;
+    }
 }

@@ -46,6 +46,10 @@ public:
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
 
 private:
+    void connect();
+    void disconnect();
+    
+private:
     Qc2App& mApp;
     dnmi::db::Connection* mConnection;
     kvalobs::kvDbGate mDbGate;
