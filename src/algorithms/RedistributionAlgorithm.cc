@@ -350,6 +350,12 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             .cfailed(cfailed.str(), CFAILED_STRING)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
     }
+
+    if( weightedNeighborsAccumulated <= 0.0f ) {
+        error() << "neighbors accumulation <= 0 (" << weightedNeighborsAccumulated
+                << "); cannot redistribute for endpoint " << before.front();
+        return false;
+    }
     
     float corrected_sum = 0;
     const float scale = dry2real(before.front().original()) / weightedNeighborsAccumulated;
