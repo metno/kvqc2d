@@ -3,7 +3,7 @@ kvqc2d (1.3.0-1) unstable; urgency=low
   * Reorganisation of program code, some automatic tests added.
   * Fixes bugzilla 1325 (comment 3+4), 1333, 1327
 
- -- Alexander Bürger <alexander.buerger@met.no>  Mon, 07 Nov 2011 13:52:52 +0100
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 25 Nov 2011 16:47:05 +0100
 
 kvqc2d (1.2.2-1) unstable; urgency=low
 
