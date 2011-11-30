@@ -129,7 +129,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         while( t > tdata ) {
             const RedisUpdate fake(endpoint, t, now, missing, missing, "0000003000002000");
             mdata.insert(it, fake);
-            warning() << "obs_pgm not up-to-date? about to insert missing row " << fake;
+            DBG("about to insert missing row " << fake);
             t = stepTime(t);
         }
         t = stepTime(tdata);
