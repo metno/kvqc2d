@@ -293,6 +293,8 @@ void RedistributionAlgorithm::run()
 
 void RedistributionAlgorithm::redistributeDry(updateList_t& accumulation)
 {
+    // TODO maybe inssert new rows, if missing?
+
     // accumulated value is -1 => nothing to redistribute, all missing values must be dry (-1), too
     foreach(RedisUpdate& a, accumulation) {
         a.corrected(-1)
@@ -351,14 +353,9 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
     }
 
-    if( weightedNeighborsAccumulated <= 0.0f ) {
-        error() << "neighbors accumulation <= 0 (" << weightedNeighborsAccumulated
-                << "); cannot redistribute for endpoint " << before.front();
-        return false;
-    }
-    
     float corrected_sum = 0;
-    const float scale = dry2real(before.front().original()) / weightedNeighborsAccumulated;
+    const float scale = ( weightedNeighborsAccumulated > 0.0f )
+        ? dry2real(before.front().original()) / weightedNeighborsAccumulated : 0.0f;
     foreach(RedisUpdate& b, before) {
         const float corr = Helpers::round(scale * b.corrected());
         corrected_sum += corr;
