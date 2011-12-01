@@ -164,7 +164,7 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const int length, 
         if( head->original()>0 )
             sum += head->original();
         DBGV(sum);
-        if( discarded_flags.matches(head->data()) ) {
+        if( isBadData(*head) ) {
             discarded.push_back(head);
             DBGV(discarded.size());
         }

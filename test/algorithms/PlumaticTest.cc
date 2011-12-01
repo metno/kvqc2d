@@ -576,3 +576,93 @@ TEST_F(PlumaticTest, Dry)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NoCheckOrigNotEqualCorrected)
+{
+    // checks that no flags are set when original != corrected
+    DataList data(27270, 105, 4);
+    data.add("2011-10-01 12:00:00", 0.0, "0101000000000000", "")
+        .add("2011-10-01 12:03:00", 0.1, "0101000000000000", "")
+        // sliding sum of two too high for the next three
+        .add("2011-10-01 12:04:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:05:00", 5.0, 4.0, "0101000000000000", "")
+        .add("2011-10-01 12:06:00", 5.0, "0101000000000000", "")
+
+        .add("2011-10-01 12:07:00", 0.1, "0101000000000000", "")
+
+        .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "")
+        // next two are high start
+        .add("2011-10-01 13:43:00", 0.5, 0.2, "0101000000000000", "")
+        .add("2011-10-01 13:44:00", 0.3, 0.2, "0101000000000000", "")
+        
+        // next two are high start
+        .add("2011-10-01 13:53:00", 0.5, "0101000000000000", "")
+        .add("2011-10-01 13:54:00", 0.3, 0.2, "0101000000000000", "")
+
+        .add("2011-10-01 14:00:00", 0,   "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 1);
+    ASSERT_OBS_CONTROL_CFAILED("2011-10-01 13:53:00", "010A002000000000", "QC2h-1-highstart", bc->update(0));
+
+    data.add("2011-10-01 12:05:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 13:43:00", 0.5, "0101000000000000", "")
+        .add("2011-10-01 13:44:00", 0.3, "0101000000000000", "")
+        .add("2011-10-01 13:53:00", 0.5, "0101000000000000", "") // to reset flags from previous run
+        .add("2011-10-01 13:54:00", 0.3, "0101000000000000", "");
+    ASSERT_NO_THROW(data.update(db));
+
+    ASSERT_RUN(algo, bc, 3+2+2);
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:04:00", "0901002000000000", "QC2h-1-aggregation-2", bc->update(0));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:05:00", "0901002000000000", "QC2h-1-aggregation-2", bc->update(1));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:06:00", "0901002000000000", "QC2h-1-aggregation-2", bc->update(2));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:43:00", "010A002000000000", "QC2h-1-highstart", bc->update(3));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:44:00", "010A002000000000", "QC2h-1-highstart", bc->update(4));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:53:00", "010A002000000000", "QC2h-1-highstart", bc->update(5));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:54:00", "010A002000000000", "QC2h-1-highstart", bc->update(6));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NoCheckBadFlags)
+{
+    // checks that no flags are set when fhqc/fmis/... are set from before
+    DataList data(27270, 105, 4);
+    data.add("2011-10-01 12:00:00", 0.0, "0101000000000000", "")
+        .add("2011-10-01 12:03:00", 0.1, "0101000000000000", "")
+        // sliding sum of two too high for the next three
+        .add("2011-10-01 12:04:00", 5.0, "0101002000000000", "")
+        .add("2011-10-01 12:05:00", 5.0, "0101002000000000", "")
+        .add("2011-10-01 12:06:00", 5.0, "0101002000000000", "")
+
+        .add("2011-10-01 12:07:00", 0.1, "0101000000000000", "")
+
+        .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "")
+        // next two are high start
+        .add("2011-10-01 13:43:00", 0.5, "0101000000000001", "")
+        .add("2011-10-01 13:44:00", 0.3, "0101000000000001", "")
+        
+        .add("2011-10-01 14:00:00", 0,   "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    data.add("2011-10-01 12:04:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:05:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:06:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 13:43:00", 0.5, "0101000000000000", "")
+        .add("2011-10-01 13:44:00", 0.3, "0101000000000000", "");
+    ASSERT_NO_THROW(data.update(db));
+
+    ASSERT_RUN(algo, bc, 3+2);
+}
