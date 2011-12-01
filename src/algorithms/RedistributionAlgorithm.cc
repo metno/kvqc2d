@@ -43,7 +43,6 @@
 namespace C = Constraint;
 namespace O = Ordering;
 using Helpers::equal;
-using kvQCFlagTypes::f_fhqc;
 
 static const unsigned int MIN_NEIGHBORS = 1;
 
@@ -114,9 +113,9 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
                       << m << " for accumulation ending in " << endpoint;
             return false;
         }
-        if( m.controlinfo().flag(f_fhqc) != 0 ) {
-            warning() << "missing point has fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc)
-                      << ") for accumulation ending in " << endpoint;
+        if( warn_and_stop_flags.matches(m.data()) ) {
+            warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
+                      << endpoint;
             return false;
         }
 
@@ -224,10 +223,11 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(endpoint_flags,     "endpoint",     "fmis=4&fd=2",      "");
-    params.getFlagSetCU(missingpoint_flags, "missingpoint", "fmis=3&fd=2",      "");
-    params.getFlagSetCU(before_flags,       "before",       "fmis=[04]",        "");
-    params.getFlagSetCU(neighbor_flags,     "neighbor",     "fd=1",             "U2=0");
+    params.getFlagSetCU(endpoint_flags,      "endpoint",            "fmis=4&fd=2", "");
+    params.getFlagSetCU(missingpoint_flags,  "missingpoint",        "fmis=3&fd=2", "");
+    params.getFlagSetCU(before_flags,        "before",              "fmis=[04]",   "");
+    params.getFlagSetCU(neighbor_flags,      "neighbor",            "fd=1",        "U2=0");
+    params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(",    "");
     params.getFlagChange(update_flagchange, "update_flagchange", "fd=7;fmis=3->fmis=1;fmis=0->fmis=4");
 
     pids = params.getMultiParameter<int>("ParamId");
@@ -260,9 +260,8 @@ void RedistributionAlgorithm::run()
         lastStationId = endpoint.stationID();
         lastObstime   = endpoint.obstime();
 
-        if( endpoint.controlinfo().flag(f_fhqc) != 0 ) {
-            warning() << "fhqc!=0 (" << endpoint.controlinfo().flag(f_fhqc)
-                      << ") for accumulation endpoint " << endpoint;
+        if( warn_and_stop_flags.matches(endpoint) ) {
+            warning() << "endpoint matches warn_and_stop_flags: " << endpoint;
             continue;
         }
 

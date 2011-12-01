@@ -67,7 +67,7 @@ private:
 
 private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;
-    FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags;
+    FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags, warn_and_stop_flags;
     FlagChange update_flagchange;
     std::vector<int> pids;
     std::vector<int> tids;
