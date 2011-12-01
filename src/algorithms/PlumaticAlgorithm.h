@@ -10,9 +10,10 @@
 
 class PlumaticAlgorithm : public Qc2Algorithm {
 public:
-    typedef std::list<kvalobs::kvData> kvDataOList_t;
-    typedef std::list<DataUpdate> kvDataList_t;
-    typedef kvDataList_t::iterator kvDataList_it;
+    typedef std::list<kvalobs::kvData> kvDataList_t;
+    typedef std::list<DataUpdate> kvUpdateList_t;
+    typedef kvUpdateList_t::iterator kvUpdateList_it;
+    typedef kvUpdateList_t::const_iterator kvUpdateList_cit;
 
     PlumaticAlgorithm()
         : Qc2Algorithm("Plumatic") { }
@@ -21,42 +22,9 @@ public:
     virtual void run();
 
 private:
-    class Navigator {
-    public:
-        Navigator(kvDataList_it begin, kvDataList_it end, const FlagSetCU& df)
-            : mBegin(begin), mEnd(end), mLast(--end), discarded_flags(df) { }
-
-        kvDataList_it previousNot0(kvDataList_it it);
-        
-        kvDataList_it nextNot0(kvDataList_it it);
-
-        kvDataList_it begin()
-            { return mBegin; }
-        
-        kvDataList_it end()
-            { return mEnd; }
-
-    private:
-        bool is0OrDiscarded(const kvDataList_it& it) const;
-
-    private:
-        const kvDataList_it mBegin, mEnd, mLast;
-        const FlagSetCU& discarded_flags;
-    };
-
-    struct Info {
-        Navigator& nav;
-        kvDataList_it d, prev, next;
-        int dryMinutesBefore, dryMinutesAfter;
-        miutil::miTime beforeUT0, afterUT1;
-        float mmpv;
-        Info(Navigator& n);
-    };
-
-    enum CheckResult {
-        NO = 0,
-        YES = 1,
-        DONT_KNOW = 2
+    struct Shower {
+        kvUpdateList_it first, last;
+        int duration;
     };
 
     static int minutesBetween(const miutil::miTime& t0, const miutil::miTime& t1)
@@ -64,18 +32,24 @@ private:
 
     void checkStation(int stationid, float mmpv);
 
-    void checkSlidingSums(kvDataList_t& data);
-    void checkSlidingSum(kvDataList_t& data, int length, float maxi);
+    void checkSlidingSums(kvUpdateList_t& data);
+    void checkSlidingSum(kvUpdateList_t& data, int length, float maxi);
 
-    CheckResult isRainInterruption(const Info& info);
-    CheckResult isHighSingle(const Info& info);
-    CheckResult isHighStart(const Info& info);
+    void checkShowers(kvUpdateList_t& data, float mmpv);
+    bool isBadData(const DataUpdate& data);
+    bool checkRainInterruption(const Shower& shower, const Shower& previousShower, const float mmpv);
+    bool checkHighSingle(const Shower& shower, const float mmpv);
+    int  checkHighStartLength(const Shower& shower, const float mmpv);
 
-    void flagRainInterruption(Info& info, kvDataList_t& data);
-    void flagHighSingle(Info& info);
-    void flagHighStart(Info& info);
+    void flagRainInterruption(const Shower& shower, const Shower& previousShower, kvUpdateList_t& data);
+    void flagHighSingle(const Shower& shower);
+    void flagHighStart(const Shower& shower, int length);
 
-    void storeUpdates(const kvDataList_t& data);
+    void storeUpdates(const kvUpdateList_t& data);
+
+    Shower findFirstShower(kvUpdateList_t& data);
+    Shower findNextShower(const Shower& s, const kvUpdateList_it& end);
+    Shower findShowerForward(const kvUpdateList_it& begin, const kvUpdateList_it& end);
 
 private:
     int pid;

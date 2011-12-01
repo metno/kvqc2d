@@ -53,42 +53,6 @@ const int minRainBeforeAndAfter = 2;
 
 }; // anonymous namespace
 
-PlumaticAlgorithm::Info::Info(Navigator& n)
-    : nav(n)
-{
-}
-
-/* return previous non-0 precipitation, or end() if that does not exist */
-PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::previousNot0(kvDataList_it it)
-{
-    if( it == begin() )
-        return end();
-
-    --it;
-    while(is0OrDiscarded(it)) {
-        if( it == begin() )
-            return end();
-        --it;
-    }
-    return it;
-}
-    
-/* return next non-0 precipitation, or end() if that does not exist */
-PlumaticAlgorithm::kvDataList_it PlumaticAlgorithm::Navigator::nextNot0(kvDataList_it it)
-{
-    if( it == end() )
-        return end();
-    ++it;
-    while(it != end() && is0OrDiscarded(it))
-        ++it;
-    return it;
-}
-
-bool PlumaticAlgorithm::Navigator::is0OrDiscarded(const kvDataList_it& it) const
-{
-    return (it->original() == 0.0f || discarded_flags.matches(it->data()));
-}
-
 void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
@@ -143,64 +107,18 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
     const C::DBConstraint cSeries = C::Station(stationid)
         && C::Paramid(pid) && C::Obstime(UT0extended, UT1);
 
-    kvDataOList_t datao;
-    database()->selectData(datao, cSeries, O::Obstime());
-    if( datao.empty() )
+    kvDataList_t data_orig;
+    database()->selectData(data_orig, cSeries, O::Obstime());
+    if( data_orig.empty() )
         return;
-    kvDataList_t data(datao.begin(), datao.end());
+    kvUpdateList_t data(data_orig.begin(), data_orig.end());
 
-    Navigator nav(data.begin(), data.end(), discarded_flags);
-    Info info(nav);
-    info.mmpv = mmpv;
-    info.beforeUT0 = UT0extended; info.beforeUT0.addMin(-1);
-    info.afterUT1  = UT1;         info.afterUT1 .addMin( 1);
-
-    for(kvDataList_it d = nav.begin(); d != nav.end(); ++d) {
-        if( d->obstime() < UT0 || discarded_flags.matches(d->data()))
-            continue;
-
-        info.d    = d;
-        info.prev = nav.previousNot0(d);
-        info.next = nav.nextNot0(d);
-        info.dryMinutesBefore = minutesBetween(d->obstime(), info.prev != nav.end() ? info.prev->obstime() : info.beforeUT0) - 1;
-        info.dryMinutesAfter  = minutesBetween(info.next != nav.end() ? info.next->obstime() : info.afterUT1, d->obstime()) - 1;
-
-        CheckResult ri = isRainInterruption(info), hsi = isHighSingle(info), hst = isHighStart(info);
-
-        if( ri != NO ) {
-            if( ri == YES ) {
-                INF("rain interruption between " << *info.prev << " and " << *d);
-                flagRainInterruption(info, data);
-            } else {
-                if( info.prev != nav.end() ) {
-                    DBG("maybe rain interruption between " << *info.prev << " and " << *d);
-                } else {
-                    DBG("maybe rain interruption since start (" << UT0 << ") and until " << *d);
-                }
-            }
-        } else if( hsi != NO ) {
-            if( hsi == YES ) {
-                DBG("very unlikely value for single point " << *d);
-                flagHighSingle(info);
-            } else {
-                DBG("maybe unlikely value for single point " << *d);
-            }
-        } else if( hst != NO ) {
-            if( hst == YES ) {
-                DBG("very unlikely value for start point " << *d);
-                flagHighStart(info);
-            } else {
-                DBG("maybe unlikely value for start point " << *d);
-            }
-        }
-    }
-    
+    checkShowers(data, mmpv);
     checkSlidingSums(data);
-
     storeUpdates(data);
 }
 
-void PlumaticAlgorithm::checkSlidingSums(kvDataList_t& data)
+void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
 {
     int lastlength = 2;
     const std::vector<miutil::miString> msa = mSlidingAlarms.split(';');
@@ -219,15 +137,15 @@ void PlumaticAlgorithm::checkSlidingSums(kvDataList_t& data)
     }
 }
 
-void PlumaticAlgorithm::checkSlidingSum(kvDataList_t& data, const int length, const float maxi)
+void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const int length, const float maxi)
 {
     DBG("length=" << length << " maxi=" << maxi);
     std::ostringstream cfailed;
     cfailed << "QC2h-1-aggregation-" << length;
-    kvDataList_it head = data.begin(), tail = data.begin();
+    kvUpdateList_it head = data.begin(), tail = data.begin();
     float sum = 0;
-    std::list<kvDataList_it> discarded;
-    //std::list<kvDataList_it> flagged;
+    std::list<kvUpdateList_it> discarded;
+    //std::list<kvUpdateList_it> flagged;
     for(; head != data.end(); ++head) {
         DBG("head=" << *head << " tail=" << *tail << "minutes=" << minutesBetween(head->obstime(), tail->obstime()));
         for( ; minutesBetween(head->obstime(), tail->obstime()) >= length; ++tail ) {
@@ -253,100 +171,126 @@ void PlumaticAlgorithm::checkSlidingSum(kvDataList_t& data, const int length, co
         if( sum >= maxi /*&& flagged.empty()*/ && discarded.empty() ) {
             //flagged.push_back(head);
             //DBGV(flagged.size());
-            kvDataList_it stop = head; stop++;
-            for(kvDataList_it mark = tail; mark != stop; ++mark)
+            kvUpdateList_it stop = head; stop++;
+            for(kvUpdateList_it mark = tail; mark != stop; ++mark)
                 mark->controlinfo(aggregation_flagchange.apply(mark->controlinfo()))
                     . cfailed(cfailed.str(), CFAILED_STRING);
         }
     }
 }
 
-PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isRainInterruption(const Info& info)
+void PlumaticAlgorithm::checkShowers(kvUpdateList_t& data, float mmpv)
 {
-    if( info.d->original() < info.mmpv*vippsRainInterrupt )
-        return NO;
-    if( info.prev == info.nav.end() )
-        return (info.dryMinutesBefore > maxRainInterrupt ? NO : DONT_KNOW);
-    if( info.dryMinutesBefore > maxRainInterrupt  || info.dryMinutesBefore < 1 )
-        return NO;
-    if( info.prev->original() < info.mmpv*vippsRainInterrupt )
-        return NO;
-
-    // check that there is some rain before and after the "interrruption"
-    int nBefore = 1;
-    kvDataList_it before = info.prev, b0;
-    while( (b0 = info.nav.previousNot0(before)) != info.nav.end() && miutil::miTime::minDiff(before->obstime(), b0->obstime()) == 1 ) {
-        before = b0;
-        nBefore += 1;
+    Shower previousShower = { data.end(), data.end(), 0 };
+    for(Shower shower = findFirstShower(data); shower.first != data.end(); shower = findNextShower(shower, data.end())) {
+        if( previousShower.duration != 0 && checkRainInterruption(shower, previousShower, mmpv) ) {
+            flagRainInterruption(shower, previousShower, data);
+        } else if( checkHighSingle(shower, mmpv) ) {
+            flagHighSingle(shower);
+        } else {
+            int length = checkHighStartLength(shower, mmpv);
+            if( length>0 )
+                flagHighStart(shower, length);
+        }
+        previousShower = shower;
     }
-    //DBG("    nBefore = " << nBefore << " start = " << (b0 == info.nav.end()));
-
-    int nAfter = 2; // info.d and info.next are already after the gap, so we have minimum 2 after
-    kvDataList_it after = info.next, a0;
-    while( (a0 = info.nav.nextNot0(after)) != info.nav.end() && miutil::miTime::minDiff(a0->obstime(), after->obstime()) == 1 ) {
-        after = a0;
-        nAfter += 1;
-    }
-    //DBG("    nAfter = " << nAfter << " end = " << (a0 == info.nav.end()));
-
-    if( a0 == info.nav.end() && nAfter < minRainBeforeAndAfter )
-        return DONT_KNOW;
-
-    return (nAfter >= minRainBeforeAndAfter && nBefore >= minRainBeforeAndAfter) ? YES : NO;
 }
 
-PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighSingle(const Info& info)
+bool PlumaticAlgorithm::isBadData(const DataUpdate& data)
 {
-    if( info.d->original() < info.mmpv*vippsUnlikelySingle) {
-        DBG("original[=" << info.d->original() << "] < threshold[=" << info.mmpv*vippsUnlikelySingle <<"]");
-        return NO;
-    }
-    if( info.dryMinutesBefore<1 || info.dryMinutesAfter<1 )
-        return NO;
-    if( info.prev == info.nav.end() && info.dryMinutesBefore == 1 )
-        return DONT_KNOW;
-    if( info.next == info.nav.end() && info.dryMinutesAfter == 1 )
-        return DONT_KNOW;
-    return YES;
+    return !Helpers::equal(data.original(), data.corrected())
+        || discarded_flags.matches(data.data());
 }
 
-PlumaticAlgorithm::CheckResult PlumaticAlgorithm::isHighStart(const Info& info)
+bool PlumaticAlgorithm::checkRainInterruption(const Shower& shower, const Shower& previousShower, const float mmpv)
 {
-    if( info.d->original() < info.mmpv*vippsUnlikelyStart) {
-        DBG("original[=" << info.d->original() << "] < threshold[=" << info.mmpv*vippsUnlikelyStart <<"]");
-        return NO;
+    if( shower.duration < minRainBeforeAndAfter
+        || previousShower.duration < minRainBeforeAndAfter )
+    {
+        return false;
     }
-    if( info.dryMinutesBefore < 1 )
-        return NO;
-    if( info.dryMinutesBefore == 1 && info.prev == info.nav.end() )
-        return DONT_KNOW;
-    if( info.dryMinutesAfter < 1 )
-        return YES;
-    if( info.dryMinutesAfter == 1 && info.next == info.nav.end() )
-        return DONT_KNOW;
-    return YES;
+
+    const float threshold = mmpv*vippsRainInterrupt;
+    if( shower.first->original() < threshold || previousShower.last->original() < threshold )
+        return false;
+
+    const int interruption = miutil::miTime::minDiff(shower.first->obstime(), previousShower.last->obstime());
+    if( interruption > maxRainInterrupt )
+        return false;
+
+    // check for bad data in the two minutes before after the interruption
+    kvUpdateList_it it = shower.first;
+    if( isBadData(*it) )
+        return false;
+    ++it;
+    if( isBadData(*it) )
+        return false;
+    it = previousShower.last;
+    if( isBadData(*it) )
+        return false;
+    --it;
+    if( isBadData(*it) )
+        return false;
+
+    return true;
 }
 
-void PlumaticAlgorithm::flagRainInterruption(Info& info, kvDataList_t& data)
+bool PlumaticAlgorithm::checkHighSingle(const Shower& shower, const float mmpv)
+{
+    if( shower.duration != 1 )
+        return false;
+    
+    if( isBadData(*shower.first) )
+        return false;
+
+    const float threshold = mmpv*vippsUnlikelySingle;
+    if( shower.first->original() < threshold )
+        return false;
+
+    return true;
+}
+
+int PlumaticAlgorithm::checkHighStartLength(const Shower& shower, const float mmpv)
+{
+    if( shower.duration < 2 )
+        return 0;
+
+    int n = 0;
+    const float threshold = mmpv*vippsUnlikelyStart-0.05;
+    kvUpdateList_it end = shower.last; ++end;
+    for(kvUpdateList_it it = shower.first; it != end && !isBadData(*it); ++it) {
+        if( it->original() < threshold )
+            break;
+        else
+            n += 1;
+    }
+
+    return n;
+}
+
+void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower& previousShower, kvUpdateList_t& data)
 {
     const miutil::miTime now = miutil::miTime::nowTime();
-    miutil::miTime t = info.prev->obstime(); t.addMin(1);
-    for(; t<info.d->obstime(); t.addMin(1)) {
-        DBG("t=" << t);
 
+    miutil::miTime t = previousShower.last->obstime();
+    t.addMin(1);
+
+    for(; t<shower.first->obstime(); t.addMin(1)) {
+        DBG("t=" << t);
+        
         bool needInsert = true;
-        kvDataList_t::iterator it = info.prev;
-        for( ; it != info.d; ++it ) {
+        kvUpdateList_t::iterator it = previousShower.last;
+        for( ; it != shower.first; ++it ) {
             if( t == it->obstime() ) {
                 needInsert = false;
                 break;
             }
         }
         if( needInsert ) {
-            DataUpdate insert(info.d->data(), t, now, 0.0, missing, "0008002000000000");
+            DataUpdate insert(shower.first->data(), t, now, 0.0, missing, "0008002000000000");
             insert.controlinfo(interruptedrain_flagchange.apply(insert.controlinfo()))
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
-            data.insert(info.d, insert);
+            data.insert(shower.first, insert);
         } else {
             it->controlinfo(interruptedrain_flagchange.apply(it->controlinfo()))
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
@@ -354,21 +298,24 @@ void PlumaticAlgorithm::flagRainInterruption(Info& info, kvDataList_t& data)
     }
 }
 
-void PlumaticAlgorithm::flagHighSingle(Info& info)
+void PlumaticAlgorithm::flagHighSingle(const Shower& shower)
 {
-    info.d->controlinfo(highsingle_flagchange.apply(info.d->controlinfo()))
+    shower.first->controlinfo(highsingle_flagchange.apply(shower.first->controlinfo()))
         .cfailed("QC2h-1-highsingle", CFAILED_STRING);
 }
 
-void PlumaticAlgorithm::flagHighStart(Info& info)
+void PlumaticAlgorithm::flagHighStart(const Shower& shower, int length)
 {
-    info.d->controlinfo(highstart_flagchange.apply(info.d->controlinfo()))
-        .cfailed("QC2h-1-highstart", CFAILED_STRING);
+    kvUpdateList_it it = shower.first;
+    for(int i=0; i<length; ++i, ++it) {
+        it->controlinfo(highstart_flagchange.apply(it->controlinfo()))
+            .cfailed("QC2h-1-highstart", CFAILED_STRING);
+    }
 }
 
-void PlumaticAlgorithm::storeUpdates(const kvDataList_t& data)
+void PlumaticAlgorithm::storeUpdates(const kvUpdateList_t& data)
 {
-    kvDataOList_t toInsert, toUpdate;
+    kvDataList_t toInsert, toUpdate;
     foreach(const DataUpdate& du, data) {
         if( du.isModified() ) {
             DBG(du);
@@ -383,4 +330,37 @@ void PlumaticAlgorithm::storeUpdates(const kvDataList_t& data)
         DBG("no updates/inserts");
 #endif
     storeData(toUpdate, toInsert);
+}
+
+PlumaticAlgorithm::Shower PlumaticAlgorithm::findFirstShower(kvUpdateList_t& data)
+{
+    return findShowerForward(data.begin(), data.end());
+}
+
+PlumaticAlgorithm::Shower PlumaticAlgorithm::findNextShower(const Shower& s, const kvUpdateList_it& end)
+{
+    kvUpdateList_it begin = s.last;
+    begin++;
+    return findShowerForward(begin, end);
+}
+
+PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateList_it& begin, const kvUpdateList_it& end)
+{
+    Shower f = { begin, end, 0 };
+    while(f.first != end && (f.first->obstime() < UT0 || f.first->original() < 0.05))
+        ++f.first;
+    f.last = f.first;
+    if( f.last != end ) {
+        ++f.last;
+        miutil::miTime t = f.first->obstime();
+        t.addMin(1);
+        while( f.last != end && f.first->original() >= 0.05 && f.last->obstime() == t ) {
+            ++f.last;
+            t.addMin(1);
+        }
+        --f.last;
+        f.duration = 1 + minutesBetween(f.last->obstime(), f.first->obstime());
+        DBG("last=" << f.last->obstime() << " first=" << f.first->obstime() << " duration=" << f.duration);
+    }
+    return f;
 }
