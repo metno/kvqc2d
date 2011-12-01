@@ -707,7 +707,7 @@ TEST_F(RedistributionTest, NeighborsTooFar)
 
 // ------------------------------------------------------------------------
 
-TEST_F(RedistributionTest, BoneDry)
+TEST_F(RedistributionTest, BoneDrySomeNeighbors)
 {
     // check correct redistribution of -1 values
     DataList data(83880, 110, 302);
@@ -736,7 +736,147 @@ TEST_F(RedistributionTest, BoneDry)
     ASSERT_NO_THROW(algo->run());
     ASSERT_EQ(2, bc->count());
 
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, DrySomeNeighborsBoneDry)
+{
+    // check correct redistribution of -1 values
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-14 06:00:00",    0.0, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
+        .setStation(84070)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.0, bc->update(1));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, DryAllNeighborsBoneDry)
+{
+    // check correct redistribution of -1 values
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-14 06:00:00",    0.0, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84070)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, BoneDryAllNeighbors)
+{
+    // check correct redistribution of -1 values
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-14 06:00:00",    0.1, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.1, "0110000000001000", "")
+        .setStation(84070)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, BoneDryMissingRows)
+{
+    // check correct redistribution of -1 values
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+        //.add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-14 06:00:00",    0.1, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.1, "0110000000001000", "")
+        .setStation(84070)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
 }
 
@@ -1039,15 +1179,15 @@ TEST_F(RedistributionTest, NonMeasureableNeighbors)
        .add("2011-10-14 06:00:00",    0.3, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
         .setStation(83520)
        .add("2011-10-12 06:00:00",    0.0, "0110000000001000", "")
-       .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+       .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
         .setStation(84190)
        .add("2011-10-12 06:00:00",    0.0, "0110000000001000", "")
-       .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+       .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
         .setStation(84070)
        .add("2011-10-12 06:00:00",    0.0, "0110000000001000", "")
-       .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+       .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
     ASSERT_NO_THROW(data.insert(db));
 
@@ -1056,6 +1196,44 @@ TEST_F(RedistributionTest, NonMeasureableNeighbors)
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", -1.0, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", -1.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.0, bc->update(1));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, DryNoNeighbors)
+{
+   DataList data(83880, 110, 302);
+   data.add("2011-10-12 06:00:00",    0.0, "0140000000001000", "QC1-2-72.b12")
+       .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+       .add("2011-10-14 06:00:00",    0.0, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, BoneDryNoNeighbors)
+{
+   DataList data(83880, 110, 302);
+   data.add("2011-10-12 06:00:00",    0.0, "0140000000001000", "QC1-2-72.b12")
+       .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+       .add("2011-10-14 06:00:00",     -1, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
 }

@@ -14,14 +14,15 @@ private:
     class RedisUpdate : public DataUpdate {
     public:
         RedisUpdate()
-            : DataUpdate(), mHasNeigboursWithPrecipitation(false) { }
+            : DataUpdate(), mHasNeigboursWithPrecipitation(false), mHasAllNeighborsBoneDry(false) { }
 
         RedisUpdate(const kvalobs::kvData& data)
-            : DataUpdate(data), mHasNeigboursWithPrecipitation(false) { }
+            : DataUpdate(data), mHasNeigboursWithPrecipitation(false), mHasAllNeighborsBoneDry(false) { }
 
         RedisUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
                     float original, float corrected, const std::string& controlinfo)
-            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo), mHasNeigboursWithPrecipitation(false) { }
+            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo),
+              mHasNeigboursWithPrecipitation(false), mHasAllNeighborsBoneDry(false) { }
 
         RedisUpdate& setHasNeighborsWithPrecipitation()
             { mHasNeigboursWithPrecipitation = true; return *this; }
@@ -29,8 +30,15 @@ private:
         bool hasNeighborsWithPrecipitation() const
             { return mHasNeigboursWithPrecipitation; }
 
-        private:
+        RedisUpdate& setHasAllNeighborsBoneDry(bool anbd)
+            { mHasAllNeighborsBoneDry = anbd; return *this; }
+
+        bool hasAllNeighborsBoneDry() const
+            { return mHasAllNeighborsBoneDry; }
+
+    private:
         bool mHasNeigboursWithPrecipitation;
+        bool mHasAllNeighborsBoneDry;
     };
 
     typedef std::list<kvalobs::kvData> dataList_t;
@@ -51,7 +59,7 @@ private:
     bool findPointBeforeMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, kvalobs::kvData& latestBefore);
 
     bool getNeighborData(const updateList_t& accumulation, dataList_t& ndata);
-    void redistributeDry(updateList_t& accumulation);
+    void redistributeBoneDry(updateList_t& accumulation);
     bool redistributePrecipitation(updateList_t& accumulation);
     void updateOrInsertData(const updateList_t& toStore);
     

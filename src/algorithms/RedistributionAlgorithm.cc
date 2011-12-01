@@ -279,7 +279,7 @@ void RedistributionAlgorithm::run()
             continue;
 
         if( equal(endpoint.original(), -1.0f) ) {
-            redistributeDry(accumulation);
+            redistributeBoneDry(accumulation);
         } else {
             if( !redistributePrecipitation(accumulation) )
                 continue;
@@ -291,15 +291,13 @@ void RedistributionAlgorithm::run()
 
 // ------------------------------------------------------------------------
 
-void RedistributionAlgorithm::redistributeDry(updateList_t& accumulation)
+void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
 {
-    // TODO maybe inssert new rows, if missing?
-
     // accumulated value is -1 => nothing to redistribute, all missing values must be dry (-1), too
     foreach(RedisUpdate& a, accumulation) {
         a.corrected(-1)
             .controlinfo(update_flagchange.apply(a.controlinfo()))
-            .cfailed("Qc2-redist-dry", CFAILED_STRING);
+            .cfailed("QC2-redist-bonedry", CFAILED_STRING);
     }
 }
 
@@ -307,8 +305,11 @@ void RedistributionAlgorithm::redistributeDry(updateList_t& accumulation)
 
 bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 {
+    const float accumulated = before.front().original();
+    const bool accumulationIsDry = equal(accumulated, 0.0f);
+
     dataList_t ndata;
-    if( !getNeighborData(before, ndata) )
+    if( !getNeighborData(before, ndata) && !accumulationIsDry )
         return false;
 
     // neighbor data are in ndata like this:
@@ -325,12 +326,15 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         cfailed << "QC2N";
         float sumWeights = 0.0, sumWeightedValues = 0.0;
         unsigned int goodNeighbors = 0;
+        bool allNeighborsBoneDry = true; // true to assume dry if no neighbors
         for( ; itN != ndata.end() && itN->obstime() == b.obstime(); ++itN ) {
             const float neighborValue = dry2real(itN->original());
-            if( neighborValue <= -1.0f )
+            if( neighborValue <= -2.0f )
                 continue;
             const double weight = mNeighbors->getWeight(itN->stationID());
             if( weight > 0 ) {
+                if( !equal(itN->original(), -1.0f) )
+                    allNeighborsBoneDry = false;
                 if( neighborValue > 0.15f )
                     b.setHasNeighborsWithPrecipitation();
                 sumWeights        += weight;
@@ -339,7 +343,8 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
                 cfailed << "_" << itN->stationID();
             }
         }
-        if( goodNeighbors < MIN_NEIGHBORS ) {
+        b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
+        if( goodNeighbors < MIN_NEIGHBORS && !accumulationIsDry ) {
             warning() << "not enough good neighbors at t=" << b.obstime()
                       << " for accumulation ending in " << before.front();
             return false;
@@ -349,33 +354,38 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     
         cfailed << ",QC2-redist";
         b.corrected(weightedNeighbors)
-            .cfailed(cfailed.str(), CFAILED_STRING)
+            .cfailed(accumulationIsDry && goodNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
     }
 
     float corrected_sum = 0;
     const float scale = ( weightedNeighborsAccumulated > 0.0f )
-        ? dry2real(before.front().original()) / weightedNeighborsAccumulated : 0.0f;
+        ? accumulated / weightedNeighborsAccumulated : 0.0f;
     foreach(RedisUpdate& b, before) {
         const float corr = Helpers::round(scale * b.corrected());
         corrected_sum += corr;
-        b.corrected(real2dry(corr)); // bugzilla 1304: by default assume dry
+        if( b.hasAllNeighborsBoneDry() )
+            b.corrected(-1.0f);
+        else
+            b.corrected(corr);
     }
 
     // make sure that sum of re-distributed is the same as the original accumulated value
-    float delta = Helpers::round(corrected_sum - dry2real(before.front().original()));
-    foreach(RedisUpdate& b, before) {
-        if( delta <= 0.0f )
-            break;
-        const float corr = b.corrected(), threshold = b.hasNeighborsWithPrecipitation() ? (delta+0.1) : 0.05;
-        if( corr >= threshold ) {
-            const float newCorr = std::max(Helpers::round(corr - delta), 0.0f);
-            b.corrected(newCorr);
-            delta = Helpers::round(delta - (corr - newCorr));
+    float delta = Helpers::round(corrected_sum - accumulated);
+    if( !accumulationIsDry ) {
+        foreach(RedisUpdate& b, before) {
+            if( fabs(delta) <= 0.05f )
+                break;
+            const float corr = b.corrected(), threshold = b.hasNeighborsWithPrecipitation() ? (delta+0.1) : 0.05;
+            if( corr >= threshold ) {
+                const float newCorr = std::max(Helpers::round(corr - delta), 0.0f);
+                b.corrected(newCorr);
+                delta = Helpers::round(delta - (corr - newCorr));
+            }
         }
     }
-    if( delta > 0.05 ) {
-        warning() << "could not avoid difference between distributed sum"
+    if( fabs(delta) > 0.05 ) {
+        warning() << "could not avoid difference of " << fabs(delta) << " between distributed sum "
                   << " and accumulated value at endpoint=" << before.front();
     }
     return true;
