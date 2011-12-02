@@ -1,3 +1,10 @@
+kvqc2d (1.3.1-1) unstable; urgency=low
+
+  * Plumatic: disabled for operation tests.
+  * Redistribution: changed warnings and no-rain redistribution.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 02 Dec 2011 10:12:59 +0100
+
 kvqc2d (1.3.0-1) unstable; urgency=low
 
   * Reorganisation of program code, some automatic tests added.
