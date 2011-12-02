@@ -103,7 +103,7 @@ sub logtable_files {
     my ($filebase, $since) = @_;
     my $html = "";
     for (my $count = $maxlogs; $count >= 1; $count--) {
-        $html .= logtable_file("$filebase.$count");
+        $html .= logtable_file("$filebase.$count", $since);
     }
     $html .= logtable_file("$filebase", $since);
     if( $html ) {
