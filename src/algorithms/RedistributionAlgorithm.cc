@@ -228,7 +228,7 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagSetCU(before_flags,        "before",              "fmis=[04]",   "");
     params.getFlagSetCU(neighbor_flags,      "neighbor",            "fd=1",        "U2=0");
     params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(",    "");
-    params.getFlagChange(update_flagchange, "update_flagchange", "fd=7;fmis=3->fmis=1;fmis=0->fmis=4");
+    params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=[34]->fmis=1");
 
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
