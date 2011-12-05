@@ -3,11 +3,10 @@ Section: science
 Priority: extra
 Maintainer: Met.no Kvalobs Developers <kvalobs-dev@met.no>
 Build-Depends: debhelper (>= 5), autotools-dev, lsb-base, g++ (>= 4.1.1),
- debconf, automake, libtool,  libsqlite3-dev (>= 3.3.8), libgsl0-dev (>= 1.8),
+ automake, libsqlite3-dev (>= 3.3.8), libgsl0-dev (>= 1.8),
  libboost-dev (>= 1.33.1), libboost-thread-dev (>= 1.33.1),
- libboost-regex-dev (>= 1.33.1), libboost-filesystem-dev (>= 1.33.1),
- libboost-program-options-dev (>= 1.33.1), libomniorb4-dev (>= 4.0.6),
- omniidl4 (>= 4.0.6), metlibs-putools-dev (>= 3.0), libkvcpp-dev (>= 2.1.2)
+ libboost-filesystem-dev (>= 1.33.1), libomniorb4-dev (>= 4.0.6),
+ metlibs-putools-dev (>= 3.0), libkvcpp-dev (>= 2.1.2)
 Standards-Version: 3.7.2
 
 Package: kvqc2d

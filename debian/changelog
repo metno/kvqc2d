@@ -1,3 +1,10 @@
+kvqc2d (1.3.2-1) unstable; urgency=low
+
+  * Redistribution: removed before_*flags
+  * Plumatic: fixed bug
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 05 Dec 2011 17:01:11 +0100
+
 kvqc2d (1.3.1-1) unstable; urgency=low
 
   * Plumatic: disabled for operation tests.
