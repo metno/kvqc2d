@@ -55,8 +55,7 @@ public:
 private:
     std::list<int> findNeighbors(int stationID);
 
-    bool findMissing(const kvalobs::kvData& endpoint, const kvalobs::kvData& beforeMissing, updateList_t& accumulation);
-    bool findPointBeforeMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, kvalobs::kvData& latestBefore);
+    bool findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& accumulation);
 
     bool getNeighborData(const updateList_t& accumulation, dataList_t& ndata);
     void redistributeBoneDry(updateList_t& accumulation);
@@ -67,7 +66,7 @@ private:
 
 private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;
-    FlagSetCU endpoint_flags, missingpoint_flags, before_flags, neighbor_flags, warn_and_stop_flags;
+    FlagSetCU endpoint_flags, missingpoint_flags, neighbor_flags, warn_and_stop_flags;
     FlagChange update_flagchange;
     std::vector<int> pids;
     std::vector<int> tids;

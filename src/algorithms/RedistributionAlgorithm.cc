@@ -87,12 +87,13 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 
 // ------------------------------------------------------------------------
 
-bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const kvalobs::kvData& beforeMissing, updateList_t& mdata)
+bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& mdata)
 {
     dataList_t mdatao;
     const C::DBConstraint cMissing = C::SameDevice(endpoint)
-        && C::Obstime(Helpers::plusDay(beforeMissing.obstime(), 1), stepTime(endpoint.obstime()));
+        && C::Obstime(stepTime(earliest), stepTime(endpoint.obstime()));
     database()->selectData(mdatao, cMissing, O::Obstime().desc());
+    DBGV(cMissing.sql());
     mdata = updateList_t(mdatao.begin(), mdatao.end());
 
 #ifndef NDEBUG
@@ -101,7 +102,9 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         DBG("    missingdata md=" << md);
 #endif
 
-    foreach(const RedisUpdate& m, mdata) {
+    updateList_it it = mdata.begin();
+    for(; it != mdata.end(); ++it ) {
+        const RedisUpdate& m = *it;
         if( m.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
                       << mMeasurementHour << " not found in missing point " << m
@@ -109,9 +112,8 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
             return false;
         }
         if( !missingpoint_flags.matches(m.data()) ) {
-            warning() << "flags missingpoint_*flags do not match missing value "
-                      << m << " for accumulation ending in " << endpoint;
-            return false;
+            DBG("no missingpoint_flags match: " << m);
+            break;
         }
         if( warn_and_stop_flags.matches(m.data()) ) {
             warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
@@ -120,10 +122,21 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         }
 
     }
+    if( it == mdata.end() ) {
+        info() << "database starts with accumulation ending in " << endpoint;
+        return false;
+    }
+    if( equal(it->original(), missing) || equal(it->original(), rejected) ) {
+        warning() << "could not find non-missing data point before accumulation ending in " << endpoint
+                  << "; candidate is " << *it;
+        return false;
+    }
+    mdata.erase(it, mdata.end());
 
-    miutil::miTime t = stepTime(endpoint.obstime()), now = miutil::miTime::nowTime();
-    for(updateList_it it = mdata.begin(); t > beforeMissing.obstime(); ++it ) {
-        const miutil::miTime tdata = (it != mdata.end()) ? it->obstime() : beforeMissing.obstime();
+
+    miutil::miTime t = stepTime(endpoint.obstime()), now = miutil::miTime::nowTime(), beforeTime = it->obstime();
+    for(updateList_it it = mdata.begin(); t > beforeTime; ++it ) {
+        const miutil::miTime tdata = (it != mdata.end()) ? it->obstime() : beforeTime;
         DBG("tdata=" << tdata << " t=" << t);
         while( t > tdata ) {
             const RedisUpdate fake(endpoint, t, now, missing, missing, "0000003000002000");
@@ -146,43 +159,6 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 #endif
 
     return true;
-}
-
-// ------------------------------------------------------------------------
-
-bool RedistributionAlgorithm::findPointBeforeMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, kvalobs::kvData& latestBefore)
-{
-    DBG("findPointBeforeMissing: endpoint = " << endpoint);
-    dataList_t startdata;
-    const C::DBConstraint cBeforeMissing = C::ControlUseinfo(before_flags)
-        && C::SameDevice(endpoint)
-        && C::Obstime(earliest, stepTime(endpoint.obstime()));
-    DBG("cBeforeMissing.sql='" << cBeforeMissing.sql() << "'");
-
-    // TODO use MAX(...) in SQL, we are not interested in the others anyhow
-    database()->selectData(startdata, cBeforeMissing, O::Obstime().desc());
-
-#ifndef NDEBUG
-    DBG("  startdata.size=" << startdata.size());
-    foreach(const kvalobs::kvData& sd, startdata)
-        DBG("    startdata sd=" << sd);
-#endif
-
-    if( !startdata.empty() ) {
-        latestBefore = startdata.front();
-        DBG("latestBefore=" << latestBefore);
-
-        if( latestBefore.obstime().hour() != mMeasurementHour ) {
-            warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
-                      << " not seen in point "  << latestBefore
-                      << " before accumulation ending in " << endpoint;
-            return false;
-        }
-        return( !equal(latestBefore.original(), missing)
-                && !equal(latestBefore.original(), rejected) );
-    } else {
-        return false;
-    }
 }
 
 // ------------------------------------------------------------------------
@@ -225,7 +201,6 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 
     params.getFlagSetCU(endpoint_flags,      "endpoint",            "fmis=4&fd=2", "");
     params.getFlagSetCU(missingpoint_flags,  "missingpoint",        "fmis=3&fd=2", "");
-    params.getFlagSetCU(before_flags,        "before",              "fmis=[04]",   "");
     params.getFlagSetCU(neighbor_flags,      "neighbor",            "fd=1",        "U2=0");
     params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(",    "");
     params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=[34]->fmis=1");
@@ -250,6 +225,8 @@ void RedistributionAlgorithm::run()
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
+        if( equal(endpoint.original(), missing) || equal(endpoint.original(), rejected) )
+            continue;
         if( endpoint.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                       << " not seen in accumulation endpoint "  << endpoint;
@@ -265,16 +242,9 @@ void RedistributionAlgorithm::run()
             continue;
         }
 
-        // find the oldest point before the accumulated value which is "good"
-        kvalobs::kvData beforeMissing;
-        if( !findPointBeforeMissing(endpoint, earliestPossibleMissing, beforeMissing) ) {
-            warning() << "could not find non-missing data point before accumulation ending in " << endpoint;
-            continue;
-        }
-
-        // get series back in time from endpoint to last missing
+        // get series back in time from endpoint to first missing
         updateList_t accumulation;
-        if( !findMissing(endpoint, beforeMissing, accumulation) )
+        if( !findMissing(endpoint, earliestPossibleMissing, accumulation) )
             continue;
 
         if( equal(endpoint.original(), -1.0f) ) {
