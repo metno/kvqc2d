@@ -58,46 +58,64 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     Qc2Algorithm::configure(params);
 
     pid = params.getParameter<int>("ParamId");
-    mStationlist = params.getParameter<std::string>("stations");
-    mSlidingAlarms = params.getParameter<std::string>("sliding_alarms");
-    UT0extended = params.UT0;
 
     params.getFlagSetCU(discarded_flags, "discarded", "fr=9|fs=8|fmis=2", "");
-
     params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
     params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
     params.getFlagChange(aggregation_flagchange,     "aggregation_flagchange",     "fr=9");
 
+    // parse 'stations'
+    mStationlist.clear();
+    const miutil::miString stationlist = params.getParameter<std::string>("stations");
+    const std::vector<miutil::miString> msl = stationlist.split(';');
+    foreach(const miutil::miString& mmpv_stations, msl) {
+        std::vector<miutil::miString> m_s = mmpv_stations.split(':', false);
+        if( m_s.size() != 2 )
+            throw ConfigException("cannot parse 'stations' parameter");
+        ResolutionStations rs(atof(m_s[0].c_str()));
+        if( rs.mmpv <= 0.0f )
+            throw ConfigException("invalid mm-per-vipp <= 0 in 'stations' parameter");
+        const std::vector<miutil::miString> s = m_s[1].split(',');
+        foreach(miutil::miString stationidText, s) {
+            int stationid = atoi(stationidText.c_str());
+            if( stationid <= 0 )
+                throw ConfigException("invalid stationid <= 0 in 'stations' parameter");
+            rs.stationids.push_back(stationid);
+        }
+        mStationlist.push_back(rs);
+    }
+
+    // parse 'sliding_alarms'
     int lookback = maxRainInterrupt+minRainBeforeAndAfter;
-    const std::vector<miutil::miString> msa = mSlidingAlarms.split(';');
+    mSlidingAlarms.clear();
+    const miutil::miString slidingAlarms = params.getParameter<std::string>("sliding_alarms");
+    const std::vector<miutil::miString> msa = slidingAlarms.split(';');
     foreach(const miutil::miString& length_max, msa) {
         std::vector<miutil::miString> l_m = length_max.split('<', false);
         if( l_m.size() != 2 )
             throw ConfigException("cannot parse 'sliding_alarms' parameter");
         const int length = atoi(l_m[0].c_str());
+        if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
+            throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
+        const float maxi = atof(l_m[1].c_str());
+        if( maxi <= 0.0f )
+            throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
+        mSlidingAlarms.push_back(SlidingAlarm(length, maxi));
         if( lookback < length )
             lookback = length;
     }
+
+    UT0extended = params.UT0;
     UT0extended.addMin(-lookback);
 }
 
 void PlumaticAlgorithm::run()
 {
     // use script stinfosys-vipp-pluviometer.pl or change program and use "select stationid from obs_pgm where paramid = 105;"
-
-    const std::vector<miutil::miString> msl = mStationlist.split(';');
-    foreach(const miutil::miString& mmpv_stations, msl) {
-        std::vector<miutil::miString> m_s = mmpv_stations.split(':', false);
-        if( m_s.size() != 2 )
-            throw ConfigException("cannot parse 'stations' parameter");
-        const float mmpv = atof(m_s[0].c_str());
-        if( mmpv <= 0.0f )
-            throw ConfigException("invalid mm-per-vipp <= 0 in 'stations' parameter");
-        const std::vector<miutil::miString> s = m_s[1].split(',');
-        foreach(miutil::miString stationidText, s) {
-            int stationid = atoi(stationidText.c_str());
-            checkStation(stationid, mmpv);
+    foreach(const ResolutionStations& rs, mStationlist) {
+        foreach(int stationid, rs.stationids) {
+            checkStation(stationid, rs.mmpv);
         }
     }
 }
@@ -120,35 +138,23 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 
 void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
 {
-    int lastlength = 2;
-    const std::vector<miutil::miString> msa = mSlidingAlarms.split(';');
-    foreach(const miutil::miString& length_max, msa) {
-        std::vector<miutil::miString> l_m = length_max.split('<', false);
-        if( l_m.size() != 2 )
-            throw ConfigException("cannot parse 'sliding_alarms' parameter");
-        const int length = atoi(l_m[0].c_str());
-        if( length < lastlength )
-            throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
-        const float maxi = atof(l_m[1].c_str());
-        if( maxi <= 0.0f )
-            throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
-        checkSlidingSum( data, length, maxi );
-        lastlength = length;
+    foreach(const SlidingAlarm& slal, mSlidingAlarms) {
+        checkSlidingSum(data, slal);
     }
 }
 
-void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const int length, const float maxi)
+void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal)
 {
-    DBG("length=" << length << " maxi=" << maxi);
+    DBG("length=" << slal.length << " maxi=" << slal.max);
     std::ostringstream cfailed;
-    cfailed << "QC2h-1-aggregation-" << length;
+    cfailed << "QC2h-1-aggregation-" << slal.length;
     kvUpdateList_it head = data.begin(), tail = data.begin();
     float sum = 0;
     std::list<kvUpdateList_it> discarded;
     //std::list<kvUpdateList_it> flagged;
     for(; head != data.end(); ++head) {
         DBG("head=" << *head << " tail=" << *tail << "minutes=" << minutesBetween(head->obstime(), tail->obstime()));
-        for( ; minutesBetween(head->obstime(), tail->obstime()) >= length; ++tail ) {
+        for( ; minutesBetween(head->obstime(), tail->obstime()) >= slal.length; ++tail ) {
             if( tail->original()>0 )
                 sum -= tail->original();
             DBGV(sum);
@@ -168,7 +174,7 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const int length, 
             discarded.push_back(head);
             DBGV(discarded.size());
         }
-        if( sum >= maxi /*&& flagged.empty()*/ && discarded.empty() ) {
+        if( sum >= slal.max /*&& flagged.empty()*/ && discarded.empty() ) {
             //flagged.push_back(head);
             //DBGV(flagged.size());
             kvUpdateList_it stop = head; stop++;

@@ -26,6 +26,18 @@ private:
         kvUpdateList_it first, last;
         int duration;
     };
+    struct ResolutionStations {
+        float mmpv;
+        std::vector<int> stationids;
+        ResolutionStations(float r)
+            : mmpv(r) { }
+    };
+    struct SlidingAlarm {
+        int length;
+        float max;
+        SlidingAlarm(int l, float m)
+            : length(l), max(m) { }
+    };
 
     static int minutesBetween(const miutil::miTime& t0, const miutil::miTime& t1)
         { return miutil::miTime::minDiff(t0, t1); }
@@ -33,7 +45,7 @@ private:
     void checkStation(int stationid, float mmpv);
 
     void checkSlidingSums(kvUpdateList_t& data);
-    void checkSlidingSum(kvUpdateList_t& data, int length, float maxi);
+    void checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal);
 
     void checkShowers(kvUpdateList_t& data, float mmpv);
     bool isBadData(const DataUpdate& data);
@@ -55,7 +67,8 @@ private:
     int pid;
     FlagSetCU discarded_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
-    miutil::miString mStationlist, mSlidingAlarms;
+    std::vector<ResolutionStations> mStationlist;
+    std::vector<SlidingAlarm> mSlidingAlarms;
     miutil::miTime UT0extended;
 };
 
