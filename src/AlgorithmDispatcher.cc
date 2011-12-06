@@ -90,12 +90,12 @@ int AlgorithmDispatcher::select(const AlgorithmConfig& params)
     std::string algorithm = params.Algorithm;
     algorithms_t::iterator a = mAlgorithms.find(algorithm);
     if( a != mAlgorithms.end() ) {
-        LOGINFO("Running '" + algorithm + "'");
+        LOGINFO("Running '" << algorithm << "' (" << params.filename() << ")");
         try {
             a->second->configure(params);
             const ErrorList errors = params.check();
             if( !errors.empty() ) {
-                LOGERROR("Configuration error: " + errors.format("; "));
+                LOGERROR("Configuration error: " << errors.format("; "));
                 return 1;
             }
             a->second->run();
