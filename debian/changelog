@@ -1,3 +1,10 @@
+kvqc2d (1.3.3-1) unstable; urgency=low
+
+  * Redistribution: revert setting fmis 4->1
+  * show configuration filename when running algorithm
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 06 Dec 2011 12:18:23 +0100
+
 kvqc2d (1.3.2-1) unstable; urgency=low
 
   * Redistribution: removed before_*flags
