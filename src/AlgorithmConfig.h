@@ -47,6 +47,8 @@ public:
     void Parse(const std::string& filename);
     void Parse(std::istream& input);
     bool SelectConfigFiles(std::vector<std::string>& config_files);
+    const std::string& filename() const
+        { return mFilename; }
 
 public:
     void setConfigPath(const boost::filesystem::path& path);
@@ -68,6 +70,7 @@ public:
 
 private:
     void getFlagSet(FlagPatterns& f, const std::string& name, FlagPattern::FlagType type) const;
+    void ParseStream(std::istream& input);
 
 public:
     static const std::string CFG_EXT;
@@ -77,6 +80,7 @@ private:
     const vector_uchar Vfull; // TODO could also be static
 
     ConfigParser c;
+    std::string mFilename;
 };
 
 template<typename T>

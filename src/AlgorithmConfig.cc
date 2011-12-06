@@ -148,11 +148,18 @@ bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
 
 void AlgorithmConfig::Parse(const std::string& filename)
 {
+    mFilename = filename;
     std::ifstream input(filename.c_str());
-    Parse(input);
+    ParseStream(input);
 }
 
 void AlgorithmConfig::Parse(std::istream& input)
+{
+    mFilename = "//stream//";
+    ParseStream(input);
+}
+
+void AlgorithmConfig::ParseStream(std::istream& input)
 {
     if( !c.load(input) )
         throw ConfigException("Problems parsing kvqc2d algorithm configuration: " + c.errors().format("; ") + " -- giving up!");
