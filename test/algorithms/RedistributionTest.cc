@@ -172,7 +172,7 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
         SCOPED_TRACE(testing::Message() << "Update #" << i);
         EXPECT_EQ(83880, d.stationID());
         EXPECT_NEAR(expected[i], d.corrected(), 0.15) << "aor=" << acc_of_rounded << " ra=" << rounded_acc << " v[" << i << "]=" << values[i] << " interp=" << interpolated_values[i];
-        EXPECT_EQ(i==bc->count()-1 ? "0140001000007000" : "0000001000007000", d.controlinfo().flagstring());
+        EXPECT_EQ(i==bc->count()-1 ? "0140004000007000" : "0000001000007000", d.controlinfo().flagstring());
         acc_of_corrected += d.corrected();
     }
     EXPECT_FLOAT_EQ(rounded_acc, acc_of_corrected);
@@ -237,7 +237,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0000001000007000",  0.9, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000",  2.8, bc->update(1));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 28.3, bc->update(2));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140001000007000",  6.3, bc->update(3));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  6.3, bc->update(3));
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -383,9 +383,9 @@ TEST_F(RedistributionTest, TwoSeries)
     ASSERT_RUN(algo, bc, 4);
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  9.4, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000",  3.4, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  3.4, bc->update(1));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 10.3, bc->update(2));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140001000007000",  2.5, bc->update(3));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  2.5, bc->update(3));
 }
 
 // ------------------------------------------------------------------------
@@ -429,7 +429,7 @@ TEST_F(RedistributionTest, MissingRows)
 
     for(int i=0; i<bc->count()-1; ++i)
         EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140001000007000", 2.0, bc->update(4));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000", 2.0, bc->update(4));
 }
 
 // ------------------------------------------------------------------------
@@ -477,7 +477,7 @@ TEST_F(RedistributionTest, ReRun)
 
     for(int i=0; i<bc->count()-1; ++i)
         EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140001000007000", 2.0, bc->update(4));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000", 2.0, bc->update(4));
 
     std::stringstream config;
     config << "Start_YYYY = 2011" << std::endl
@@ -493,7 +493,7 @@ TEST_F(RedistributionTest, ReRun)
            << "ParamId=110"  << std::endl
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl
-           << "endpoint_cflags     = fmis=1&fd=7" << std::endl //changed wrt. default configuration
+           << "endpoint_cflags     = fmis=4&fd=7" << std::endl //changed wrt. default configuration
            << "missingpoint_cflags = fmis=1&fd=7" << std::endl //changed wrt. default configuration
            << "InterpolationDistance=50.0"  << std::endl;
     params.Parse(config);
@@ -552,7 +552,7 @@ TEST_F(RedistributionTest, OneOfTwoTypeids)
     ASSERT_RUN(algo, bc, 2);
 
     EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-13 06:00:00", "0000001000007000", 9.8, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-14 06:00:00", "0140001000007000", 0.2, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(84070, "2011-10-14 06:00:00", "0140004000007000", 0.2, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -724,7 +724,7 @@ TEST_F(RedistributionTest, BoneDrySomeNeighbors)
     ASSERT_EQ(2, bc->count());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000", 0.1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -759,7 +759,7 @@ TEST_F(RedistributionTest, DrySomeNeighborsBoneDry)
     ASSERT_EQ(2, bc->count());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000", 0.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.0, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -794,7 +794,7 @@ TEST_F(RedistributionTest, DryAllNeighborsBoneDry)
     ASSERT_EQ(2, bc->count());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000",  -1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -829,7 +829,7 @@ TEST_F(RedistributionTest, BoneDryAllNeighbors)
     ASSERT_EQ(2, bc->count());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000", 0.1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -864,7 +864,7 @@ TEST_F(RedistributionTest, BoneDryMissingRows)
     ASSERT_EQ(2, bc->count());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000", 0.1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -1107,7 +1107,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
     ASSERT_RUN(algo, bc, 2);
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 10.5, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140001000007000",  2.3, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  2.3, bc->update(1));
 
     EXPECT_CFAILED(",QC2N_83520_84190,QC2-redist", bc->update(0));
     EXPECT_CFAILED(",QC2N_83520_84190,QC2-redist", bc->update(1));
@@ -1184,7 +1184,7 @@ TEST_F(RedistributionTest, NonMeasureableNeighbors)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000", 0.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.0, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -1203,7 +1203,7 @@ TEST_F(RedistributionTest, DryNoNeighbors)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000",  -1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -1222,7 +1222,7 @@ TEST_F(RedistributionTest, BoneDryNoNeighbors)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140001000007000",  -1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -1265,5 +1265,5 @@ TEST_F(RedistributionTest, BadWarning)
     ASSERT_RUN(algo, bc, 3);
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-29 06:00:00", "0000001000007000",  6, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-30 06:00:00", "0000001000007000",  6, bc->update(1));
-    EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-31 06:00:00", "0140001000007000",  2, bc->update(2));
+    EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-31 06:00:00", "0140004000007000",  2, bc->update(2));
 }
