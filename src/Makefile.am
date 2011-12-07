@@ -3,7 +3,7 @@ GIT = git
 VERSION_GIT_H  = version_git.h
 VERSION_GIT_STAMP = $(VERSION_GIT_H:%.h=%.stamp)
 BUILT_SOURCES  = $(VERSION_GIT_STAMP)
-CLEANFILES     = $(VERSION_GIT_H) version_ac.h
+MAINTAINERCLEANFILES = $(VERSION_GIT_H)
 
 bin_PROGRAMS = kvqc2d
 
@@ -93,25 +93,24 @@ kvqc2d_LDADD = libkvqc2d.a \
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs
 
-clean-local:
-	-rm -f $(CLEANFILES)
-
 ebrowse:
 	ebrowse $(SOURCES)
 
 $(VERSION_GIT_STAMP):
-	@if test -s "$(srcdir)/$(VERSION_GIT_H)" -a ! -f "$(VERSION_GIT_H)"; then \
-	    cp -f "$(srcdir)/$(VERSION_GIT_H)" "$(VERSION_GIT_H)"; \
-	fi
-	@GIT_REF="no-git"; if $(GIT) rev-parse HEAD >/dev/null 2>&1; then \
+	@if $(GIT) rev-parse HEAD >/dev/null 2>&1; then \
 	    GIT_REF=$$($(GIT) rev-parse HEAD); \
 	    if [ "x$$($(GIT) diff-files)" = "x" ] && [ "x$$($(GIT) diff-index --cached HEAD)" = "x" ]; then true; else \
-	        GIT_REF="$$GIT_REF-dirty"; \
+	        GIT_REF="$$GIT_REF/dirty"; \
 	    fi; \
-	fi; \
-	echo "#define KVQC2D_VERSION_GIT \"$$GIT_REF\"" > "$(VERSION_GIT_H).tmp"
-	@if test -s "$(VERSION_GIT_H)" && cmp -s "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; then \
+	    echo "#define KVQC2D_VERSION_GIT \"$$GIT_REF\"" > "$(VERSION_GIT_H).tmp" ; \
+	elif test -s "$(srcdir)/$(VERSION_GIT_H)"; then \
+	    cp "$(srcdir)/$(VERSION_GIT_H)" "$(VERSION_GIT_H).tmp"; \
+	else \
+	    echo "No '$(srcdir)/$(VERSION_GIT_H)' and no git either"; exit 1; \
+	fi
+	@if cmp -s "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; then \
 	    rm -f "$(VERSION_GIT_H).tmp"; \
 	else \
+	    echo "Updating '$(VERSION_GIT_H)'"; \
 	    mv -f "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; \
 	fi

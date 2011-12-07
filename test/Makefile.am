@@ -32,6 +32,8 @@ AM_CXXFLAGS = -Wall -W \
 #kvqc2dTest_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2dTest_LDFLAGS  += -fprofile-arcs
 
+INCLUDES = -I$(top_srcdir)/src
+
 LDADD = \
 	$(TEST_DEPS_LIBS) \
 	$(GTEST_LIBS) \
