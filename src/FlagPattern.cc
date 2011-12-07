@@ -27,14 +27,13 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "config.h"
 #include "FlagPattern.h"
 
 #include <sstream>
 #include <iostream>
 
-#define DBG(x) do { std::cout << __FILE__ << ":" << __LINE__ << " " << x << std::endl; } while(false);
-#define DBGV(x) DBG( #x "='" << x << "'" )
+#include "config.h"
+#include "debug.h"
 
 namespace {
 

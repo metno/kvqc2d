@@ -29,16 +29,19 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <boost/filesystem/convenience.hpp>
-#include <boost/filesystem/exception.hpp>
-#include "Qc2App.h"
-#include <milog/milog.h>
 #include "InitLogger.h"
-#include <miconfparser/miconfparser.h>
+#include "Qc2App.h"
+
 #include <fileutil/pidfileutil.h>
 #include <kvalobs/kvPath.h>
+#include <miconfparser/miconfparser.h>
+#include <milog/milog.h>
 
+#include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/exception.hpp>
 #include <string>
+
+#include "version_ac.h"
 
 const char* options[][ 2 ] =
   {
@@ -115,6 +118,7 @@ int main( int argc, char** argv )
 {
     InitLogger( argc, argv, "kvqc2d" );
     milog::LogContext logContext("kvqc2d");
+    LOGINFO("This is kvqc2d version " KVQC2D_VERSION_FULL);
     
     if( !check_rundir() )
         return 1;

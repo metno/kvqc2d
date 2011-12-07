@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([kvqc2d], [1.3.0], [kvalobs-dev@met.no])
+AC_INIT([kvqc2d], [1.3.5], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
@@ -20,11 +20,13 @@ if test -z $BOOST_THREAD_LIB; then AC_MSG_ERROR([Unable to find boost thread lib
 AX_BOOST_FILESYSTEM
 if test -z $BOOST_FILESYSTEM_LIB; then AC_MSG_ERROR([Unable to find boost filesystem library]); fi
 
-AH_TOP([#ifndef KVQC2D_CONFIG_H
-#define KVQC2D_CONFIG_H 1])
-AH_BOTTOM([#include "config_bottom.h"])
-AH_BOTTOM([#endif /* KVQC2D_CONFIG_H */])
+AH_BOTTOM([#include "sqlite3.h"
+#if SQLITE_VERSION_NUMBER >= 3006022
+#define HAVE_SQL_WITH_WORKING_SUBSTR_IN 1
+#endif
+])
 
 AC_CONFIG_HEADERS(src/config.h)
 AC_CONFIG_FILES([Makefile src/Makefile test/Makefile])
+AC_CONFIG_FILES([src/version_ac.h])
 AC_OUTPUT

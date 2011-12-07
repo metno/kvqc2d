@@ -1,0 +1,11 @@
+
+#ifndef VERSION_AC_H
+#define VERSION_AC_H 1
+
+#include "version_git.h"
+
+#define KVQC2D_VERSION_AC "@PACKAGE_VERSION@"
+
+#define KVQC2D_VERSION_FULL KVQC2D_VERSION_AC "-" KVQC2D_VERSION_GIT
+
+#endif /* VERSION_AC_H */
