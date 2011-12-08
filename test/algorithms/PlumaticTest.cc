@@ -27,8 +27,6 @@
    51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#define NEW_VERSION 1
-
 #include "AlgorithmTestBase.h"
 #include "algorithms/PlumaticAlgorithm.h"
 #include "AlgorithmHelpers.h"
