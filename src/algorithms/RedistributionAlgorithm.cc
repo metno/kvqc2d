@@ -44,8 +44,6 @@ namespace C = Constraint;
 namespace O = Ordering;
 using Helpers::equal;
 
-static const unsigned int MIN_NEIGHBORS = 1;
-
 // ------------------------------------------------------------------------
 
 inline float dry2real(float original)
@@ -168,8 +166,10 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
     const kvalobs::kvData& endpoint = before.front().data();
 
     const std::list<int> neighbors = findNeighbors(endpoint.stationID());
-    if( neighbors.size() < MIN_NEIGHBORS )
+    if( (int)neighbors.size() < mMinNeighbors ) {
+        warning() << "too few neighbor stations for accumulation ending in " << before.front();
         return false;
+    }
 
     const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
         && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
@@ -183,11 +183,6 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
                       << " not seen in neighbor " << n << " for accumulation ending in " << endpoint;
             return false;
         }
-    }
-
-    if( ndata.size() < MIN_NEIGHBORS * before.size() ) {
-        warning() << "not enough neighbor data for accumulation ending in " << before.front();
-        return false;
     }
 
     return true;
@@ -205,6 +200,8 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(",    "");
     params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=3->fmis=1");
 
+    mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
+    mDaysBeforeNoNeighborWarning = params.getParameter<int>("days_before_no_neighbor_warning", 28);
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
     mMeasurementHour = params.getParameter<int>("measurement_hour", 6);
@@ -294,7 +291,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         std::ostringstream cfailed;
         cfailed << "QC2N";
         float sumWeights = 0.0, sumWeightedValues = 0.0;
-        unsigned int goodNeighbors = 0;
+        int goodNeighbors = 0;
         bool allNeighborsBoneDry = true; // true to assume dry if no neighbors
         for( ; itN != ndata.end() && itN->obstime() == b.obstime(); ++itN ) {
             const float neighborValue = dry2real(itN->original());
@@ -313,9 +310,11 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             }
         }
         b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
-        if( goodNeighbors < MIN_NEIGHBORS && !accumulationIsDry ) {
-            warning() << "not enough good neighbors at t=" << b.obstime()
-                      << " for accumulation ending in " << before.front();
+        if( goodNeighbors < mMinNeighbors && !accumulationIsDry ) {
+            const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
+            (ageInDays > mDaysBeforeNoNeighborWarning ? warning() : info())
+                << "not enough good neighbors at t=" << b.obstime()
+                << " for accumulation ending in " << before.front();
             return false;
         }
         const float weightedNeighbors = sumWeightedValues/sumWeights;
