@@ -48,11 +48,11 @@ void Qc2Algorithm::storeData(const std::list<kvalobs::kvData>& toUpdate, const s
     database()->storeData(toUpdate, toInsert);
     foreach(const kvalobs::kvData& i, toInsert) {
         broadcaster()->queueChanged(i);
-        LOGINFO(mName << " NEW ROW: " << i);
+        info() << mName << " NEW ROW: " << Helpers::datatext(i);
     }
     foreach(const kvalobs::kvData& u, toUpdate) {
         broadcaster()->queueChanged(u);
-        LOGINFO(mName << " UPDATE:  " << u);
+        info() << mName << " UPDATE:  " << Helpers::datatext(u);
     }
     broadcaster()->sendChanges();
 }

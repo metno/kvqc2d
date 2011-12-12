@@ -67,5 +67,30 @@ bool fillMapFromList(const std::string& list, std::map<int, float>& map, const c
     return !error;
 }
 
+// ------------------------------------------------------------------------
+
+std::ostream& digits1(std::ostream& out)
+{
+    out << std::setiosflags(std::ios::fixed) << std::setprecision(1);
+    return out;
+}
+
+// ------------------------------------------------------------------------
+
+std::string datatext(const kvalobs::kvData& data)
+{
+    std::ostringstream out;
+    out << "[stationid="    << data.stationID()
+        << " AND obstime='" << data.obstime().isoTime() << '\''
+        << " AND paramid="  << data.paramID()
+        << " AND typeid="   << data.typeID()
+        << " AND sensor="   << data.sensor()
+        << " AND level="    << data.level()
+        << "; original=" << digits1 << data.original()
+        << " corr="        << digits1 << data.corrected()
+        << " controlinfo="  << data.controlinfo().flagstring()
+        << " cfailed='"     << data.cfailed() << "']";
+    return out.str();
+}
 
 } // namespace Helpers

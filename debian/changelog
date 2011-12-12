@@ -1,3 +1,9 @@
+kvqc2d (1.3.5-1) unstable; urgency=low
+
+  * Improved log message text.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 12 Dec 2011 15:53:25 +0100
+
 kvqc2d (1.3.4-2) unstable; urgency=low
 
   * Redistribution: added min_neighbors and days_before_no_neighbor_warning options

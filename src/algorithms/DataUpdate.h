@@ -55,6 +55,8 @@ public:
     bool operator<(const DataUpdate& other) const
         { return obstime() < other.obstime(); }
 
+    std::string text(bool modified=true) const;
+
 private:
     kvalobs::kvData mData;
     bool mNew, mForcedModified;

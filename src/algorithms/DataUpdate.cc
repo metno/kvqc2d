@@ -97,16 +97,47 @@ DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
 
 // ------------------------------------------------------------------------
 
+std::string DataUpdate::text(bool modified) const
+{
+    std::ostringstream out;
+    out << "[stationid="    << mData.stationID()
+        << " AND obstime='" << mData.obstime().isoTime() << '\''
+        << " AND paramid="  << mData.paramID()
+        << " AND typeid="   << mData.typeID()
+        << " AND sensor="   << mData.sensor()
+        << " AND level="    << mData.level()
+        << "; original=" << Helpers::digits1 << mData.original();
+    if( modified ) {
+        out << " corr=" << Helpers::digits1 << mData.corrected();
+        if( mData.corrected() != mOrigCorrected )
+            out << '(' << Helpers::digits1 << mOrigCorrected << ')';
+        out << " controlinfo=" << mData.controlinfo().flagstring();
+        if( mData.controlinfo() != mOrigControl )
+            out << '(' << mOrigControl.flagstring() << ')';
+        out << " cfailed='" << mData.cfailed() << '\'';
+        if( mData.cfailed() != mOrigCfailed )
+            out << '(' << mOrigCfailed << ')';
+        if( isModified() ) {
+            out << '{';
+            if( isNew() )
+                out << 'n';
+            else
+                out << 'm';
+            out << '}';
+        }
+    } else {
+        out << " corr="        << Helpers::digits1 << mOrigCorrected
+            << " controlinfo=" << mOrigControl.flagstring()
+            << " cfailed='"    << mOrigCfailed << "'";
+    }
+    out << ']';
+    return out.str();
+}
+
+// ------------------------------------------------------------------------
+
 std::ostream& operator<<(std::ostream& out, const DataUpdate& du)
 {
-    out << du.data() << "[cf='" << du.data().cfailed() << ']';
-    if( du.isModified() ) {
-        out << '{';
-        if( du.isNew() )
-            out << 'n';
-        else
-            out << 'm';
-        out << '}';
-    }
+    out << du.text(true);
     return out;
 }

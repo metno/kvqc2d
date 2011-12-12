@@ -68,11 +68,11 @@ float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
     qcx << "QC1-3a-" << pid;
     database()->selectStationparams(splist, 0, time, qcx.str()); /// FIXME what time to use here?
     if( splist.empty() ) {
-        LOGERROR("Empty station_param for stationid=0 list.");
+        error() << "empty station_param for stationid=0 list";
         return -1e8; // FIXME throw an exception or so
     }
     const float DeltaCheck = GetStationParam(splist).ValueOf("max").toFloat();
-    LOGINFO("Delta from station_params (valid for t=" << time << ") = " << DeltaCheck);
+    info() << "delta from station_params (valid for t=" << time << ") = " << DeltaCheck;
     return DeltaCheck;
 }
 
@@ -123,7 +123,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     std::list<kvalobs::kvData> seriesLinear;
     database()->selectData(seriesLinear, cDipAroundL, O::Obstime());
     if( seriesLinear.size() != 2 ) {
-        LOGINFO("no neighbors (may be bad flags) around candidate=" << candidate);
+        info() << "no neighbors (may be bad flags) around candidate " << Helpers::datatext(candidate);
         return;
     }
 
@@ -142,7 +142,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     const float ABS20 = fabs( after    .original() - before.original() );
     const float ABS10 = fabs( candidate.original() - before.original() );
     if( !(ABS20 < ABS10 && ABS20 < delta) ) {
-        LOGINFO("not a dip/spike around candidate=" << candidate);
+        info() << "not a dip/spike around candidate " << Helpers::datatext(candidate);
         return;
     }
 
@@ -198,12 +198,12 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     qcx << "QC1-1-" << candidate.paramID();
     database()->selectStationparams(splist, candidate.stationID(), candidate.obstime(), qcx.str());
     if( splist.empty() ) {
-        LOGERROR("No station params for akima MinimumCheck for candidate=" << candidate << ". Assuming no akima interpolation.");
+        error() << "no station params for akima MinimumCheck for candidate " << Helpers::datatext(candidate) << ". Assuming no akima interpolation.";
         return false;
     }
     const float MinimumCheck = GetStationParam(splist).ValueOf("min").toFloat();
     if( AkimaInterpolated < MinimumCheck ) {
-        LOGDEBUG("akima < mini for candidate=" << candidate);
+        LOGDEBUG("akima < mini for candidate " << Helpers::datatext(candidate));
         return false;
     }
     

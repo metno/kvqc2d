@@ -121,11 +121,11 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 
     }
     if( it == mdata.end() ) {
-        info() << "database starts with accumulation ending in " << endpoint;
+        info() << "database starts with accumulation ending in " << Helpers::datatext(endpoint);
         return false;
     }
     if( equal(it->original(), missing) || equal(it->original(), rejected) ) {
-        warning() << "could not find non-missing data point before accumulation ending in " << endpoint
+        warning() << "could not find non-missing data point before accumulation ending in " << Helpers::datatext(endpoint)
                   << "; candidate is " << *it;
         return false;
     }
@@ -180,7 +180,8 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
     foreach(const kvalobs::kvData& n, ndata) {
         if( n.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
-                      << " not seen in neighbor " << n << " for accumulation ending in " << endpoint;
+                      << " not seen in neighbor " << Helpers::datatext(n)
+                      << " for accumulation ending in " << Helpers::datatext(endpoint);
             return false;
         }
     }
@@ -226,7 +227,7 @@ void RedistributionAlgorithm::run()
             continue;
         if( endpoint.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
-                      << " not seen in accumulation endpoint "  << endpoint;
+                      << " not seen in accumulation endpoint "  << Helpers::datatext(endpoint);
             continue;
         }
 
@@ -235,7 +236,7 @@ void RedistributionAlgorithm::run()
         lastObstime   = endpoint.obstime();
 
         if( warn_and_stop_flags.matches(endpoint) ) {
-            warning() << "endpoint matches warn_and_stop_flags: " << endpoint;
+            warning() << "endpoint matches warn_and_stop_flags: " << Helpers::datatext(endpoint);
             continue;
         }
 
@@ -312,9 +313,11 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
         if( goodNeighbors < mMinNeighbors && !accumulationIsDry ) {
             const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
-            (ageInDays > mDaysBeforeNoNeighborWarning ? warning() : info())
+            const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning
+                && b.data().cfailed().find("QC2-redist") == std::string::npos;
+            (doWARN ? warning() : info())
                 << "not enough good neighbors at t=" << b.obstime()
-                << " for accumulation ending in " << before.front();
+                << " for accumulation ending in " << before.front().text(false);
             return false;
         }
         const float weightedNeighbors = sumWeightedValues/sumWeights;
