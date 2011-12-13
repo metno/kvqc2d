@@ -313,8 +313,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
         if( goodNeighbors < mMinNeighbors && !accumulationIsDry ) {
             const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
-            const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning
-                && b.data().cfailed().find("QC2-redist") == std::string::npos;
+            const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
             (doWARN ? warning() : info())
                 << "not enough good neighbors at t=" << b.obstime()
                 << " for accumulation ending in " << before.front().text(false);
