@@ -32,6 +32,8 @@
 #include "algorithms/DipTestAlgorithm.h"
 #include "AlgorithmHelpers.h"
 
+#include <boost/algorithm/string/predicate.hpp>
+
 class DipTestTest : public AlgorithmTestBase {
 public:
     void SetUp();
@@ -131,12 +133,12 @@ TEST_F(DipTestTest, Bugzilla1327)
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1-A"));
+    EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1-A"));
     EXPECT_GE(4, it->corrected());
     EXPECT_LE(2, it->corrected());
     it++;
     EXPECT_EQ("0114000000000000", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
+    EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1"));
     EXPECT_FLOAT_EQ(2, it->corrected());
 
     ASSERT_RUN(algo, bc, 0);
@@ -199,11 +201,11 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("1109000000000000", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1-L"));
+    EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1-L"));
     EXPECT_FLOAT_EQ(4.2, it->corrected());
     it++;
     EXPECT_EQ("1104000000000000", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
+    EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1"));
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -508,11 +510,11 @@ TEST_F(DipTestTest, Bugzilla1320)
 
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1-L"));
+    EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1-L"));
     EXPECT_LE(0, it->corrected());
     it++;
     EXPECT_EQ("0114000000000000", it->controlinfo().flagstring());
-    EXPECT_TRUE(Helpers::endsWith(it->cfailed(), "QC2d-1"));
+    EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1"));
 
     ASSERT_RUN(algo, bc, 0);
 }

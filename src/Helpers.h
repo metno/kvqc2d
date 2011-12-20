@@ -14,13 +14,6 @@ namespace Helpers {
 
 float round(float f);
 
-bool endsWith(const std::string& text, const std::string& tail);
-
-inline bool string_endswith(const std::string& text, const std::string& tail)
-    { return endsWith(text, tail); }
-
-bool startsWith(const std::string& text, const std::string& head);
-
 int hexCharToInt(char n);
 
 bool fillMapFromList(const std::string& list, std::map<int, float>& map, const char separator = ',');

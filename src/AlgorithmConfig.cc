@@ -36,6 +36,7 @@
 #include <kvalobs/kvPath.h>
 #include <milog/milog.h>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -119,7 +120,7 @@ bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
                 continue;
             if( fs::is_directory(*dit) )
                 continue;
-            if( Helpers::string_endswith(
+            if( boost::algorithm::ends_with(
 #if BOOST_VERSION <= 103500
                     dit->leaf(),
 #else

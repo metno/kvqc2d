@@ -16,18 +16,6 @@ float round(float f)
     return ff / factor;
 }
 
-bool endsWith(const std::string& text, const std::string& tail)
-{
-    int lText = text.length(), lTail = tail.length();
-    return ( lText >= lTail && text.substr(lText-lTail) == tail );
-}
-
-bool startsWith(const std::string& text, const std::string& head)
-{
-    int lText = text.length(), lHead = head.length();
-    return ( lText >= lHead && text.substr(0, lHead) == head );
-}
-
 int hexCharToInt(char n)
 {
     if (n >= '0' && n <= '9')

@@ -43,6 +43,8 @@
 #include <milog/milog.h>
 #include <puTools/miTime.h>
 
+#include <boost/algorithm/string/predicate.hpp>
+
 namespace C = Constraint;
 namespace O = Ordering;
 using namespace kvQCFlagTypes;
@@ -51,7 +53,7 @@ bool DipTestAlgorithm::fillParameterDeltaMap(const AlgorithmConfig& params, std:
 {
     const std::string pvf = params.getParameter<std::string>("ParValFilename");
 
-    if( Helpers::startsWith(pvf, "list:") )
+    if( boost::algorithm::starts_with(pvf, "list:") )
         return Helpers::fillMapFromList(pvf.substr(5), map, ',');
 
     if( pvf == "NotSet")
