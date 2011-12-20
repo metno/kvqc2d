@@ -15,6 +15,7 @@ kvqc2dTest_SOURCES= \
 	algorithms/PlumaticTest.cc \
 	algorithms/RedistributionTest.cc \
 	algorithms/SingleLinearTest.cc \
+	algorithms/StatisticalMeanTest.cc \
 	ConfigParserTest.cc \
 	FlagChangeTest.cc \
 	FlagPatternsTest.cc \

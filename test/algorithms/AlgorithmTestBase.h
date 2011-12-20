@@ -108,7 +108,7 @@ public:
     DataList& add(const miutil::miTime& obstime, float original, float corrected, const std::string& controlinfo, const std::string& cfailed)
         { return add(mStationId, obstime, original, mParamId, mTypeId, corrected, controlinfo, cfailed); }
 
-    DataList& add(const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
+    DataList& add(const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
         { return add(obstime, original, original, controlinfo, cfailed); }
 
     DataList& add(int stationid, const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)

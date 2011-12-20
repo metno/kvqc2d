@@ -81,4 +81,17 @@ std::string datatext(const kvalobs::kvData& data)
     return out.str();
 }
 
+// ------------------------------------------------------------------------
+
+int normalisedDayOfYear(const miutil::miDate& date)
+{
+    const int feb28 = miutil::miDate(date.year(), 2, 28).dayOfYear();
+    int doy = date.dayOfYear();
+    if( doy > feb28 ) {
+        const int dec31 = miutil::miDate(date.year(), 12, 31).dayOfYear();
+        doy -= dec31 - 365;
+    }
+    return doy;
+}
+
 } // namespace Helpers

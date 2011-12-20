@@ -43,6 +43,8 @@ libkvqc2d_a_SOURCES = \
 	algorithms/RedistributionNeighbors.h \
 	algorithms/SingleLinearAlgorithm.cc \
 	algorithms/SingleLinearAlgorithm.h \
+	algorithms/StatisticalMean.cc \
+	algorithms/StatisticalMean.h \
 	config_bottom.h \
 	ConfigParser.cc \
 	ConfigParser.h \
