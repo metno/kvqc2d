@@ -35,6 +35,41 @@
 #include <cstdlib>
 #include <stdexcept>
 
+// ------------------------------------------------------------------------
+
+int MemoryNotifier::find(const std::string& needle, int start) const
+{
+    while(start < size()) {
+        if( mMessages[start].text.find(needle) != std::string::npos )
+            return start;
+        start += 1;
+    }
+    return -1;
+}
+
+// ------------------------------------------------------------------------
+
+int MemoryNotifier::count(Message::Level level) const
+{
+    int c = 0;
+    foreach(const Record& r, mMessages) {
+        if( r.level == level )
+            c += 1;
+    }
+    return c;
+}
+
+// ------------------------------------------------------------------------
+
+void MemoryNotifier::dump(std::ostream& out)
+{
+    const char* levels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
+    for(int i=0; i<size(); ++i)
+        out << std::setw(3) << i << ' ' << std::setw(7) << levels[mMessages[i].level] << " \'" << mMessages[i].text << "\'\n";
+}
+
+// ########################################################################
+
 SqliteTestDB::SqliteTestDB()
 {
     if( sqlite3_open("", &db) )
@@ -84,10 +119,14 @@ SqliteTestDB::SqliteTestDB()
         "fromtime TIMESTAMP NOT NULL);");
 }
 
+// ------------------------------------------------------------------------
+
 SqliteTestDB::~SqliteTestDB()
 {
     sqlite3_close(db);
 }
+
+// ------------------------------------------------------------------------
 
 void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
 {
@@ -125,6 +164,8 @@ void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) th
         throw DBException(sql);
 }
 
+// ------------------------------------------------------------------------
+
 void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     d.clear();
@@ -160,6 +201,8 @@ void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
     if(step != SQLITE_DONE)
         throw DBException(sql);
 }
+
+// ------------------------------------------------------------------------
 
 void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
 {
@@ -202,6 +245,8 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
         throw DBException(sql);
 }
 
+// ------------------------------------------------------------------------
+
 void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
 {
     if( toUpdate.empty() && toInsert.empty() )
@@ -224,6 +269,8 @@ void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& t
 
     exec(sql.str());
 }
+
+// ------------------------------------------------------------------------
 
 void SqliteTestDB::exec(const std::string& statement) throw (DBException)
 {
@@ -248,12 +295,16 @@ DataList& DataList::add(int stationid, const miutil::miTime& obstime, float orig
     return *this;
 }
 
+// ------------------------------------------------------------------------
+
 void DataList::insert(SqliteTestDB* db)
 {
     std::list<kvalobs::kvData> toUpdate;
     db->storeData(toUpdate, *this);
     clear();
 }
+
+// ------------------------------------------------------------------------
 
 void DataList::update(SqliteTestDB* db)
 {
@@ -284,6 +335,8 @@ void DataList::update(SqliteTestDB* db)
 }
 
 ::testing::AssertionResult AssertObsControlCfailed(const char* eo_expr, const char* eci_expr, const char* ecf_expr, const char* /*a_expr*/,
+// ------------------------------------------------------------------------
+
                                                    const miutil::miTime& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a)
 {
     bool failed = false;
@@ -306,6 +359,8 @@ void DataList::update(SqliteTestDB* db)
     }
     return failed ? ::testing::AssertionFailure(msg) : ::testing::AssertionSuccess();
 }
+
+// ------------------------------------------------------------------------
 
 ::testing::AssertionResult AssertStationObsControlCorrected(const char* es_expr, const char* eo_expr, const char* eci_expr, const char* eco_expr, const char* /*a_expr*/,
                                                             int es, const miutil::miTime& eo, const std::string& eci, float eco, const kvalobs::kvData& a)
@@ -339,14 +394,31 @@ void DataList::update(SqliteTestDB* db)
 
 // ########################################################################
 
+AlgorithmTestBase::AlgorithmTestBase()
+    : algo(0)
+{
+}
+
+//------------------------------------------------------------------------
+
 void AlgorithmTestBase::SetUp()
 {
+    logs = new MemoryNotifier();
     db = new SqliteTestDB();
     bc = new TestBroadcaster();
+    if( algo != 0 ) {
+        algo->setNotifier(logs);
+        algo->setDatabase(db);
+        algo->setBroadcaster(bc);
+    }
 }
+
+// ------------------------------------------------------------------------
 
 void AlgorithmTestBase::TearDown()
 {
+    delete algo;
     delete bc;
     delete db;
+    delete logs;
 }

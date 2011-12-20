@@ -38,21 +38,16 @@
 class RedistributionTest : public AlgorithmTestBase {
 public:
     void SetUp();
-    void TearDown();
     void Configure(AlgorithmConfig& params, int startDay, int endDay);
     void RoundingTest(const float* values, const float* expected, const int N);
-protected:
-    RedistributionAlgorithm* algo;
 };
 
 // ========================================================================
 
 void RedistributionTest::SetUp()
 {
-    AlgorithmTestBase::SetUp();
     algo = new RedistributionAlgorithm();
-    algo->setDatabase(db);
-    algo->setBroadcaster(bc);
+    AlgorithmTestBase::SetUp();
 
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES(83880, 68.0645, 16.663,    3, 0, 'SØRFJORD KRAFTVERK', NULL, 83880, NULL, NULL, NULL, 10, 't', '1985-01-01 00:00:00');"
@@ -94,13 +89,6 @@ void RedistributionTest::SetUp()
 
 // ------------------------------------------------------------------------
 
-void RedistributionTest::TearDown()
-{
-    delete algo;
-    AlgorithmTestBase::TearDown();
-}
-
-// ------------------------------------------------------------------------
 void RedistributionTest::Configure(AlgorithmConfig& params, int startDay, int endDay)
 {
     std::stringstream config;

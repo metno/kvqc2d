@@ -34,23 +34,12 @@
 class SingleLinearTest : public AlgorithmTestBase {
 public:
     void SetUp();
-    void TearDown();
-protected:
-    SingleLinearAlgorithm* algo;
 };
 
 void SingleLinearTest::SetUp()
 {
-    AlgorithmTestBase::SetUp();
     algo = new SingleLinearAlgorithm();
-    algo->setDatabase(db);
-    algo->setBroadcaster(bc);
-}
-
-void SingleLinearTest::TearDown()
-{
-    delete algo;
-    AlgorithmTestBase::TearDown();
+    AlgorithmTestBase::SetUp();
 }
 
 TEST_F(SingleLinearTest, test1)

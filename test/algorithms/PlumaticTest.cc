@@ -38,21 +38,16 @@
 class PlumaticTest : public AlgorithmTestBase {
 public:
     void SetUp();
-    void TearDown();
     void InsertRealData();
     void Configure(AlgorithmConfig& params, int bm=10, int bd=1, int bh=12, int em=11, int ed=10, int eh=12);
-protected:
-    PlumaticAlgorithm* algo;
 };
 
 // ========================================================================
 
 void PlumaticTest::SetUp()
 {
-    AlgorithmTestBase::SetUp();
     algo = new PlumaticAlgorithm();
-    algo->setDatabase(db);
-    algo->setBroadcaster(bc);
+    AlgorithmTestBase::SetUp();
 
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES(27270, 59.278, 10.4312, 3, 0, 'TØNSBERG - KILEN', 1503, 27270, NULL, NULL, NULL, 9, 't', '2010-03-24 00:00:00');"
@@ -113,14 +108,6 @@ void PlumaticTest::InsertRealData()
         .add("2011-10-30 15:00:00",   0,      0, "0101000000000000", "")
         .add("2011-10-30 16:00:00",   0,      0, "0101000000000000", "");
     ASSERT_NO_THROW(data.insert(db));
-}
-
-// ------------------------------------------------------------------------
-
-void PlumaticTest::TearDown()
-{
-    delete algo;
-    AlgorithmTestBase::TearDown();
 }
 
 // ------------------------------------------------------------------------

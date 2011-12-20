@@ -86,6 +86,42 @@ private:
     updates_t mUpdates;
 };
 
+// ########################################################################
+
+class MemoryNotifier : public Notifier {
+public:
+    struct Record {
+        Message::Level level;
+        std::string text;
+        Record(Message::Level l, const std::string& t)
+            : level(l), text(t) { }
+    };        
+
+    int find(const std::string& needle, int start=0) const;
+
+    int size() const
+        { return mMessages.size(); }
+
+    int count(Message::Level level) const;
+
+    const std::string& text(int idx) const
+        { return mMessages[idx].text; }
+
+    Message::Level level(int idx) const
+        { return mMessages[idx].level; }
+
+    void clear()
+        { mMessages.clear(); }
+
+    void sendText(Message::Level level, const std::string& message)
+        { mMessages.push_back(Record(level, message)); }
+
+    void dump(std::ostream& out);
+
+private:
+    std::vector<Record> mMessages;
+};
+
 // #######################################################################
 
 class DataList : public std::list<kvalobs::kvData> {
@@ -171,12 +207,15 @@ private:
 
 class AlgorithmTestBase: public ::testing::Test {
 public:
+    AlgorithmTestBase();
     void SetUp();
     void TearDown();
 
 protected:
+    Qc2Algorithm* algo;
     SqliteTestDB* db;
     TestBroadcaster* bc;
+    MemoryNotifier* logs;
 };
 
 #endif /* ALGORITHMTESTBASE_H_ */

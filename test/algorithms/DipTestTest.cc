@@ -37,24 +37,13 @@
 class DipTestTest : public AlgorithmTestBase {
 public:
     void SetUp();
-    void TearDown();
     void Configure(AlgorithmConfig& params, std::stringstream& config);
-protected:
-    DipTestAlgorithm* algo;
 };
 
 void DipTestTest::SetUp()
 {
-    AlgorithmTestBase::SetUp();
     algo = new DipTestAlgorithm();
-    algo->setDatabase(db);
-    algo->setBroadcaster(bc);
-}
-
-void DipTestTest::TearDown()
-{
-    delete algo;
-    AlgorithmTestBase::TearDown();
+    AlgorithmTestBase::SetUp();
 }
 
 void DipTestTest::Configure(AlgorithmConfig& params, std::stringstream& config)

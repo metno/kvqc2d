@@ -31,139 +31,27 @@
 #include "algorithms/StatisticalMean.h"
 #include "foreach.h"
 
-class MemoryNotifier : public Notifier {
-public:
-    struct Record {
-        Message::Level level;
-        std::string text;
-        Record(Message::Level l, const std::string& t)
-            : level(l), text(t) { }
-    };        
-
-    int find(const std::string& needle, int start=0) const;
-
-    int size() const
-        { return mMessages.size(); }
-
-    int count(Message::Level level) const;
-
-    const std::string& text(int idx) const
-        { return mMessages[idx].text; }
-
-    Message::Level level(int idx) const
-        { return mMessages[idx].level; }
-
-    void clear()
-        { mMessages.clear(); }
-
-    void sendText(Message::Level level, const std::string& message)
-        { mMessages.push_back(Record(level, message)); }
-
-    void dump(std::ostream& out);
-
-private:
-    std::vector<Record> mMessages;
-};
-
-// ------------------------------------------------------------------------
-
-int MemoryNotifier::find(const std::string& needle, int start) const
-{
-    while(start < size()) {
-        if( mMessages[start].text.find(needle) != std::string::npos )
-            return start;
-        start += 1;
-    }
-    return -1;
-}
-
-// ------------------------------------------------------------------------
-
-int MemoryNotifier::count(Message::Level level) const
-{
-    int c = 0;
-    foreach(const Record& r, mMessages) {
-        if( r.level == level )
-            c += 1;
-    }
-    return c;
-}
-
-// ------------------------------------------------------------------------
-
-void MemoryNotifier::dump(std::ostream& out)
-{
-    const char* levels[] = {
-        "DEBUG   ",
-        "INFO    ",
-        "WARNING ",
-        "ERROR   ",
-        "FATAL   "
-    };
-    for(int i=0; i<size(); ++i)
-        out << levels[mMessages[i].level] << '\'' << mMessages[i].text << "\'\n";
-}
-
-// ========================================================================
-
 class StatisticalMeanTest : public AlgorithmTestBase {
 public:
     void SetUp();
-    void TearDown();
-    void Configure(AlgorithmConfig& params, int startDay, int endDay);
-    void RoundingTest(const float* values, const float* expected, const int N);
-protected:
-    StatisticalMean* algo;
-    MemoryNotifier* logs;
 };
 
 // ========================================================================
 
 void StatisticalMeanTest::SetUp()
 {
-    AlgorithmTestBase::SetUp();
     algo = new StatisticalMean();
-    logs = new MemoryNotifier();
-    algo->setNotifier(logs);
-    algo->setDatabase(db);
-    algo->setBroadcaster(bc);
+    AlgorithmTestBase::SetUp();
 
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES( 7010, 61.1592, 11.4425, 240, 0, 'RENA - HAUGEDALEN', 1389,  7010, NULL, NULL, NULL, 8, 't', '1958-01-01 00:00:00');"
         << "INSERT INTO station VALUES(46910, 59.484,   5.7507,  64, 0, 'NEDRE VATS',        1417, 46910, NULL, NULL, NULL, 8, 't', '1969-01-01 00:00:00');"
         << "INSERT INTO station VALUES(70150, 63.7823, 11.6742,  81, 0, 'VERDAL - REPPE',    1278, 70150, NULL, NULL, NULL, 8, 't', '1992-12-01 00:00:00');"
-        << "INSERT INTO station VALUES(76450, 65.702,  11.8572,   4, 0, 'VEGA - VALLSJXX',   1108, 76450, NULL, NULL, NULL, 8, 't', '1991-02-01 00:00:00');"
+        << "INSERT INTO station VALUES(76450, 65.702,  11.8572,   4, 0, 'VEGA - VALLSJOE',   1108, 76450, NULL, NULL, NULL, 8, 't', '1991-02-01 00:00:00');"
         << "INSERT INTO station VALUES(86500, 68.7003, 15.4168,   3, 0, 'SORTLAND',          1167, 86500, NULL, NULL, NULL, 8, 't', '1985-01-01 00:00:00');"
         << "INSERT INTO station VALUES(93700, 68.9968, 23.0335, 307, 0, 'KAUTOKEINO',        1047, 93700, NULL, NULL, NULL, 8, 't', '1996-07-08 00:00:00');"
         << "INSERT INTO station VALUES(96800, 70.3969, 28.1928,  10, 0, 'RUSTEFJELBMA',      1075, 96800, NULL, NULL, NULL, 8, 't', '1951-01-01 00:00:00');";
     ASSERT_NO_THROW(db->exec(sql.str()));
-}
-
-// ------------------------------------------------------------------------
-
-void StatisticalMeanTest::TearDown()
-{
-    delete algo;
-    delete logs;
-    AlgorithmTestBase::TearDown();
-}
-
-// ------------------------------------------------------------------------
-void StatisticalMeanTest::Configure(AlgorithmConfig& params, int startDay, int endDay)
-{
-    std::stringstream config;
-    config << "Start_YYYY = 2012\n"
-           << "Start_MM   =    2\n"
-           << "Start_DD   =   " << startDay << '\n'
-           << "Start_hh   =   06\n"
-           << "End_YYYY   = 2012\n"
-           << "End_MM     =    3\n"
-           << "End_DD     =   " << endDay << '\n'
-           << "days = 2\n"
-           << "ParamId=178\n"
-           << "TypeIds=312\n"
-           << "InterpolationDistance=5000.0\n";
-    params.Parse(config);
 }
 
 // ------------------------------------------------------------------------
