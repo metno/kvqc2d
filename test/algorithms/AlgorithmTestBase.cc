@@ -61,6 +61,16 @@ int MemoryNotifier::count(Message::Level level) const
 
 // ------------------------------------------------------------------------
 
+int MemoryNotifier::next(Message::Level lvl, int idx) const
+{
+    for(; idx>=0 && idx<size(); ++idx)
+        if( mMessages[idx].level == lvl )
+            return idx;
+    return -1;
+}
+
+// ------------------------------------------------------------------------
+
 void MemoryNotifier::dump(std::ostream& out)
 {
     const char* levels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };

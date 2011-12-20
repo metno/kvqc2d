@@ -31,6 +31,9 @@
 #include "algorithms/StatisticalMean.h"
 #include "foreach.h"
 
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/format.hpp>
+
 class StatisticalMeanTest : public AlgorithmTestBase {
 public:
     void SetUp();
@@ -187,11 +190,15 @@ TEST_F(StatisticalMeanTest, MiniExample)
 
 TEST_F(StatisticalMeanTest, FakeDeviation)
 {
-    DataList data(7010, 178, 312);
+    const int ctr = 7010;
+    DataList data(ctr, 178, 312);
     miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
     for(; date <= dateEnd; date.addDay(1)) {
-        data.setStation(7010)
-            .add(date, 970, "0100000000000010")
+        const int m=date.month(), d=date.day();
+        if( (m==1 && d==15) || (m==2 && d==10) )
+            continue;
+        data.setStation(ctr)
+            .add(date, 970 + ((m==1 && d==3) ? 29 : 0), "0100000000000010")
             .setStation(46910)
             .add(date, 1010, "0100000000000010")
             .setStation(70150)
@@ -207,9 +214,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation)
            << "Start_DD   =    1\n"
            << "Start_hh   =   06\n"
            << "End_YYYY   = 2012\n"
-           << "End_MM     =    3\n"
-           << "End_DD     =    1\n"
-           << "days       =    2\n"
+           << "End_MM     =    2\n"
+           << "End_DD     =   29\n"
+           << "days       =   30\n"
            << "tolerance  =   10\n"
            << "ParamId    =  178\n"
            << "TypeIds    =  312\n"
@@ -219,6 +226,14 @@ TEST_F(StatisticalMeanTest, FakeDeviation)
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
-    logs->dump(std::cerr);
     ASSERT_EQ(29, logs->count(Message::WARNING));
+
+    for(int day=1, idx=0; day<=29; ++day) {
+        idx = logs->next(Message::WARNING, idx);
+        ASSERT_LE(0, idx);
+        const std::string expect = (boost::format("station %1% for series ending at 2012-02-%2$02d mean=%3%") % ctr % day % ((day==1)?971:970)).str();
+        EXPECT_TRUE(boost::algorithm::contains(logs->text(idx), expect))
+            << "day=" << day;
+        idx += 1;
+    }
 }

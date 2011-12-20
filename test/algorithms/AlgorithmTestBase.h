@@ -104,6 +104,8 @@ public:
 
     int count(Message::Level level) const;
 
+    int next(Message::Level level, int startIdx=0) const;
+
     const std::string& text(int idx) const
         { return mMessages[idx].text; }
 

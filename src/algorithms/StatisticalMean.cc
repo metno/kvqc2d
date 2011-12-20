@@ -160,8 +160,7 @@ void StatisticalMean::run()
                     dayMean /= 3;
                 }
             }
-            DayMean dm(day, dayMean);
-            stationDailyMeans[sd.first].push_back(dm);
+            stationDailyMeans[sd.first].push_back(DayMean(day, dayMean));
         }
     }
 
@@ -175,18 +174,19 @@ void StatisticalMean::run()
         const dm_t& dml = sd.second;
         float sum = 0;
         dm_t::const_iterator tail = dml.begin(), head = tail;
-        while(head != dml.end()) {
-            while( tail != head && head->day() - tail->day() >= mDays ) {
+
+        const int d0 = UT0.date().julianDay() - day0, d1 = UT1.date().julianDay() - day0;
+        for(int day=d0; day<=d1; ++day) {
+            const int dfront = day - mDays;
+            while( head != dml.end() && head->day() <= day ) {
+                if( head->mean() > missing )
+                    sum += head->mean();
+                head++;
+            }
+            while( tail != head && tail->day() <= dfront ) {
                 if( tail->mean() > missing )
                     sum -= tail->mean();
                 tail++;
-            }
-            int day = head->day();
-            while( head != dml.end() && head->day() - tail->day() < mDays ) {
-                if( head->mean() > missing )
-                    sum += head->mean();
-                day = head->day();
-                head++;
             }
             const int nDays = head - tail;
             if( nDays>0 && nDays >= mDaysRequired ) {
