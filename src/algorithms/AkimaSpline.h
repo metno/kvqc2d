@@ -3,11 +3,6 @@
 #ifndef AkimaSpline_H
 #define AkimaSpline_H 1
 
-#include <iostream>
-#include <sstream>
-#include <memory>
-#include <stdexcept>
-#include <math.h>
 #include <vector>
 //GNU Statistical library
 #include <gsl/gsl_errno.h>
