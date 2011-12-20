@@ -206,6 +206,8 @@ void StatisticalMean::run()
 
             miutil::miDate date(date0);
             date.addDay(day);
+            if( date < UT0.date() )
+                continue;
             const int referenceDayOfYear = (Helpers::normalisedDayOfYear(date) + 365 - mDays/2) % 365;
             const float referenceMean = getStatisticalMean(center, referenceDayOfYear);
             if( fabs(mean - referenceMean) > mTolerance ) {
