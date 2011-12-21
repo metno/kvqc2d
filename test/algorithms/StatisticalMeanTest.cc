@@ -188,6 +188,51 @@ TEST_F(StatisticalMeanTest, MiniExample)
 
 // ------------------------------------------------------------------------
 
+TEST_F(StatisticalMeanTest, FakeManyMissing)
+{
+    const int ctr = 7010;
+    DataList data(ctr, 178, 312);
+    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
+    for(; date <= dateEnd; date.addDay(1)) {
+        const int m=date.month(), d=date.day();
+        if( (m==1 && d>=15 && d<=18) )
+            continue;
+        data.setStation(ctr)
+            .add(date,  970, "0100000000000010")
+            .setStation(46910)
+            .add(date, 1010, "0100000000000010")
+            .setStation(70150)
+            .add(date, 1011, "0100000000000010")
+            .setStation(76450)
+            .add(date, 1010, "0100000000000010");
+    }
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =    2\n"
+           << "Start_DD   =    1\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =    2\n"
+           << "End_DD     =   29\n"
+           << "days       =   30\n"
+           << "tolerance  =   10\n"
+           << "ParamId    =  178\n"
+           << "TypeIds    =  22,311,312,330,342\n"
+           << "InterpolationDistance = 5000.0\n";
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    int ndays = (dateEnd.date() - miutil::miDate("2012-01-17")) - int(30*0.9);
+    
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(ndays, logs->count(Message::WARNING));
+}
+
+// ------------------------------------------------------------------------
+
 TEST_F(StatisticalMeanTest, FakeDeviation)
 {
     const int ctr = 7010;
@@ -219,7 +264,7 @@ TEST_F(StatisticalMeanTest, FakeDeviation)
            << "days       =   30\n"
            << "tolerance  =   10\n"
            << "ParamId    =  178\n"
-           << "TypeIds    =  312\n"
+           << "TypeIds    =  22,311,312,330,342\n"
            << "InterpolationDistance = 5000.0\n";
     AlgorithmConfig params;
     params.Parse(config);
