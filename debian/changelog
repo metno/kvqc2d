@@ -1,3 +1,10 @@
+kvqc2d (1.3.7-1) unstable; urgency=low
+
+  * Redistribution: do not redistribute non-zero accumulation if all
+    neighbors are dry; print a warning instead.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 23 Dec 2011 13:00:00 +0100
+
 kvqc2d (1.3.6-1) unstable; urgency=low
 
   * Reverted a bad condition in INFO/WARN switch.
