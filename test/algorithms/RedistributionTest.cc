@@ -56,7 +56,9 @@ void RedistributionTest::SetUp()
         << "INSERT INTO station VALUES(84190, 68.2082, 17.5157,  29, 0, 'SKJOMEN - STIBERG',  NULL, 84190, NULL, NULL, NULL,  9, 't', '1987-09-01 00:00:00');"
         << "INSERT INTO station VALUES( 1230, 59.1223, 11.3865,   8, 0, 'HALDEN',             NULL,  1230, NULL, NULL, NULL,  9, 't', '1882-12-01 00:00:00');"
         << "INSERT INTO station VALUES( 3200, 59.3072, 11.1338,  31, 0, 'BATERØD',            NULL,  3200, NULL, NULL, NULL,  9, 't', '1942-01-01 00:00:00');"
-        << "INSERT INTO station VALUES( 4040, 59.7512, 11.1532, 164, 0, 'ENEBAKK - BARBØL',   NULL,  4040, NULL, NULL, NULL,  9, 't', '1998-05-15 00:00:00');";
+        << "INSERT INTO station VALUES( 4040, 59.7512, 11.1532, 164, 0, 'ENEBAKK - BARBØL',   NULL,  4040, NULL, NULL, NULL,  9, 't', '1998-05-15 00:00:00');"
+        << "INSERT INTO station VALUES(88100, 68.6457, 18.2455, 230, 0, 'BONES I BARDU',      NULL, 88100, NULL, NULL, NULL,  9, 't', '1907-05-01 00:00:00');"
+        << "INSERT INTO station VALUES(89650, 68.6577, 18.8193, 314, 0, 'INNSET I BARDU',     NULL, 89650, NULL, NULL, NULL, 10, 't', '1907-05-01 00:00:00');";
 
     sql << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1, 'QC1-1-110', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0, 110, 0, 0,   1, 365, -1, 'QC1-1-110x', '1;2;3;4;5;6\n-6999;-99.9;-99.8;999;6999;9999', '9999-VALUES', '1500-01-01 00:00:00');"
@@ -1144,33 +1146,44 @@ TEST_F(RedistributionTest, BadMeasurementHour)
 
 // ------------------------------------------------------------------------
 
-TEST_F(RedistributionTest, NonMeasureableNeighbors)
+TEST_F(RedistributionTest, NonzeroAccumulationButNeighborsBonedry)
 {
-   DataList data(83880, 110, 302);
-   data.add("2011-10-12 06:00:00",    0.0, "0140000000001000", "QC1-2-72.b12")
-       .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
-       .add("2011-10-14 06:00:00",    0.3, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
-        .setStation(83520)
-       .add("2011-10-12 06:00:00",    0.0, "0110000000001000", "")
-       .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
-       .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
-        .setStation(84190)
-       .add("2011-10-12 06:00:00",    0.0, "0110000000001000", "")
-       .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
-       .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
-        .setStation(84070)
-       .add("2011-10-12 06:00:00",    0.0, "0110000000001000", "")
-       .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
-       .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
+    DataList data(89650, 110, 302);
+    data.add("2011-12-20 06:00:00",      3, "0110000000001000", "")
+        .add("2011-12-21 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-12-22 06:00:00",   11.2, "0110004000002000", "QC1-7-110")
+        .setStation(88100)
+        .add("2011-12-20 06:00:00",     -1, "0110000000001000")
+        .add("2011-12-21 06:00:00",     -1, "0110000000001000")
+        .add("2011-12-22 06:00:00",     -1, "0110000000001000");
     ASSERT_NO_THROW(data.insert(db));
 
     AlgorithmConfig params;
-    Configure(params, 11, 18);
-
+    std::stringstream config;
+    config << "Start_YYYY = 2011\n"
+           << "Start_MM   =   12\n"
+           << "Start_DD   =   20\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2011\n"
+           << "End_MM     =   12\n"
+           << "End_DD     =   22\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n"
+           << "InterpolationDistance=50.0\n";
+    params.Parse(config);
     ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(1, logs->count(Message::WARNING));
+    ASSERT_EQ(0, logs->find("would be redistributed to zeros"));
+
+    data.setStation(88100)
+        .add("2011-12-21 06:00:00", 5, "0110000000001000")
+        .add("2011-12-22 06:00:00", 5, "0110000000001000");
+    ASSERT_NO_THROW(data.update(db));
     ASSERT_RUN(algo, bc, 2);
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(89650, "2011-12-21 06:00:00", "0000001000007000", 5.6, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(89650, "2011-12-22 06:00:00", "0110004000007000", 5.6, bc->update(1));
 }
 
 // ------------------------------------------------------------------------

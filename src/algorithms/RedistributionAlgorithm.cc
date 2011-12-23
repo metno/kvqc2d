@@ -319,7 +319,8 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
                 << " for accumulation ending in " << before.front().text(false);
             return false;
         }
-        const float weightedNeighbors = sumWeightedValues/sumWeights;
+        const float weightedNeighbors = (sumWeights > 0.0f)
+            ? sumWeightedValues/sumWeights : 0.0f;
         weightedNeighborsAccumulated += weightedNeighbors;
     
         cfailed << ",QC2-redist";
@@ -328,9 +329,14 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
     }
 
-    float corrected_sum = 0;
     const float scale = ( weightedNeighborsAccumulated > 0.0f )
         ? accumulated / weightedNeighborsAccumulated : 0.0f;
+    if( scale < 0.001f && accumulated > 0.05f ) {
+        warning() << "Accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint"
+                  << before.front().text(false);
+        return false;
+    }
+    float corrected_sum = 0;
     foreach(RedisUpdate& b, before) {
         const float corr = Helpers::round(scale * b.corrected());
         corrected_sum += corr;
