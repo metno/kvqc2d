@@ -81,7 +81,8 @@ void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toIn
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl;
     if( !mDbGate.exec(sql.str()) ) {
-        std::string message = "Database problem with UPDATE/INSERT: " + mDbGate.getErrorStr();
+        std::string message = "Database problem with UPDATE/INSERT: " + mDbGate.getErrorStr()
+            + "; SQL statement = '" + sql.str() + "'";
         if( !mDbGate.exec("ROLLBACK;") ) {
             message += "; ROLLBACK also failed; trying to re-connect (timeout messages may appear before this message)";
             connect();
