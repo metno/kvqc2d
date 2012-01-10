@@ -67,7 +67,8 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
 
         miutil::miTime now = miutil::miTime::nowTime();
         now.addSec(-now.sec()); // set seconds to 0
-        LOGINFO("now = " << now);
+        if( now.min() == 0 )
+            LOGINFO("kvqc2d is running :-)");
 
         // XXX if an algorithm is scheduled hourly and the previous algorithm is taking 2 hours, it will be run only once
 
