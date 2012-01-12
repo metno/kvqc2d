@@ -1,3 +1,9 @@
+kvqc2d (1.3.8-1) unstable; urgency=low
+
+  * Hourly live messages.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 12 Jan 2012 11:12:19 +0100
+
 kvqc2d (1.3.7-1) unstable; urgency=low
 
   * Redistribution: do not redistribute non-zero accumulation if all
