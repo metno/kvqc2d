@@ -1,3 +1,10 @@
+kvqc2d (1.3.9-1) unstable; urgency=low
+
+  * if redistribution of zeroes would occur, send INFO message for a while
+    and switch to WARN only after some configurable time (default: 28 days)
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 23 Jan 2012 09:42:34 +0100
+
 kvqc2d (1.3.8-1) unstable; urgency=low
 
   * Hourly live messages.
