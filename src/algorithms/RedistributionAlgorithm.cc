@@ -202,8 +202,8 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=3->fmis=1");
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
-    mDaysBeforeNoNeighborWarning = params.getParameter<int>("days_before_no_neighbor_warning", 28);
-    mDaysBeforeRedistributingZeroesWarning = params.getParameter<int>("days_before_redistributing_zeroes_warning", 28);
+    mDaysBeforeNoNeighborWarning = params.getParameter<int>("days_before_no_neighbor_warning", 14);
+    mDaysBeforeRedistributingZeroesWarning = params.getParameter<int>("days_before_redistributing_zeroes_warning", 14);
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
     mMeasurementHour = params.getParameter<int>("measurement_hour", 6);
