@@ -70,7 +70,7 @@ private:
     FlagChange update_flagchange;
     std::vector<int> pids;
     std::vector<int> tids;
-    int mMeasurementHour, mMinNeighbors, mDaysBeforeNoNeighborWarning;
+    int mMeasurementHour, mMinNeighbors, mDaysBeforeNoNeighborWarning, mDaysBeforeRedistributingZeroesWarning;
 };
 
 #endif

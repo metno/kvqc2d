@@ -203,6 +203,7 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
     mDaysBeforeNoNeighborWarning = params.getParameter<int>("days_before_no_neighbor_warning", 28);
+    mDaysBeforeRedistributingZeroesWarning = params.getParameter<int>("days_before_redistributing_zeroes_warning", 28);
     pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeIds");
     mMeasurementHour = params.getParameter<int>("measurement_hour", 6);
@@ -332,8 +333,11 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     const float scale = ( weightedNeighborsAccumulated > 0.0f )
         ? accumulated / weightedNeighborsAccumulated : 0.0f;
     if( scale < 0.001f && accumulated > 0.05f ) {
-        warning() << "Accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint"
-                  << before.front().text(false);
+        const int ageInDays = miutil::miDate::today().julianDay() - before.front().obstime().date().julianDay();
+        const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
+        (doWARN ? warning() : info())
+            << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint"
+            << before.front().text(false);
         return false;
     }
     float corrected_sum = 0;
