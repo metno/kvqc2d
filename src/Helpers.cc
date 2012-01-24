@@ -72,7 +72,7 @@ std::string datatext(const kvalobs::kvData& data)
         << " AND obstime='" << data.obstime().isoTime() << '\''
         << " AND paramid="  << data.paramID()
         << " AND typeid="   << data.typeID()
-        << " AND sensor="   << data.sensor()
+        << " AND sensor='"  << data.sensor() << "'"
         << " AND level="    << data.level()
         << "; original=" << digits1 << data.original()
         << " corr="        << digits1 << data.corrected()
