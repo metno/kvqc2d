@@ -129,6 +129,66 @@ private:
     float mMean;
 };
 
+class Accumulator {
+public:
+    Accumulator(int paramid, int days, int daysRequired) : mParamid(paramid), mDays(days), mDaysRequired(daysRequired) { }
+    void newStation() { mSum = 0; mCountDays = 0; }
+    void push(float value) { mCountDays += 1; mSum += value; }
+    void pop(float value)  { mCountDays -= 1; mSum -= value; }
+    bool hasValue() { return mCountDays>0 && mCountDays >= mDaysRequired; }
+    float value();
+private:
+    double mSum;
+    int mCountDays;
+    int mParamid, mDays, mDaysRequired;
+};
+
+float Accumulator::value()
+{
+    return (mParamid != 110) ? (mSum / mCountDays) : (mSum * float(mDays) / float(mCountDays));
+}
+
+class Checker {
+public:
+    Checker(int paramid, float tolerance) : mParamid(paramid), mTolerance(tolerance) { }
+    // indicates new center station; return true if ok, i.e. no neighbors need to be checked
+    bool newCenter(int id, int dayOfYear, float value);
+    // return true if enough neighbors have been seen
+    bool checkNeighbor(int nbr, float value);
+    // return true if the center station passes the test
+    bool pass();
+private:
+    float getReference(int stationid, int day, bool& valid);
+private:
+    int mParamid, mDayOfYear, mCenter, mCountNeighborsBelowTolerance;
+    float mTolerance;
+};
+
+bool Checker::newCenter(int id, int dayOfYear, float value)
+{
+    mCenter = id;
+    mDayOfYear = dayOfYear;
+    mCountNeighborsBelowTolerance = 0;
+
+    bool referenceValid;
+    const float reference = getReference(id, dayOfYear, referenceValid);
+    return !referenceValid || fabs(value - reference) < mTolerance;
+}
+
+bool Checker::checkNeighbor(int nbr, float value)
+{
+    bool referenceValid;
+    const float reference = getReference(nbr, mDayOfYear, referenceValid);
+    if( referenceValid && fabs(value - reference) < mTolerance )
+        mCountNeighborsBelowTolerance += 1;
+    return mCountNeighborsBelowTolerance <= 3;
+}
+
+bool Checker::pass()
+{
+    return mCountNeighborsBelowTolerance < 3;
+}
+
 void StatisticalMean::run()
 {
     std::list<kvalobs::kvData> sdata;
@@ -174,69 +234,61 @@ void StatisticalMean::run()
     typedef std::map<int, dm2_t> sd2_t;
     sd2_t stationMeansPerDay;
 
+    Accumulator accumulator(mParamid, mDays, mDaysRequired);
     foreach(const sdm_t::value_type& sd, stationDailyMeans) {
+        accumulator.newStation();
         const dm_t& dml = sd.second;
-        float sum = 0;
         dm_t::const_iterator tail = dml.begin(), head = tail;
 
-        int nDays = 0;
         const int d0 = UT0.date().julianDay() - day0, d1 = UT1.date().julianDay() - day0;
         for(int day=d0; day<=d1; ++day) {
             const int dfront = day - mDays;
             while( head != dml.end() && head->day() <= day ) {
-                sum += head->mean();
-                nDays += 1;
+                accumulator.push(head->mean());
                 head++;
             }
             while( tail != head && tail->day() <= dfront ) {
-                sum -= tail->mean();
-                nDays -= 1;
+                accumulator.pop(tail->mean());
                 tail++;
             }
-            if( nDays>0 && nDays >= mDaysRequired ) {
-                const float mean = (mParamid != 110) ? (sum / nDays) : (sum * float(mDays) / float(nDays));
-                stationMeansPerDay[sd.first][day] = mean;
-            }
+            if( accumulator.hasValue() )
+                stationMeansPerDay[sd.first][day] = accumulator.value();
         }
     }
 
     stationDailyMeans.clear(); // release memory
 
+    Checker checker(mParamid, mTolerance);
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
         const int center = sd.first;
         foreach(const dm2_t::value_type& dm, sd.second) {
             const int day = dm.first;
-            const float mean = dm.second;
 
             miutil::miDate date(date0);
             date.addDay(day);
             if( date < UT0.date() )
                 continue;
-            const int referenceDayOfYear = (Helpers::normalisedDayOfYear(date) + 365 - mDays/2) % 365;
-            bool referenceMeanValid;
-            const float referenceMean = getStatisticalMean(center, referenceDayOfYear, referenceMeanValid);
-            if( referenceMeanValid && fabs(mean - referenceMean) > mTolerance ) {
-                std::list<int> neighbors = findNeighbors(center);
-                int nNeighborsBelowTolerance = 0;
-                foreach(int n, neighbors) {
-                    sd2_t::const_iterator itN = stationMeansPerDay.find(n);
-                    if( itN != stationMeansPerDay.end() ) {
-                        const dm2_t& ndata = itN->second;
-                        dm2_t::const_iterator itD = ndata.find(day);
-                        if( itD != ndata.end() ) {
-                            bool nReferenceMeanValid;
-                            const float nReferenceMean = getStatisticalMean(n, referenceDayOfYear, nReferenceMeanValid);
-                            const float nMean = itD->second;
-                            if( nReferenceMeanValid && fabs(nMean - nReferenceMean) < mTolerance )
-                                nNeighborsBelowTolerance += 1;
-                        }
-                    }
-                }
-                if( nNeighborsBelowTolerance >= 3 ) {
-                    warning() << "tolerance exceeded for station " << center
-                              << " for series ending at " << date
-                              << " mean=" << mean << " ref=" << referenceMean;
-                }
+            
+            if( checker.newCenter(center, Helpers::normalisedDayOfYear(date), dm.second) )
+                continue;
+
+            std::list<int> neighbors = findNeighbors(center);
+            foreach(int n, neighbors) {
+                sd2_t::const_iterator itN = stationMeansPerDay.find(n);
+                if( itN == stationMeansPerDay.end() )
+                    continue;
+
+                const dm2_t& ndata = itN->second;
+                dm2_t::const_iterator itD = ndata.find(day);
+                if( itD == ndata.end() )
+                    continue;
+
+                if( !checker.checkNeighbor(n, itD->second) )
+                    break;
+            }
+            if( !checker.pass() ) {
+                warning() << "statistical test failed for station " << center
+                          << " for series ending at " << date;
             }
         }
     }
@@ -244,7 +296,7 @@ void StatisticalMean::run()
 
 // ------------------------------------------------------------------------
 
-float StatisticalMean::getStatisticalMean(int station, int dayOfYear, bool& valid)
+float Checker::getReference(int station, int dayOfYear, bool& valid)
 {
     valid = true;
     if( mParamid == 178 ) {

@@ -276,7 +276,7 @@ TEST_F(StatisticalMeanTest, FakeDeviation)
     for(int day=1, idx=0; day<=29; ++day) {
         idx = logs->next(Message::WARNING, idx);
         ASSERT_LE(0, idx);
-        const std::string expect = (boost::format("station %1% for series ending at 2012-02-%2$02d mean=%3%") % ctr % day % ((day==1)?971:970)).str();
+        const std::string expect = (boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str();
         EXPECT_TRUE(boost::algorithm::contains(logs->text(idx), expect))
             << "day=" << day;
         idx += 1;
