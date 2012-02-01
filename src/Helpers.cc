@@ -85,13 +85,14 @@ std::string datatext(const kvalobs::kvData& data)
 
 int normalisedDayOfYear(const miutil::miDate& date)
 {
-    const int feb28 = miutil::miDate(date.year(), 2, 28).dayOfYear();
-    int doy = date.dayOfYear();
-    if( doy > feb28 ) {
-        const int dec31 = miutil::miDate(date.year(), 12, 31).dayOfYear();
-        doy -= dec31 - 365;
-    }
-    return doy;
+    // February 29 is the same as February 28
+    const int daysFromPreviousMonths[12] = {
+        0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
+    };
+    int day = date.day(), month = date.month();
+    if( month == 2 && day == 29 )
+        day = 28;
+    return daysFromPreviousMonths[month-1] + day;
 }
 
 } // namespace Helpers
