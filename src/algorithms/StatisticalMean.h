@@ -19,7 +19,7 @@ public:
 private:
     std::list<int> findNeighbors(int stationID);
 
-    float getStatisticalMean(int stationid, int day);
+    float getStatisticalMean(int stationid, int day, bool& valid);
 
 private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;

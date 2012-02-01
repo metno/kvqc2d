@@ -44,6 +44,35 @@ namespace C = Constraint;
 namespace O = Ordering;
 using Helpers::equal;
 
+// ========================================================================
+
+class DayMean {
+public:
+    DayMean(int d, float m)
+        : mDay(d), mMean(m) { }
+    int day() const
+        { return mDay; }
+    float mean() const
+        { return mMean; }
+
+    int normalisedDayOfYear(const miutil::miDate& day0) const;
+    
+private:
+    int mDay;
+    float mMean;
+};
+
+// ------------------------------------------------------------------------
+
+int DayMean::normalisedDayOfYear(const miutil::miDate& day0) const
+{
+    miutil::miDate date(day0);
+    date.addDay(mDay);
+    return Helpers::normalisedDayOfYear(date);
+}
+
+// ========================================================================
+
 StatisticalMean::StatisticalMean()
     : Qc2Algorithm("StatisticalMean")
     , mNeighbors(new NeighborsDistance2())
@@ -86,28 +115,19 @@ void StatisticalMean::configure(const AlgorithmConfig& params)
 
 // ------------------------------------------------------------------------
 
-class DayMean {
+class DailyValueExtractor {
 public:
-    DayMean(int d, float m)
-        : mDay(d), mMean(m) { }
-    int day() const
-        { return mDay; }
-    float mean() const
-        { return mMean; }
-
-    int normalisedDayOfYear(const miutil::miDate& day0) const;
-    
+    void newDay() { mHours = 0; mCountHours = 0; mMean = 0; }
+    void addObservation(const miutil::miTime& obstime, float original)
+        { int h = obstime.hour(); if( h == 6 || h == 12 || h == 18 ) { mHours |= (1 << h); mCountHours += 1; mMean += original; } }
+    bool completeDay()
+        { return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18)); }
+    float value()
+        { return mMean / mCountHours; }
 private:
-    int mDay;
+    int mHours, mCountHours;
     float mMean;
 };
-
-int DayMean::normalisedDayOfYear(const miutil::miDate& day0) const
-{
-    miutil::miDate date(day0);
-    date.addDay(mDay);
-    return Helpers::normalisedDayOfYear(date);
-}
 
 void StatisticalMean::run()
 {
@@ -120,7 +140,8 @@ void StatisticalMean::run()
     typedef std::map<int, dlist_t > smap_t;
     smap_t smap;
     foreach(const kvalobs::kvData& d, sdata) {
-        smap[d.stationID()].push_back(d);
+        if( !Helpers::equal(d.original(), missing) && !Helpers::equal(d.original(), rejected) )
+            smap[d.stationID()].push_back(d);
     }
 
     sdata.clear(); // release memory
@@ -132,35 +153,18 @@ void StatisticalMean::run()
     const miutil::miDate date0 = mUT0extended.date();
     const int day0 = date0.julianDay();
 
+    DailyValueExtractor dve;
+
     // calculate daily mean values
     foreach(const smap_t::value_type& sd, smap) {
         const dlist_t& dl = sd.second;
         for(dlist_t::const_iterator itB = dl.begin(), itE=itB; itB != dl.end(); itB = itE) {
+            dve.newDay();
             const int day = itB->obstime().date().julianDay() - day0;
-            int hours = 0;
             for( ; itE != dl.end() && (itE->obstime().date().julianDay() - day0) == day; itE++ )
-                hours |= (1 << itE->obstime().hour());
-            float dayMean;
-            if( hours == (1<<6) ) {
-                dayMean = itB->original();
-            } else {
-                int n = 0;
-                dayMean = 0;
-                for(dlist_t::const_iterator itA = itB; itA != itE; itA++ ) {
-                    const int h = itA->obstime().hour();
-                    if( h == 6 || h == 12 || h == 18 ) {
-                        n += 1;
-                        dayMean += itA->original();
-                    }
-                }
-                if( n != 3 ) {
-                    // bad day
-                    continue;
-                } else {
-                    dayMean /= 3;
-                }
-            }
-            stationDailyMeans[sd.first].push_back(DayMean(day, dayMean));
+                dve.addObservation(itE->obstime(), itE->original());
+            if( dve.completeDay() )
+                stationDailyMeans[sd.first].push_back(DayMean(day, dve.value()));
         }
     }
 
@@ -175,22 +179,22 @@ void StatisticalMean::run()
         float sum = 0;
         dm_t::const_iterator tail = dml.begin(), head = tail;
 
+        int nDays = 0;
         const int d0 = UT0.date().julianDay() - day0, d1 = UT1.date().julianDay() - day0;
         for(int day=d0; day<=d1; ++day) {
             const int dfront = day - mDays;
             while( head != dml.end() && head->day() <= day ) {
-                if( head->mean() > missing )
-                    sum += head->mean();
+                sum += head->mean();
+                nDays += 1;
                 head++;
             }
             while( tail != head && tail->day() <= dfront ) {
-                if( tail->mean() > missing )
-                    sum -= tail->mean();
+                sum -= tail->mean();
+                nDays -= 1;
                 tail++;
             }
-            const int nDays = head - tail;
             if( nDays>0 && nDays >= mDaysRequired ) {
-                const float mean = sum / nDays;
+                const float mean = (mParamid != 110) ? (sum / nDays) : (sum * float(mDays) / float(nDays));
                 stationMeansPerDay[sd.first][day] = mean;
             }
         }
@@ -209,8 +213,9 @@ void StatisticalMean::run()
             if( date < UT0.date() )
                 continue;
             const int referenceDayOfYear = (Helpers::normalisedDayOfYear(date) + 365 - mDays/2) % 365;
-            const float referenceMean = getStatisticalMean(center, referenceDayOfYear);
-            if( fabs(mean - referenceMean) > mTolerance ) {
+            bool referenceMeanValid;
+            const float referenceMean = getStatisticalMean(center, referenceDayOfYear, referenceMeanValid);
+            if( referenceMeanValid && fabs(mean - referenceMean) > mTolerance ) {
                 std::list<int> neighbors = findNeighbors(center);
                 int nNeighborsBelowTolerance = 0;
                 foreach(int n, neighbors) {
@@ -219,9 +224,10 @@ void StatisticalMean::run()
                         const dm2_t& ndata = itN->second;
                         dm2_t::const_iterator itD = ndata.find(day);
                         if( itD != ndata.end() ) {
-                            const float nReferenceMean = getStatisticalMean(n, referenceDayOfYear);
+                            bool nReferenceMeanValid;
+                            const float nReferenceMean = getStatisticalMean(n, referenceDayOfYear, nReferenceMeanValid);
                             const float nMean = itD->second;
-                            if( fabs(nMean - nReferenceMean) < mTolerance )
+                            if( nReferenceMeanValid && fabs(nMean - nReferenceMean) < mTolerance )
                                 nNeighborsBelowTolerance += 1;
                         }
                     }
@@ -238,7 +244,43 @@ void StatisticalMean::run()
 
 // ------------------------------------------------------------------------
 
-float StatisticalMean::getStatisticalMean(int station, int dayOfYear)
+float StatisticalMean::getStatisticalMean(int station, int dayOfYear, bool& valid)
 {
-    return 1014;
+    valid = true;
+    if( mParamid == 178 ) {
+        return 1014;
+    }
+    if( mParamid == 212 ) {
+        // see table from Knut Johansen, 2012-01-05 08:30
+#include "StatisticalMean_n212.icc"
+        const int idx = std::find(daymeans212_ids, daymeans212_ids+daymeans212_n, station) - daymeans212_ids;
+        if( idx >= daymeans212_n ) {
+            valid = false;
+            return 0;
+        }
+        const int normal = daymeans212_list[idx][dayOfYear];
+        if( normal == -32767 ) {
+            valid = false;
+            return 0;
+        }
+        return normal*0.1f;
+    } else if( mParamid == 110 ) {
+        // see table from Knut Johansen, 2012-01-10 12:55
+#include "StatisticalMean_n110.icc"
+        const int idx = std::find(daymeans110_ids, daymeans110_ids+daymeans110_n, station) - daymeans110_ids;
+        if( idx >= daymeans110_n ) {
+            valid = false;
+            return 0;
+        }
+        const int normal = daymeans110_list[idx][dayOfYear];
+        if( normal == -32767 ) {
+            valid = false;
+            return 0;
+        }
+        return normal*0.1f;
+    } else {
+        std::ostringstream msg;
+        msg << "StatisticalMean: no statistics tables for paramid= " << mParamid;
+        throw std::runtime_error(msg.str());
+    }
 }
