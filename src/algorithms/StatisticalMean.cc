@@ -37,6 +37,9 @@
 
 #include <milog/milog.h>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
+
 #define NDEBUG
 #include "debug.h"
 
@@ -129,62 +132,129 @@ private:
     float mMean;
 };
 
+// ========================================================================
+
+class AccumulatedValue {
+public:
+    virtual ~AccumulatedValue() = 0;
+};
+
+AccumulatedValue::~AccumulatedValue()
+{
+}
+
+typedef boost::shared_ptr<AccumulatedValue> AccumulatedValueP;
+
+// ========================================================================
+
 class Accumulator {
 public:
-    Accumulator(int paramid, int days, int daysRequired) : mParamid(paramid), mDays(days), mDaysRequired(daysRequired) { }
+    virtual void newStation() =0;
+    virtual void push(float value) = 0;
+    virtual void pop(float value) = 0;
+    virtual AccumulatedValueP value() = 0;
+    virtual ~Accumulator() { }
+};
+
+typedef boost::shared_ptr<Accumulator> AccumulatorP;
+
+// ========================================================================
+
+struct AccumulatedFloat : public AccumulatedValue {
+    float value;
+    AccumulatedFloat(float v) : value(v) { }
+};
+
+// ========================================================================
+
+class AccumulatorMeanOrSum : public Accumulator {
+public:
+    AccumulatorMeanOrSum(bool calculateMean, int days, int daysRequired)
+        : mCalculateMean(calculateMean), mDays(days), mDaysRequired(daysRequired) { }
     void newStation() { mSum = 0; mCountDays = 0; }
     void push(float value) { mCountDays += 1; mSum += value; }
     void pop(float value)  { mCountDays -= 1; mSum -= value; }
-    bool hasValue() { return mCountDays>0 && mCountDays >= mDaysRequired; }
-    float value();
+    AccumulatedValueP value();
 private:
+    bool mCalculateMean;
+    int mDays, mDaysRequired;
     double mSum;
     int mCountDays;
-    int mParamid, mDays, mDaysRequired;
 };
 
-float Accumulator::value()
+AccumulatedValueP AccumulatorMeanOrSum::value()
 {
-    return (mParamid != 110) ? (mSum / mCountDays) : (mSum * float(mDays) / float(mCountDays));
+    if( mCountDays<=0 || mCountDays < mDaysRequired )
+        return AccumulatedValueP();
+    if( mCalculateMean )
+        return boost::make_shared<AccumulatedFloat>(mSum / mCountDays);
+    else
+        return boost::make_shared<AccumulatedFloat>(mSum * float(mDays) / float(mCountDays));
 }
+
+// ========================================================================
 
 class Checker {
 public:
-    Checker(int paramid, float tolerance) : mParamid(paramid), mTolerance(tolerance) { }
+    Checker(StatisticalMean* sm)
+        : mStatisticalMean(sm) { }
+
     // indicates new center station; return true if ok, i.e. no neighbors need to be checked
-    bool newCenter(int id, int dayOfYear, float value);
+    virtual bool newCenter(int id, int dayOfYear, AccumulatedValueP value) = 0;
     // return true if enough neighbors have been seen
-    bool checkNeighbor(int nbr, float value);
+    virtual bool checkNeighbor(int nbr, AccumulatedValueP value) = 0;
     // return true if the center station passes the test
-    bool pass();
+    virtual bool pass() = 0;
+
+    float getReference(int stationid, int day, const std::string& key, bool& valid)
+        { return mStatisticalMean->getReferenceValue(stationid, day, key, valid); }
+
+    virtual ~Checker() { }
 private:
-    float getReference(int stationid, int day, bool& valid);
+    StatisticalMean* mStatisticalMean;
+};
+
+typedef boost::shared_ptr<Checker> CheckerP;
+
+// ========================================================================
+
+class CheckerMeanOrSum : public Checker {
+public:
+    CheckerMeanOrSum(StatisticalMean* sm, int paramid, float tolerance)
+        : Checker(sm), mParamid(paramid), mTolerance(tolerance) { }
+    bool newCenter(int id, int dayOfYear, AccumulatedValueP accumulated);
+    bool checkNeighbor(int nbr, AccumulatedValueP accumulated);
+    bool pass();
 private:
     int mParamid, mDayOfYear, mCenter, mCountNeighborsBelowTolerance;
     float mTolerance;
 };
 
-bool Checker::newCenter(int id, int dayOfYear, float value)
+bool CheckerMeanOrSum::newCenter(int id, int dayOfYear, AccumulatedValueP accumulated)
 {
     mCenter = id;
     mDayOfYear = dayOfYear;
     mCountNeighborsBelowTolerance = 0;
 
     bool referenceValid;
-    const float reference = getReference(id, dayOfYear, referenceValid);
+    const float reference = getReference(id, dayOfYear, "ref_value", referenceValid);
+    //bool toleranceValid;
+    //const float tolerance = getReference(id, dayOfYear, "tolerance", referenceValid);
+    const float value = boost::static_pointer_cast<AccumulatedFloat>(accumulated)->value;
     return !referenceValid || fabs(value - reference) < mTolerance;
 }
 
-bool Checker::checkNeighbor(int nbr, float value)
+bool CheckerMeanOrSum::checkNeighbor(int nbr, AccumulatedValueP accumulated)
 {
     bool referenceValid;
-    const float reference = getReference(nbr, mDayOfYear, referenceValid);
+    const float reference = getReference(nbr, mDayOfYear, "ref_value", referenceValid);
+    const float value = boost::static_pointer_cast<AccumulatedFloat>(accumulated)->value;
     if( referenceValid && fabs(value - reference) < mTolerance )
         mCountNeighborsBelowTolerance += 1;
     return mCountNeighborsBelowTolerance <= 3;
 }
 
-bool Checker::pass()
+bool CheckerMeanOrSum::pass()
 {
     return mCountNeighborsBelowTolerance < 3;
 }
@@ -230,13 +300,13 @@ void StatisticalMean::run()
 
     smap.clear(); // release memory
 
-    typedef std::map<int,float> dm2_t;
+    typedef std::map<int, AccumulatedValueP> dm2_t;
     typedef std::map<int, dm2_t> sd2_t;
     sd2_t stationMeansPerDay;
 
-    Accumulator accumulator(mParamid, mDays, mDaysRequired);
+    AccumulatorP accumulator = boost::make_shared<AccumulatorMeanOrSum>(true, mDays, mDaysRequired);
     foreach(const sdm_t::value_type& sd, stationDailyMeans) {
-        accumulator.newStation();
+        accumulator->newStation();
         const dm_t& dml = sd.second;
         dm_t::const_iterator tail = dml.begin(), head = tail;
 
@@ -244,21 +314,22 @@ void StatisticalMean::run()
         for(int day=d0; day<=d1; ++day) {
             const int dfront = day - mDays;
             while( head != dml.end() && head->day() <= day ) {
-                accumulator.push(head->mean());
+                accumulator->push(head->mean());
                 head++;
             }
             while( tail != head && tail->day() <= dfront ) {
-                accumulator.pop(tail->mean());
+                accumulator->pop(tail->mean());
                 tail++;
             }
-            if( accumulator.hasValue() )
-                stationMeansPerDay[sd.first][day] = accumulator.value();
+            AccumulatedValueP value = accumulator->value();
+            if( value != 0 )
+                stationMeansPerDay[sd.first][day] = value;
         }
     }
 
     stationDailyMeans.clear(); // release memory
 
-    Checker checker(mParamid, mTolerance);
+    CheckerP checker = boost::make_shared<CheckerMeanOrSum>(this, mParamid, mTolerance);
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
         const int center = sd.first;
         foreach(const dm2_t::value_type& dm, sd.second) {
@@ -269,7 +340,7 @@ void StatisticalMean::run()
             if( date < UT0.date() )
                 continue;
             
-            if( checker.newCenter(center, Helpers::normalisedDayOfYear(date), dm.second) )
+            if( checker->newCenter(center, Helpers::normalisedDayOfYear(date), dm.second) )
                 continue;
 
             std::list<int> neighbors = findNeighbors(center);
@@ -283,10 +354,10 @@ void StatisticalMean::run()
                 if( itD == ndata.end() )
                     continue;
 
-                if( !checker.checkNeighbor(n, itD->second) )
+                if( !checker->checkNeighbor(n, itD->second) )
                     break;
             }
-            if( !checker.pass() ) {
+            if( !checker->pass() ) {
                 warning() << "statistical test failed for station " << center
                           << " for series ending at " << date;
             }
@@ -296,8 +367,14 @@ void StatisticalMean::run()
 
 // ------------------------------------------------------------------------
 
-float Checker::getReference(int station, int dayOfYear, bool& valid)
+float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::string& key, bool& valid)
 {
+#if 0
+    float rv;
+    return db()->selectStatisticalReferenceValue(station, mParamid, dayOfYear, key, valid, rv);
+    rteurn rv;
+#else
+    // TODO move this into StatisticalMean, from there call DBInterface; move all numbers into test cases
     valid = true;
     if( mParamid == 178 ) {
         return 1014;
@@ -335,4 +412,5 @@ float Checker::getReference(int station, int dayOfYear, bool& valid)
         msg << "StatisticalMean: no statistics tables for paramid= " << mParamid;
         throw std::runtime_error(msg.str());
     }
+#endif
 }

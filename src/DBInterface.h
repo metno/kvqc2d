@@ -67,6 +67,8 @@ public:
 
     virtual void selectStations(kvStationList_t&) throw (DBException) = 0;
 
+    virtual void selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value) = 0;
+
     /**
      * Update and insert data.
      */

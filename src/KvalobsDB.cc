@@ -91,6 +91,11 @@ void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toIn
     }
 }
 
+void KvalobsDB::selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value)
+{
+    valid = false;
+}
+
 void KvalobsDB::connect()
 {
     if( mConnection != 0 )

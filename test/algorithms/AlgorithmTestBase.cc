@@ -127,6 +127,13 @@ SqliteTestDB::SqliteTestDB()
         "environmentid  INTEGER DEFAULT NULL, "
         "static    BOOLEAN DEFAULT FALSE, "
         "fromtime TIMESTAMP NOT NULL);");
+
+    exec("CREATE TABLE statistical_reference_values ("
+        "stationid   INTEGER NOT NULL, "
+        "paramid     INTEGER NOT NULL, "
+        "day_of_year INTEGER NOT NULL, "
+        "key         TEXT NOT NULL, "
+        "corrected   FLOAT NOT NULL);");
 }
 
 // ------------------------------------------------------------------------
@@ -278,6 +285,34 @@ void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& t
 #endif
 
     exec(sql.str());
+}
+
+// ------------------------------------------------------------------------
+
+void SqliteTestDB::selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value)
+{
+    std::ostringstream sqlS;
+    sqlS << "SELECT value FROM statistical_reference_values WHERE stationid = " << stationid
+         << " AND paramid = " << paramid << " AND day_of_year = " << dayOfYear
+         << " AND key = '" << key << "'";
+    const std::string sql = sqlS.str();
+
+    sqlite3_stmt *stmt;
+#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
+    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
+        throw DBException("preparing '" + sql + "'");
+#else
+    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
+        throw DBException("preparing '" + sql + "'");
+#endif
+    int step = sqlite3_step(stmt);
+    if( step == SQLITE_ROW ) {
+        valid = true;
+        value = sqlite3_column_double(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    if(step != SQLITE_DONE)
+        throw DBException(sql);
 }
 
 // ------------------------------------------------------------------------

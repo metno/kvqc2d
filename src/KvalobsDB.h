@@ -44,6 +44,7 @@ public:
     virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
+    virtual void selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value);
 
 private:
     void connect();

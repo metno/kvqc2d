@@ -16,6 +16,8 @@ public:
     virtual void configure(const AlgorithmConfig& params);
     virtual void run();
 
+    float getReferenceValue(int station, int dayOfYear, const std::string& key, bool& valid);
+
 private:
     std::list<int> findNeighbors(int stationID);
 

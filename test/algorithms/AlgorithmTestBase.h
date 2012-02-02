@@ -44,10 +44,13 @@ public:
     SqliteTestDB();
     ~SqliteTestDB();
 
+    virtual void selectData(kvDataList_t& d, const Constraint::DBConstraint& where) throw (DBException)
+        { DBInterface::selectData(d, where); }
     virtual void selectData(kvDataList_t&, const miutil::miString& where)  throw (DBException);
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
+    virtual void selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value);
 
     // test helpers
     void exec(const std::string& statement) throw (DBException);
