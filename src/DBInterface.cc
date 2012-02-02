@@ -44,21 +44,6 @@ std::string ORDER_BY(const Ordering::DBOrdering& o)
 }
 } // anonymous namespace
 
-void DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException)
-{
-    const kvStationIDList_t stations(1, stationID);
-    return dataForStationsParamTimerange(r, stations, paramID, first, last);
-}
-
-void DBInterface::dataForStationParamTimerange(kvDataList_t& r, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter) throw (DBException)
-{
-    const kvStationIDList_t stations(1, stationID);
-    miutil::miTime first=middle, last=middle;
-    first.addHour( hoursBefore );
-    last.addHour( hoursAfter );
-    return dataForStationsParamTimerange(r, stations, paramID, first, last);
-}
-
 void DBInterface::selectData(kvDataList_t& r, const Constraint::DBConstraint& where) throw (DBException)
 {
     return selectData(r, WHERE(where));

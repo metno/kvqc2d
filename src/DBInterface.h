@@ -57,21 +57,6 @@ public:
     typedef std::list<int> kvStationIDList_t;
     typedef std::list<kvalobs::kvStation> kvStationList_t;
 
-    void dataForStationsParamTimerange(kvDataList_t& d, const kvStationIDList_t& s, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException)
-        { selectData(d, kvQueries::selectData(s, paramID, first, last)); }
-
-    /**
-     * Select station data for one parameter id in the specified time range.
-     * Calls dataForStationsParamTimerange.
-     */
-    void dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& first, const miutil::miTime& last) throw (DBException);
-
-    /**
-     * Select station data like in dataForStationParamTimerange, but specifying relative times.
-     * Calls dataForStationsParamTimerange.
-     */
-    void dataForStationParamTimerange(kvDataList_t&, int stationID, int paramID, const miutil::miTime& middle, int hoursBefore, int hoursAfter) throw (DBException);
-
     virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException) = 0;
 
     virtual void selectData(kvDataList_t&, const Constraint::DBConstraint& where) throw (DBException);

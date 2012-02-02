@@ -30,6 +30,9 @@
 #include "AlgorithmTestBase.h"
 #include "AlgorithmHelpers.h"
 #include "algorithms/SingleLinearAlgorithm.h"
+#include "DBConstraints.h"
+
+namespace C = Constraint;
 
 class SingleLinearTest : public AlgorithmTestBase {
 public:
@@ -78,18 +81,18 @@ TEST_F(SingleLinearTest, test1)
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
     tb.addHour(-1);
     ta.addHour(+1);
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, tb, tb));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(180) && C::Paramid(pid) && C::Obstime(tb, tb)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(14.0, series.begin()->original());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, ta, ta));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(180) && C::Paramid(pid) && C::Obstime(ta, ta)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(18.0, series.begin()->original());
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 1);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(180) && C::Paramid(pid) && C::Obstime(t, t)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(16.0, series.begin()->corrected());
 
@@ -123,7 +126,7 @@ TEST_F(SingleLinearTest, test2)
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 180, pid, t, t));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(180) && C::Paramid(pid) && C::Obstime(t, t)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(params.rejected, series.begin()->corrected());
     ASSERT_EQ("0111102100100010", series.begin()->controlinfo().flagstring());
@@ -197,13 +200,13 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2025-09-16 12:00:00"), t1("2025-09-17 10:00:00");
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(87120) && C::Paramid(pid) && C::Obstime(t0, t0)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(6.7, series.begin()->corrected());
     ASSERT_EQ("05120041000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t1, t1));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(87120) && C::Paramid(pid) && C::Obstime(t1, t1)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(9.1, series.begin()->corrected());
     ASSERT_EQ("0100001100000000", series.begin()->controlinfo().flagstring());
@@ -219,13 +222,13 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     ASSERT_RUN(algo, bc, 2);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(87120) && C::Paramid(pid) && C::Obstime(t0, t0)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(7.0, series.begin()->corrected());
     ASSERT_EQ("05120041000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t1, t1));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(87120) && C::Paramid(pid) && C::Obstime(t1, t1)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(7.3, series.begin()->corrected());
     ASSERT_EQ("0100001100000000", series.begin()->controlinfo().flagstring());
@@ -239,13 +242,13 @@ TEST_F(SingleLinearTest, testFromWiki)
 
     ASSERT_RUN(algo, bc, 2);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t0, t0));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(87120) && C::Paramid(pid) && C::Obstime(t0, t0)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(-32766, series.begin()->corrected());
     ASSERT_EQ("05120021000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2,QC2d-2,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 87120, pid, t1, t1));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(87120) && C::Paramid(pid) && C::Obstime(t1, t1)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ( -32767, series.begin()->corrected());
     ASSERT_EQ("0100003100000000", series.begin()->controlinfo().flagstring());
@@ -322,7 +325,7 @@ TEST_F(SingleLinearTest, testFromKro)
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2011-10-10 13:00:00");
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 93000, pid, t0, t0));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(93000) && C::Paramid(pid) && C::Obstime(t0, t0)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(1.6, series.begin()->corrected());
 }

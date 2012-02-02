@@ -31,8 +31,11 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/DipTestAlgorithm.h"
 #include "AlgorithmHelpers.h"
+#include "DBConstraints.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+
+namespace C = Constraint;
 
 class DipTestTest : public AlgorithmTestBase {
 public:
@@ -118,7 +121,7 @@ TEST_F(DipTestTest, Bugzilla1327)
     miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 90800, 90, t1, t2));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(90800) && C::Paramid(90) && C::Obstime(t1, t2)));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("0419000000000000", it->controlinfo().flagstring());
@@ -186,7 +189,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     miutil::miTime t1("2018-09-09 03:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 18230, 87, t1, t2));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(18230) && C::Paramid(87) && C::Obstime(t1, t2)));
     ASSERT_EQ(2, series.size());
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
     EXPECT_EQ("1109000000000000", it->controlinfo().flagstring());
@@ -246,7 +249,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 12320, 104, t1, t2));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(12320) && C::Paramid(104) && C::Obstime(t1, t2)));
     ASSERT_EQ(2, series.size());
 
     EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 20:00:00", "1109000000100100", 381.6, bc->update(0));
@@ -299,7 +302,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 12320, 104, t1, t2));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(12320) && C::Paramid(104) && C::Obstime(t1, t2)));
     ASSERT_EQ(2, series.size());
 
     EXPECT_STATION_OBS_CONTROL_CORR(12320, "2018-09-25 20:00:00", "1109000000100100", 381.6, bc->update(0));
@@ -494,7 +497,7 @@ TEST_F(DipTestTest, Bugzilla1320)
     miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
     t2.addHour(1);
 
-    ASSERT_NO_THROW(db->dataForStationParamTimerange(series, 90800, 90, t1, t2));
+    ASSERT_NO_THROW(db->selectData(series, C::Station(90800) && C::Paramid(90) && C::Obstime(t1, t2)));
     ASSERT_EQ(2, series.size());
 
     std::list<kvalobs::kvData>::const_iterator it = series.begin();
