@@ -44,3 +44,11 @@ LDADD = \
 kvqc2dTest_LDADD = ../src/libkvqc2d.a $(LDADD)
 
 kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS) 
+
+algorithms/StatisticalMeanTest.cc: algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc
+
+algorithms/StatisticalMean_n110.icc: algorithms/build_daymeans_110.py ../data/normals_110.dat
+	python $^ $@
+
+algorithms/StatisticalMean_n212.icc: algorithms/build_daymeans_212.py ../data/normals_212.dat
+	python $^ $@

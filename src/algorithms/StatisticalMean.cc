@@ -369,48 +369,13 @@ void StatisticalMean::run()
 
 float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::string& key, bool& valid)
 {
-#if 0
-    float rv;
-    return db()->selectStatisticalReferenceValue(station, mParamid, dayOfYear, key, valid, rv);
-    rteurn rv;
-#else
-    // TODO move this into StatisticalMean, from there call DBInterface; move all numbers into test cases
-    valid = true;
     if( mParamid == 178 ) {
+        // pressure
+        valid = true;
         return 1014;
     }
-    if( mParamid == 212 ) {
-        // see table from Knut Johansen, 2012-01-05 08:30
-#include "StatisticalMean_n212.icc"
-        const int idx = std::find(daymeans212_ids, daymeans212_ids+daymeans212_n, station) - daymeans212_ids;
-        if( idx >= daymeans212_n ) {
-            valid = false;
-            return 0;
-        }
-        const int normal = daymeans212_list[idx][dayOfYear];
-        if( normal == -32767 ) {
-            valid = false;
-            return 0;
-        }
-        return normal*0.1f;
-    } else if( mParamid == 110 ) {
-        // see table from Knut Johansen, 2012-01-10 12:55
-#include "StatisticalMean_n110.icc"
-        const int idx = std::find(daymeans110_ids, daymeans110_ids+daymeans110_n, station) - daymeans110_ids;
-        if( idx >= daymeans110_n ) {
-            valid = false;
-            return 0;
-        }
-        const int normal = daymeans110_list[idx][dayOfYear];
-        if( normal == -32767 ) {
-            valid = false;
-            return 0;
-        }
-        return normal*0.1f;
-    } else {
-        std::ostringstream msg;
-        msg << "StatisticalMean: no statistics tables for paramid= " << mParamid;
-        throw std::runtime_error(msg.str());
-    }
-#endif
+
+    float rv;
+    database()->selectStatisticalReferenceValue(station, mParamid, dayOfYear, key, valid, rv);
+    return rv;
 }

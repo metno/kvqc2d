@@ -116,9 +116,3 @@ $(VERSION_GIT_STAMP):
 	    echo "Updating '$(VERSION_GIT_H)'"; \
 	    mv -f "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; \
 	fi
-
-algorithms/StatisticalMean_n110.icc: algorithms/build_daymeans_110.py ../data/normals_110.dat
-	python $^ $@
-
-algorithms/StatisticalMean_n212.icc: algorithms/build_daymeans_212.py ../data/normals_212.dat
-	python $^ $@

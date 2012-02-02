@@ -133,7 +133,7 @@ SqliteTestDB::SqliteTestDB()
         "paramid     INTEGER NOT NULL, "
         "day_of_year INTEGER NOT NULL, "
         "key         TEXT NOT NULL, "
-        "corrected   FLOAT NOT NULL);");
+        "value       FLOAT NOT NULL);");
 }
 
 // ------------------------------------------------------------------------

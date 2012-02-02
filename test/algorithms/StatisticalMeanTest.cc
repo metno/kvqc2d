@@ -55,6 +55,9 @@ void StatisticalMeanTest::SetUp()
         << "INSERT INTO station VALUES(93700, 68.9968, 23.0335, 307, 0, 'KAUTOKEINO',        1047, 93700, NULL, NULL, NULL, 8, 't', '1996-07-08 00:00:00');"
         << "INSERT INTO station VALUES(96800, 70.3969, 28.1928,  10, 0, 'RUSTEFJELBMA',      1075, 96800, NULL, NULL, NULL, 8, 't', '1951-01-01 00:00:00');";
     ASSERT_NO_THROW(db->exec(sql.str()));
+
+#include "StatisticalMean_n110.icc"
+#include "StatisticalMean_n212.icc"
 }
 
 // ------------------------------------------------------------------------
