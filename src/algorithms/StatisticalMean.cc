@@ -160,40 +160,6 @@ typedef boost::shared_ptr<Accumulator> AccumulatorP;
 
 // ========================================================================
 
-struct AccumulatedFloat : public AccumulatedValue {
-    float value;
-    AccumulatedFloat(float v) : value(v) { }
-};
-
-// ========================================================================
-
-class AccumulatorMeanOrSum : public Accumulator {
-public:
-    AccumulatorMeanOrSum(bool calculateMean, int days, int daysRequired)
-        : mCalculateMean(calculateMean), mDays(days), mDaysRequired(daysRequired) { }
-    void newStation() { mSum = 0; mCountDays = 0; }
-    void push(float value) { mCountDays += 1; mSum += value; }
-    void pop(float value)  { mCountDays -= 1; mSum -= value; }
-    AccumulatedValueP value();
-private:
-    bool mCalculateMean;
-    int mDays, mDaysRequired;
-    double mSum;
-    int mCountDays;
-};
-
-AccumulatedValueP AccumulatorMeanOrSum::value()
-{
-    if( mCountDays<=0 || mCountDays < mDaysRequired )
-        return AccumulatedValueP();
-    if( mCalculateMean )
-        return boost::make_shared<AccumulatedFloat>(mSum / mCountDays);
-    else
-        return boost::make_shared<AccumulatedFloat>(mSum * float(mDays) / float(mCountDays));
-}
-
-// ========================================================================
-
 class Checker {
 public:
     Checker(StatisticalMean* sm)
@@ -218,6 +184,42 @@ typedef boost::shared_ptr<Checker> CheckerP;
 
 // ========================================================================
 
+struct AccumulatedFloat : public AccumulatedValue {
+    float value;
+    AccumulatedFloat(float v) : value(v) { }
+};
+
+// ========================================================================
+
+class AccumulatorMeanOrSum : public Accumulator {
+public:
+    AccumulatorMeanOrSum(bool calculateMean, int days, int daysRequired)
+        : mCalculateMean(calculateMean), mDays(days), mDaysRequired(daysRequired) { }
+    void newStation() { mSum = 0; mCountDays = 0; }
+    void push(float value) { mCountDays += 1; mSum += value; }
+    void pop(float value)  { mCountDays -= 1; mSum -= value; }
+    AccumulatedValueP value();
+private:
+    bool mCalculateMean;
+    int mDays, mDaysRequired;
+    double mSum;
+    int mCountDays;
+};
+
+// ------------------------------------------------------------------------
+
+AccumulatedValueP AccumulatorMeanOrSum::value()
+{
+    if( mCountDays<=0 || mCountDays < mDaysRequired )
+        return AccumulatedValueP();
+    if( mCalculateMean )
+        return boost::make_shared<AccumulatedFloat>(mSum / mCountDays);
+    else
+        return boost::make_shared<AccumulatedFloat>(mSum * float(mDays) / float(mCountDays));
+}
+
+// ========================================================================
+
 class CheckerMeanOrSum : public Checker {
 public:
     CheckerMeanOrSum(StatisticalMean* sm, int paramid, float tolerance)
@@ -229,6 +231,8 @@ private:
     int mParamid, mDayOfYear, mCenter, mCountNeighborsBelowTolerance;
     float mTolerance;
 };
+
+// ------------------------------------------------------------------------
 
 bool CheckerMeanOrSum::newCenter(int id, int dayOfYear, AccumulatedValueP accumulated)
 {
@@ -244,6 +248,8 @@ bool CheckerMeanOrSum::newCenter(int id, int dayOfYear, AccumulatedValueP accumu
     return !referenceValid || fabs(value - reference) < mTolerance;
 }
 
+// ------------------------------------------------------------------------
+
 bool CheckerMeanOrSum::checkNeighbor(int nbr, AccumulatedValueP accumulated)
 {
     bool referenceValid;
@@ -254,10 +260,130 @@ bool CheckerMeanOrSum::checkNeighbor(int nbr, AccumulatedValueP accumulated)
     return mCountNeighborsBelowTolerance <= 3;
 }
 
+// ------------------------------------------------------------------------
+
 bool CheckerMeanOrSum::pass()
 {
     return mCountNeighborsBelowTolerance < 3;
 }
+
+// ========================================================================
+// ========================================================================
+
+struct AccumulatedQuartiles : public AccumulatedValue {
+    float q1, q2, q3;
+    AccumulatedQuartiles(float qq1, float qq2, float qq3)
+        : q1(qq1), q2(qq2), q3(qq3) { }
+};
+
+typedef boost::shared_ptr<AccumulatedQuartiles> AccumulatedQuartilesP;
+
+// ========================================================================
+
+class AccumulatorQuartiles : public Accumulator {
+public:
+    AccumulatorQuartiles(int days, int daysRequired)
+        : mDays(days), mDaysRequired(daysRequired) { }
+    void newStation() { mValues.clear(); }
+    void push(float value) { mValues.push_back(value); }
+    void pop(float value);
+    AccumulatedValueP value();
+private:
+    int mDays, mDaysRequired;
+    std::vector<float> mValues;
+    int mCountDays;
+};
+
+// ------------------------------------------------------------------------
+
+void AccumulatorQuartiles::pop(float value)
+{
+    std::vector<float>::iterator it = std::find(mValues.begin(), mValues.end(), value);
+    if( it != mValues.end() )
+        mValues.erase(it);
+}
+
+// ------------------------------------------------------------------------
+
+AccumulatedValueP AccumulatorQuartiles::value()
+{
+    if( mCountDays<=0 || mCountDays < mDaysRequired )
+        return AccumulatedValueP();
+
+    double q1, q2, q3;
+    Helpers::quartiles(mValues.begin(), mValues.end(), q1, q2, q3);
+
+    return boost::make_shared<AccumulatedQuartiles>(q1, q2, q3);
+}
+
+// ========================================================================
+
+class CheckerQuartiles : public Checker {
+public:
+    CheckerQuartiles(StatisticalMean* sm, std::vector<float>& tolerances)
+        : Checker(sm), mTolerances(tolerances) { }
+    bool newCenter(int id, int dayOfYear, AccumulatedValueP accumulated);
+    bool checkNeighbor(int nbr, AccumulatedValueP accumulated);
+    bool pass();
+private:
+    int mDayOfYear, mCenter, mCountNeighborsWithError;
+    std::vector<float>& mTolerances;
+    float mDiffQ1, mDiffQ2, mDiffQ3;
+};
+
+// ------------------------------------------------------------------------
+
+bool CheckerQuartiles::newCenter(int id, int dayOfYear, AccumulatedValueP accumulated)
+{
+    mCenter = id;
+    mDayOfYear = dayOfYear;
+    mCountNeighborsWithError = 0;
+
+    AccumulatedQuartilesP quartiles = boost::static_pointer_cast<AccumulatedQuartiles>(accumulated);
+
+    bool referenceValid;
+    const float reference_q1 = getReference(id, dayOfYear, "ref_q1", referenceValid);
+    mDiffQ1 = referenceValid ? fabs(quartiles->q1 - reference_q1) : 0;
+    const float reference_q2 = getReference(id, dayOfYear, "ref_q2", referenceValid);
+    mDiffQ2 = referenceValid ? fabs(quartiles->q2 - reference_q2) : 0;
+    const float reference_q3 = getReference(id, dayOfYear, "ref_q3", referenceValid);
+    mDiffQ3 = referenceValid ? fabs(quartiles->q3 - reference_q3) : 0;
+
+    return mDiffQ1 <= mTolerances[1] && mDiffQ2 <= mTolerances[3] && mDiffQ3 <= mTolerances[5];
+}
+
+// ------------------------------------------------------------------------
+
+bool CheckerQuartiles::checkNeighbor(int nbr, AccumulatedValueP accumulated)
+{
+    AccumulatedQuartilesP quartiles = boost::static_pointer_cast<AccumulatedQuartiles>(accumulated);
+
+    bool referenceValid;
+    const float reference_q1 = getReference(nbr, mDayOfYear, "ref_q1", referenceValid);
+    const float nDiffQ1 = referenceValid ? fabs(quartiles->q1 - reference_q1) : 0;
+    const float reference_q2 = getReference(nbr, mDayOfYear, "ref_q2", referenceValid);
+    const float nDiffQ2 = referenceValid ? fabs(quartiles->q2 - reference_q2) : 0;
+    const float reference_q3 = getReference(nbr, mDayOfYear, "ref_q3", referenceValid);
+    const float nDiffQ3 = referenceValid ? fabs(quartiles->q3 - reference_q3) : 0;
+
+    const bool error = (mDiffQ1 > mTolerances[1] && mDiffQ1 - nDiffQ1 > mTolerances[0])
+        || (mDiffQ2 > mTolerances[3] && mDiffQ2 - nDiffQ2 > mTolerances[2])
+        || (mDiffQ3 > mTolerances[5] && mDiffQ3 - nDiffQ3 > mTolerances[4]);
+
+    if( error )
+        mCountNeighborsWithError += 1;
+    return mCountNeighborsWithError <= 3;
+}
+
+// ------------------------------------------------------------------------
+
+bool CheckerQuartiles::pass()
+{
+    return mCountNeighborsWithError < 3;
+}
+
+// ========================================================================
+// ========================================================================
 
 void StatisticalMean::run()
 {
