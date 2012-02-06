@@ -82,3 +82,38 @@ TEST(HelpersTest, NormalisedDayOfYear)
     EXPECT_EQ(365, Helpers::normalisedDayOfYear("2011-12-31"));
     EXPECT_EQ(365, Helpers::normalisedDayOfYear("2012-12-31"));
 }
+
+TEST(HelpersTest, Median)
+{
+    int example7[7] = { 11,13,16,17,19,22,23 };
+    EXPECT_DOUBLE_EQ(17, Helpers::median(example7+0, example7+7));
+}
+
+TEST(HelpersTest, Quartiles)
+{
+    double q1, q2, q3;
+
+    int example7[7] = { 11,13,16,17,19,22,23 };
+    Helpers::quartiles(example7, example7+7, q1, q2, q3);
+    EXPECT_DOUBLE_EQ(13, q1);
+    EXPECT_DOUBLE_EQ(17, q2);
+    EXPECT_DOUBLE_EQ(22, q3);
+
+    int example8[8] = { 11,14, 16,17, 19,22, 24,27 };
+    Helpers::quartiles(example8, example8+8, q1, q2, q3);
+    EXPECT_DOUBLE_EQ(15, q1);
+    EXPECT_DOUBLE_EQ(18, q2);
+    EXPECT_DOUBLE_EQ(23, q3);
+
+    int example9[9] = { 11,14, 16,17,19,22,23, 27,28 };
+    Helpers::quartiles(example9, example9+9, q1, q2, q3);
+    EXPECT_DOUBLE_EQ(15, q1);
+    EXPECT_DOUBLE_EQ(19, q2);
+    EXPECT_DOUBLE_EQ(25, q3);
+
+    int example10[10] = { 11,13,16,17,19, 21,23,27,28,30 };
+    Helpers::quartiles(example10, example10+10, q1, q2, q3);
+    EXPECT_DOUBLE_EQ(16, q1);
+    EXPECT_DOUBLE_EQ(20, q2);
+    EXPECT_DOUBLE_EQ(27, q3);
+}
