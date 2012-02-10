@@ -104,7 +104,7 @@ void StatisticalMean::configure(const AlgorithmConfig& params)
 
     params.getFlagSetCU(ok_flags,      "ok", "", "U2=0");
 
-    mTolerance = params.getParameter<int>("tolerance", 10.0f);
+    mTolerance = params.getParameter<float>("tolerance", 10.0f);
     mDays      = params.getParameter<int>("days", 30);
     mDaysRequired = params.getParameter<int>("days_required", int(0.9*mDays + 0.5));
     mParamid   = params.getParameter<int>("ParamId");

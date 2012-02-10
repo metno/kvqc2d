@@ -285,3 +285,58 @@ TEST_F(StatisticalMeanTest, FakeDeviation_PR)
         idx += 1;
     }
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(StatisticalMeanTest, FakeDeviation_TA)
+{
+    const int ctr = 7010;
+    DataList data(ctr, 211, 330);
+    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
+    for(; date <= dateEnd; date.addDay(1)) {
+        const int m=date.month(), d=date.day();
+        if( (m==1 && d==15) || (m==2 && d==10) )
+            continue;
+        data.setStation(ctr);
+        if( m==1 && d==7 )
+            data.add(date, -32.1, "0100000000000010");
+        else
+            data.add(date, -11.2, "0100000000000010");
+        data.setStation(46910)
+            .add(date, 1.6, "0100000000000010")
+            .setStation(70150)
+            .add(date, -4.6, "0100000000000010")
+            .setStation(76450)
+            .add(date, -0.9, "0100000000000010");
+    }
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =    2\n"
+           << "Start_DD   =    1\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =    2\n"
+           << "End_DD     =    7\n"
+           << "days       =   30\n"
+           << "tolerance  =   0.2\n"
+           << "ParamId    =  211\n"
+           << "TypeIds    =  330\n"
+           << "InterpolationDistance = 5000.0\n";
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(5, logs->count(Message::WARNING));
+
+    for(int day=1, idx=0; day<=5; ++day) {
+        idx = logs->next(Message::WARNING, idx);
+        ASSERT_LE(0, idx);
+        const std::string expect = (boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str();
+        EXPECT_TRUE(boost::algorithm::contains(logs->text(idx), expect))
+            << "day=" << day << " expect='" << expect << "' but is '" << logs->text(idx) << "'";
+        idx += 1;
+    }
+}
