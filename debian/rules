@@ -14,9 +14,6 @@ CXXFLAGS=$(CFLAGS)
 CXX=g++-4.1
 CC=gcc-4.1
 
-# NB .. this is very different from the kvsynopd counter example ...
-# lets just keep going and see what happens ...
-
 configure: configure-stamp
 configure-stamp: version-check
 	dh_testdir
@@ -84,8 +81,8 @@ binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install configure
 
 version-check:
-	@AC_VERSION=$$(grep ^AC_INIT configure.ac | sed -e 's/^AC_INIT(\[[a-zA-Z0-9_-]\+\], *\[//' -e 's/\], *\[[a-z@.-]\+\])//'); \
-	DEBIAN_VERSION=$$(head -n 1 debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[0-9.a-zA-Z]\+\)-[^-)]).*$$/\1/'); \
+	@AC_VERSION=$$(grep ^AC_INIT configure.ac | sed -e 's/^AC_INIT(\[[a-zA-Z0-9_.~]\+\], *\[//' -e 's/\], *\[[a-z@.-]\+\])//'); \
+	DEBIAN_VERSION=$$(head -n 1 debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+\)-[^-)]).*$$/\1/'); \
 	if [ "x$$DEBIAN_VERSION" != "x$$AC_VERSION" ]; then \
 	    echo "Error: debian version '$$DEBIAN_VERSION' != version '$$AC_VERSION' from configure.ac"; exit 1; \
 	fi
