@@ -222,13 +222,13 @@ AccumulatedValueP AccumulatorMeanOrSum::value()
 
 class CheckerMeanOrSum : public Checker {
 public:
-    CheckerMeanOrSum(StatisticalMean* sm, int paramid, float tolerance)
-        : Checker(sm), mParamid(paramid), mTolerance(tolerance) { }
+    CheckerMeanOrSum(StatisticalMean* sm, float tolerance)
+        : Checker(sm), mTolerance(tolerance) { }
     bool newCenter(int id, int dayOfYear, AccumulatedValueP accumulated);
     bool checkNeighbor(int nbr, AccumulatedValueP accumulated);
     bool pass();
 private:
-    int mParamid, mDayOfYear, mCenter, mCountNeighborsBelowTolerance;
+    int mDayOfYear, mCenter, mCountNeighborsBelowTolerance;
     float mTolerance;
 };
 
@@ -320,14 +320,14 @@ AccumulatedValueP AccumulatorQuartiles::value()
 
 class CheckerQuartiles : public Checker {
 public:
-    CheckerQuartiles(StatisticalMean* sm, std::vector<float>& tolerances)
+    CheckerQuartiles(StatisticalMean* sm, const std::vector<float>& tolerances)
         : Checker(sm), mTolerances(tolerances) { }
     bool newCenter(int id, int dayOfYear, AccumulatedValueP accumulated);
     bool checkNeighbor(int nbr, AccumulatedValueP accumulated);
     bool pass();
 private:
     int mDayOfYear, mCenter, mCountNeighborsWithError;
-    std::vector<float>& mTolerances;
+    std::vector<float> mTolerances;
     float mDiffQ1, mDiffQ2, mDiffQ3;
 };
 
@@ -430,7 +430,21 @@ void StatisticalMean::run()
     typedef std::map<int, dm2_t> sd2_t;
     sd2_t stationMeansPerDay;
 
-    AccumulatorP accumulator = boost::make_shared<AccumulatorMeanOrSum>(true, mDays, mDaysRequired);
+    AccumulatorP accumulator;
+    CheckerP checker;
+    if( mParamid == 178 /* PR */ || mParamid == 211 /* TA */ ) {
+        accumulator = boost::make_shared<AccumulatorMeanOrSum>(true, mDays, mDaysRequired);
+        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
+    } else if( mParamid == 106 /* RR_1 */ || mParamid == 108 /* RR_6 */
+               || mParamid == 109 /* RR_12 */ || mParamid == 110 /* RR_24 */ ) {
+        accumulator = boost::make_shared<AccumulatorMeanOrSum>(false, mDays, mDaysRequired);
+        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
+    } else if( mParamid == 262 /* UU */ || mParamid == 15 /* NN */ || mParamid == 55 /* HL */
+               || mParamid == 273 /* VV */ || mParamid == 200 /* QO */ ) {
+        accumulator = boost::make_shared<AccumulatorQuartiles>(mDays, mDaysRequired);
+        checker = boost::make_shared<CheckerQuartiles>(this, std::vector<float>(6, mTolerance));
+    }
+
     foreach(const sdm_t::value_type& sd, stationDailyMeans) {
         accumulator->newStation();
         const dm_t& dml = sd.second;
@@ -455,7 +469,6 @@ void StatisticalMean::run()
 
     stationDailyMeans.clear(); // release memory
 
-    CheckerP checker = boost::make_shared<CheckerMeanOrSum>(this, mParamid, mTolerance);
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
         const int center = sd.first;
         foreach(const dm2_t::value_type& dm, sd.second) {

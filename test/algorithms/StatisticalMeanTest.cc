@@ -62,7 +62,7 @@ void StatisticalMeanTest::SetUp()
 
 // ------------------------------------------------------------------------
 
-TEST_F(StatisticalMeanTest, MiniExample)
+TEST_F(StatisticalMeanTest, MiniExample_PR)
 {
     DataList data(7010, 178, 312);
     data.add("2012-02-28 00:00:00", 989.1, "0100000000000010")
@@ -191,7 +191,7 @@ TEST_F(StatisticalMeanTest, MiniExample)
 
 // ------------------------------------------------------------------------
 
-TEST_F(StatisticalMeanTest, FakeManyMissing)
+TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
 {
     const int ctr = 7010;
     DataList data(ctr, 178, 312);
@@ -236,7 +236,7 @@ TEST_F(StatisticalMeanTest, FakeManyMissing)
 
 // ------------------------------------------------------------------------
 
-TEST_F(StatisticalMeanTest, FakeDeviation)
+TEST_F(StatisticalMeanTest, FakeDeviation_PR)
 {
     const int ctr = 7010;
     DataList data(ctr, 178, 312);
