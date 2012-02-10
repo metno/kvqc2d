@@ -178,7 +178,7 @@ void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) th
     }
     sqlite3_finalize(stmt);
     if( step != SQLITE_DONE)
-        throw DBException(sql);
+        throw DBException("not DONE at end of data query: " + sql);
 }
 
 // ------------------------------------------------------------------------
@@ -216,7 +216,7 @@ void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
     }
     sqlite3_finalize(stmt);
     if(step != SQLITE_DONE)
-        throw DBException(sql);
+        throw DBException("not DONE at end of station_param query: " + sql);
 }
 
 // ------------------------------------------------------------------------
@@ -259,7 +259,7 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
     }
     sqlite3_finalize(stmt);
     if(step != SQLITE_DONE)
-        throw DBException(sql);
+        throw DBException("not DONE at end of station query: " + sql);
 }
 
 // ------------------------------------------------------------------------
@@ -309,10 +309,15 @@ void SqliteTestDB::selectStatisticalReferenceValue(int stationid, int paramid, i
     if( step == SQLITE_ROW ) {
         valid = true;
         value = sqlite3_column_double(stmt, 0);
+        step = sqlite3_step(stmt);
     }
     sqlite3_finalize(stmt);
-    if(step != SQLITE_DONE)
-        throw DBException(sql);
+    if(step != SQLITE_DONE) {
+        std::ostringstream msg;
+        msg << "not DONE but " << step << " at end of statistical_reference_values query: '"
+            << sql << "'; error=" << sqlite3_errmsg(db);
+        throw DBException(msg.str());
+    }
 }
 
 // ------------------------------------------------------------------------
