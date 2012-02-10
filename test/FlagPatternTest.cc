@@ -75,6 +75,18 @@ TEST_F(FlagPatternTest, Parse)
     EXPECT_FALSE(fm.isAllowed(f_fd, 4));
 }
 
+TEST_F(FlagPatternTest, AllNone)
+{
+    FlagPattern fmNone("none",   FlagPattern::CONTROLINFO);
+    FlagPattern fmAll ("always", FlagPattern::CONTROLINFO);
+    for(int f=0; f<16; ++f) {
+        for(int i=0; i<16; ++i) {
+            EXPECT_FALSE(fmNone.isAllowed(f, i));
+            EXPECT_TRUE (fmAll .isAllowed(f, i));
+        }
+    }
+}
+
 TEST_F(FlagPatternTest, ParseNames)
 {
     FlagPattern fm;

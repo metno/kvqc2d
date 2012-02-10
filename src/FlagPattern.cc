@@ -197,6 +197,15 @@ bool FlagPattern::parseNames(const std::string& flagstring, const char* flagname
 {
     reset();
 
+    const bool all = (flagstring == "all" || flagstring == "always");
+    const bool none = (flagstring == "none" || flagstring == "never");
+    if( all || none ) {
+        const unsigned int allBits = (1<<N_VALUES)-1;
+        for(int i=0; i<N_FLAGS; ++i)
+            (all ? mPermitted : mForbidden)[i] = allBits;
+        return true;
+    }
+
     unsigned int start=0, usedflags=0;
     while( start < flagstring.size() ) {
         const size_t equal = flagstring.find('=', start);
