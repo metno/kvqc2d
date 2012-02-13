@@ -40,7 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-#define NDEBUG
+//#define NDEBUG
 #include "debug.h"
 
 namespace C = Constraint;
@@ -502,19 +502,42 @@ void StatisticalMean::run()
             }
         }
     }
+
+    mReferenceValuesCache.clear();
 }
 
 // ------------------------------------------------------------------------
 
 float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::string& key, bool& valid)
 {
-    if( mParamid == 178 ) {
-        // pressure
-        valid = true;
-        return 1014;
+    if( dayOfYear<=0 || dayOfYear>365 ) {
+        valid = false;
+        return missing;
     }
 
-    float rv;
-    database()->selectStatisticalReferenceValue(station, mParamid, dayOfYear, key, valid, rv);
-    return rv;
+    valid = true;
+
+    if( mParamid == 178 ) // PR
+        return 1014;
+
+    // TODO: for TA(211), calculate mean value of the last mDays days
+    // here; for quartiles and PR, nothing like this needs to be done
+
+    referenceValues_t::const_iterator it = mReferenceValuesCache.find(station);
+    if( it == mReferenceValuesCache.end() ) {
+        referenceValuesPerDay_t rvpd(365, missing);
+        for(int i=1; i<=365; ++i) {
+            float rv;
+            bool v;
+            database()->selectStatisticalReferenceValue(station, mParamid, i, key, v, rv);
+            if( v )
+                rvpd[i-1] = rv;
+        }
+        mReferenceValuesCache[station] = rvpd;
+        return rvpd[dayOfYear-1];
+    } else {
+        const referenceValuesPerDay_t& rvpd = it->second;
+        valid = (rvpd[dayOfYear-1] != missing);
+        return rvpd[dayOfYear-1];
+    }
 }

@@ -32,6 +32,10 @@ private:
     miutil::miTime mUT0extended;
 
     FlagSetCU ok_flags;
+
+    typedef std::vector<float> referenceValuesPerDay_t;
+    typedef std::map<int,referenceValuesPerDay_t> referenceValues_t;
+    referenceValues_t mReferenceValuesCache;
 };
 
 #endif
