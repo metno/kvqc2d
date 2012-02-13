@@ -40,7 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-//#define NDEBUG
+#define NDEBUG
 #include "debug.h"
 
 namespace C = Constraint;
@@ -532,6 +532,33 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
             database()->selectStatisticalReferenceValue(station, mParamid, i, key, v, rv);
             if( v )
                 rvpd[i-1] = rv;
+        }
+        if( mParamid == 211 ) {
+            DBG("station=" << station);
+            referenceValuesPerDay_t rvpd_mean(365, missing);
+
+            AccumulatorMeanOrSum acc(true, mDays, mDaysRequired);
+            acc.newStation();
+            for(int i=365-mDays+1; i<365; ++i) {
+                const float vPush = rvpd[i-1];
+                if( vPush != missing )
+                    acc.push(vPush);
+            }
+            for(int i=1; i<=365; ++i) {
+                const float vPush = rvpd[i-1];
+                if( vPush != missing )
+                    acc.push(vPush);
+                AccumulatedValueP v = acc.value();
+                if( v ) {
+                    float mean = boost::static_pointer_cast<AccumulatedFloat>(v)->value;
+                    rvpd_mean[i-1] = mean;
+                }
+                const int iPop = (365+i-mDays-1) % 365;
+                const float vPop = rvpd[iPop];
+                if( vPop != missing )
+                    acc.pop(vPop);
+            }
+            rvpd = rvpd_mean;
         }
         mReferenceValuesCache[station] = rvpd;
         return rvpd[dayOfYear-1];

@@ -37,25 +37,6 @@ for line in normals_dat:
 normals_dat.close()
 
 ########################################################################
-# transform to arithmetic mean of the last 30 days
-for stationid in sorted(stations.iterkeys()):
-    normals_file = stations[stationid]
-    normals = [MISSING] * 365
-    for day0 in range(365):
-        day1 = day0 + 1
-        if day0 < NDAYS:
-            values = normals_file[365+day1-NDAYS:365] + normals_file[:day1]
-        else:
-            values = normals_file[day1-NDAYS:day1]
-        n_missing = values.count(MISSING)
-        if n_missing > MAX_MISSING:
-            print "no normal for station=%5d day%3d" % (stationid, day1)
-            continue
-        values = filter(lambda v: v != MISSING, values)
-        normals[day0] = sum(values) / len(values)
-    stations[stationid] = normals
-
-########################################################################
 # write normals to execute SQL statements in unit tests
 
 normals_cpp = open(sys.argv[2], 'w')
