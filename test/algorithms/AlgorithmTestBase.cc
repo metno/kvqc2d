@@ -145,18 +145,43 @@ SqliteTestDB::~SqliteTestDB()
 
 // ------------------------------------------------------------------------
 
+sqlite3_stmt* SqliteTestDB::prepare_statement(const std::string& sql)
+{
+    int status;
+    sqlite3_stmt *stmt;
+#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
+    status = sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0);
+#else
+    status = sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0);
+#endif
+    if( status != SQLITE_OK ) {
+        std::ostringstream msg;
+        msg << "Error preparing SQL statement '" << sql
+            << "'; message from sqlite3 is:" << sqlite3_errmsg(db);
+        throw DBException(msg.str());
+    }
+    return stmt;
+}
+
+// ------------------------------------------------------------------------
+
+void SqliteTestDB::finalize_statement(sqlite3_stmt* stmt, int lastStep)
+{
+    sqlite3_finalize(stmt);
+    if(lastStep != SQLITE_DONE) {
+        std::ostringstream msg;
+        msg << "Statement stepping not finished with DONE; error=" << sqlite3_errmsg(db);
+        throw DBException(msg.str());
+    }
+}
+
+// ------------------------------------------------------------------------
+
 void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
 {
     d.clear();
     const miutil::miString& sql = "SELECT * FROM data " + where + ";";
-    sqlite3_stmt *stmt;
-#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
-    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#else
-    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#endif
+    sqlite3_stmt *stmt = prepare_statement(sql);
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -176,9 +201,7 @@ void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) th
         kvalobs::kvData data(stationid, obstime, original, paramid, tbtime, type_id, sensor, level, corrected, controlinfo, useinfo, cfailed);
         d.push_back(data);
     }
-    sqlite3_finalize(stmt);
-    if( step != SQLITE_DONE)
-        throw DBException("not DONE at end of data query: " + sql);
+    finalize_statement(stmt, step);
 }
 
 // ------------------------------------------------------------------------
@@ -188,14 +211,7 @@ void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
     d.clear();
     const std::list<int> station(1, stationID);
     const std::string sql = kvalobs::kvStationParam().selectAllQuery() + kvQueries::selectStationParam(station, time, qcx ) + ";";
-    sqlite3_stmt *stmt;
-#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
-    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#else
-    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#endif
+    sqlite3_stmt *stmt = prepare_statement(sql);
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -214,9 +230,7 @@ void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
         kvalobs::kvStationParam sp(stationid, paramid, level, sensor, fromday, today, hour, qcx, metadata, desc_metadata, fromtime);
         d.push_back(sp);
     }
-    sqlite3_finalize(stmt);
-    if(step != SQLITE_DONE)
-        throw DBException("not DONE at end of station_param query: " + sql);
+    finalize_statement(stmt, step);
 }
 
 // ------------------------------------------------------------------------
@@ -225,14 +239,7 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
 {
     stations.clear();
     const std::string sql = kvalobs::kvStation().selectAllQuery();
-    sqlite3_stmt *stmt;
-#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
-    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#else
-    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#endif
+    sqlite3_stmt *stmt = prepare_statement(sql);
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
@@ -257,9 +264,7 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
         kvalobs::kvStation station(stationid, lat, lon, height, maxspeed, name, wmonr, nationalnr, ICAOid, call_sign, stationstr, environmentid, is_static, fromtime);
         stations.push_back(station);
     }
-    sqlite3_finalize(stmt);
-    if(step != SQLITE_DONE)
-        throw DBException("not DONE at end of station query: " + sql);
+    finalize_statement(stmt, step);
 }
 
 // ------------------------------------------------------------------------
@@ -289,35 +294,28 @@ void SqliteTestDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& t
 
 // ------------------------------------------------------------------------
 
-void SqliteTestDB::selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value)
+DBInterface::reference_value_map_t SqliteTestDB::selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue)
 {
-    std::ostringstream sqlS;
-    sqlS << "SELECT value FROM statistical_reference_values WHERE stationid = " << stationid
-         << " AND paramid = " << paramid << " AND day_of_year = " << dayOfYear
-         << " AND key = '" << key << "'";
-    const std::string sql = sqlS.str();
+    std::ostringstream sql;
+    sql << "SELECT stationid, day_of_year, value FROM statistical_reference_values"
+        << " WHERE paramid = " << paramid << " AND key = '" << key << "'";
+    sqlite3_stmt *stmt = prepare_statement(sql.str());
 
-    sqlite3_stmt *stmt;
-#if SQLITE_VERSION_NUMBER >= 3003009 // see http://www.sqlite.org/oldnews.html
-    if( sqlite3_prepare_v2(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#else
-    if( sqlite3_prepare(db, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK )
-        throw DBException("preparing '" + sql + "'");
-#endif
-    int step = sqlite3_step(stmt);
-    if( step == SQLITE_ROW ) {
-        valid = true;
-        value = sqlite3_column_double(stmt, 0);
-        step = sqlite3_step(stmt);
+    reference_value_map_t rvm;
+
+    int step;
+    while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
+        int col = 0;
+        const int stationid   = sqlite3_column_int(stmt, col++);
+        const int day_of_year = sqlite3_column_int(stmt, col++);
+        const float value     = sqlite3_column_double(stmt, col++);
+        if( rvm.find(stationid) == rvm.end() )
+            rvm[stationid] = reference_values_t(365, missingValue);
+        if( day_of_year >= 1 && day_of_year <= 365 )
+            rvm[stationid][day_of_year-1] = value;
     }
-    sqlite3_finalize(stmt);
-    if(step != SQLITE_DONE) {
-        std::ostringstream msg;
-        msg << "not DONE but " << step << " at end of statistical_reference_values query: '"
-            << sql << "'; error=" << sqlite3_errmsg(db);
-        throw DBException(msg.str());
-    }
+    finalize_statement(stmt, step);
+    return rvm;
 }
 
 // ------------------------------------------------------------------------
@@ -336,7 +334,7 @@ void SqliteTestDB::exec(const std::string& statement) throw (DBException)
 // #######################################################################
 
 DataList& DataList::add(int stationid, const miutil::miTime& obstime, float original, int paramid,
-                      int type, float corrected, const std::string& controlinfo, const std::string& cfailed)
+                        int type, float corrected, const std::string& controlinfo, const std::string& cfailed)
 {
     kvalobs::kvControlInfo ci(controlinfo);
     kvalobs::kvUseInfo ui;

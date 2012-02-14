@@ -503,7 +503,7 @@ void StatisticalMean::run()
         }
     }
 
-    mReferenceValuesCache.clear();
+    mReferenceKeys.clear();
 }
 
 // ------------------------------------------------------------------------
@@ -523,48 +523,49 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
     // TODO: for TA(211), calculate mean value of the last mDays days
     // here; for quartiles and PR, nothing like this needs to be done
 
-    referenceValues_t::const_iterator it = mReferenceValuesCache.find(station);
-    if( it == mReferenceValuesCache.end() ) {
-        referenceValuesPerDay_t rvpd(365, missing);
-        for(int i=1; i<=365; ++i) {
-            float rv;
-            bool v;
-            database()->selectStatisticalReferenceValue(station, mParamid, i, key, v, rv);
-            if( v )
-                rvpd[i-1] = rv;
-        }
-        if( mParamid == 211 ) {
-            DBG("station=" << station);
-            referenceValuesPerDay_t rvpd_mean(365, missing);
-
+    if( mReferenceKeys.find(key) == mReferenceKeys.end() ) {
+        DBInterface::reference_value_map_t rvps = database()->selectStatisticalReferenceValues(mParamid, key, missing);
+        if( mParamid == 211 && key == "ref_value" ) {
+            DBInterface::reference_value_map_t rvps_mean;
             AccumulatorMeanOrSum acc(true, mDays, mDaysRequired);
-            acc.newStation();
-            for(int i=365-mDays+1; i<365; ++i) {
-                const float vPush = rvpd[i-1];
-                if( vPush != missing )
-                    acc.push(vPush);
-            }
-            for(int i=1; i<=365; ++i) {
-                const float vPush = rvpd[i-1];
-                if( vPush != missing )
-                    acc.push(vPush);
-                AccumulatedValueP v = acc.value();
-                if( v ) {
-                    float mean = boost::static_pointer_cast<AccumulatedFloat>(v)->value;
-                    rvpd_mean[i-1] = mean;
+            foreach(DBInterface::reference_value_map_t::value_type s_rv, rvps) {
+                const int station = s_rv.first;
+                const DBInterface::reference_values_t& rvpd = s_rv.second;
+                DBInterface::reference_values_t rvpd_mean(365, missing);
+
+                acc.newStation();
+                for(int i=365-mDays+1; i<365; ++i) {
+                    const float vPush = rvpd[i-1];
+                    if( vPush != missing )
+                        acc.push(vPush);
                 }
-                const int iPop = (365+i-mDays-1) % 365;
-                const float vPop = rvpd[iPop];
-                if( vPop != missing )
-                    acc.pop(vPop);
+                for(int i=1; i<=365; ++i) {
+                    const float vPush = rvpd[i-1];
+                    if( vPush != missing )
+                        acc.push(vPush);
+                    AccumulatedValueP v = acc.value();
+                    if( v ) {
+                        float mean = boost::static_pointer_cast<AccumulatedFloat>(v)->value;
+                        rvpd_mean[i-1] = mean;
+                    }
+                    const int iPop = (365+i-mDays-1) % 365;
+                    const float vPop = rvpd[iPop];
+                    if( vPop != missing )
+                        acc.pop(vPop);
+                }
+                rvps_mean[station] = rvpd_mean;
             }
-            rvpd = rvpd_mean;
+            rvps = rvps_mean;
         }
-        mReferenceValuesCache[station] = rvpd;
-        return rvpd[dayOfYear-1];
-    } else {
-        const referenceValuesPerDay_t& rvpd = it->second;
-        valid = (rvpd[dayOfYear-1] != missing);
-        return rvpd[dayOfYear-1];
+        mReferenceKeys[key] = rvps;
     }
+    DBInterface::reference_value_map_t& sr = mReferenceKeys[key];
+    DBInterface::reference_value_map_t::const_iterator it = sr.find(station);
+    if( it == sr.end() ) {
+        valid = false;
+        return missing;
+    }
+    const float value = it->second[dayOfYear-1];
+    valid = value != missing;
+    return value;
 }

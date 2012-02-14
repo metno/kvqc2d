@@ -3,6 +3,7 @@
 #ifndef StatisticalMean_H
 #define StatisticalMean_H 1
 
+#include "DBInterface.h"
 #include "Qc2Algorithm.h"
 #include "algorithms/DataUpdate.h"
 #include <boost/shared_ptr.hpp>
@@ -33,9 +34,8 @@ private:
 
     FlagSetCU ok_flags;
 
-    typedef std::vector<float> referenceValuesPerDay_t;
-    typedef std::map<int,referenceValuesPerDay_t> referenceValues_t;
-    referenceValues_t mReferenceValuesCache;
+    typedef std::map<std::string, DBInterface::reference_value_map_t> referenceKeys_t;
+    referenceKeys_t mReferenceKeys;
 };
 
 #endif

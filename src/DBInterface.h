@@ -67,7 +67,9 @@ public:
 
     virtual void selectStations(kvStationList_t&) throw (DBException) = 0;
 
-    virtual void selectStatisticalReferenceValue(int stationid, int paramid, int dayOfYear, const std::string& key, bool& valid, float& value) = 0;
+    typedef std::vector<float> reference_values_t;
+    typedef std::map<int, reference_values_t> reference_value_map_t;
+    virtual reference_value_map_t selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) = 0;
 
     /**
      * Update and insert data.
