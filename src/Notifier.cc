@@ -18,8 +18,11 @@ const char* levelNames[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
 
 Message::~Message()
 {
-    if( mNotifier )
-        mNotifier->sendText( mLevel, mStream->str() );
-    else
-        std::cerr << std::setw(7) << levelNames[mLevel] << ": " << mStream->str() << std::endl;
+    std::string msg = mStream->str();
+    if( !msg.empty() ) {
+        if( mNotifier )
+            mNotifier->sendText( mLevel, msg );
+        else
+            std::cerr << std::setw(7) << levelNames[mLevel] << ": " << msg << std::endl;
+    }
 }
