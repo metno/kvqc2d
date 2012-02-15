@@ -29,6 +29,9 @@ public:
 
     virtual stationIDs_t findNeighbors(int aroundID) = 0;
 
+    /** Return weight for a neighbor. If weight < 1, the neighbor is
+     * not really good -- weights need to be scaled accordingly.
+     */
     virtual double getWeight(int neighborID) = 0;
 
 protected:

@@ -19,6 +19,7 @@ public:
 
 private:
     float mInterpolationLimit;
+    float mWarnClosest;
     stationsWithDistances_t mDistances;
 };
 

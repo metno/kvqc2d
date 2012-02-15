@@ -37,6 +37,8 @@
 
 #include <milog/milog.h>
 
+#include <boost/bind.hpp>
+
 #define NDEBUG
 #include "debug.h"
 
@@ -202,6 +204,7 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=3->fmis=1");
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
+    mMaxNeighbors = params.getParameter<int>("max_neighbors", 5);
     mDaysBeforeNoNeighborWarning = params.getParameter<int>("days_before_no_neighbor_warning", 14);
     mDaysBeforeRedistributingZeroesWarning = params.getParameter<int>("days_before_redistributing_zeroes_warning", 14);
     pids = params.getMultiParameter<int>("ParamId");
@@ -290,29 +293,46 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     float weightedNeighborsAccumulated = 0;
     dataList_t::const_iterator itN = ndata.begin();
     foreach(RedisUpdate& b, before) {
+        std::vector<kvalobs::kvData> neighbors;
+        for( ; itN != ndata.end() && itN->obstime() == b.obstime(); ++itN ) {
+            if( dry2real(itN->original()) <= -2.0f )
+                continue;
+            const double weight = mNeighbors->getWeight(itN->stationID());
+            if( weight > 0 )
+                neighbors.push_back(*itN);
+        }
+        // sort neighbors by decreasing weight
+        std::sort(neighbors.begin(), neighbors.end(),
+                  boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, _1 ))
+                  > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, _2 )));
+
         std::ostringstream cfailed;
         cfailed << "QC2N";
         float sumWeights = 0.0, sumWeightedValues = 0.0;
-        int goodNeighbors = 0;
+        int usedNeighbors = 0, warnNeighbors = 0;
         bool allNeighborsBoneDry = true; // true to assume dry if no neighbors
-        for( ; itN != ndata.end() && itN->obstime() == b.obstime(); ++itN ) {
-            const float neighborValue = dry2real(itN->original());
-            if( neighborValue <= -2.0f )
-                continue;
-            const double weight = mNeighbors->getWeight(itN->stationID());
-            if( weight > 0 ) {
-                if( !equal(itN->original(), -1.0f) )
-                    allNeighborsBoneDry = false;
-                if( neighborValue > 0.15f )
-                    b.setHasNeighborsWithPrecipitation();
-                sumWeights        += weight;
-                sumWeightedValues += weight * neighborValue;
-                goodNeighbors += 1;
-                cfailed << "_" << itN->stationID();
-            }
+        foreach(const kvalobs::kvData& neighbor, neighbors) {
+            if( !equal(neighbor.original(), -1.0f) )
+                allNeighborsBoneDry = false;
+            const float neighborValue = dry2real(neighbor.original());
+            if( neighborValue > 0.15f )
+                b.setHasNeighborsWithPrecipitation();
+            const float weight = mNeighbors->getWeight(neighbor.stationID());
+            sumWeights        += weight;
+            sumWeightedValues += weight * neighborValue;
+            usedNeighbors += 1;
+            if( weight < 1 )
+                warnNeighbors += 1;
+            cfailed << "_" << neighbor.stationID();
+            if( usedNeighbors >= mMaxNeighbors )
+                break;
         }
         b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
-        if( goodNeighbors < mMinNeighbors && !accumulationIsDry ) {
+        if( warnNeighbors == usedNeighbors ) {
+            info() << "no really good neighbors at obstime=" << b.obstime()
+                   << " for accumulation ending in " << before.front().text(false);
+        }
+        if( usedNeighbors < mMinNeighbors && !accumulationIsDry ) {
             const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
             const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
             (doWARN ? warning() : info())
@@ -326,7 +346,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     
         cfailed << ",QC2-redist";
         b.corrected(weightedNeighbors)
-            .cfailed(accumulationIsDry && goodNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
+            .cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
     }
 

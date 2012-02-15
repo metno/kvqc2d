@@ -32,6 +32,7 @@
 #include "AlgorithmHelpers.h"
 #include "foreach.h"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <algorithm>
 #include <numeric>
 
@@ -1265,4 +1266,96 @@ TEST_F(RedistributionTest, BadWarning)
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-29 06:00:00", "0000001000007000",  6, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-30 06:00:00", "0000001000007000",  6, bc->update(1));
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-31 06:00:00", "0140004000007000",  2, bc->update(2));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, NoReallyGoodNeighbors)
+{
+    DataList data(3200, 110, 302);
+    data.add("2011-10-28 06:00:00",    0.5, "0110000000001000", "")
+        .add("2011-10-29 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-30 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-31 06:00:00",     14, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(1230)
+        .add("2011-10-28 06:00:00",      1, "0110000000001000", "")
+        .add("2011-10-29 06:00:00",      6, "0110000000001000", "")
+        .add("2011-10-30 06:00:00", -32767, "0110000000001000", "")
+        .add("2011-10-31 06:00:00",      2, "0110000000001000", "")
+        .setStation(4040)
+        .add("2011-10-28 06:00:00",      1, "0110000000001000", "")
+        .add("2011-10-29 06:00:00",      6, "0110000000001000", "")
+        .add("2011-10-30 06:00:00",      6, "0110000000001000", "")
+        .add("2011-10-31 06:00:00",      2, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011\n"
+           << "Start_MM   =   10\n"
+           << "Start_DD   =   28\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2011\n"
+           << "End_MM     =   10\n"
+           << "End_DD     =   31\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n"
+           << "TypeIds=402\n"
+           << "InterpolationDistance=50.0\n"
+        // distance 3200 -- 1230 is 25 km, distance 3200 -- 4040 is 49 km; 1230 is missing on 2011-10-30
+           << "warning_distance_closest_neighbor = 30.0\n";
+    params.Parse(config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 3);
+    ASSERT_EQ(4, logs->count(Message::INFO));
+    int idx = logs->next(Message::INFO, 0);
+    ASSERT_LE(0, idx);
+    ASSERT_TRUE(boost::algorithm::contains(logs->text(idx), "no really good neighbors at obstime=2011-10-30 06:00:00"
+                                           " for accumulation ending in [stationid=3200 AND obstime='2011-10-31 06:00:00'"));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, MaxNeighbors)
+{
+    DataList data(3200, 110, 302);
+    data.add("2011-10-28 06:00:00",    0.5, "0110000000001000", "")
+        .add("2011-10-29 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-30 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-31 06:00:00",     14, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(1230)
+        .add("2011-10-28 06:00:00",      1, "0110000000001000", "")
+        .add("2011-10-29 06:00:00",      8, "0110000000001000", "")
+        .add("2011-10-30 06:00:00",      4, "0110000000001000", "")
+        .add("2011-10-31 06:00:00",      2, "0110000000001000", "")
+        .setStation(4040)
+        .add("2011-10-28 06:00:00",      1, "0110000000001000", "")
+        .add("2011-10-29 06:00:00",      4, "0110000000001000", "")
+        .add("2011-10-30 06:00:00",      8, "0110000000001000", "")
+        .add("2011-10-31 06:00:00",      2, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011\n"
+           << "Start_MM   =   10\n"
+           << "Start_DD   =   28\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2011\n"
+           << "End_MM     =   10\n"
+           << "End_DD     =   31\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n"
+           << "TypeIds=402\n"
+           << "InterpolationDistance=50.0\n"
+        // distance 3200 -- 1230 is 25 km, distance 3200 -- 4040 is 49 km
+           << "max_neighbors = 1\n";
+    params.Parse(config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 3);
+    EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-29 06:00:00", "0000001000007000",  8, bc->update(0)) << "2011-10-29";
+    EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-30 06:00:00", "0000001000007000",  4, bc->update(1)) << "2011-10-30";
+    EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-31 06:00:00", "0140004000007000",  2, bc->update(2)) << "2011-10-31";
 }
