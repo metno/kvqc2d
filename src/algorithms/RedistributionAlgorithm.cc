@@ -197,10 +197,10 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(endpoint_flags,      "endpoint",            "fmis=4&fd=2", "");
-    params.getFlagSetCU(missingpoint_flags,  "missingpoint",        "fmis=3&fd=2", "");
-    params.getFlagSetCU(neighbor_flags,      "neighbor",            "fd=1",        "U2=0");
-    params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(",    "");
+    params.getFlagSetCU(endpoint_flags,      "endpoint",            "fmis=4&fd=2&fhqc=0", "");
+    params.getFlagSetCU(missingpoint_flags,  "missingpoint",        "fmis=3&fd=2",        "");
+    params.getFlagSetCU(neighbor_flags,      "neighbor",            "fd=1",               "U2=0");
+    params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(",           "");
     params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=3->fmis=1");
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
