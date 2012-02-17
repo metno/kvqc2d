@@ -291,7 +291,6 @@ public:
 private:
     int mDays, mDaysRequired;
     std::vector<float> mValues;
-    int mCountDays;
 };
 
 // ------------------------------------------------------------------------
@@ -307,7 +306,7 @@ void AccumulatorQuartiles::pop(float value)
 
 AccumulatedValueP AccumulatorQuartiles::value()
 {
-    if( mCountDays<=0 || mCountDays < mDaysRequired )
+    if( mValues.empty() || (int)mValues.size() < mDaysRequired )
         return AccumulatedValueP();
 
     double q1, q2, q3;
@@ -372,6 +371,7 @@ bool CheckerQuartiles::checkNeighbor(int nbr, AccumulatedValueP accumulated)
 
     if( error )
         mCountNeighborsWithError += 1;
+
     return mCountNeighborsWithError <= 3;
 }
 
@@ -443,6 +443,9 @@ void StatisticalMean::run()
                || mParamid == 273 /* VV */ || mParamid == 200 /* QO */ ) {
         accumulator = boost::make_shared<AccumulatorQuartiles>(mDays, mDaysRequired);
         checker = boost::make_shared<CheckerQuartiles>(this, std::vector<float>(6, mTolerance));
+    } else {
+        warning() << "Illegal paramid " << mParamid << " in StatisticalMean::run";
+        return;
     }
 
     foreach(const sdm_t::value_type& sd, stationDailyMeans) {
@@ -520,8 +523,8 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
     if( mParamid == 178 ) // PR
         return 1014;
 
-    // TODO: for TA(211), calculate mean value of the last mDays days
-    // here; for quartiles and PR, nothing like this needs to be done
+    // for TA(211), calculate mean value of the last mDays days here;
+    // for quartiles and PR, nothing like this needs to be done
 
     if( mReferenceKeys.find(key) == mReferenceKeys.end() ) {
         DBInterface::reference_value_map_t rvps = database()->selectStatisticalReferenceValues(mParamid, key, missing);
