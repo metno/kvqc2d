@@ -1,3 +1,13 @@
+kvqc2d (1.3.11-1) unstable; urgency=low
+
+  * first bits of QC2d-4; only for testing, disabled in kvqc2d
+  * Redistribution: change default endpoint cflags (fmis=[04]&fd=2&fhqc=0),
+    complain if fmis=0 and original != -1
+  * Redistribution: default neighbor search radius (100km), new
+    max_neighbors option (default 5)
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 17 Feb 2012 13:57:52 +0100
+
 kvqc2d (1.3.10-1) unstable; urgency=low
 
   * change default WARN delay for Redistribution
