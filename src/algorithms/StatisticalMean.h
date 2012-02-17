@@ -3,6 +3,9 @@
 #ifndef StatisticalMean_H
 #define StatisticalMean_H 1
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
+
 #include "DBInterface.h"
 #include "Qc2Algorithm.h"
 #include "algorithms/DataUpdate.h"
@@ -38,4 +41,6 @@ private:
     referenceKeys_t mReferenceKeys;
 };
 
-#endif
+#endif /* BOOST_VERSION >= 104000 */
+
+#endif /* StatisticalMean_H */

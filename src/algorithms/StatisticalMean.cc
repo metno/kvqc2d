@@ -27,6 +27,9 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
+
 #include "StatisticalMean.h"
 
 #include "AlgorithmHelpers.h"
@@ -572,3 +575,5 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
     valid = value != missing;
     return value;
 }
+
+#endif /* BOOST_VERSION >= 104000 */

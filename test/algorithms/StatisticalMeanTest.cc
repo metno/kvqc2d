@@ -27,6 +27,9 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
+
 #include "AlgorithmTestBase.h"
 #include "algorithms/StatisticalMean.h"
 #include "foreach.h"
@@ -439,3 +442,6 @@ TEST_F(StatisticalMeanTest, FakeDeviation_RR24)
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(7, logs->count(Message::WARNING));
 }
+
+#endif /* BOOST_VERSION >= 104000 */
+
