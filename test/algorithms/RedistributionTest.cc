@@ -1213,7 +1213,7 @@ TEST_F(RedistributionTest, BoneDryNoNeighbors)
     DataList data(83880, 110, 302);
     data.add("2011-10-12 06:00:00",    0.0, "0140000000001000", "QC1-2-72.b12")
         .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
-        .add("2011-10-14 06:00:00",     -1, "0140004000002000", "QC1-2-72.b12,QC1-7-110");
+        .add("2011-10-14 06:00:00",     -1, "0140000000002000", "QC1-2-72.b12,QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
     
     AlgorithmConfig params;
@@ -1222,7 +1222,7 @@ TEST_F(RedistributionTest, BoneDryNoNeighbors)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
-    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000",  -1, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140000000007000",  -1, bc->update(1));
 }
 
 // ------------------------------------------------------------------------
@@ -1359,3 +1359,50 @@ TEST_F(RedistributionTest, MaxNeighbors)
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-30 06:00:00", "0000001000007000",  4, bc->update(1)) << "2011-10-30";
     EXPECT_STATION_OBS_CONTROL_CORR(3200, "2011-10-31 06:00:00", "0140004000007000",  2, bc->update(2)) << "2011-10-31";
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, BoneDryAccumulation)
+{
+    // check correct redistribution of -1 accumulation -- independent of neighbors
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-14 06:00:00",     -1, "0140000000002000", "QC1-2-72.b12,QC1-7-110");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", -1, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140000000007000", -1, bc->update(1));
+}
+
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, ComplaintFmis0NotBoneDry)
+{
+    // check correct redistribution of -1 accumulation -- independent of neighbors
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-14 06:00:00",    0.0, "0140000000002000", "QC1-2-72.b12,QC1-7-110");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(0, bc->count());
+    ASSERT_EQ(1, logs->count(Message::WARNING));
+    ASSERT_EQ(0, logs->find("fmis=0 and original!=-1"));
+}
+
