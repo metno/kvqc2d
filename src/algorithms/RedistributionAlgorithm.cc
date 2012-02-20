@@ -291,7 +291,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     // neighbor data are in ndata like this:
     // [endpoint] n3_1 n3_2 n3_3
     // [miss 1]   n2_1 n2_2
-    // [miss 2]   n1_1 n1_2 n3_4
+    // [miss 2]   n1_1 n1_2 n1_4
     // where nT_S has time T and stationid S
     // forward iterating through ndata yields n3_1 n3_2 n3_3 n2_1 n2_2 n1_1 n1_2 n1_4 (backwards in time)
     
