@@ -203,6 +203,7 @@ private:
 
 #define ASSERT_RUN(ALGO, BROADCASTER, COUNT)                            \
     try {                                                               \
+        logs->clear();                                                  \
         BROADCASTER->clear();                                           \
         ALGO->run();                                                    \
         if( BROADCASTER->count() != COUNT )                             \

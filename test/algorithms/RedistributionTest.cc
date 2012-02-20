@@ -569,11 +569,23 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 
+    ASSERT_EQ(0, logs->count(Message::INFO));
+    ASSERT_EQ(1, logs->count(Message::WARNING));
+    int idx = logs->next(Message::WARNING, 0);
+    ASSERT_LE(0, idx);
+    ASSERT_TRUE(boost::algorithm::contains(logs->text(idx), "not enough"));
+
+    // now give the neighbors good data, re-run, and make sure
+    // Redistribution runs
+
     data.setStation(83520).add("2011-10-13 06:00:00", 1.0, "0110000000001000", "")
         .setStation(84190).add("2011-10-13 06:00:00", 1.0, "0110000000001000", "");
     ASSERT_NO_THROW(data.update(db));
 
     ASSERT_RUN(algo, bc, 2);
+
+    ASSERT_EQ(2, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->count(Message::WARNING));
 }
 
 // ------------------------------------------------------------------------
