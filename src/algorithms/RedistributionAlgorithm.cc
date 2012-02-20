@@ -333,7 +333,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
                 break;
         }
         b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
-        if( warnNeighbors == usedNeighbors ) {
+        if( usedNeighbors > 0 && warnNeighbors == usedNeighbors ) {
             info() << "no really good neighbors at obstime=" << b.obstime()
                    << " for accumulation ending in " << before.front().text(false);
         }
