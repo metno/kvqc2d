@@ -207,8 +207,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         stop = true;
     }
     if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
-        const int endpoint_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
-        const bool fix = endpoint_fd == 7 && endpoint_fhqc == 0;
+        const bool fix = endpoint_fd == 7 && count_fhqc_0 == length;
         (fix ? info() : warning())
             << "redistributed sum " << redistributed_sum
             << " starting " << acc_start
@@ -461,7 +460,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         const int ageInDays = miutil::miDate::today().julianDay() - before.front().obstime().date().julianDay();
         const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
         (doWARN ? warning() : info())
-            << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint"
+            << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint "
             << before.front().text(false);
         return false;
     }
