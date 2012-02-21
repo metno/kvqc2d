@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011 met.no
+  Copyright (C) 2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -88,6 +88,148 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 
 // ------------------------------------------------------------------------
 
+bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
+{
+    if( equal(endpoint.original(), missing) || equal(endpoint.original(), rejected) ) {
+        warning() << "original = missing/rejected for endpoint" << Helpers::datatext(endpoint);
+        return false;
+    }
+    if( endpoint.obstime().hour() != mMeasurementHour ) {
+        warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
+                  << " not seen in endpoint " << Helpers::datatext(endpoint);
+        return false;
+    }
+    if( endpoint.controlinfo().flag(kvQCFlagTypes::f_fmis) == 0 && !equal(endpoint.original(), -1.0f) ) {
+        warning() << "fmis=0 and original!=-1 for endpoint " << Helpers::datatext(endpoint);
+        return false;
+    }
+    if( endpoint.controlinfo().flag(kvQCFlagTypes::f_fd) == 2 && !equal(endpoint.original(), endpoint.corrected()) ) {
+        warning() << "fd=2 and original!=corrected for endpoint " << Helpers::datatext(endpoint);
+        return false;
+    }
+    if( warn_and_stop_flags.matches(endpoint) ) {
+        warning() << "endpoint matches warn_and_stop_flags: " << Helpers::datatext(endpoint);
+        return false;
+    }
+    return true;
+}
+
+// ------------------------------------------------------------------------
+
+void RedistributionAlgorithm::insertMissingRows(const kvalobs::kvData& endpoint, updateList_t& mdata, const miutil::miTime& beforeTime)
+{
+    miutil::miTime t = stepTime(endpoint.obstime()), now = miutil::miTime::nowTime();
+    for(updateList_it it = mdata.begin(); t > beforeTime; ++it ) {
+        const miutil::miTime tdata = (it != mdata.end()) ? it->obstime() : beforeTime;
+        DBG("tdata=" << tdata << " t=" << t);
+        while( t > tdata ) {
+            const RedisUpdate fake(endpoint, t, now, missing, missing, "0000003000002000");
+            mdata.insert(it, fake);
+            DBG("about to insert missing row " << fake);
+            t = stepTime(t);
+        }
+        t = stepTime(tdata);
+    }
+}
+
+// ------------------------------------------------------------------------
+
+bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
+{
+    const int length = mdata.size();
+    if( length == 0 ) {
+        LOGERROR("zero-length accumulation");
+        return false;
+    }
+    const RedisUpdate& endpoint = mdata.front();
+    if( length == 1 ) {
+        warning() << "accumulation without missing rows in " << endpoint;
+        return false;
+    }
+
+    bool stop = false;
+    float redistributed_sum = 0.0f;
+    int count_fhqc_0 = 0, count_corrected = 0;
+    const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
+
+    for(updateList_cit it = mdata.begin(); it != mdata.end(); ++it ) {
+        const RedisUpdate& m = *it;
+        if( m.obstime().hour() != mMeasurementHour ) {
+            warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
+                      << mMeasurementHour << " not found in missing point " << m
+                      << " for accumulation ending in " << endpoint;
+            stop = true;
+        }
+        const bool m_missOrRej = equal(m.corrected(), missing) || equal(m.corrected(), rejected);
+        if( !m_missOrRej ) {
+            redistributed_sum += dry2real(m.corrected());
+            count_corrected += 1;
+        }
+        const int m_fhqc = m.controlinfo().flag(kvQCFlagTypes::f_fhqc);
+        if( m_fhqc == 0 )
+            count_fhqc_0 += 1;
+        if( it != mdata.begin() ) {
+            if( !equal(m.original(), missing) ) {
+                warning() << "missing point " << m << " has original!=missing for endpoint "
+                          << endpoint;
+                stop = true;
+            }
+            const int m_fmis = m.controlinfo().flag(kvQCFlagTypes::f_fmis);
+            const int m_fd   = m.controlinfo().flag(kvQCFlagTypes::f_fd  );
+            if( m_fd != endpoint_fd ) {
+                warning() << "missing point " << m << " has different fd flag than endpoint "
+                          << endpoint;
+                stop = true;
+            }
+            if( endpoint_fd == 2 && m_fmis != 3 ) {
+                warning() << "missing point " << m << " has fmis!=3 while fd=2 for endpoint "
+                          << endpoint;
+                stop = true;
+            } else if( (endpoint_fd == 7||endpoint_fd==6) && m_fmis != 1 ) {
+                warning() << "missing point " << m << " has fmis!=1 while fd=7 for endpoint "
+                          << endpoint;
+                stop = true;
+            }
+        }
+        if( warn_and_stop_flags.matches(m.data()) ) {
+            warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
+                      << endpoint;
+            stop = true;
+        }
+    }
+    const miutil::miTime acc_start = mdata.back().obstime();
+    if( (endpoint_fd == 2 && count_corrected != 1)
+        || ((endpoint_fd == 7||endpoint_fd==6) && count_corrected != length) )
+    {
+        warning() << "found " << count_corrected << ", but expected " << (endpoint_fd == 2 ? 1 : length)
+                  << " rows with corrected values for accumulation from "
+                  << acc_start << " to endpoint " << endpoint;
+        stop = true;
+    }
+    if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
+        const int endpoint_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
+        const bool fix = endpoint_fd == 7 && endpoint_fhqc == 0;
+        (fix ? info() : warning())
+            << "redistributed sum " << redistributed_sum
+            << " starting " << acc_start
+            << " differs from original in endpoint " << endpoint
+            << (fix ? "; will try to fix it" : "; will not fix");
+        stop = !fix;
+    }
+    if( count_fhqc_0 != 0 && count_fhqc_0 != length ) {
+        warning() << "fhqc mess for accumulation from " << acc_start
+                  << " to endpoint " << endpoint;
+        stop = true;
+    }
+    if( !stop && count_fhqc_0 != length ) {
+        info() << "stop because fhqc != 0 somewhere for accumulation ending in " << endpoint;
+        stop = true;
+    }
+    return !stop;
+}
+
+// ------------------------------------------------------------------------
+
 bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& mdata)
 {
     dataList_t mdatao;
@@ -104,54 +246,23 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 #endif
 
     updateList_it it = mdata.begin();
-    for(; it != mdata.end(); ++it ) {
-        const RedisUpdate& m = *it;
-        if( m.obstime().hour() != mMeasurementHour ) {
-            warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
-                      << mMeasurementHour << " not found in missing point " << m
-                      << " for accumulation ending in " << endpoint;
-            return false;
-        }
-        if( !missingpoint_flags.matches(m.data()) ) {
-            DBG("no missingpoint_flags match: " << m);
-            break;
-        }
-        if( warn_and_stop_flags.matches(m.data()) ) {
-            warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
-                      << endpoint;
-            return false;
-        }
+    while(it != mdata.end() && missingpoint_flags.matches(it->data()) )
+        ++it;
 
-    }
     if( it == mdata.end() ) {
         info() << "database starts with accumulation ending in " << Helpers::datatext(endpoint);
         return false;
     }
     if( equal(it->original(), missing) || equal(it->original(), rejected) ) {
-        warning() << "could not find non-missing data point before accumulation ending in " << Helpers::datatext(endpoint)
-                  << "; candidate is " << *it;
+        warning() << "suspicious row " << *it << " before endpoint " << Helpers::datatext(endpoint)
+                  << "; giving up";
         return false;
     }
+    const miutil::miTime beforeTime = it->obstime();
     mdata.erase(it, mdata.end());
 
+    insertMissingRows(endpoint, mdata, beforeTime);
 
-    miutil::miTime t = stepTime(endpoint.obstime()), now = miutil::miTime::nowTime(), beforeTime = it->obstime();
-    for(updateList_it it = mdata.begin(); t > beforeTime; ++it ) {
-        const miutil::miTime tdata = (it != mdata.end()) ? it->obstime() : beforeTime;
-        DBG("tdata=" << tdata << " t=" << t);
-        while( t > tdata ) {
-            const RedisUpdate fake(endpoint, t, now, missing, missing, "0000003000002000");
-            mdata.insert(it, fake);
-            DBG("about to insert missing row " << fake);
-            t = stepTime(t);
-        }
-        t = stepTime(tdata);
-    }
-
-    if( mdata.empty() ) {
-        DBG("no missing data rows");
-        return false;
-    }
     mdata.push_front(endpoint);
 
 #ifndef NDEBUG
@@ -198,11 +309,11 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(endpoint_flags,      "endpoint",            "fmis=[04]&fd=2&fhqc=0", "");
-    params.getFlagSetCU(missingpoint_flags,  "missingpoint",        "fmis=3&fd=2", "");
-    params.getFlagSetCU(neighbor_flags,      "neighbor",            "fd=1", "U2=0");
-    params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop_flags", "fhqc=)0(", "");
-    params.getFlagChange(update_flagchange,  "update_flagchange",   "fd=7;fmis=3->fmis=1");
+    params.getFlagSetCU(endpoint_flags,      "endpoint",          "fmis=[04]&fd=[267]", "");
+    params.getFlagSetCU(missingpoint_flags,  "missingpoint",      "fmis=3&fd=2|fmis=1&fd=[67]", "");
+    params.getFlagSetCU(neighbor_flags,      "neighbor",          "fd=1", "U2=0");
+    params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop",     "never", "");
+    params.getFlagChange(update_flagchange,  "update_flagchange", "fd=7;fmis=3->fmis=1");
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
     mMaxNeighbors = params.getParameter<int>("max_neighbors", 5);
@@ -228,30 +339,19 @@ void RedistributionAlgorithm::run()
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
-        if( equal(endpoint.original(), missing) || equal(endpoint.original(), rejected) )
+        if( !checkEndpoint(endpoint) )
             continue;
-        if( endpoint.obstime().hour() != mMeasurementHour ) {
-            warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
-                      << " not seen in accumulation endpoint "  << Helpers::datatext(endpoint);
-            continue;
-        }
 
         const miutil::miTime earliestPossibleMissing = ( endpoint.stationID() != lastStationId ) ? UT0 : lastObstime;
         lastStationId = endpoint.stationID();
         lastObstime   = endpoint.obstime();
 
-        if( warn_and_stop_flags.matches(endpoint) ) {
-            warning() << "endpoint matches warn_and_stop_flags: " << Helpers::datatext(endpoint);
-            continue;
-        }
-        if( endpoint.controlinfo().flag(kvQCFlagTypes::f_fmis) == 0 && endpoint.original() != -1 ) {
-            warning() << "fmis=0 and original!=-1 for endpoint " << Helpers::datatext(endpoint);
-            continue;
-        }
-
         // get series back in time from endpoint to first missing
         updateList_t accumulation;
         if( !findMissing(endpoint, earliestPossibleMissing, accumulation) )
+            continue;
+
+        if( !checkAccumulationPeriod(accumulation) )
             continue;
 
         if( equal(endpoint.original(), -1.0f) ) {

@@ -45,6 +45,7 @@ private:
     typedef dataList_t::iterator dataList_it;
     typedef std::list<RedisUpdate> updateList_t;
     typedef updateList_t::iterator updateList_it;
+    typedef updateList_t::const_iterator updateList_cit;
 
 public:
     RedistributionAlgorithm();
@@ -55,8 +56,10 @@ public:
 private:
     std::list<int> findNeighbors(int stationID);
 
+    void insertMissingRows(const kvalobs::kvData& endpoint, updateList_t& mdata, const miutil::miTime& beforeTime);
     bool findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& accumulation);
-
+    bool checkEndpoint(const kvalobs::kvData& endpoint);
+    bool checkAccumulationPeriod(const updateList_t& mdata);
     bool getNeighborData(const updateList_t& accumulation, dataList_t& ndata);
     void redistributeBoneDry(updateList_t& accumulation);
     bool redistributePrecipitation(updateList_t& accumulation);

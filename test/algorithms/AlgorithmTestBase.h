@@ -123,13 +123,14 @@ public:
     void clear()
         { mMessages.clear(); }
 
-    void sendText(Message::Level level, const std::string& message)
-        { mMessages.push_back(Record(level, message)); }
+    void sendText(Message::Level level, const std::string& message);
 
     void dump(std::ostream& out);
 
 private:
     std::vector<Record> mMessages;
+
+    static const char* levels[];
 };
 
 // #######################################################################

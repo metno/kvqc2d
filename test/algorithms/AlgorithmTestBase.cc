@@ -37,6 +37,18 @@
 
 // ------------------------------------------------------------------------
 
+const char* MemoryNotifier::levels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
+
+// ------------------------------------------------------------------------
+
+void MemoryNotifier::sendText(Message::Level level, const std::string& message)
+{
+    mMessages.push_back(Record(level, message));
+    //std::cout << std::setw(7) << levels[level] << " '" << message << "'" << std::endl;
+}
+
+// ------------------------------------------------------------------------
+
 int MemoryNotifier::find(const std::string& needle, int start) const
 {
     while(start < size()) {
@@ -73,7 +85,6 @@ int MemoryNotifier::next(Message::Level lvl, int idx) const
 
 void MemoryNotifier::dump(std::ostream& out)
 {
-    const char* levels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
     for(int i=0; i<size(); ++i)
         out << std::setw(3) << i << ' ' << std::setw(7) << levels[mMessages[i].level] << " \'" << mMessages[i].text << "\'\n";
 }

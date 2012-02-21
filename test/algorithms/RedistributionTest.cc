@@ -622,10 +622,11 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
     ASSERT_RUN(algo, bc, 0);
 
     std::ostringstream sql;
-    sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190, 84070) AND obstime = '2011-10-13 06:00:00';";
+    sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190) AND obstime = '2011-10-13 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    ASSERT_RUN(algo, bc, 3);
+    // two accumulations, one for 83880 and one for 84070
+    ASSERT_RUN(algo, bc, 3+2);
 }
 
 // ------------------------------------------------------------------------
@@ -1439,3 +1440,105 @@ TEST_F(RedistributionTest, ComplaintFmis0NotBoneDry)
     ASSERT_EQ(0, logs->find("fmis=0 and original!=-1"));
 }
 
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, Bad1stRedisFixWet)
+{
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, 0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, 1.0, "0000001000007000", "QC1-7-110,QC2-redist-fake")
+        .add("2011-10-14 06:00:00",    0.6, 0.1, "0140004000007000", "QC1-2-72.b12,QC1-7-110,QC2-redist-fake")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",    0.2, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.2, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",    0.2, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.2, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.3, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.3, bc->update(1));
+
+    ASSERT_EQ(3, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->find("redistributed sum"));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, Bad1stRedisFixDry)
+{
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, 0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, 1.0, "0000001000007000", "QC1-7-110,QC2-redist-fake")
+        .add("2011-10-14 06:00:00",    0.0, 0.1, "0140004000007000", "QC1-2-72.b12,QC1-7-110,QC2-redist-fake")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
+        .setStation(84070)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(2, bc->count());
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 0.0, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140004000007000", 0.0, bc->update(1));
+
+    ASSERT_EQ(3, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->find("redistributed sum"));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, Bad1stRedisNoFixDry)
+{
+    DataList data(83880, 110, 302);
+    data.add("2011-10-12 06:00:00",    0.3, 0.3, "0140000000001000", "QC1-2-72.b12")
+        .add("2011-10-13 06:00:00", -32767, 1.0, "0000001000006006", "QC1-7-110,watchRR-fake")
+        .add("2011-10-14 06:00:00",    0.0, 0.1, "0140004000006006", "QC1-2-72.b12,QC1-7-110,watchRR-fake")
+        .setStation(83520)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",     -1, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-12 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",    0.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "")
+        .setStation(84070)
+        .add("2011-10-12 06:00:00",    0.1, "0110000000001000", "")
+        .add("2011-10-13 06:00:00",     -1, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    0.0, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 11, 18);
+
+    ASSERT_NO_THROW(algo->configure(params));
+    ASSERT_TRUE(params.check()) << params.check().format("; ");
+    ASSERT_NO_THROW(algo->run());
+    ASSERT_EQ(0, bc->count());
+
+    ASSERT_EQ(1, logs->count(Message::WARNING));
+    ASSERT_EQ(0, logs->find("redistributed sum"));
+}
