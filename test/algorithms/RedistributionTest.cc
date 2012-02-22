@@ -1621,3 +1621,59 @@ TEST_F(RedistributionTest, LostPrecipitationOldQC2)
     ASSERT_EQ(1, logs->count(Message::WARNING));
     ASSERT_LE(0, logs->find("redistributed sum"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, BadRedistributedSumRounding)
+{
+    // this tests correct addition/rounding while calculating the sum
+    // of distributed precipitation
+
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(48500, 59.991,  6.024,   51, 0, 'ROSENDAL',               NULL, 48500, NULL, NULL, NULL,  9, 't', '1930-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(48780, 60.1322, 6.3305,  33, 0, 'MAURANGER KRAFTSTASJON', NULL, 48780, NULL, NULL, NULL, 10, 't', '1977-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(49070, 60.2803, 6.3828, 342, 0, 'KVÅLE',                  NULL, 49070, NULL, NULL, NULL,  9, 't', '1966-07-01 00:00:00');"
+        << "INSERT INTO station VALUES(50150, 60.0422, 5.9057,  45, 0, 'HATLESTRAND',            NULL, 50150, NULL, NULL, NULL,  9, 't', '1943-07-01 00:00:00');"
+        << "INSERT INTO station VALUES(49351, 60.1222, 6.5561,  32, 0, 'TYSSEDAL IA',            NULL, 49351, NULL, NULL, NULL,  9, 't', '2000-09-27 00:00:00');"
+        << "INSERT INTO station VALUES(47820, 59.8594, 6.2786, 178, 0, 'EIKEMO',                 NULL, 47820, NULL, NULL, NULL,  9, 't', '1961-01-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    // data for 48780 are from dev-vm101, neighbor data are modified to avoid update
+    DataList data(48780, 110, 302);
+    data.add("2012-02-15 06:00:00", 21.5, "0110000000001000", "")
+        .add("2012-02-16 06:00:00", -32767,   7.2, "0000001000007000", "QC1-7-110,QC2N_49351_49070_50120_48500_50150,QC2-redist")
+        .add("2012-02-17 06:00:00", -32767,  16.2, "0000001000007000", "QC1-7-110,QC2N_49351_49070_50120_48500_50150,QC2-redist")
+        .add("2012-02-18 06:00:00", -32767,  33.8, "0000001000007000", "QC1-7-110,QC2N_49070_48500_50150_47820_48450,QC2-redist")
+        .add("2012-02-19 06:00:00", -32767,  34.9, "0000001000007000", "QC1-7-110,QC2N_49070_50150_47820_48450_46450,QC2-redist")
+        .add("2012-02-20 06:00:00",   93.1,     1, "0110004000007000", "QC1-7-110,QC2N_49351_49070_48500_50150_47820,QC2-redist");
+    const int neighbors[] = { 47820, 48500, 49070, 49351, 50150, -1 };
+    for(int n=0; neighbors[n]>0; ++n) {
+        data.setStation(neighbors[n])
+            .add("2012-02-15 06:00:00",   18.7, "0110000000001000", "")
+            .add("2012-02-16 06:00:00",    7.2, "0110000000001000", "")
+            .add("2012-02-17 06:00:00",   16.2, "0110000000001000", "")
+            .add("2012-02-18 06:00:00",   33.8, "0110000000001000", "")
+            .add("2012-02-19 06:00:00",   34.9, "0110000000001000", "")
+            .add("2012-02-20 06:00:00",      1, "0110000000001000", "");
+    }
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   02\n"
+           << "Start_DD   =   15\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   02\n"
+           << "End_DD     =   25\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(0, logs->count(Message::WARNING));
+    ASSERT_EQ(0, logs->count(Message::INFO));
+}

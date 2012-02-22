@@ -162,7 +162,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         }
         const bool m_missOrRej = equal(m.corrected(), missing) || equal(m.corrected(), rejected);
         if( !m_missOrRej ) {
-            redistributed_sum += dry2real(m.corrected());
+            redistributed_sum = Helpers::round(redistributed_sum + dry2real(m.corrected()));
             count_corrected += 1;
         }
         const int m_fhqc = m.controlinfo().flag(kvQCFlagTypes::f_fhqc);
