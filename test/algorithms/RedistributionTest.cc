@@ -1676,4 +1676,14 @@ TEST_F(RedistributionTest, BadRedistributedSumRounding)
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(0, logs->count(Message::WARNING));
     ASSERT_EQ(0, logs->count(Message::INFO));
+
+    // now change the data and trigger a redistribution which may only
+    // change back corrected 123->1
+    data.setStation(48780).add("2012-02-20 06:00:00", 93.1, 123, "0110004000007000", "QC1-7-110,QC2N_49351_49070_48500_50150_47820,QC2-redist");
+    ASSERT_NO_THROW(data.update(db));
+
+    ASSERT_RUN(algo, bc, 1);
+    EXPECT_STATION_OBS_CONTROL_CORR(48780, "2012-02-20 06:00:00", "0110004000007000", 1, bc->update(0));
+    ASSERT_EQ(2, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->count(Message::WARNING));
 }
