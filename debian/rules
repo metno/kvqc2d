@@ -85,4 +85,8 @@ version-check:
 	DEBIAN_VERSION=$$(head -n 1 debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+\)-[^-)]).*$$/\1/'); \
 	if [ "x$$DEBIAN_VERSION" != "x$$AC_VERSION" ]; then \
 	    echo "Error: debian version '$$DEBIAN_VERSION' != version '$$AC_VERSION' from configure.ac"; exit 1; \
+	fi; \
+	$(MAKE) -C src version_git.stamp; \
+	if grep -q "KVQC2D_VERSION_FULL.*_no_version" src/version_git.h; then \
+	    echo "Error: invalid version for packaging in src/version_git.h"; exit 1; \
 	fi

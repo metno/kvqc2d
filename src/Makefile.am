@@ -101,10 +101,18 @@ ebrowse:
 $(VERSION_GIT_STAMP):
 	@if $(GIT) rev-parse HEAD >/dev/null 2>&1; then \
 	    GIT_REF=$$($(GIT) rev-parse HEAD); \
-	    if [ "x$$($(GIT) diff-files)" = "x" ] && [ "x$$($(GIT) diff-index --cached HEAD)" = "x" ]; then true; else \
-	        GIT_REF="$$GIT_REF/dirty"; \
+	    if [ "x$$($(GIT) diff-files)" = "x" ] && [ "x$$($(GIT) diff-index --cached HEAD)" = "x" ]; then \
+	        DEBIAN_VERSION=$$(head -n 1 ../debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+-[^-)]\)).*$$/\1/'); \
+	        TAG_NAME="@PACKAGE_NAME@_$$(echo $$DEBIAN_VERSION | tr '.' '_')"; \
+	        if [ "x$$($(GIT) rev-parse $$TAG_NAME 2>/dev/null || true)" = "x$$GIT_REF" ]; then \
+	            FULL_VERSION="$$DEBIAN_VERSION (git:$$GIT_REF)"; \
+	        else \
+	            FULL_VERSION="@PACKAGE_NAME@_no_version (git:$$GIT_REF)"; \
+	        fi; \
+	    else \
+	        FULL_VERSION="@PACKAGE_NAME@_no_version (git:$$GIT_REF/dirty)"; \
 	    fi; \
-	    echo "#define KVQC2D_VERSION_GIT \"$$GIT_REF\"" > "$(VERSION_GIT_H).tmp" ; \
+	    echo "#define KVQC2D_VERSION_FULL \"$$FULL_VERSION\"" >> "$(VERSION_GIT_H).tmp" ; \
 	elif test -s "$(srcdir)/$(VERSION_GIT_H)"; then \
 	    cp "$(srcdir)/$(VERSION_GIT_H)" "$(VERSION_GIT_H).tmp"; \
 	else \

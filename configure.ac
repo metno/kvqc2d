@@ -28,5 +28,4 @@ AH_BOTTOM([#include "sqlite3.h"
 
 AC_CONFIG_HEADERS(src/config.h)
 AC_CONFIG_FILES([Makefile src/Makefile test/Makefile])
-AC_CONFIG_FILES([src/version_ac.h])
 AC_OUTPUT

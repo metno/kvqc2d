@@ -41,7 +41,7 @@
 #include <boost/filesystem/exception.hpp>
 #include <string>
 
-#include "version_ac.h"
+#include "version_git.h"
 
 const char* options[][ 2 ] =
   {
