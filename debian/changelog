@@ -1,3 +1,10 @@
+kvqc2d (1.3.14pre1-1) unstable; urgency=low
+
+  * Redistribute: solved rounding problem
+  * better version information at startup
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 24 Feb 2012 09:58:38 +0100
+
 kvqc2d (1.3.13-1) unstable; urgency=low
 
   * Redistribute: no warning about bad neighbors if there are no neighbors
