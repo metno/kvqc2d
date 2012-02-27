@@ -50,6 +50,7 @@ const int vippsUnlikelyStart    = 3;
 const int vippsRainInterrupt    = 3;
 const int maxRainInterrupt      = 4;
 const int minRainBeforeAndAfter = 2;
+const float numericSafety = 1e-4;
 
 }; // anonymous namespace
 
@@ -216,7 +217,7 @@ bool PlumaticAlgorithm::checkRainInterruption(const Shower& shower, const Shower
         return false;
     }
 
-    const float threshold = mmpv*vippsRainInterrupt;
+    const float threshold = mmpv*vippsRainInterrupt - numericSafety;
     if( shower.first->original() < threshold || previousShower.last->original() < threshold )
         return false;
 
@@ -249,7 +250,7 @@ bool PlumaticAlgorithm::checkHighSingle(const Shower& shower, const float mmpv)
     if( isBadData(*shower.first) )
         return false;
 
-    const float threshold = mmpv*vippsUnlikelySingle;
+    const float threshold = mmpv*vippsUnlikelySingle - numericSafety;
     if( shower.first->original() < threshold )
         return false;
 
@@ -262,7 +263,7 @@ int PlumaticAlgorithm::checkHighStartLength(const Shower& shower, const float mm
         return 0;
 
     int n = 0;
-    const float threshold = mmpv*vippsUnlikelyStart-0.05;
+    const float threshold = mmpv*vippsUnlikelyStart - numericSafety;
     kvUpdateList_it end = shower.last; ++end;
     for(kvUpdateList_it it = shower.first; it != end && !isBadData(*it); ++it) {
         if( it->original() < threshold )
