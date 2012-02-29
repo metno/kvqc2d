@@ -1,3 +1,9 @@
+kvqc2d (1.3.14pre2-1) unstable; urgency=low
+
+  * Redistribute: write time range to log messages to simplify SQL queries
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 29 Feb 2012 12:50:51 +0100
+
 kvqc2d (1.3.14pre1-1) unstable; urgency=low
 
   * Redistribute: solved rounding problem
