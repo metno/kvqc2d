@@ -97,12 +97,26 @@ DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
 
 // ------------------------------------------------------------------------
 
-std::string DataUpdate::text(bool modified) const
+std::string DataUpdate::text(int daysBefore, bool modified) const
+{
+    miutil::miTime start = mData.obstime();
+    if( daysBefore > 0 )
+        start.addDay( -daysBefore );
+    return text(start, modified);
+}
+
+// ------------------------------------------------------------------------
+
+std::string DataUpdate::text(const miutil::miTime& start, bool modified) const
 {
     std::ostringstream out;
-    out << "[stationid="    << mData.stationID()
-        << " AND obstime='" << mData.obstime().isoTime() << '\''
-        << " AND paramid="  << mData.paramID()
+    out << "[stationid=" << mData.stationID() << " AND ";
+    if( start >= mData.obstime() ) {
+        out << "obstime='" << mData.obstime().isoTime() << '\'';
+    } else {
+        out << "obstime BETWEEN '" << start.isoTime() << "' AND '" << mData.obstime().isoTime() << '\'';
+    }
+    out << " AND paramid="  << mData.paramID()
         << " AND typeid="   << mData.typeID()
         << " AND sensor="   << mData.sensor()
         << " AND level="    << mData.level()

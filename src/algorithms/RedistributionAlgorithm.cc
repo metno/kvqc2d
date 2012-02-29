@@ -157,7 +157,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         if( m.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
                       << mMeasurementHour << " not found in missing point " << m
-                      << " for accumulation ending in " << endpoint;
+                      << " for accumulation ending in " << endpoint.text(m.obstime());
             stop = true;
         }
         const bool m_missOrRej = equal(m.corrected(), missing) || equal(m.corrected(), rejected);
@@ -171,29 +171,29 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         if( it != mdata.begin() ) {
             if( !equal(m.original(), missing) ) {
                 warning() << "missing point " << m << " has original!=missing for endpoint "
-                          << endpoint;
+                          << endpoint.text(m.obstime());
                 stop = true;
             }
             const int m_fmis = m.controlinfo().flag(kvQCFlagTypes::f_fmis);
             const int m_fd   = m.controlinfo().flag(kvQCFlagTypes::f_fd  );
             if( m_fd != endpoint_fd ) {
                 warning() << "missing point " << m << " has different fd flag than endpoint "
-                          << endpoint;
+                          << endpoint.text(m.obstime());
                 stop = true;
             }
             if( endpoint_fd == 2 && m_fmis != 3 ) {
                 warning() << "missing point " << m << " has fmis!=3 while fd=2 for endpoint "
-                          << endpoint;
+                          << endpoint.text(m.obstime());
                 stop = true;
             } else if( (endpoint_fd == 7||endpoint_fd==6) && m_fmis != 1 ) {
                 warning() << "missing point " << m << " has fmis!=1 while fd=7 for endpoint "
-                          << endpoint;
+                          << endpoint.text(m.obstime());
                 stop = true;
             }
         }
         if( warn_and_stop_flags.matches(m.data()) ) {
             warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
-                      << endpoint;
+                      << endpoint.text(m.obstime());
             stop = true;
         }
     }
@@ -203,7 +203,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     {
         warning() << "found " << count_corrected << ", but expected " << (endpoint_fd == 2 ? 1 : length)
                   << " rows with corrected values for accumulation from "
-                  << acc_start << " to endpoint " << endpoint;
+                  << acc_start << " to endpoint " << endpoint.text(acc_start);
         stop = true;
     }
     if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
@@ -211,7 +211,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         (fix ? info() : warning())
             << "redistributed sum " << redistributed_sum
             << " starting " << acc_start
-            << " differs from original in endpoint " << endpoint
+            << " differs from original in endpoint " << endpoint.text(acc_start)
             << (fix ? "; will try to fix it" : "; will not fix");
         stop = !fix;
     }
@@ -221,7 +221,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         stop = true;
     }
     if( !stop && count_fhqc_0 != length ) {
-        info() << "stop because fhqc != 0 somewhere for accumulation ending in " << endpoint;
+        info() << "stop because fhqc != 0 somewhere for accumulation ending in " << endpoint.text(acc_start);
         stop = true;
     }
     return !stop;
@@ -253,7 +253,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         return false;
     }
     if( equal(it->original(), missing) || equal(it->original(), rejected) ) {
-        warning() << "suspicious row " << *it << " before endpoint " << Helpers::datatext(endpoint)
+        warning() << "suspicious row " << *it << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
                   << "; giving up";
         return false;
     }
@@ -280,7 +280,8 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
 
     const std::list<int> neighbors = findNeighbors(endpoint.stationID());
     if( (int)neighbors.size() < mMinNeighbors ) {
-        warning() << "too few neighbor stations for accumulation ending in " << before.front();
+        warning() << "too few neighbor stations for accumulation ending in "
+                  << before.front().text(before.back().obstime());
         return false;
     }
 
@@ -294,7 +295,7 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
         if( n.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                       << " not seen in neighbor " << Helpers::datatext(n)
-                      << " for accumulation ending in " << Helpers::datatext(endpoint);
+                      << " for accumulation ending in " << Helpers::datatext(endpoint, n.obstime());
             return false;
         }
     }
@@ -434,14 +435,14 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         b.setHasAllNeighborsBoneDry(allNeighborsBoneDry);
         if( usedNeighbors > 0 && warnNeighbors == usedNeighbors ) {
             info() << "no really good neighbors at obstime=" << b.obstime()
-                   << " for accumulation ending in " << before.front().text(false);
+                   << " for accumulation ending in " << before.front().text(before.back().obstime(), false);
         }
         if( usedNeighbors < mMinNeighbors && !accumulationIsDry ) {
             const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
             const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
             (doWARN ? warning() : info())
                 << "not enough good neighbors at t=" << b.obstime()
-                << " for accumulation ending in " << before.front().text(false);
+                << " for accumulation ending in " << before.front().text(before.back().obstime(), false);
             return false;
         }
         const float weightedNeighbors = (sumWeights > 0.0f)
@@ -461,7 +462,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
         (doWARN ? warning() : info())
             << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint "
-            << before.front().text(false);
+            << before.front().text(before.back().obstime(), false);
         return false;
     }
     float corrected_sum = 0;
@@ -490,7 +491,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     }
     if( fabs(delta) > 0.05 ) {
         warning() << "could not avoid difference of " << fabs(delta) << " between distributed sum "
-                  << " and accumulated value at endpoint=" << before.front();
+                  << " and accumulated value at endpoint=" << before.front().text(before.back().obstime());
     }
     return true;
 }

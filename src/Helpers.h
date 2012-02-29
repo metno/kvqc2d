@@ -24,7 +24,8 @@ inline bool equal(double a, double b) { return fabs(a - b) < 4*std::numeric_limi
 
 std::ostream& digits1(std::ostream& out);
 
-std::string datatext(const kvalobs::kvData& data);
+std::string datatext(const kvalobs::kvData& data, int daysBefore=0);
+std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start);
 
 /**
  * Returns the normalised day of the year, that is 28.2. = 29.2. = day

@@ -1318,14 +1318,15 @@ TEST_F(RedistributionTest, NoReallyGoodNeighbors)
     ASSERT_EQ(4, logs->count(Message::INFO));
     const int idx = logs->next(Message::INFO, 0);
     ASSERT_EQ(idx, logs->find("no really good neighbors at obstime=2011-10-30 06:00:00"
-                              " for accumulation ending in [stationid=3200 AND obstime='2011-10-31 06:00:00'"));
+                              " for accumulation ending in [stationid=3200 AND obstime BETWEEN '2011-10-29 06:00:00' AND '2011-10-31 06:00:00'"));
+    
 
     // run again without modifications and same message
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(1, logs->count(Message::INFO));
     ASSERT_EQ(0, logs->count(Message::WARNING));
     ASSERT_EQ(0, logs->find("no really good neighbors at obstime=2011-10-30 06:00:00"
-                            " for accumulation ending in [stationid=3200 AND obstime='2011-10-31 06:00:00'"));
+                            " for accumulation ending in [stationid=3200 AND obstime BETWEEN '2011-10-29 06:00:00' AND '2011-10-31 06:00:00'"));
 }
 
 // ------------------------------------------------------------------------

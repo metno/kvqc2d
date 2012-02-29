@@ -55,7 +55,8 @@ public:
     bool operator<(const DataUpdate& other) const
         { return obstime() < other.obstime(); }
 
-    std::string text(bool modified=true) const;
+    std::string text(int daysBefore=0, bool modified=true) const;
+    std::string text(const miutil::miTime& start, bool modified=true) const;
 
 private:
     kvalobs::kvData mData;

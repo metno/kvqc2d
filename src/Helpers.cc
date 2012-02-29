@@ -65,12 +65,26 @@ std::ostream& digits1(std::ostream& out)
 
 // ------------------------------------------------------------------------
 
-std::string datatext(const kvalobs::kvData& data)
+std::string datatext(const kvalobs::kvData& data, int daysBefore)
+{
+    miutil::miTime start = data.obstime();
+    if( daysBefore > 0 )
+        start.addDay( -daysBefore );
+    return datatext(data, start);
+}
+
+// ------------------------------------------------------------------------
+
+std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start)
 {
     std::ostringstream out;
-    out << "[stationid="    << data.stationID()
-        << " AND obstime='" << data.obstime().isoTime() << '\''
-        << " AND paramid="  << data.paramID()
+    out << "[stationid=" << data.stationID() << " AND ";
+    if( start >= data.obstime() ) {
+        out << "obstime='" << data.obstime().isoTime() << '\'';
+    } else {
+        out << "obstime BETWEEN '" << start.isoTime() << "' AND '" << data.obstime().isoTime() << '\'';
+    }
+    out << " AND paramid="  << data.paramID()
         << " AND typeid="   << data.typeID()
         << " AND sensor='"  << data.sensor() << "'"
         << " AND level="    << data.level()
