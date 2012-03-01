@@ -40,6 +40,7 @@
 
 #include <milog/milog.h>
 
+#include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -178,6 +179,9 @@ public:
     float getReference(int stationid, int day, const std::string& key, bool& valid)
         { return mStatisticalMean->getReferenceValue(stationid, day, key, valid); }
 
+    Message warning()
+        { return mStatisticalMean->warning(); }
+
     virtual ~Checker() { }
 private:
     StatisticalMean* mStatisticalMean;
@@ -275,6 +279,7 @@ bool CheckerMeanOrSum::pass()
 
 struct AccumulatedQuartiles : public AccumulatedValue {
     float q1, q2, q3;
+    float q(int i) const { if(i==0) return q1; else if(i==1) return q2; else if(i==2) return q3; else return -9999; }
     AccumulatedQuartiles(float qq1, float qq2, float qq3)
         : q1(qq1), q2(qq2), q3(qq3) { }
 };
@@ -322,16 +327,40 @@ AccumulatedValueP AccumulatorQuartiles::value()
 
 class CheckerQuartiles : public Checker {
 public:
-    CheckerQuartiles(StatisticalMean* sm, const std::vector<float>& tolerances)
-        : Checker(sm), mTolerances(tolerances) { }
+    CheckerQuartiles(StatisticalMean* sm, int days, const std::vector<float>& tolerances)
+        : Checker(sm), mDays(days), mTolerances(tolerances) { }
     bool newCenter(int id, int dayOfYear, AccumulatedValueP accumulated);
     bool checkNeighbor(int nbr, AccumulatedValueP accumulated);
     bool pass();
 private:
-    int mDayOfYear, mCenter, mCountNeighborsWithError;
+    bool calculateDiffsToReferences(int station, int dOy, float diffs[3], AccumulatedValueP accumulated);
+private:
+    int mDays, mDayOfYear, mCenter, mCountNeighborsWithError;
     std::vector<float> mTolerances;
-    float mDiffQ1, mDiffQ2, mDiffQ3;
+    float mDiffsQ[3];
 };
+
+// ------------------------------------------------------------------------
+
+bool CheckerQuartiles::calculateDiffsToReferences(int station, int dOy, float diffs[3], AccumulatedValueP accumulated)
+{
+    AccumulatedQuartilesP quartiles = boost::static_pointer_cast<AccumulatedQuartiles>(accumulated);
+    bool valid[3] = { false, false, false };
+    for(int i=0; i<3; ++i) {
+        const float ref = getReference(station, dOy, (boost::format("ref_q%1$d") % (i+1)).str(), valid[i]);
+        diffs[i] = valid[i] ? fabs(quartiles->q(i) - ref) : 0;
+    }
+    if( !valid[0] || !valid[1] || !valid[2] ) {
+        Message w = warning();
+        w << "Missing quartile reference values ";
+        for(int i=0; i<3; ++i) {
+            if( !valid[i] )
+                w << (i+1) << ' ';
+        }
+        w << "for station " << station;
+    }
+    return (valid[0] || valid[1] || valid[2]);
+}
 
 // ------------------------------------------------------------------------
 
@@ -341,40 +370,25 @@ bool CheckerQuartiles::newCenter(int id, int dayOfYear, AccumulatedValueP accumu
     mDayOfYear = dayOfYear;
     mCountNeighborsWithError = 0;
 
-    AccumulatedQuartilesP quartiles = boost::static_pointer_cast<AccumulatedQuartiles>(accumulated);
-
-    bool referenceValid;
-    const float reference_q1 = getReference(id, dayOfYear, "ref_q1", referenceValid);
-    mDiffQ1 = referenceValid ? fabs(quartiles->q1 - reference_q1) : 0;
-    const float reference_q2 = getReference(id, dayOfYear, "ref_q2", referenceValid);
-    mDiffQ2 = referenceValid ? fabs(quartiles->q2 - reference_q2) : 0;
-    const float reference_q3 = getReference(id, dayOfYear, "ref_q3", referenceValid);
-    mDiffQ3 = referenceValid ? fabs(quartiles->q3 - reference_q3) : 0;
-
-    return mDiffQ1 <= mTolerances[1] && mDiffQ2 <= mTolerances[3] && mDiffQ3 <= mTolerances[5];
+    if( calculateDiffsToReferences(mCenter, dayOfYear, mDiffsQ, accumulated) ) {
+        return mDiffsQ[0] <= mTolerances[1] && mDiffsQ[1] <= mTolerances[3] && mDiffsQ[2] <= mTolerances[5];
+    } else {
+        return true;
+    }
 }
 
 // ------------------------------------------------------------------------
 
 bool CheckerQuartiles::checkNeighbor(int nbr, AccumulatedValueP accumulated)
 {
-    AccumulatedQuartilesP quartiles = boost::static_pointer_cast<AccumulatedQuartiles>(accumulated);
-
-    bool referenceValid;
-    const float reference_q1 = getReference(nbr, mDayOfYear, "ref_q1", referenceValid);
-    const float nDiffQ1 = referenceValid ? fabs(quartiles->q1 - reference_q1) : 0;
-    const float reference_q2 = getReference(nbr, mDayOfYear, "ref_q2", referenceValid);
-    const float nDiffQ2 = referenceValid ? fabs(quartiles->q2 - reference_q2) : 0;
-    const float reference_q3 = getReference(nbr, mDayOfYear, "ref_q3", referenceValid);
-    const float nDiffQ3 = referenceValid ? fabs(quartiles->q3 - reference_q3) : 0;
-
-    const bool error = (mDiffQ1 > mTolerances[1] && mDiffQ1 - nDiffQ1 > mTolerances[0])
-        || (mDiffQ2 > mTolerances[3] && mDiffQ2 - nDiffQ2 > mTolerances[2])
-        || (mDiffQ3 > mTolerances[5] && mDiffQ3 - nDiffQ3 > mTolerances[4]);
-
-    if( error )
-        mCountNeighborsWithError += 1;
-
+    float nDiffsQ[3];
+    if( calculateDiffsToReferences(nbr, mDayOfYear, nDiffsQ, accumulated) ) {
+        const bool error = (mDiffsQ[0] > mTolerances[1] && mDiffsQ[0] - nDiffsQ[0] > mTolerances[0])
+            || (mDiffsQ[1] > mTolerances[3] && mDiffsQ[1] - nDiffsQ[1] > mTolerances[2])
+            || (mDiffsQ[2] > mTolerances[5] && mDiffsQ[2] - nDiffsQ[2] > mTolerances[4]);
+        if( error )
+            mCountNeighborsWithError += 1;
+    }
     return mCountNeighborsWithError <= 3;
 }
 
@@ -445,7 +459,7 @@ void StatisticalMean::run()
     } else if( mParamid == 262 /* UU */ || mParamid == 15 /* NN */ || mParamid == 55 /* HL */
                || mParamid == 273 /* VV */ || mParamid == 200 /* QO */ ) {
         accumulator = boost::make_shared<AccumulatorQuartiles>(mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerQuartiles>(this, std::vector<float>(6, mTolerance));
+        checker = boost::make_shared<CheckerQuartiles>(this, mDays, std::vector<float>(6, mTolerance));
     } else {
         warning() << "Illegal paramid " << mParamid << " in StatisticalMean::run";
         return;

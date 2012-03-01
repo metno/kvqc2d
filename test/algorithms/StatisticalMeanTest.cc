@@ -351,13 +351,13 @@ TEST_F(StatisticalMeanTest, FakeDeviation_VV)
     // reference values -- made up to test the quartiles method
     
     const float ref_q1 = 100, ref_q2 = 200, ref_q3 = 300;
-    const int paramid = 273, idtype = 330, stations[] = { 7010, 46910, 70150, 76450, -1 };
+    const int paramid = 273, idtype = 330, stations[] = { 7010, 46910, 70150, 76450, -1 }, days = 28;
     std::ostringstream sql;
     for(int dOy=0; dOy<=365; ++dOy) {
         for(int s=0; stations[s]>0; ++s) {
-            sql << "INSERT INTO statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_q1'," << ref_q1 << ");"
-                << "INSERT INTO statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_q2'," << ref_q2 << ");"
-                << "INSERT INTO statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_q3'," << ref_q3 << ");";
+            sql << "INSERT INTO statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q1',"<<ref_q1<<");"
+                << "INSERT INTO statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q2',"<<ref_q2<<");"
+                << "INSERT INTO statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q3',"<<ref_q3<<");";
         }
     }
     ASSERT_NO_THROW(db->exec(sql.str()));
@@ -382,7 +382,7 @@ TEST_F(StatisticalMeanTest, FakeDeviation_VV)
            << "End_YYYY   = 2012\n"
            << "End_MM     =    2\n"
            << "End_DD     =    7\n"
-           << "days       =   28\n"
+           << "days       =   " << days << "\n"
            << "tolerance  =    1\n"
            << "ParamId    =  " << paramid << '\n'
            << "TypeIds    =  " << idtype << '\n'
