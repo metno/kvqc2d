@@ -118,7 +118,7 @@ std::string DataUpdate::text(const miutil::miTime& start, bool modified) const
     }
     out << " AND paramid="  << mData.paramID()
         << " AND typeid="   << mData.typeID()
-        << " AND sensor="   << mData.sensor()
+        << " AND sensor='"   << mData.sensor() << "'"
         << " AND level="    << mData.level()
         << "; original=" << Helpers::digits1 << mData.original();
     if( modified ) {
@@ -152,6 +152,6 @@ std::string DataUpdate::text(const miutil::miTime& start, bool modified) const
 
 std::ostream& operator<<(std::ostream& out, const DataUpdate& du)
 {
-    out << du.text(true);
+    out << du.text(0, true);
     return out;
 }

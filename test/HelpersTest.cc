@@ -117,3 +117,15 @@ TEST(HelpersTest, Quartiles)
     EXPECT_DOUBLE_EQ(20, q2);
     EXPECT_DOUBLE_EQ(27, q3);
 }
+
+TEST(HelpersTest, DataText)
+{
+    const kvalobs::kvData d(18700, "2012-03-01 06:00:00", 12.0, 211, "2012-03-01 07:00:00", 302, 0, 0, 12.0,
+                            kvalobs::kvControlInfo("0110000000001000"), kvalobs::kvUseInfo("0000000000000000"), "");
+    EXPECT_EQ("[stationid=18700 AND obstime='2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
+              Helpers::datatext(d));
+    EXPECT_EQ("[stationid=18700 AND obstime BETWEEN '2012-02-29 06:00:00' AND '2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
+              Helpers::datatext(d, 1));
+    EXPECT_EQ("[stationid=18700 AND obstime BETWEEN '2012-02-25 06:00:00' AND '2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
+              Helpers::datatext(d, "2012-02-25 06:00:00"));
+}
