@@ -5,6 +5,12 @@
 #include <iostream>
 #include <sstream>
 
+namespace {
+const char* levelNames[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
+}
+
+// ========================================================================
+
 Message::Message(Level level, Notifier* n)
     : mStream(new std::ostringstream)
     , mLevel(level)
@@ -12,9 +18,7 @@ Message::Message(Level level, Notifier* n)
 {
 }
 
-namespace {
-const char* levelNames[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
-}
+// ------------------------------------------------------------------------
 
 Message::~Message()
 {
@@ -25,4 +29,11 @@ Message::~Message()
         else
             std::cerr << std::setw(7) << levelNames[mLevel] << ": " << msg << std::endl;
     }
+}
+
+// ------------------------------------------------------------------------
+
+void Message::reset()
+{
+    mStream->str("");
 }

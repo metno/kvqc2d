@@ -18,6 +18,8 @@ public:
 
     ~Message();
 
+    void reset();
+
     template<class T>
     Message& operator<<(const T& t)
         { *mStream << t; return *this; }
