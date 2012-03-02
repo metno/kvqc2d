@@ -65,11 +65,11 @@ std::ostream& digits1(std::ostream& out)
 
 // ------------------------------------------------------------------------
 
-std::string datatext(const kvalobs::kvData& data, int daysBefore)
+std::string datatext(const kvalobs::kvData& data, int hoursBefore)
 {
     miutil::miTime start = data.obstime();
-    if( daysBefore > 0 )
-        start.addDay( -daysBefore );
+    if( hoursBefore > 0 )
+        start.addHour( -hoursBefore );
     return datatext(data, start);
 }
 

@@ -97,11 +97,11 @@ DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
 
 // ------------------------------------------------------------------------
 
-std::string DataUpdate::text(int daysBefore, bool modified) const
+std::string DataUpdate::text(int hoursBefore, bool modified) const
 {
     miutil::miTime start = mData.obstime();
-    if( daysBefore > 0 )
-        start.addDay( -daysBefore );
+    if( hoursBefore > 0 )
+        start.addHour( -hoursBefore );
     return text(start, modified);
 }
 

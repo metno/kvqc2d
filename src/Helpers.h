@@ -24,7 +24,7 @@ inline bool equal(double a, double b) { return fabs(a - b) < 4*std::numeric_limi
 
 std::ostream& digits1(std::ostream& out);
 
-std::string datatext(const kvalobs::kvData& data, int daysBefore=0);
+std::string datatext(const kvalobs::kvData& data, int hoursBefore=0);
 std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start);
 
 /**
