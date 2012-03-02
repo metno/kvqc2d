@@ -276,13 +276,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation_PR)
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(29, logs->count(Message::WARNING));
 
-    for(int day=1, idx=0; day<=29; ++day) {
-        idx = logs->next(Message::WARNING, idx);
-        ASSERT_LE(0, idx);
-        const std::string expect = (boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str();
-        EXPECT_TRUE(boost::algorithm::contains(logs->text(idx), expect))
-            << "day=" << day;
-        idx += 1;
+    for(int day=1; day<=29; ++day) {
+        EXPECT_LE(0, logs->find((boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str(),
+                                Message::WARNING)) << "day=" << day;
     }
 }
 
@@ -333,13 +329,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation_TA)
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(5, logs->count(Message::WARNING));
 
-    for(int day=1, idx=0; day<=5; ++day) {
-        idx = logs->next(Message::WARNING, idx);
-        ASSERT_LE(0, idx);
-        const std::string expect = (boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str();
-        EXPECT_TRUE(boost::algorithm::contains(logs->text(idx), expect))
-            << "day=" << day << " expect='" << expect << "' but is '" << logs->text(idx) << "'";
-        idx += 1;
+    for(int day=1; day<=5; ++day) {
+        EXPECT_LE(0, logs->find((boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str(),
+                                Message::WARNING)) << "day=" << day;
     }
 }
 

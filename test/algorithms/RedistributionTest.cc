@@ -571,9 +571,7 @@ TEST_F(RedistributionTest, NoGoodNeighbors)
 
     ASSERT_EQ(0, logs->count(Message::INFO));
     ASSERT_EQ(1, logs->count(Message::WARNING));
-    int idx = logs->next(Message::WARNING, 0);
-    ASSERT_LE(0, idx);
-    ASSERT_TRUE(boost::algorithm::contains(logs->text(idx), "not enough"));
+    ASSERT_EQ(0, logs->find("not enough", Message::WARNING));
 
     // now give the neighbors good data, re-run, and make sure
     // Redistribution runs
