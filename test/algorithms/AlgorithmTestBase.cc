@@ -32,6 +32,7 @@
 #include "Helpers.h"
 #include <kvalobs/kvQueries.h>
 #include "foreach.h"
+#include <boost/algorithm/string/predicate.hpp>
 #include <cstdlib>
 #include <stdexcept>
 
@@ -49,11 +50,14 @@ void MemoryNotifier::sendText(Message::Level level, const std::string& message)
 
 // ------------------------------------------------------------------------
 
-int MemoryNotifier::find(const std::string& needle, int start) const
+int MemoryNotifier::find(const std::string& needle, int level, int start) const
 {
-    while(start < size()) {
-        if( mMessages[start].text.find(needle) != std::string::npos )
-            return start;
+    while(start>=0 && start < (int)mMessages.size()) {
+        if( level<0 || mMessages[start].level==level) {
+            const bool found = boost::algorithm::contains(mMessages[start].text, needle);
+            if( found )
+                return start;
+        }
         start += 1;
     }
     return -1;
@@ -61,8 +65,11 @@ int MemoryNotifier::find(const std::string& needle, int start) const
 
 // ------------------------------------------------------------------------
 
-int MemoryNotifier::count(Message::Level level) const
+int MemoryNotifier::count(int level) const
 {
+    if( level<0 )
+        return mMessages.size();
+
     int c = 0;
     foreach(const Record& r, mMessages) {
         if( r.level == level )
@@ -75,7 +82,7 @@ int MemoryNotifier::count(Message::Level level) const
 
 int MemoryNotifier::next(Message::Level lvl, int idx) const
 {
-    for(; idx>=0 && idx<size(); ++idx)
+    for(; idx>=0 && idx<(int)mMessages.size(); ++idx)
         if( mMessages[idx].level == lvl )
             return idx;
     return -1;
@@ -83,10 +90,19 @@ int MemoryNotifier::next(Message::Level lvl, int idx) const
 
 // ------------------------------------------------------------------------
 
+void MemoryNotifier::dump()
+{
+    dump(std::cout);
+}
+
+// ------------------------------------------------------------------------
+
 void MemoryNotifier::dump(std::ostream& out)
 {
-    for(int i=0; i<size(); ++i)
+    out << "========== log dump start ==========\n";
+    for(unsigned int i=0; i<mMessages.size(); ++i)
         out << std::setw(3) << i << ' ' << std::setw(7) << levels[mMessages[i].level] << " \'" << mMessages[i].text << "\'\n";
+    out << "=========== log dump end ===========\n";
 }
 
 // ########################################################################

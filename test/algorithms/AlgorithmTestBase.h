@@ -105,12 +105,9 @@ public:
             : level(l), text(t) { }
     };        
 
-    int find(const std::string& needle, int start=0) const;
+    int find(const std::string& needle, int level=-1, int start=0) const;
 
-    int size() const
-        { return mMessages.size(); }
-
-    int count(Message::Level level) const;
+    int count(int level=-1) const;
 
     int next(Message::Level level, int startIdx=0) const;
 
@@ -125,6 +122,7 @@ public:
 
     void sendText(Message::Level level, const std::string& message);
 
+    void dump();
     void dump(std::ostream& out);
 
 private:

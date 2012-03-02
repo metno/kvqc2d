@@ -40,24 +40,12 @@ namespace C = Constraint;
 class DipTestTest : public AlgorithmTestBase {
 public:
     void SetUp();
-    void Configure(AlgorithmConfig& params, std::stringstream& config);
 };
 
 void DipTestTest::SetUp()
 {
     algo = new DipTestAlgorithm();
     AlgorithmTestBase::SetUp();
-}
-
-void DipTestTest::Configure(AlgorithmConfig& params, std::stringstream& config)
-{
-    config << "candidate_cflags     = ___2___.___.___0" << std::endl
-           << "linear_before_cflags = ___1___.___.___." << std::endl
-           << "linear_after_cflags  = ___2___.___.___0" << std::endl
-           << "akima_uflags         = __0.___.___.___." << std::endl
-           << "dip_flagchange       = ___9___.___.___." << std::endl
-           << "afterdip_flagchange  = ___4___.___.___." << std::endl;
-    params.Parse(config);
 }
 
 TEST_F(DipTestTest, Bugzilla1327)
@@ -112,7 +100,7 @@ TEST_F(DipTestTest, Bugzilla1327)
            <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
            <<     " 221 15.0, 222 15.0" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
@@ -180,7 +168,7 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
            <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
            <<     " 221 15.0, 222 15.0" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
@@ -240,7 +228,7 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
            <<     "176 12.0, 177 12.0, 197 1000.0, 198 500.0, 199 500.0, 200 1000.0, 211 7.5, 212 7.5, 213 7.5, 215 7.5,"
            <<     " 221 15.0, 222 15.0" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
@@ -293,7 +281,7 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 100" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
@@ -349,7 +337,7 @@ TEST_F(DipTestTest, DipTooSmall)
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 100" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
@@ -390,7 +378,7 @@ TEST_F(DipTestTest, JumpTooMuch)
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 50" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
@@ -430,7 +418,7 @@ TEST_F(DipTestTest, AfterHQC)
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 104 100" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
@@ -488,7 +476,7 @@ TEST_F(DipTestTest, Bugzilla1320)
            << "End_hh     =   22" << std::endl
            << "ParValFilename = list: 90 12.5" << std::endl;
     AlgorithmConfig params;
-    Configure(params, config);
+    params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
@@ -509,4 +497,78 @@ TEST_F(DipTestTest, Bugzilla1320)
     EXPECT_TRUE(boost::algorithm::ends_with(it->cfailed(), "QC2d-1"));
 
     ASSERT_RUN(algo, bc, 0);
+}
+
+TEST_F(DipTestTest, FaerderFyrNoDip)
+{
+    DataList data(27500, 211, 302);
+    data.add("2012-02-28 23:00:00",   -36,    -36, "0511000000100020", "QC1-1-211,QC1-9-211")
+        .add("2012-02-29 00:00:00", -44.8, -32766, "05120020001000A0", "QC1-1-211,QC1-3a-211,QC1-9-211")
+        .add("2012-02-29 01:00:00", -47.5,  -47.5, "0510000000100020", "QC1-1-211,QC1-9-211")
+        .add("2012-02-29 02:00:00", -46.6,  -46.6, "0511000000100020", "QC1-1-211,QC1-9-211");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012" << std::endl
+           << "Start_MM   =   02" << std::endl
+           << "Start_DD   =   28" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2012" << std::endl
+           << "End_MM     =   02" << std::endl
+           << "End_DD     =   29" << std::endl
+           << "End_hh     =   12" << std::endl
+           << "ParValFilename = list: 211 7.5" << std::endl;
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(0, logs->count(Message::WARNING));
+    ASSERT_EQ(0, logs->count(Message::INFO));
+
+    data.add("2012-02-29 01:00:00", -30.0,  -30.0, "0512000000100020", "QC1-1-211,QC1-9-211") // set fs=2
+        .add("2012-02-29 02:00:00", -30.0,  -30.0, "0511000000100020", "QC1-1-211,QC1-9-211");
+    ASSERT_NO_THROW(data.update(db));
+    ASSERT_RUN(algo, bc, 2);
+    EXPECT_STATION_OBS_CONTROL_CORR(27500, "2012-02-29 00:00:00", "05190020001000A0", -33, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(27500, "2012-02-29 01:00:00", "0514000000100020", -30, bc->update(1));
+    ASSERT_EQ(2, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->count(Message::WARNING));
+}
+
+TEST_F(DipTestTest, BadFlagsBeforeAfter)
+{
+    DataList data(27500, 211, 302);
+    data.add("2012-02-28 23:00:00", -36, "0111000000000000", "")
+        .add("2012-02-29 00:00:00", -46, -32766, "0412000000000000", "???")
+        .add("2012-02-29 01:00:00", -30, "0115000000000000", "???")
+        .add("2012-02-29 02:00:00", -30, "0111000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012" << std::endl
+           << "Start_MM   =   02" << std::endl
+           << "Start_DD   =   28" << std::endl
+           << "Start_hh   =   12" << std::endl
+           << "End_YYYY   = 2012" << std::endl
+           << "End_MM     =   02" << std::endl
+           << "End_DD     =   29" << std::endl
+           << "End_hh     =   12" << std::endl
+           << "ParValFilename = list: 211 7.5" << std::endl;
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(0, logs->count(Message::WARNING));
+    ASSERT_EQ(1, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->find("flag pattern mismatch", Message::INFO));
+
+    data.add("2012-02-29 01:00:00", -30, "0112000000000000", "???");
+    ASSERT_NO_THROW(data.update(db));
+    ASSERT_RUN(algo, bc, 2);
+    EXPECT_STATION_OBS_CONTROL_CORR(27500, "2012-02-29 00:00:00", "0419000000000000", -33, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(27500, "2012-02-29 01:00:00", "0114000000000000", -30, bc->update(1));
+    ASSERT_EQ(2, logs->count(Message::INFO));
+    ASSERT_EQ(0, logs->count(Message::WARNING));
 }

@@ -85,10 +85,12 @@ void DipTestAlgorithm::configure(const AlgorithmConfig& params)
     fillParameterDeltaMap(params, PidValMap);
     fillStationIDList(StationIds);
 
-    params.getFlagSetCU(akima_flags,         "akima",         "",            "U2=0");
-    params.getFlagSetCU(candidate_flags,     "candidate",     "fs=2&fhqc=0", "");
-    params.getFlagSetCU(linear_before_flags, "linear_before", "fs=1",        "");
-    params.getFlagSetCU(linear_after_flags,  "linear_after",  "fs=2&fhqc=0", "");
+    params.getFlagSetCU(akima_flags,          "akima",          "", "U2=0");
+    params.getFlagSetCU(candidate_flags,      "candidate",      "fs=2&fhqc=0", "");
+    params.getFlagSetCU(dip_before_flags,     "dip_before",     "fs=1", "");
+    params.getFlagSetCU(dip_after_flags,      "dip_after"   ,   "fs=2&fhqc=0", "");
+    params.getFlagSetCU(message_before_flags, "message_before", "fs=)0129(", "");
+    params.getFlagSetCU(message_after_flags,  "message_after",  "fs=)01(|fhqc=)0(", "");
 
     params.getFlagChange(dip_flagchange,      "dip_flagchange",      "fs=9");
     params.getFlagChange(afterdip_flagchange, "afterdip_flagchange", "fs=4");
@@ -119,17 +121,25 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     linearStop.addHour(1);
 
     const C::DBConstraint cDipAroundL = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
-        && ((   C::ControlUseinfo(linear_before_flags) && C::Obstime(linearStart))
-            || (C::ControlUseinfo(linear_after_flags ) && C::Obstime(linearStop)));
+        && ( C::Obstime(linearStart) || C::Obstime(linearStop) );
     
     std::list<kvalobs::kvData> seriesLinear;
     database()->selectData(seriesLinear, cDipAroundL, O::Obstime());
     if( seriesLinear.size() != 2 ) {
-        info() << "no neighbors (may be bad flags) around candidate " << Helpers::datatext(candidate);
+        warning() << "did not find rows before or after (latter needs fhqc=0) potential dip"
+                  << Helpers::datatext(candidate, 1);
         return;
     }
 
     const kvalobs::kvData& before = seriesLinear.front(), after = seriesLinear.back();
+    const bool dip_before = dip_before_flags.matches(before), dip_after = dip_after_flags.matches(after);
+    if( !(dip_before && dip_after) ) {
+        if( message_before_flags.matches(before) || message_after_flags.matches(after) ) {
+            info() << "flag pattern mismatch for rows before/after potential dip "
+                   << Helpers::datatext(candidate);
+        }
+        return;
+    }
     if( before.original() <= missing || after.original() <= missing )
         return;
     

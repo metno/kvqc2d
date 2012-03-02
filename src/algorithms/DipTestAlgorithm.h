@@ -26,7 +26,7 @@ private:
 private:
     std::map<int, float> PidValMap;
     std::list<int> StationIds;
-    FlagSetCU akima_flags, candidate_flags, linear_before_flags, linear_after_flags;
+    FlagSetCU akima_flags, candidate_flags, dip_before_flags, dip_after_flags, message_before_flags, message_after_flags;
     FlagChange dip_flagchange, afterdip_flagchange;
 };
 
