@@ -1,3 +1,11 @@
+kvqc2d (1.3.14pre3-1) unstable; urgency=low
+
+  * DipTest: no INFO for normal jump
+  * avoid use of miutil::miString
+  * added debug package
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 06 Mar 2012 15:55:42 +0100
+
 kvqc2d (1.3.14pre2-1) unstable; urgency=low
 
   * Redistribute: write time range to log messages to simplify SQL queries

@@ -21,3 +21,11 @@ Description: Non-real-time and geo-statistical quality controls.
  kriging interpolation and cross-validation, as well as the additional 
  user-defined algorithms performing specific checks on data selected 
  by the QC2-ROM engine in both time and space. 
+
+Package: kvqc2d-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: kvqc2d (= ${binary:Version}), ${misc:Depends}
+Description: debugging symbols for kvqc2d
+ This package contains the debugging symbols for kvqc2d.
