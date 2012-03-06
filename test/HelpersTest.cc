@@ -129,3 +129,45 @@ TEST(HelpersTest, DataText)
     EXPECT_EQ("[stationid=18700 AND obstime BETWEEN '2012-02-25 06:00:00' AND '2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
               Helpers::datatext(d, "2012-02-25 06:00:00"));
 }
+
+TEST(HelpersTest, Split2)
+{
+    const Helpers::split2_t sp1 = Helpers::split2("1<2", "<");
+    EXPECT_EQ("1", sp1.first );
+    EXPECT_EQ("2", sp1.second);
+
+    const Helpers::split2_t sp2 = Helpers::split2("17 != 16 ", "!=", true);
+    EXPECT_EQ("17", sp2.first );
+    EXPECT_EQ("16", sp2.second);
+
+    ASSERT_THROW(Helpers::split2("17 != 16 ", "hehehe"), std::runtime_error);
+}
+
+TEST(HelpersTest, SplitN)
+{
+    {
+        const Helpers::splitN_t sp = Helpers::splitN("1<2<3<4", "<");
+        ASSERT_EQ(4, sp.size());
+        EXPECT_EQ("1", sp[0] );
+        EXPECT_EQ("2", sp[1] );
+        EXPECT_EQ("3", sp[2] );
+        EXPECT_EQ("4", sp[3] );
+    }
+    {
+        const Helpers::splitN_t sp = Helpers::splitN("17 !=", "!=", true);
+        ASSERT_EQ(2, sp.size());
+        EXPECT_EQ("17", sp[0] );
+        EXPECT_EQ("",   sp[1]);
+    }
+    {
+        const Helpers::splitN_t sp = Helpers::splitN(" 17 !=    ", "!=", true);
+        ASSERT_EQ(2, sp.size());
+        EXPECT_EQ("17", sp[0] );
+        EXPECT_EQ("",   sp[1]);
+    }
+    {
+        const Helpers::splitN_t sp = Helpers::splitN(" 17 = ", "!=", true);
+        ASSERT_EQ(1, sp.size());
+        EXPECT_EQ("17 =", sp[0]);
+    }
+}

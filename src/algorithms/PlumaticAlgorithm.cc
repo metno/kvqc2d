@@ -68,18 +68,16 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 
     // parse 'stations'
     mStationlist.clear();
-    const miutil::miString stationlist = params.getParameter<std::string>("stations");
-    const std::vector<miutil::miString> msl = stationlist.split(';');
-    foreach(const miutil::miString& mmpv_stations, msl) {
-        std::vector<miutil::miString> m_s = mmpv_stations.split(':', false);
-        if( m_s.size() != 2 )
-            throw ConfigException("cannot parse 'stations' parameter");
-        ResolutionStations rs(atof(m_s[0].c_str()));
+    const std::string stationlist = params.getParameter<std::string>("stations");
+    const std::vector<std::string> msl = Helpers::splitN(stationlist, ";", true);
+    foreach(const std::string& mmpv_stations, msl) {
+        Helpers::split2_t m_s = Helpers::split2(mmpv_stations, ":");
+        ResolutionStations rs(atof(m_s.first.c_str()));
         if( rs.mmpv <= 0.0f )
             throw ConfigException("invalid mm-per-vipp <= 0 in 'stations' parameter");
-        const std::vector<miutil::miString> s = m_s[1].split(',');
-        foreach(miutil::miString stationidText, s) {
-            int stationid = atoi(stationidText.c_str());
+        const std::vector<std::string> s = Helpers::splitN(m_s.second, ",", true);
+        foreach(std::string stationidText, s) {
+            const int stationid = atoi(stationidText.c_str());
             if( stationid <= 0 )
                 throw ConfigException("invalid stationid <= 0 in 'stations' parameter");
             rs.stationids.push_back(stationid);
@@ -90,16 +88,14 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     // parse 'sliding_alarms'
     int lookback = maxRainInterrupt+minRainBeforeAndAfter;
     mSlidingAlarms.clear();
-    const miutil::miString slidingAlarms = params.getParameter<std::string>("sliding_alarms");
-    const std::vector<miutil::miString> msa = slidingAlarms.split(';');
-    foreach(const miutil::miString& length_max, msa) {
-        std::vector<miutil::miString> l_m = length_max.split('<', false);
-        if( l_m.size() != 2 )
-            throw ConfigException("cannot parse 'sliding_alarms' parameter");
-        const int length = atoi(l_m[0].c_str());
+    const std::string slidingAlarms = params.getParameter<std::string>("sliding_alarms");
+    const std::vector<std::string> msa = Helpers::splitN(slidingAlarms, ";", true);
+    foreach(const std::string& length_max, msa) {
+        Helpers::split2_t l_m = Helpers::split2(length_max, "<", true);
+        const int length = atoi(l_m.first.c_str());
         if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
             throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
-        const float maxi = atof(l_m[1].c_str());
+        const float maxi = atof(l_m.second.c_str());
         if( maxi <= 0.0f )
             throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
         mSlidingAlarms.push_back(SlidingAlarm(length, maxi));

@@ -57,7 +57,7 @@ public:
     typedef std::list<int> kvStationIDList_t;
     typedef std::list<kvalobs::kvStation> kvStationList_t;
 
-    virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException) = 0;
+    virtual void selectData(kvDataList_t&, const std::string& where) throw (DBException) = 0;
 
     virtual void selectData(kvDataList_t&, const Constraint::DBConstraint& where) throw (DBException);
 

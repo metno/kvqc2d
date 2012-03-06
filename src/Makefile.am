@@ -87,10 +87,10 @@ AM_CXXFLAGS = -Wall -W \
 
 kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 
-kvqc2d_LDADD = libkvqc2d.a \
-	$(PROG_DEPS_LIBS) \
+kvqc2d_LDADD = $(PROG_DEPS_LIBS) \
 	$(BOOST_THREAD_LIB) \
-	$(BOOST_FILESYSTEM_LIB)
+	$(BOOST_FILESYSTEM_LIB) \
+	libkvqc2d.a
 
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs

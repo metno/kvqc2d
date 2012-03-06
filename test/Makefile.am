@@ -42,9 +42,10 @@ LDADD = \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB)
 
-kvqc2dTest_LDADD = ../src/libkvqc2d.a $(LDADD)
+kvqc2dTest_LDADD = $(LDADD) -lboost_regex ../src/libkvqc2d.a
 
-kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS) 
+kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS)
+
 
 algorithms/StatisticalMeanTest.cc: algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc
 

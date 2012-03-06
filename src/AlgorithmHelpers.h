@@ -33,7 +33,6 @@
 #include "Helpers.h"
 #include <kvalobs/kvData.h>
 #include <kvalobs/kvStation.h>
-#include <puTools/miString.h>
 #include <list>
 #include <vector>
 
@@ -50,7 +49,7 @@ bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series
 /**
  * Adds add to data's cfailed(), and also extra if extra is not empty.
  */
-void updateCfailed(kvalobs::kvData& data, const miutil::miString& add, const miutil::miString& extra);
+void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra);
 
 /**
  * Updates data's useinfo.

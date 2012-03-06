@@ -47,7 +47,7 @@ KvalobsDB::~KvalobsDB()
     disconnect();
 }
 
-void KvalobsDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
+void KvalobsDB::selectData(kvDataList_t& d, const std::string& where) throw (DBException)
 {
     if( !mDbGate.select(d, where) )
         throw DBException("Database problem with SELECT data " + where + ": " + mDbGate.getErrorStr());

@@ -46,7 +46,7 @@ public:
 
     virtual void selectData(kvDataList_t& d, const Constraint::DBConstraint& where) throw (DBException)
         { DBInterface::selectData(d, where); }
-    virtual void selectData(kvDataList_t&, const miutil::miString& where)  throw (DBException);
+    virtual void selectData(kvDataList_t&, const std::string& where)  throw (DBException);
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
@@ -196,6 +196,8 @@ private:
             FAIL() << params.check().format("; ");      \
     } catch(ConfigException& ce) {                      \
         FAIL() << ce.what();                            \
+    } catch(std::exception& e) {                        \
+        FAIL() << e.what();                             \
     } catch(...) {                                      \
         FAIL() << "unknown exception";                  \
     }

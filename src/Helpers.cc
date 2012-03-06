@@ -1,6 +1,11 @@
 
 #include "Helpers.h"
 
+#include <boost/algorithm/string/trim.hpp>
+
+#define NDEBUG 1
+#include "debug.h"
+
 namespace Helpers {
 
 float round(float f)
@@ -93,6 +98,49 @@ std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start)
         << " controlinfo="  << data.controlinfo().flagstring()
         << " cfailed='"     << data.cfailed() << "']";
     return out.str();
+}
+
+// ------------------------------------------------------------------------
+
+Helpers::split2_t split2(const std::string& toSplit, const std::string& delimiter, bool trim)
+{
+    if( delimiter.empty() )
+        throw std::runtime_error("empty delimiter");
+    std::size_t pos = toSplit.find(delimiter);
+    if( pos == std::string::npos )
+        throw std::runtime_error("delimiter '" + delimiter + "' not found in '" + toSplit + "'");
+    split2_t split(toSplit.substr(0, pos), toSplit.substr(pos+delimiter.size()));
+    if( trim ) {
+        boost::trim(split.first);
+        boost::trim(split.second);
+    }
+    return split;
+}
+
+// ------------------------------------------------------------------------
+
+Helpers::splitN_t splitN(const std::string& toSplit, const std::string& delimiter, bool trim)
+{
+    if( delimiter.empty() )
+        throw std::runtime_error("empty delimiter");
+    splitN_t split;
+    std::size_t begin = 0;
+    while( begin < toSplit.size() ) {
+        DBGV(begin);
+        std::size_t end = toSplit.find(delimiter, begin);
+        DBGV(end);
+        if( end == std::string::npos )
+            end = toSplit.size();
+        std::string part = toSplit.substr(begin, end-begin);
+        DBGV(part)
+        if( trim )
+            boost::trim(part);
+        split.push_back(part);
+        begin = end+delimiter.size();
+    }
+    if( begin == toSplit.size() )
+        split.push_back("");
+    return split;
 }
 
 // ------------------------------------------------------------------------

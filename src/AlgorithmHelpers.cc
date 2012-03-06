@@ -48,9 +48,9 @@ bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series
     return true;
 }
 
-void updateCfailed(kvalobs::kvData& data, const miutil::miString& add, const miutil::miString& extra)
+void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra)
 {
-    miutil::miString new_cfailed = data.cfailed();
+    std::string new_cfailed = data.cfailed();
     if( new_cfailed.length() > 0 )
         new_cfailed += ",";
     new_cfailed += add;

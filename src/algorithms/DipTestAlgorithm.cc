@@ -73,7 +73,7 @@ float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
         error() << "empty station_param for stationid=0 list";
         return -1e8; // FIXME throw an exception or so
     }
-    const float DeltaCheck = GetStationParam(splist).ValueOf("max").toFloat();
+    const float DeltaCheck = std::atof(GetStationParam(splist).ValueOf("max").c_str());
     info() << "delta from station_params (valid for t=" << time << ") = " << DeltaCheck;
     return DeltaCheck;
 }
@@ -213,7 +213,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
         error() << "no station params for akima MinimumCheck for candidate " << Helpers::datatext(candidate) << ". Assuming no akima interpolation.";
         return false;
     }
-    const float MinimumCheck = GetStationParam(splist).ValueOf("min").toFloat();
+    const float MinimumCheck = std::atof(GetStationParam(splist).ValueOf("min").c_str());
     if( AkimaInterpolated < MinimumCheck ) {
         LOGDEBUG("akima < mini for candidate " << Helpers::datatext(candidate));
         return false;

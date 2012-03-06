@@ -27,6 +27,12 @@ std::ostream& digits1(std::ostream& out);
 std::string datatext(const kvalobs::kvData& data, int hoursBefore=0);
 std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start);
 
+typedef std::pair<std::string, std::string> split2_t;
+split2_t split2(const std::string& toSplit, const std::string& delimiter, bool trim=false);
+
+typedef std::vector<std::string> splitN_t;
+splitN_t splitN(const std::string& toSplit, const std::string& delimiter, bool trim=false);
+
 /**
  * Returns the normalised day of the year, that is 28.2. = 29.2. = day
  * 59, 1.3. = 60, ...

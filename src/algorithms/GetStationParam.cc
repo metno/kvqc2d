@@ -29,6 +29,8 @@
 
 #include "GetStationParam.h"
 
+#include "Helpers.h"
+
 #include "foreach.h"
 
 GetStationParam::GetStationParam(const std::list<kvalobs::kvStationParam>& splist)
@@ -40,22 +42,18 @@ GetStationParam::GetStationParam(const std::list<kvalobs::kvStationParam>& splis
         std::cout << p.descMetadata() << std::endl;
         std::cout << "...................." << std::endl;
 #endif
-        const miutil::miString& dougal = p.metadata();
-        const std::vector<miutil::miString> vs = dougal.split("\n");
+        const std::string& dougal = p.metadata();
+        Helpers::split2_t vs = Helpers::split2(dougal, "\n", true);
 
-        // just want one table entry
-
-        if (vs.size() == 2) {
-            const std::vector<miutil::miString> names = vs[0].split(";");
-            const std::vector<miutil::miString> vs2   = vs[1].split(";");
-            for(size_t j=0; j<names.size(); j++) {
-                spMap[ names[j] ] = vs2[j];
-            }
+        const std::vector<std::string> names = Helpers::splitN(vs.first, ";", true),
+            values = Helpers::splitN(vs.second, ";", true);
+        for(size_t j=0; j<names.size(); j++) {
+            spMap[ names[j] ] = values[j];
         }
     }
 }
 
-miutil::miString GetStationParam::ValueOf(const miutil::miString& name)
+std::string GetStationParam::ValueOf(const std::string& name)
 {
     // std::cout << spMap[name] << std::endl;
     // FIXME what if name is not in the map?

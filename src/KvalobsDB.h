@@ -40,7 +40,7 @@ public:
     KvalobsDB(Qc2App& app);
     virtual ~KvalobsDB();
 
-    virtual void selectData(kvDataList_t&, const miutil::miString& where) throw (DBException);
+    virtual void selectData(kvDataList_t&, const std::string& where) throw (DBException);
     virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);

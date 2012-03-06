@@ -64,7 +64,6 @@ private:
     kvalobs::kvControlInfo mOrigControl;
     float mOrigCorrected;
     std::string mOrigCfailed;
-    miutil::miString mStationlist;
 };
 
 std::ostream& operator<<(std::ostream& out, const DataUpdate& du);

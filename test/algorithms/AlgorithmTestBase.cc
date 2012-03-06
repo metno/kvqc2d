@@ -36,6 +36,8 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#include <boost/regex.hpp>
+
 // ------------------------------------------------------------------------
 
 const char* MemoryNotifier::levels[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
@@ -52,9 +54,10 @@ void MemoryNotifier::sendText(Message::Level level, const std::string& message)
 
 int MemoryNotifier::find(const std::string& needle, int level, int start) const
 {
+    const boost::regex e(needle);
     while(start>=0 && start < (int)mMessages.size()) {
         if( level<0 || mMessages[start].level==level) {
-            const bool found = boost::algorithm::contains(mMessages[start].text, needle);
+            const bool found = boost::regex_search(mMessages[start].text, e);// boost::algorithm::contains(mMessages[start].text, needle);
             if( found )
                 return start;
         }
@@ -204,10 +207,21 @@ void SqliteTestDB::finalize_statement(sqlite3_stmt* stmt, int lastStep)
 
 // ------------------------------------------------------------------------
 
-void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) throw (DBException)
+static std::string sqlite3_column_string(sqlite3_stmt *stmt, int col)
+{
+    const char* c = (const char*)sqlite3_column_text(stmt, col++);
+    if( !c )
+        return "";
+    else
+        return c;
+}
+
+// ------------------------------------------------------------------------
+
+void SqliteTestDB::selectData(kvDataList_t& d, const std::string& where) throw (DBException)
 {
     d.clear();
-    const miutil::miString& sql = "SELECT * FROM data " + where + ";";
+    const std::string& sql = "SELECT * FROM data " + where + ";";
     sqlite3_stmt *stmt = prepare_statement(sql);
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
@@ -223,7 +237,7 @@ void SqliteTestDB::selectData(kvDataList_t& d, const miutil::miString& where) th
         const float corrected = sqlite3_column_double(stmt, col++);
         const kvalobs::kvControlInfo controlinfo(sqlite3_column_text(stmt, col++));
         const kvalobs::kvUseInfo useinfo(sqlite3_column_text(stmt, col++));
-        const miutil::miString cfailed = (const char*)sqlite3_column_text(stmt, col++);
+        const std::string cfailed = sqlite3_column_string(stmt, col++);
 
         kvalobs::kvData data(stationid, obstime, original, paramid, tbtime, type_id, sensor, level, corrected, controlinfo, useinfo, cfailed);
         d.push_back(data);
@@ -249,9 +263,9 @@ void SqliteTestDB::selectStationparams(kvStationParamList_t& d, int stationID, c
         const int fromday = sqlite3_column_int(stmt, col++);
         const int today = sqlite3_column_int(stmt, col++);
         const int hour = sqlite3_column_int(stmt, col++);
-        const miutil::miString qcx = (const char*)sqlite3_column_text(stmt, col++);
-        const miutil::miString metadata = (const char*)sqlite3_column_text(stmt, col++);
-        const miutil::miString desc_metadata = (const char*)sqlite3_column_text(stmt, col++);
+        const std::string qcx = sqlite3_column_string(stmt, col++);
+        const std::string metadata = sqlite3_column_string(stmt, col++);
+        const std::string desc_metadata = sqlite3_column_string(stmt, col++);
         const miutil::miTime fromtime((const char*)sqlite3_column_text(stmt, col++));
 
         kvalobs::kvStationParam sp(stationid, paramid, level, sensor, fromday, today, hour, qcx, metadata, desc_metadata, fromtime);
@@ -276,16 +290,16 @@ void SqliteTestDB::selectStations(kvStationList_t& stations) throw (DBException)
         const float lon = sqlite3_column_double(stmt, col++);
         const float height = sqlite3_column_double(stmt, col++);
         const float maxspeed = sqlite3_column_double(stmt, col++);
-        const miutil::miString name = (const char*)sqlite3_column_text(stmt, col++);
+        const std::string name = sqlite3_column_string(stmt, col++);
         const int wmonr = sqlite3_column_int(stmt, col++);
         const int nationalnr = sqlite3_column_int(stmt, col++);
-        miutil::miString ICAOid = (const char*)sqlite3_column_text(stmt, col++);
+        std::string ICAOid = sqlite3_column_string(stmt, col++);
         if( ICAOid.length() != 4 )
             ICAOid = "";
-        const miutil::miString call_sign = (const char*)sqlite3_column_text(stmt, col++);
-        const miutil::miString stationstr = (const char*)sqlite3_column_text(stmt, col++);
+        const std::string call_sign = sqlite3_column_string(stmt, col++);
+        const std::string stationstr = sqlite3_column_string(stmt, col++);
         const int environmentid = sqlite3_column_int(stmt, col++);
-        const bool is_static = miutil::miString((const char*)sqlite3_column_text(stmt, col++)) == "t";
+        const bool is_static = sqlite3_column_string(stmt, col++) == "t";
         const miutil::miTime fromtime = (const char*)sqlite3_column_text(stmt, col++);
 
         kvalobs::kvStation station(stationid, lat, lon, height, maxspeed, name, wmonr, nationalnr, ICAOid, call_sign, stationstr, environmentid, is_static, fromtime);
