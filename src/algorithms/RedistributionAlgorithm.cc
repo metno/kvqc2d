@@ -186,7 +186,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
                           << endpoint.text(m.obstime());
                 stop = true;
             } else if( (endpoint_fd == 7||endpoint_fd==6) && m_fmis != 1 ) {
-                warning() << "missing point " << m << " has fmis!=1 while fd=7 for endpoint "
+                warning() << "missing point " << m << " has fmis!=1 while fd=6/7 for endpoint "
                           << endpoint.text(m.obstime());
                 stop = true;
             }
