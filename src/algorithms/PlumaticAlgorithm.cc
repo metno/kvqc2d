@@ -45,7 +45,7 @@ namespace O = Ordering;
 
 namespace {
 
-const int vippsUnlikelySingle   = 2;
+const int vippsUnlikelySingle   = 3;
 const int vippsUnlikelyStart    = 3;
 const int vippsRainInterrupt    = 3;
 const int maxRainInterrupt      = 4;
@@ -192,8 +192,10 @@ void PlumaticAlgorithm::checkShowers(kvUpdateList_t& data, float mmpv)
             flagHighSingle(shower);
         } else {
             int length = checkHighStartLength(shower, mmpv);
-            if( length>0 )
-                flagHighStart(shower, length);
+            if( length>0 ) {
+                // only flag 1st minute, more is too much noise
+                flagHighStart(shower, 1);
+            }
         }
         previousShower = shower;
     }
