@@ -10,11 +10,6 @@
 
 class PlumaticAlgorithm : public Qc2Algorithm {
 public:
-    typedef std::list<kvalobs::kvData> kvDataList_t;
-    typedef std::list<DataUpdate> kvUpdateList_t;
-    typedef kvUpdateList_t::iterator kvUpdateList_it;
-    typedef kvUpdateList_t::const_iterator kvUpdateList_cit;
-
     PlumaticAlgorithm()
         : Qc2Algorithm("Plumatic") { }
 
@@ -22,6 +17,33 @@ public:
     virtual void run();
 
 private:
+    class PlumaticUpdate : public DataUpdate {
+    public:
+        PlumaticUpdate()
+            : DataUpdate(), mNotOperational(false) { }
+
+        PlumaticUpdate(const kvalobs::kvData& data)
+            : DataUpdate(data), mNotOperational(false) { }
+
+        PlumaticUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+                       float original, float corrected, const std::string& controlinfo)
+            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo), mNotOperational(false) { }
+
+        PlumaticUpdate& setNotOperational()
+            { mNotOperational = true; return *this; }
+
+        bool isNotOperational() const
+            { return mNotOperational; }
+
+    private:
+        bool mNotOperational;
+    };
+
+    typedef std::list<kvalobs::kvData> kvDataList_t;
+    typedef std::list<PlumaticUpdate> kvUpdateList_t;
+    typedef kvUpdateList_t::iterator kvUpdateList_it;
+    typedef kvUpdateList_t::const_iterator kvUpdateList_cit;
+
     struct Shower {
         kvUpdateList_it first, last;
         int duration;
@@ -42,13 +64,16 @@ private:
     static int minutesBetween(const miutil::miTime& t0, const miutil::miTime& t1)
         { return miutil::miTime::minDiff(t0, t1); }
 
+    void discardAllNonOperationalTimes(kvUpdateList_t& data);
+    void discardNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it begin, kvUpdateList_it end);
+
     void checkStation(int stationid, float mmpv);
 
     void checkSlidingSums(kvUpdateList_t& data);
     void checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal);
 
     void checkShowers(kvUpdateList_t& data, float mmpv);
-    bool isBadData(const DataUpdate& data);
+    bool isBadData(const PlumaticUpdate& data);
     bool checkRainInterruption(const Shower& shower, const Shower& previousShower, const float mmpv);
     bool checkHighSingle(const Shower& shower, const float mmpv);
     int  checkHighStartLength(const Shower& shower, const float mmpv);

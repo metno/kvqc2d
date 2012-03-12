@@ -54,6 +54,8 @@ const float numericSafety = 1e-4;
 
 }; // anonymous namespace
 
+// ========================================================================
+
 void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
@@ -107,6 +109,8 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     UT0extended.addMin(-lookback);
 }
 
+// ------------------------------------------------------------------------
+
 void PlumaticAlgorithm::run()
 {
     // use script stinfosys-vipp-pluviometer.pl or change program and use "select stationid from obs_pgm where paramid = 105;"
@@ -116,6 +120,8 @@ void PlumaticAlgorithm::run()
         }
     }
 }
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 {
@@ -128,10 +134,13 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
         return;
     kvUpdateList_t data(data_orig.begin(), data_orig.end());
 
+    discardAllNonOperationalTimes(data);
     checkShowers(data, mmpv);
     checkSlidingSums(data);
     storeUpdates(data);
 }
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
 {
@@ -139,6 +148,8 @@ void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
         checkSlidingSum(data, slal);
     }
 }
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal)
 {
@@ -148,7 +159,7 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
     kvUpdateList_it head = data.begin(), tail = data.begin();
     float sum = 0;
     std::list<kvUpdateList_it> discarded;
-    //std::list<kvUpdateList_it> flagged;
+    std::list<kvUpdateList_it> flagged;
     for(; head != data.end(); ++head) {
         DBG("head=" << *head << " tail=" << *tail << "minutes=" << minutesBetween(head->obstime(), tail->obstime()));
         for( ; minutesBetween(head->obstime(), tail->obstime()) >= slal.length; ++tail ) {
@@ -159,10 +170,10 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
                 discarded.pop_front();
                 DBGV(discarded.size());
             }
-            //if( tail == flagged.front() ) {
-            //    flagged.pop_front();
-            //    DBGV(flagged.size());
-            //}
+            if( !flagged.empty() && tail == flagged.front() ) {
+                flagged.pop_front();
+                DBGV(flagged.size());
+            }
         }
         if( head->original()>0 )
             sum += head->original();
@@ -171,16 +182,70 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
             discarded.push_back(head);
             DBGV(discarded.size());
         }
-        if( sum >= slal.max /*&& flagged.empty()*/ && discarded.empty() ) {
-            //flagged.push_back(head);
-            //DBGV(flagged.size());
+        if( sum >= slal.max && discarded.empty() ) {
             kvUpdateList_it stop = head; stop++;
-            for(kvUpdateList_it mark = tail; mark != stop; ++mark)
-                mark->controlinfo(aggregation_flagchange.apply(mark->controlinfo()))
-                    . cfailed(cfailed.str(), CFAILED_STRING);
+            kvUpdateList_it mark = tail;
+            for(; mark != stop; ++mark) {
+                if( std::find(flagged.begin(), flagged.end(), mark) == flagged.end() ) {
+                    if( mark->original() > 0 || mark->obstime().min() != 0 )
+                        mark->controlinfo(aggregation_flagchange.apply(mark->controlinfo()))
+                            . cfailed(cfailed.str(), CFAILED_STRING);
+                    flagged.push_back(mark);
+                }
+            }
         }
     }
 }
+
+// ------------------------------------------------------------------------
+
+void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
+{
+    // check for -5 / -6 markers for start / end of non-operational times
+    const int ORIG_START_BAD = -5, ORIG_END_BAD = -6;
+    kvUpdateList_it start_bad = data.end();
+    for(kvUpdateList_it mark = data.begin(); mark != data.end(); ++mark) {
+        if( mark->original() == ORIG_START_BAD ) {
+            if( start_bad != data.end() ) {
+                warning() << "Plumatic: found duplicate marker for start of non-operational period at "
+                          << *mark << ", previous marker is " << *start_bad;
+            } else {
+                start_bad = mark;
+            }
+        } else if( mark->original() == ORIG_END_BAD ) {
+            if( start_bad == data.end() )
+                start_bad = data.begin();
+            discardNonOperationalTime(data, start_bad, mark);
+            start_bad = data.end();
+        }
+    }
+    if( start_bad != data.end() ) {
+        discardNonOperationalTime(data, start_bad, data.end());
+    }
+    
+#if 0
+    // search for hours without data and without value at :00 of the next hour => mark :01 -- :00 as bad
+#endif
+}
+
+// ------------------------------------------------------------------------
+
+void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it begin, kvUpdateList_it end)
+{
+    info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
+           << " between " << begin->obstime() << " and "
+           << (end != data.end() ? end->obstime().isoTime() : UT1.isoTime() + " [end]");
+    
+    begin->setNotOperational();
+    if( begin == end )
+        return;
+    if( end != data.end() )
+        end->setNotOperational();
+    begin++;
+    data.erase(begin, end);
+}
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::checkShowers(kvUpdateList_t& data, float mmpv)
 {
@@ -201,11 +266,16 @@ void PlumaticAlgorithm::checkShowers(kvUpdateList_t& data, float mmpv)
     }
 }
 
-bool PlumaticAlgorithm::isBadData(const DataUpdate& data)
+// ------------------------------------------------------------------------
+
+bool PlumaticAlgorithm::isBadData(const PlumaticUpdate& data)
 {
     return !Helpers::equal(data.original(), data.corrected())
+        || data.isNotOperational()
         || discarded_flags.matches(data.data());
 }
+
+// ------------------------------------------------------------------------
 
 bool PlumaticAlgorithm::checkRainInterruption(const Shower& shower, const Shower& previousShower, const float mmpv)
 {
@@ -240,6 +310,8 @@ bool PlumaticAlgorithm::checkRainInterruption(const Shower& shower, const Shower
     return true;
 }
 
+// ------------------------------------------------------------------------
+
 bool PlumaticAlgorithm::checkHighSingle(const Shower& shower, const float mmpv)
 {
     if( shower.duration != 1 )
@@ -254,6 +326,8 @@ bool PlumaticAlgorithm::checkHighSingle(const Shower& shower, const float mmpv)
 
     return true;
 }
+
+// ------------------------------------------------------------------------
 
 int PlumaticAlgorithm::checkHighStartLength(const Shower& shower, const float mmpv)
 {
@@ -272,6 +346,8 @@ int PlumaticAlgorithm::checkHighStartLength(const Shower& shower, const float mm
 
     return n;
 }
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower& previousShower, kvUpdateList_t& data)
 {
@@ -292,7 +368,7 @@ void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower&
             }
         }
         if( needInsert ) {
-            DataUpdate insert(shower.first->data(), t, now, 0.0, missing, "0008002000000000");
+            PlumaticUpdate insert(shower.first->data(), t, now, 0.0, missing, "0008002000000000");
             insert.controlinfo(interruptedrain_flagchange.apply(insert.controlinfo()))
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
             data.insert(shower.first, insert);
@@ -303,11 +379,15 @@ void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower&
     }
 }
 
+// ------------------------------------------------------------------------
+
 void PlumaticAlgorithm::flagHighSingle(const Shower& shower)
 {
     shower.first->controlinfo(highsingle_flagchange.apply(shower.first->controlinfo()))
         .cfailed("QC2h-1-highsingle", CFAILED_STRING);
 }
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::flagHighStart(const Shower& shower, int length)
 {
@@ -317,6 +397,8 @@ void PlumaticAlgorithm::flagHighStart(const Shower& shower, int length)
             .cfailed("QC2h-1-highstart", CFAILED_STRING);
     }
 }
+
+// ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::storeUpdates(const kvUpdateList_t& data)
 {
@@ -337,10 +419,14 @@ void PlumaticAlgorithm::storeUpdates(const kvUpdateList_t& data)
     storeData(toUpdate, toInsert);
 }
 
+// ------------------------------------------------------------------------
+
 PlumaticAlgorithm::Shower PlumaticAlgorithm::findFirstShower(kvUpdateList_t& data)
 {
     return findShowerForward(data.begin(), data.end());
 }
+
+// ------------------------------------------------------------------------
 
 PlumaticAlgorithm::Shower PlumaticAlgorithm::findNextShower(const Shower& s, const kvUpdateList_it& end)
 {
@@ -348,6 +434,8 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findNextShower(const Shower& s, con
     begin++;
     return findShowerForward(begin, end);
 }
+
+// ------------------------------------------------------------------------
 
 PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateList_it& begin, const kvUpdateList_it& end)
 {

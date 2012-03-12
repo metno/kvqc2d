@@ -30,10 +30,13 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/PlumaticAlgorithm.h"
 #include "AlgorithmHelpers.h"
+#include "DBConstraints.h"
 #include "foreach.h"
 
 #include <algorithm>
 #include <numeric>
+
+namespace C = Constraint;
 
 class PlumaticTest : public AlgorithmTestBase {
 public:
@@ -230,12 +233,9 @@ TEST_F(PlumaticTest, HighStartStartEnd)
     Configure(params, 10, 1, 12, 11, 1, 13);
     
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 4);
+    ASSERT_RUN(algo, bc, 1);
 
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:00:00", "010A002000000000", "QC2h-1-highstart", bc->update(0));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:01:00", "010A002000000000", "QC2h-1-highstart", bc->update(1));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:02:00", "010A002000000000", "QC2h-1-highstart", bc->update(2));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:03:00", "010A002000000000", "QC2h-1-highstart", bc->update(3));
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -305,7 +305,7 @@ TEST_F(PlumaticTest, RainInterruptStartEnd)
 {
     DataList data(27270, 105, 4);
     data.add("2011-10-01 12:00:00", 0.3, "0101000000000000", "")
-        // rain interruption at start, too short => high start at 12:00 and 12:03
+        // rain interruption at start, too short => high single at 12:00 and high start at 12:03
         .add("2011-10-01 12:03:00", 0.4, "0101000000000000", "")
         .add("2011-10-01 12:04:00", 0.1, "0101000000000000", "")
         .add("2011-10-01 12:05:00", 0.1, "0101000000000000", "")
@@ -347,7 +347,7 @@ TEST_F(PlumaticTest, PluviometerResolution02)
         .add("2011-10-01 23:02:00", 0.2, "0101000000000000", "")
         
         // high single for 0.2mm Pluviometer
-        .add("2011-10-01 23:07:00", 0.4, "0101000000000000", "")
+        .add("2011-10-01 23:07:00", 0.6, "0101000000000000", "")
         
         // high start for 0.2mm Pluviometer
         .add("2011-10-01 23:11:00", 0.6, "0101000000000000", "")
@@ -405,8 +405,10 @@ TEST_F(PlumaticTest, Aggregation2Not3)
     ASSERT_RUN(algo, bc, 3);
 
     miutil::miTime t("2011-10-01 12:03:00");
-    for(int i=0; i<bc->count(); ++i, t.addMin(1))
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
         EXPECT_OBS_CONTROL_CFAILED(t, "0901002000000000", "QC2h-1-aggregation-2", bc->update(i));
+        EXPECT_EQ("QC2h-1-aggregation-2", bc->update(i).cfailed());
+    }
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -438,7 +440,7 @@ TEST_F(PlumaticTest, Aggregation3Not2A)
         const kvalobs::kvData& u = bc->updates()[i];
         EXPECT_EQ(t, u.obstime());
         EXPECT_EQ("0901002000000000", u.controlinfo().flagstring());
-        EXPECT_FALSE(std::string::npos == u.cfailed().find("QC2h-1-aggregation-3"));
+        EXPECT_EQ("QC2h-1-aggregation-3", u.cfailed());
     }
 
     ASSERT_RUN(algo, bc, 0);
@@ -451,7 +453,7 @@ TEST_F(PlumaticTest, Aggregation3Not2B)
     DataList data(27270, 105, 4);
     data.add("2011-10-01 12:00:00", 0.0, "0101000000000000", "")
         .add("2011-10-01 12:03:00", 0.1, "0101000000000000", "")
-        // sliding sum of two three high for the next three
+        // sliding sum of three too high for the next three
         .add("2011-10-01 12:04:00", 3.0, "0101000000000000", "")
         .add("2011-10-01 12:05:00", 5.0, "0101000000000000", "")
         .add("2011-10-01 12:06:00", 3.0, "0101000000000000", "")
@@ -468,8 +470,10 @@ TEST_F(PlumaticTest, Aggregation3Not2B)
     ASSERT_RUN(algo, bc, 3);
 
     miutil::miTime t("2011-10-01 12:04:00");
-    for(int i=0; i<bc->count(); ++i, t.addMin(1))
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
         EXPECT_OBS_CONTROL_CFAILED(t, "0901002000000000", "QC2h-1-aggregation-3", bc->update(i));
+        EXPECT_EQ("QC2h-1-aggregation-3", bc->update(i).cfailed());
+    }
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -498,8 +502,10 @@ TEST_F(PlumaticTest, Aggregation2And3)
     ASSERT_RUN(algo, bc, 3);
 
     miutil::miTime t("2011-10-01 12:04:00");
-    for(int i=0; i<bc->count(); ++i, t.addMin(1))
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
         EXPECT_OBS_CONTROL_CFAILED(t, "0901002000000000", "QC2h-1-aggregation-2", bc->update(i));
+        EXPECT_EQ("QC2h-1-aggregation-2", bc->update(i).cfailed());
+    }
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -523,10 +529,9 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
     Configure(params);
 
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 2);
+    ASSERT_RUN(algo, bc, 1);
 
     ASSERT_OBS_CONTROL_CFAILED("2011-10-01 12:03:00", "010A002000000000", "QC2h-1-highstart", bc->update(0));
-    ASSERT_OBS_CONTROL_CFAILED("2011-10-01 12:04:00", "010A002000000000", "QC2h-1-highstart", bc->update(1));
 
     // remove high start and flags, and run again
     ASSERT_NO_THROW(data
@@ -537,8 +542,10 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
     ASSERT_RUN(algo, bc, 2);
 
     miutil::miTime t("2011-10-01 12:03:00");
-    for(int i=0; i<bc->count(); ++i, t.addMin(1))
+    for(int i=0; i<bc->count(); ++i, t.addMin(1)) {
         EXPECT_OBS_CONTROL_CFAILED(t, "0901002000000000", "QC2h-1-aggregation-2", bc->update(i));
+        EXPECT_EQ("QC2h-1-aggregation-2", bc->update(i).cfailed());
+    }
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -603,14 +610,12 @@ TEST_F(PlumaticTest, NoCheckOrigNotEqualCorrected)
         .add("2011-10-01 13:54:00", 0.3, "0101000000000000", "");
     ASSERT_NO_THROW(data.update(db));
 
-    ASSERT_RUN(algo, bc, 3+2+2);
+    ASSERT_RUN(algo, bc, 3+1+1);
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:04:00", "0901002000000000", "QC2h-1-aggregation-2", bc->update(0));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:05:00", "0901002000000000", "QC2h-1-aggregation-2", bc->update(1));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 12:06:00", "0901002000000000", "QC2h-1-aggregation-2", bc->update(2));
     EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:43:00", "010A002000000000", "QC2h-1-highstart", bc->update(3));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:44:00", "010A002000000000", "QC2h-1-highstart", bc->update(4));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:53:00", "010A002000000000", "QC2h-1-highstart", bc->update(5));
-    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:54:00", "010A002000000000", "QC2h-1-highstart", bc->update(6));
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 13:53:00", "010A002000000000", "QC2h-1-highstart", bc->update(4));
 }
 
 // ------------------------------------------------------------------------
@@ -649,5 +654,329 @@ TEST_F(PlumaticTest, NoCheckBadFlags)
         .add("2011-10-01 13:44:00", 0.3, "0101000000000000", "");
     ASSERT_NO_THROW(data.update(db));
 
-    ASSERT_RUN(algo, bc, 3+2);
+    ASSERT_RUN(algo, bc, 3+1);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, AggregationNoDoubleCfailed2)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(17980, 59.8435, 10.8243, 92, 0, 'OSLO - LJABRUVEIEN', NULL, 17980, NULL, NULL, NULL, 9, 't', '2000-01-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    // -- data are shifted by +10 years
+    // select modificationtime, obstime, original, controlinfo, cfailed from data_history
+    // where stationid = 17980 and paramid = 105
+    // and obstime between '2020-07-12 22:19:00' and '2020-07-12 22:21:00'
+    // order by obstime, modificationtime;
+
+    DataList data(17980, 105, 4);
+    data.add("2020-07-12 22:15:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:17:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:18:00", 0.3, "0101000000000000", "")
+        .add("2020-07-12 22:19:00", 0.8, "0101000000000000", "")
+        .add("2020-07-12 22:20:00", 3.6, "0201000000000000", "QC1-1-105:1")
+        .add("2020-07-12 22:21:00", 2.1, "0101000000000000", "")
+        .add("2020-07-12 22:22:00", 0.8, "0101000000000000", "")
+        .add("2020-07-12 22:23:00", 0.5, "0101000000000000", "")
+        .add("2020-07-12 22:24:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:25:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:26:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:27:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:28:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:29:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:30:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:31:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:32:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:33:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:34:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:35:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:36:00", 0.1, "0101000000000000", "")
+        .add("2020-07-12 22:37:00", 0.2, "0101000000000000", "")
+        .add("2020-07-12 22:38:00", 0.1, "0101000000000000", ""); // not the end of the observed shower, but enough for the test
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2020\n"
+        "Start_MM   =   06\n"
+        "Start_DD   =   01\n"
+        "Start_hh   =   00\n"
+        "End_YYYY   = 2021\n"
+        "End_MM     =   09\n"
+        "End_DD     =   01\n"
+        "End_hh     =   00\n"
+        "stations = 0.1:17980\n"
+        "# unscaled sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "sliding_alarms = 2<4.05;3<5.95;5<8.10;10<12.80;15<13.65;20<17.20;30<21.00;45<24.55;60<27.45;90<28.35;180<30.40;360<41.65;720<72.05;1440<79.85\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 3);
+
+    EXPECT_OBS_CONTROL_CFAILED("2020-07-12 22:19:00", "0901000000000000", "QC2h-1-aggregation-2", bc->update(0));
+    EXPECT_OBS_CONTROL_CFAILED("2020-07-12 22:20:00", "0901000000000000", "QC2h-1-aggregation-2", bc->update(1));
+    EXPECT_OBS_CONTROL_CFAILED("2020-07-12 22:21:00", "0901000000000000", "QC2h-1-aggregation-2", bc->update(2));
+    ASSERT_EQ("QC1-1-105:1,QC2h-1-aggregation-2", bc->update(1).cfailed());
+
+    ASSERT_RUN(algo, bc, 0);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, AggregationNoDoubleCfailed15)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(17980, 59.8435, 10.8243, 92, 0, 'OSLO - LJABRUVEIEN', NULL, 17980, NULL, NULL, NULL, 9, 't', '2000-01-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    // -- data are shifted by +10 years
+    // select obstime, original, controlinfo, cfailed from data where stationid = 17980 and paramid = 105
+    // and obstime between '2021-07-24 00:00:00' and '2021-07-24 01:00:00' order by obstime;
+
+    DataList data(17980, 105, 4);
+    data.add("2021-07-24 00:00:00", 0.0, "0101000000000000", "")
+        .add("2021-07-24 00:18:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:20:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:21:00", 0.2, "0101000000000000", "")
+        .add("2021-07-24 00:22:00", 0.5, "0101000000000000", "")
+        .add("2021-07-24 00:23:00", 0.5, "0101000000000000", "")
+        .add("2021-07-24 00:24:00", 0.7, "0101000000000000", "")
+        .add("2021-07-24 00:25:00", 0.9, "0101000000000000", "")
+        .add("2021-07-24 00:26:00", 1.1, "0101000000000000", "")
+        .add("2021-07-24 00:27:00", 0.8, "0101000000000000", "")
+        .add("2021-07-24 00:28:00", 1.1, "0101000000000000", "")
+        .add("2021-07-24 00:29:00", 1.1, "0101000000000000", "")
+        .add("2021-07-24 00:30:00", 1.5, "0101000000000000", "")
+        .add("2021-07-24 00:31:00", 1.2, "0101000000000000", "")
+        .add("2021-07-24 00:32:00", 1.0, "0101000000000000", "")
+        .add("2021-07-24 00:33:00", 0.7, "0101000000000000", "")
+        .add("2021-07-24 00:34:00", 0.8, "0101000000000000", "")
+        .add("2021-07-24 00:35:00", 1.1, "0101000000000000", "")
+        .add("2021-07-24 00:36:00", 0.9, "0101000000000000", "")
+        .add("2021-07-24 00:37:00", 1.2, "0101000000000000", "")
+        .add("2021-07-24 00:38:00", 1.1, "0101000000000000", "")
+        .add("2021-07-24 00:39:00", 0.9, "0101000000000000", "")
+        .add("2021-07-24 00:40:00", 0.5, "0101000000000000", "")
+        .add("2021-07-24 00:41:00", 0.4, "0101000000000000", "")
+        .add("2021-07-24 00:42:00", 0.3, "0101000000000000", "")
+        .add("2021-07-24 00:43:00", 0.3, "0101000000000000", "")
+        .add("2021-07-24 00:44:00", 0.2, "0101000000000000", "")
+        .add("2021-07-24 00:45:00", 0.4, "0101000000000000", "")
+        .add("2021-07-24 00:46:00", 0.3, "0101000000000000", "")
+        .add("2021-07-24 00:47:00", 0.3, "0101000000000000", "")
+        .add("2021-07-24 00:48:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:49:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:50:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:52:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:56:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:57:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:58:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 00:59:00", 0.1, "0101000000000000", "")
+        .add("2021-07-24 01:00:00", 0.1, "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2020\n"
+        "Start_MM   =   06\n"
+        "Start_DD   =   01\n"
+        "Start_hh   =   00\n"
+        "End_YYYY   = 2021\n"
+        "End_MM     =   09\n"
+        "End_DD     =   01\n"
+        "End_hh     =   00\n"
+        "stations = 0.1:17980\n"
+        "# unscaled sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "sliding_alarms = 2<4.05;3<5.95;5<8.10;10<12.80;15<13.65;20<17.20;30<21.00;45<24.55;60<27.45;90<28.35;180<30.40;360<41.65;720<72.05;1440<79.85\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 21);
+
+    for(int i=0; i<bc->count(); ++i)
+        EXPECT_EQ("QC2h-1-aggregation-15", bc->update(i).cfailed());
+
+    ASSERT_RUN(algo, bc, 0);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, AggregationNoDoubleCfailed180)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(18269, 59.954, 10.905, 123, 0, 'OSLO - HAUGENSTUA', NULL, 18269, NULL, NULL, NULL, 9, 't', '2000-01-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+    
+    // -- data are shifted by +10 years
+    // select obstime, original, controlinfo, cfailed from data where stationid = 18269 and paramid = 105
+    // and obstime between '2021-06-07 03:00:00' and '2021-06-07 09:00:00' order by obstime;
+
+    DataList data(18269, 105, 4);
+    data.add("2021-06-07 03:00:00", 0.0, "0101000000000000", "")
+        .add("2021-06-07 04:00:00", 0.0, "0101000000000000", "")
+        .add("2021-06-07 05:00:00", 0.0, "0101000000000000", "")
+        .add("2021-06-07 05:14:00", 0.1, "0100000000000000", "")
+        .add("2021-06-07 05:16:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 05:17:00", 0.5, "0101000000000000", "")
+        .add("2021-06-07 05:18:00", 0.6, "0101000000000000", "")
+        .add("2021-06-07 05:19:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 05:20:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 05:21:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 05:22:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 05:23:00", 0.8, "0101000000000000", "")
+        .add("2021-06-07 05:24:00", 1.0, "0101000000000000", "")
+        .add("2021-06-07 05:25:00", 0.9, "0101000000000000", "")
+        .add("2021-06-07 05:26:00", 0.9, "0101000000000000", "")
+        .add("2021-06-07 05:27:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 05:28:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 05:29:00", 0.5, "0101000000000000", "")
+        .add("2021-06-07 05:30:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 05:31:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 05:32:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 05:33:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 05:34:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 05:35:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 05:36:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 05:37:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 05:38:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 05:39:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 05:40:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 05:42:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 05:46:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 05:48:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 05:51:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:00:00", 0.0, "0101000000000000", "")
+        .add("2021-06-07 06:05:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:08:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:10:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:11:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:12:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:13:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:14:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:16:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:17:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:18:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:19:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:20:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:21:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:22:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 06:23:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 06:24:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 06:25:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 06:26:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:27:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:28:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:29:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:30:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:31:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:32:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:33:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:34:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:35:00", 0.8, "0101000000000000", "")
+        .add("2021-06-07 06:36:00", 0.9, "0101000000000000", "")
+        .add("2021-06-07 06:37:00", 0.8, "0101000000000000", "")
+        .add("2021-06-07 06:38:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 06:39:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:40:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:41:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:42:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 06:44:00", 0.2, "0101000000000000", "")
+        .add("2021-06-07 06:45:00", 1.0, "0101000000000000", "")
+        .add("2021-06-07 06:46:00", 0.9, "0101000000000000", "")
+        .add("2021-06-07 06:47:00", 1.2, "0101000000000000", "")
+        .add("2021-06-07 06:48:00", 1.2, "0101000000000000", "")
+        .add("2021-06-07 06:49:00", 1.2, "0101000000000000", "")
+        .add("2021-06-07 06:50:00", 1.0, "0101000000000000", "")
+        .add("2021-06-07 06:51:00", 1.0, "0101000000000000", "")
+        .add("2021-06-07 06:52:00", 1.0, "0101000000000000", "")
+        .add("2021-06-07 06:53:00", 0.7, "0101000000000000", "")
+        .add("2021-06-07 06:54:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:55:00", 0.3, "0101000000000000", "")
+        .add("2021-06-07 06:56:00", 0.6, "0101000000000000", "")
+        .add("2021-06-07 06:57:00", 1.0, "0101000000000000", "")
+        .add("2021-06-07 06:58:00", 0.4, "0101000000000000", "")
+        .add("2021-06-07 06:59:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 07:00:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 07:02:00", 0.1, "0100000000000000", "")
+        .add("2021-06-07 07:04:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 07:08:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 07:11:00", 0.1, "0101000000000000", "")
+        .add("2021-06-07 08:00:00", 0.0, "0101000000000000", "")
+        .add("2021-06-07 09:00:00", 0.0, "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2020\n"
+        "Start_MM   =   06\n"
+        "Start_DD   =   01\n"
+        "Start_hh   =   00\n"
+        "End_YYYY   = 2021\n"
+        "End_MM     =   09\n"
+        "End_DD     =   01\n"
+        "End_hh     =   00\n"
+        "stations = 0.1:18269\n"
+        "# unscaled sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "sliding_alarms = 2<4.05;3<5.95;5<8.10;10<12.80;15<13.65;20<17.20;30<21.00;45<24.55;60<27.45;90<28.35;180<30.40;360<41.65;720<72.05;1440<79.85\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 85);
+
+    for(int i=0; i<bc->count(); ++i) {
+        EXPECT_EQ("QC2h-1-aggregation-180", bc->update(i).cfailed());
+        EXPECT_LT(0, bc->update(i).original());
+    }
+
+    ASSERT_RUN(algo, bc, 0);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NonOperationalMarked)
+{
+    DataList data(27270, 105, 4);
+    data.add("2011-10-01 12:00:00", 0.0, "0101000000000000", "")
+        .add("2011-10-01 12:03:00",  -5, "0101000000000000", "")
+        // sliding sum of two too high for the next three
+        .add("2011-10-01 12:04:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:05:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:06:00", 5.0, "0101000000000000", "")
+
+        .add("2011-10-01 12:07:00",  -6, "0101000000000000", "")
+        // next two are high start
+        .add("2011-10-01 13:43:00", 0.5, "0101000000000000", "")
+        .add("2011-10-01 13:44:00", 0.3, "0101000000000000", "")
+        
+        .add("2011-10-01 14:00:00", 0,   "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 1);
+
+    ASSERT_EQ(2, logs->count());
+    ASSERT_EQ(0, logs->find("ignoring non-operational time for station 27270 between 2011-10-01 12:03:00 and 2011-10-01 12:07:00", Message::INFO));
+    ASSERT_EQ(1, logs->find("UPDATE", Message::INFO));
+
+    // now remove the markers for non-operational time and run again
+
+    data.add("2011-10-01 12:03:00", 0.1, "0101000000000000", "")
+        .add("2011-10-01 12:07:00", 0.1, "0101000000000000", "");
+    ASSERT_NO_THROW(data.update(db));
+
+    std::list<kvalobs::kvData> series;
+    miutil::miTime t0("2011-10-01 12:04:00"), t1("2011-10-01 12:06:00");
+    ASSERT_NO_THROW(db->selectData(series, C::Station(27270) && C::Paramid(105) && C::Obstime(t0, t1)));
+    ASSERT_EQ(3, series.size());
+
+    ASSERT_RUN(algo, bc, 3);
+    for(int i=0; i<bc->count(); ++i)
+        EXPECT_EQ("QC2h-1-aggregation-2", bc->update(i).cfailed());
+
+    ASSERT_RUN(algo, bc, 0);
 }
