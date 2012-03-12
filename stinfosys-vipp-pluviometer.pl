@@ -16,8 +16,8 @@ my $query = $conn->prepare(
     . "WHERE em.description LIKE '%unit_resolution=mm per vipp%' "
     . "AND paramid = 105 "
     . "AND em.modelname = eq.modelname AND si.equipmentid = eq.equipmentid "
-    . "AND ((em.fromtime IS NULL) OR (em.totime IS NULL AND em.fromtime <= now()) "
-        . "     OR (em.totime IS NOT NULL AND now() BETWEEN em.fromtime AND em.totime)) "
+    . "AND ((si.totime IS NULL AND si.fromtime <= now()) "
+        . " OR (si.totime IS NOT NULL AND now() BETWEEN si.fromtime AND em.totime)) "
     . "ORDER BY si.stationid"
     );
 $query->execute();
