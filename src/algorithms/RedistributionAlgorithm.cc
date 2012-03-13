@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2012 met.no
+  Copyright (C) 2011-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -500,31 +500,14 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 
 void RedistributionAlgorithm::updateOrInsertData(const updateList_t& data)
 {
-    bool hasChanges = false;
-#if 0
-    // perok 2011-11-21 store only rows with modified flags/corrected value
-    foreach(const RedisUpdate& du, data) {
-        if( du.isModified() ) {
-            hasChanges = true;
-            break;
-        }
-    }
-#endif
-
     dataList_t toInsert, toUpdate;
     foreach(const RedisUpdate& du, data) {
-        if( hasChanges || du.isModified() ) {
-            DBG(du);
+        if( du.needsWrite() ) {
             if( du.isNew() )
                 toInsert.push_front(du.data());
             else
                 toUpdate.push_front(du.data());
         }
     }
-#ifndef NDEBUG
-    if( toInsert.empty() && toUpdate.empty() )
-        DBG("no updates/inserts");
-#endif
     storeData(toUpdate, toInsert);
 }
-

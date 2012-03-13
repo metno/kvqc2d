@@ -11,6 +11,11 @@
 // ########################################################################
 
 class DataUpdate {
+private:
+    enum eForced { FORCED_NOTHING = 0,
+                   FORCED_WRITE = 1,
+                   FORCED_NOWRITE = 2 };
+
 public:
     DataUpdate();
 
@@ -19,7 +24,7 @@ public:
     DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
                float original, float corrected, const std::string& controlinfo);
 
-    bool isModified() const;
+    bool needsWrite() const;
 
     bool isNew() const
         { return mNew; }
@@ -49,8 +54,11 @@ public:
 
     DataUpdate& cfailed(const std::string& cf, const std::string& extra="");
 
-    DataUpdate& forceModified()
-        { mForcedModified = true; return *this; }
+    DataUpdate& forceWrite()
+        { mForced = FORCED_WRITE; return *this; }
+
+    DataUpdate& forceNoWrite()
+        { mForced = FORCED_NOWRITE; return *this; }
 
     bool operator<(const DataUpdate& other) const
         { return obstime() < other.obstime(); }
@@ -60,7 +68,8 @@ public:
 
 private:
     kvalobs::kvData mData;
-    bool mNew, mForcedModified;
+    bool mNew;
+    eForced mForced;
     kvalobs::kvControlInfo mOrigControl;
     float mOrigCorrected;
     std::string mOrigCfailed;

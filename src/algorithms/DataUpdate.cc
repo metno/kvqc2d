@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  Copyright (C) 2007-2011 met.no
+  Copyright (C) 2007-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -34,7 +34,7 @@
 
 DataUpdate::DataUpdate()
     : mNew(false)
-    , mForcedModified(false)
+    , mForced(FORCED_NOTHING)
     , mOrigControl("0000000000000000")
     , mOrigCorrected(-32767.0f)
     , mOrigCfailed("")
@@ -46,7 +46,7 @@ DataUpdate::DataUpdate()
 DataUpdate::DataUpdate(const kvalobs::kvData& data)
     : mData(data)
     , mNew(false)
-    , mForcedModified(false)
+    , mForced(FORCED_NOTHING)
     , mOrigControl(mData.controlinfo())
     , mOrigCorrected(mData.corrected())
     , mOrigCfailed(mData.cfailed())
@@ -60,7 +60,7 @@ DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obst
     : mData(templt.stationID(), obstime, original, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
             templt.level(), corrected, kvalobs::kvControlInfo(controlinfo), kvalobs::kvUseInfo(), "QC2-missing-row")
     , mNew(true)
-    , mForcedModified(false)
+    , mForced(FORCED_NOTHING)
     , mOrigControl(mData.controlinfo())
     , mOrigCorrected(mData.corrected())
     , mOrigCfailed(mData.cfailed())
@@ -70,12 +70,16 @@ DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obst
 
 // ------------------------------------------------------------------------
 
-bool DataUpdate::isModified() const
+bool DataUpdate::needsWrite() const
 {
-    return mNew || mForcedModified
+    if( mForced == FORCED_WRITE )
+        return true;
+    if( mForced == FORCED_NOWRITE )
+        return false;
+    return mNew
         || mOrigCorrected != mData.corrected()
         || mOrigControl   != mData.controlinfo();
-    // || mOrigCfailed   != mData.cfailed(); // this does not work because text is appended instead of overwritten
+    //  || mOrigCfailed   != mData.cfailed(); // this does not work because text is appended instead of overwritten
 }
 
 // ------------------------------------------------------------------------
@@ -131,7 +135,7 @@ std::string DataUpdate::text(const miutil::miTime& start, bool modified) const
         out << " cfailed='" << mData.cfailed() << '\'';
         if( mData.cfailed() != mOrigCfailed )
             out << '(' << mOrigCfailed << ')';
-        if( isModified() ) {
+        if( needsWrite() ) {
             out << '{';
             if( isNew() )
                 out << 'n';

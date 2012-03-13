@@ -90,6 +90,7 @@ private:
 
 private:
     int pid;
+    int mWarningDaysNonOperational;
     FlagSetCU discarded_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
     std::vector<ResolutionStations> mStationlist;

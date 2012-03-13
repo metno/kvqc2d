@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations 
 
-  Copyright (C) 2007-2011 met.no
+  Copyright (C) 2007-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -67,6 +67,8 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
     params.getFlagChange(aggregation_flagchange,     "aggregation_flagchange",     "fr=9");
+
+    mWarningDaysNonOperational = params.getParameter<int>("warning_days_nonoperational", 40);
 
     // parse 'stations'
     mStationlist.clear();
@@ -153,7 +155,6 @@ void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
 
 void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal)
 {
-    DBG("length=" << slal.length << " maxi=" << slal.max);
     std::ostringstream cfailed;
     cfailed << "QC2h-1-aggregation-" << slal.length;
     kvUpdateList_it head = data.begin(), tail = data.begin();
@@ -161,26 +162,20 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
     std::list<kvUpdateList_it> discarded;
     std::list<kvUpdateList_it> flagged;
     for(; head != data.end(); ++head) {
-        DBG("head=" << *head << " tail=" << *tail << "minutes=" << minutesBetween(head->obstime(), tail->obstime()));
         for( ; minutesBetween(head->obstime(), tail->obstime()) >= slal.length; ++tail ) {
             if( tail->original()>0 )
                 sum -= tail->original();
-            DBGV(sum);
             if( !discarded.empty() && tail == discarded.front() ) {
                 discarded.pop_front();
-                DBGV(discarded.size());
             }
             if( !flagged.empty() && tail == flagged.front() ) {
                 flagged.pop_front();
-                DBGV(flagged.size());
             }
         }
         if( head->original()>0 )
             sum += head->original();
-        DBGV(sum);
         if( isBadData(*head) ) {
             discarded.push_back(head);
-            DBGV(discarded.size());
         }
         if( sum >= slal.max && discarded.empty() ) {
             kvUpdateList_it stop = head; stop++;
@@ -222,19 +217,70 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
     if( start_bad != data.end() ) {
         discardNonOperationalTime(data, start_bad, data.end());
     }
-    
-#if 0
+
     // search for hours without data and without value at :00 of the next hour => mark :01 -- :00 as bad
-#endif
+    const miutil::miTime now = miutil::miTime::nowTime();
+    for(kvUpdateList_it m1 = data.begin(), m2 = ++data.begin(); m2 != data.end(); ++m1, ++m2) {
+        const miutil::miTime& t1 = m1->obstime(), t2 = m2->obstime();
+        const int hourDiff = miutil::miTime::hourDiff(t2, t1);
+        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << hourDiff);
+
+        // this is a mess
+        if( !(hourDiff > 2
+              || (hourDiff == 2 && (t2.min() != 0 || t1.min()==0) )
+              || (hourDiff == 1 && t1.min() == 0 && t2.min() != 0) ) )
+            continue;
+
+        // this is a mess, too
+        miutil::miTime tBegin = t1;
+        if( tBegin.min() > 0 ) {
+            tBegin.addMin(-t1.min());
+            tBegin.addHour(1);
+        }
+        tBegin.addMin(1);
+        miutil::miTime tEnd = t2;
+        if( tEnd.min() != 0 )
+            tEnd.addMin(-t2.min());
+        else
+            tEnd.addHour(-1);
+        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << hourDiff << " => discard tBegin=" << tBegin << " tEnd=" << tEnd);
+        
+        if( tBegin >= tEnd )
+            continue;
+
+        // this is crazy, inserting rows to ignore data
+        if( tBegin > t1 ) {
+            PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "0008002000000000");
+            uBegin.forceNoWrite();
+            m1 = data.insert(m2, uBegin);
+            DBG("insert uBegin at " << tBegin);
+        }
+        if( tEnd < t2 ) {
+            PlumaticUpdate uEnd(m2->data(), tEnd, now, 0.0, missing, "0008002000000000");
+            uEnd.forceNoWrite();
+            m2 = data.insert(m2, uEnd);
+            DBG("insert uEnd at " << tEnd);
+        }
+        discardNonOperationalTime(data, m1, m2);
+    }
 }
 
 // ------------------------------------------------------------------------
 
 void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it begin, kvUpdateList_it end)
 {
-    info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
-           << " between " << begin->obstime() << " and "
-           << (end != data.end() ? end->obstime().isoTime() : UT1.isoTime() + " [end]");
+    const bool endHasData = (end != data.end());
+    const miutil::miTime beginTime = begin->obstime(), endTime = (endHasData ? end->obstime() : UT1);
+    const int daysNonOperational = endTime.date().julianDay() - beginTime.date().julianDay() + 1;
+    if( daysNonOperational >= mWarningDaysNonOperational ) {
+        warning() << "Plumatic: ignoring very long non-operational time for station " << begin->data().stationID()
+                  << " between " << beginTime << " and "
+                  << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
+    } else {
+        info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
+               << " between " << beginTime << " and "
+               << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
+    }
     
     begin->setNotOperational();
     if( begin == end )
@@ -357,8 +403,6 @@ void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower&
     t.addMin(1);
 
     for(; t<shower.first->obstime(); t.addMin(1)) {
-        DBG("t=" << t);
-        
         bool needInsert = true;
         kvUpdateList_t::iterator it = previousShower.last;
         for( ; it != shower.first; ++it ) {
@@ -404,18 +448,13 @@ void PlumaticAlgorithm::storeUpdates(const kvUpdateList_t& data)
 {
     kvDataList_t toInsert, toUpdate;
     foreach(const DataUpdate& du, data) {
-        if( du.isModified() ) {
-            DBG(du);
+        if( du.needsWrite() ) {
             if( du.isNew() )
                 toInsert.push_back(du.data());
             else
                 toUpdate.push_back(du.data());
         }
     }
-#ifndef NDEBUG
-    if( toInsert.empty() && toUpdate.empty() )
-        DBG("no updates/inserts");
-#endif
     storeData(toUpdate, toInsert);
 }
 
@@ -453,7 +492,6 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateLis
         }
         --f.last;
         f.duration = 1 + minutesBetween(f.last->obstime(), f.first->obstime());
-        DBG("last=" << f.last->obstime() << " first=" << f.first->obstime() << " duration=" << f.duration);
     }
     return f;
 }
