@@ -35,19 +35,6 @@
 
 namespace Helpers {
 
-bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series)
-{
-    if( series.size() < 2 )
-        return false;
-    for(unsigned int i=1; i<series.size(); ++i) {
-        if( series[i].obstime().hour() != ((series[i-1].obstime().hour() + 1)%24) )
-            return false;
-        if( series[i].typeID() != series[i-1].typeID() )
-            return false;
-    }
-    return true;
-}
-
 void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra)
 {
     std::string new_cfailed = data.cfailed();

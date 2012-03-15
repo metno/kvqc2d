@@ -41,12 +41,6 @@ class DBInterface;
 namespace Helpers {
 
 /**
- * Checks that all data entries in series have the same typeid and that the
- * observation times increase by 1 hour.
- */
-bool checkContinuousHourAndSameTypeID(const std::vector<kvalobs::kvData>& series);
-
-/**
  * Adds add to data's cfailed(), and also extra if extra is not empty.
  */
 void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra);

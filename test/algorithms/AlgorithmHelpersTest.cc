@@ -44,16 +44,3 @@ TEST_F(AlgorithmHelpersTest, testGetNorwegianFixedStations)
     ASSERT_EQ(1, stations.size());
     ASSERT_EQ(180, stations.begin()->stationID());
 }
-
-TEST_F(AlgorithmHelpersTest, testContinuous)
-{
-    const kvalobs::kvData series[] = {
-            kvalobs::kvData(180, miutil::miTime("2011-10-01 21:00:00"), 12, 211, miutil::miTime::nowTime(), 330, 0, 0, -1, kvalobs::kvControlInfo("0000000000000000"), kvalobs::kvUseInfo("0000000000000000"), ""),
-            kvalobs::kvData(180, miutil::miTime("2011-10-01 22:00:00"), 12, 211, miutil::miTime::nowTime(), 330, 0, 0, -1, kvalobs::kvControlInfo("0000000000000000"), kvalobs::kvUseInfo("0000000000000000"), ""),
-            kvalobs::kvData(180, miutil::miTime("2011-10-01 23:00:00"), 12, 211, miutil::miTime::nowTime(), 330, 0, 0, -1, kvalobs::kvControlInfo("0000000000000000"), kvalobs::kvUseInfo("0000000000000000"), ""),
-            kvalobs::kvData(180, miutil::miTime("2011-10-01 23:00:00"), 12, 211, miutil::miTime::nowTime(), 330, 0, 0, -1, kvalobs::kvControlInfo("0000000000000000"), kvalobs::kvUseInfo("0000000000000000"), ""),
-    };
-    ASSERT_TRUE( Helpers::checkContinuousHourAndSameTypeID(std::vector<kvalobs::kvData>(series, series+3)) );
-
-    ASSERT_FALSE( Helpers::checkContinuousHourAndSameTypeID(std::vector<kvalobs::kvData>(series+1, series+4)) );
-}
