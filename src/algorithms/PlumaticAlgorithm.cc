@@ -200,6 +200,8 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
     const int ORIG_START_BAD = -5, ORIG_END_BAD = -6;
     kvUpdateList_it start_bad = data.end();
     for(kvUpdateList_it mark = data.begin(); mark != data.end(); ++mark) {
+        if( discarded_flags.matches(mark->data()) )
+            continue;
         if( mark->original() == ORIG_START_BAD ) {
             if( start_bad != data.end() ) {
                 warning() << "Plumatic: found duplicate marker for start of non-operational period at "
@@ -220,43 +222,46 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
 
     // search for hours without data and without value at :00 of the next hour => mark :01 -- :00 as bad
     const miutil::miTime now = miutil::miTime::nowTime();
-    for(kvUpdateList_it m1 = data.begin(), m2 = ++data.begin(); m2 != data.end(); ++m1, ++m2) {
-        const miutil::miTime& t1 = m1->obstime(), t2 = m2->obstime();
-        const int hourDiff = miutil::miTime::hourDiff(t2, t1);
-        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << hourDiff);
 
-        // this is a mess
-        if( !(hourDiff > 2
-              || (hourDiff == 2 && (t2.min() != 0 || t1.min()==0) )
-              || (hourDiff == 1 && t1.min() == 0 && t2.min() != 0) ) )
+    kvUpdateList_it m1 = data.begin();
+    // advance m1 to the first non-discarded value
+    while( m1 != data.end() && discarded_flags.matches(m1->data()) )
+        ++m1;
+
+    for(kvUpdateList_it m2 = m1; m2 != data.end(); m1 = m2 ) {
+        ++m2;
+        // advance m2 to the next non-discarded value
+        while( m2 != data.end() && discarded_flags.matches(m2->data()) )
+            ++m2;
+        
+        const miutil::miTime &t1 = m1->obstime(), &t2 = (m2 != data.end()) ? m2->obstime() : UT1;
+        const int minDiff = miutil::miTime::minDiff(t2, t1);
+        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << minDiff<< "min");
+
+        if( minDiff < 60 || (minDiff == 60 && t1.min() == 0 && t2.min() == 0) )
             continue;
 
-        // this is a mess, too
         miutil::miTime tBegin = t1;
-        if( tBegin.min() > 0 ) {
+        if( tBegin.min() > 0 )
             tBegin.addMin(-t1.min());
-            tBegin.addHour(1);
-        }
-        tBegin.addMin(1);
+        tBegin.addHour(1);
         miutil::miTime tEnd = t2;
         if( tEnd.min() != 0 )
             tEnd.addMin(-t2.min());
-        else
-            tEnd.addHour(-1);
-        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << hourDiff << " => discard tBegin=" << tBegin << " tEnd=" << tEnd);
+        tEnd.addMin(-1);
+        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << minDiff << "min => discard tBegin=" << tBegin << " tEnd=" << tEnd);
         
         if( tBegin >= tEnd )
             continue;
 
-        // this is crazy, inserting rows to ignore data
         if( tBegin > t1 ) {
-            PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "0008002000000000");
+            PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
             uBegin.forceNoWrite();
             m1 = data.insert(m2, uBegin);
             DBG("insert uBegin at " << tBegin);
         }
         if( tEnd < t2 ) {
-            PlumaticUpdate uEnd(m2->data(), tEnd, now, 0.0, missing, "0008002000000000");
+            PlumaticUpdate uEnd(m2->data(), tEnd, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
             uEnd.forceNoWrite();
             m2 = data.insert(m2, uEnd);
             DBG("insert uEnd at " << tEnd);
