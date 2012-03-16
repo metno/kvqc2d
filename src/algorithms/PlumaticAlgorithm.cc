@@ -68,8 +68,6 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
     params.getFlagChange(aggregation_flagchange,     "aggregation_flagchange",     "fr=9");
 
-    mWarningDaysNonOperational = params.getParameter<int>("warning_days_nonoperational", 40);
-
     // parse 'stations'
     mStationlist.clear();
     const std::string stationlist = params.getParameter<std::string>("stations");
@@ -210,10 +208,20 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
                 start_bad = mark;
             }
         } else if( mark->original() == ORIG_END_BAD ) {
-            if( start_bad == data.end() )
+            if( start_bad == data.end() ) {
                 start_bad = data.begin();
+                for(kvUpdateList_it mark2 = data.begin(); mark2 != mark; ++mark2) {
+                    if ( mark->original() >= 0 && !discarded_flags.matches(mark->data()) ) {
+                        warning() << "Plumatic: -6 marker (at " << mark->obstime()
+                                  << ") preceeded by non-discarded data at " << *mark2;
+                    }
+                }
+            }
             discardNonOperationalTime(data, start_bad, mark);
             start_bad = data.end();
+        } else if ( mark->original() >= 0 && start_bad != data.end() && !discarded_flags.matches(mark->data()) ) {
+            warning() << "Plumatic: -5 marker (at " << start_bad->obstime()
+                      << ") followed by non-discarded data at " << *mark;
         }
     }
     if( start_bad != data.end() ) {
@@ -276,16 +284,9 @@ void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdate
 {
     const bool endHasData = (end != data.end());
     const miutil::miTime beginTime = begin->obstime(), endTime = (endHasData ? end->obstime() : UT1);
-    const int daysNonOperational = endTime.date().julianDay() - beginTime.date().julianDay() + 1;
-    if( daysNonOperational >= mWarningDaysNonOperational ) {
-        warning() << "Plumatic: ignoring very long non-operational time for station " << begin->data().stationID()
-                  << " between " << beginTime << " and "
-                  << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
-    } else {
-        info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
-               << " between " << beginTime << " and "
-               << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
-    }
+    info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
+           << " between " << beginTime << " and "
+           << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
     
     begin->setNotOperational();
     if( begin == end )

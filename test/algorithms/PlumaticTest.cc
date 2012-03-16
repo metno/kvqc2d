@@ -959,9 +959,12 @@ TEST_F(PlumaticTest, NonOperationalMarked)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 1);
 
-    ASSERT_EQ(2, logs->count());
-    ASSERT_EQ(0, logs->find("ignoring non-operational time for station 27270 between 2011-10-01 12:03:00 and 2011-10-01 12:07:00", Message::INFO));
-    ASSERT_EQ(1, logs->find("UPDATE", Message::INFO));
+    ASSERT_EQ(5, logs->count());
+    EXPECT_EQ(0, logs->find("-5 marker.*followed by.*12:04:00", Message::WARNING));
+    EXPECT_EQ(1, logs->find("-5 marker.*followed by.*12:05:00", Message::WARNING));
+    EXPECT_EQ(2, logs->find("-5 marker.*followed by.*12:06:00", Message::WARNING));
+    EXPECT_EQ(3, logs->find("ignoring non-operational time for station 27270 between 2011-10-01 12:03:00 and 2011-10-01 12:07:00", Message::INFO));
+    EXPECT_EQ(4, logs->find("UPDATE", Message::INFO));
 
     // now remove the markers for non-operational time and run again
 
