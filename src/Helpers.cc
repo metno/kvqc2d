@@ -9,9 +9,21 @@
 
 namespace Helpers {
 
-float round(float f)
+float round1(float f)
 {
     const float factor = 10;
+    f *= factor;
+    if( f < 0.0f )
+        f -= 0.5;
+    else
+        f += 0.5;
+    float ff = 0;
+    modff(f, &ff);
+    return ff / factor;
+}
+
+float round(float f, float factor)
+{
     f *= factor;
     if( f < 0.0f )
         f -= 0.5;

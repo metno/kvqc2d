@@ -43,13 +43,22 @@ TEST(HelpersTest, testMapFromList)
     ASSERT_TRUE(map.empty());
 }
 
+TEST(HelpersTest, Round1)
+{
+    EXPECT_FLOAT_EQ(28.3f, Helpers::round1(28.34f));
+    EXPECT_FLOAT_EQ(28.3f, Helpers::round1(28.25f));
+
+    EXPECT_FLOAT_EQ(-8.3f, Helpers::round1(-8.25f));
+    EXPECT_FLOAT_EQ(-8.3f, Helpers::round1(-8.31f));
+}
+
 TEST(HelpersTest, Round)
 {
-    EXPECT_FLOAT_EQ(28.3f, Helpers::round(28.34f));
-    EXPECT_FLOAT_EQ(28.3f, Helpers::round(28.25f));
+    EXPECT_FLOAT_EQ(28.00f, Helpers::round(28.341f, 1));
+    EXPECT_FLOAT_EQ(28.25f, Helpers::round(28.253f, 100));
 
-    EXPECT_FLOAT_EQ(-8.3f, Helpers::round(-8.25f));
-    EXPECT_FLOAT_EQ(-8.3f, Helpers::round(-8.31f));
+    EXPECT_FLOAT_EQ(-8.16f, Helpers::round(-8.155f, 100));
+    EXPECT_FLOAT_EQ(-8.30f, Helpers::round(-8.311f, 10));
 }
 
 TEST(HelpersTest, NormalisedDayOfYear)

@@ -113,7 +113,7 @@ void GapInterpolationAlgorithm::run()
                 {
                     // Do Akima Interpolation
                     std::cout << d.stationID() << " " << d.obstime() << " " << d.original() << " " << d.corrected() << " Sub Akima " << AkimaX.AkimaPoint(HourDec) << std::endl;
-                    const float NewCorrected = Helpers::round(AkimaX.AkimaPoint(HourDec));
+                    const float NewCorrected = Helpers::round1(AkimaX.AkimaPoint(HourDec));
 
                     // Push the data back
                     kvalobs::kvData dwrite(d);

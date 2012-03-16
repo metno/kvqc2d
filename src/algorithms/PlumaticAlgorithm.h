@@ -5,13 +5,15 @@
 
 #include "Qc2Algorithm.h"
 #include "algorithms/DataUpdate.h"
+#include <boost/shared_ptr.hpp>
+
+class RedistributionNeighbors;
 
 // ########################################################################
 
 class PlumaticAlgorithm : public Qc2Algorithm {
 public:
-    PlumaticAlgorithm()
-        : Qc2Algorithm("Plumatic") { }
+    PlumaticAlgorithm();
 
     virtual void configure(const AlgorithmConfig& params);
     virtual void run();
@@ -82,6 +84,9 @@ private:
     void flagHighSingle(const Shower& shower);
     void flagHighStart(const Shower& shower, int length);
 
+    void checkNeighborStations(int stationid, const kvUpdateList_t& data);
+    void compareWithNeighborStations(int stationid, const miutil::miTime& obstime, float sum);
+
     void storeUpdates(const kvUpdateList_t& data);
 
     Shower findFirstShower(kvUpdateList_t& data);
@@ -90,11 +95,13 @@ private:
 
 private:
     int pid;
-    FlagSetCU discarded_flags;
+    FlagSetCU discarded_flags, neighbor_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
     std::vector<ResolutionStations> mStationlist;
     std::vector<SlidingAlarm> mSlidingAlarms;
     miutil::miTime UT0extended;
+
+    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
 };
 
 // ########################################################################

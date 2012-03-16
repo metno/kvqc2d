@@ -32,10 +32,13 @@
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
 #include "DBInterface.h"
+#include "NeighborsDistance2.h"
 #include "foreach.h"
 
 #include <milog/milog.h>
 #include <puTools/miTime.h>
+
+#include <boost/bind.hpp>
 
 #define NDEBUG
 #include "debug.h"
@@ -56,6 +59,14 @@ const float numericSafety = 1e-4;
 
 // ========================================================================
 
+PlumaticAlgorithm::PlumaticAlgorithm()
+    : Qc2Algorithm("Plumatic")
+    , mNeighbors(new NeighborsDistance2())
+{
+}
+
+// ------------------------------------------------------------------------
+
 void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
@@ -63,10 +74,13 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     pid = params.getParameter<int>("ParamId");
 
     params.getFlagSetCU(discarded_flags, "discarded", "fr=9|fs=8|fmis=2", "");
+    params.getFlagSetCU(neighbor_flags,  "neighbor",  "fd=1", "U2=0");
     params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
     params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
     params.getFlagChange(aggregation_flagchange,     "aggregation_flagchange",     "fr=9");
+
+    mNeighbors->configure(params);
 
     // parse 'stations'
     mStationlist.clear();
@@ -137,6 +151,7 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
     discardAllNonOperationalTimes(data);
     checkShowers(data, mmpv);
     checkSlidingSums(data);
+    checkNeighborStations(stationid, data);
     storeUpdates(data);
 }
 
@@ -176,7 +191,7 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
             discarded.push_back(head);
         }
         if( sum >= slal.max && discarded.empty() ) {
-            kvUpdateList_it stop = head; stop++;
+            kvUpdateList_it stop = head; ++stop;
             kvUpdateList_it mark = tail;
             for(; mark != stop; ++mark) {
                 if( std::find(flagged.begin(), flagged.end(), mark) == flagged.end() ) {
@@ -244,7 +259,6 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
         
         const miutil::miTime &t1 = m1->obstime(), &t2 = (m2 != data.end()) ? m2->obstime() : UT1;
         const int minDiff = miutil::miTime::minDiff(t2, t1);
-        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << minDiff<< "min");
 
         if( minDiff < 60 || (minDiff == 60 && t1.min() == 0 && t2.min() == 0) )
             continue;
@@ -257,7 +271,6 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
         if( tEnd.min() != 0 )
             tEnd.addMin(-t2.min());
         tEnd.addMin(-1);
-        DBG("t1=" << t1 << " t2=" << t2 << " diff=" << minDiff << "min => discard tBegin=" << tBegin << " tEnd=" << tEnd);
         
         if( tBegin >= tEnd )
             continue;
@@ -266,13 +279,11 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
             PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
             uBegin.forceNoWrite();
             m1 = data.insert(m2, uBegin);
-            DBG("insert uBegin at " << tBegin);
         }
         if( tEnd < t2 ) {
             PlumaticUpdate uEnd(m2->data(), tEnd, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
             uEnd.forceNoWrite();
             m2 = data.insert(m2, uEnd);
-            DBG("insert uEnd at " << tEnd);
         }
         discardNonOperationalTime(data, m1, m2);
     }
@@ -500,4 +511,123 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateLis
         f.duration = 1 + minutesBetween(f.last->obstime(), f.first->obstime());
     }
     return f;
+}
+
+// ------------------------------------------------------------------------
+
+void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_t& data)
+{
+    if( data.empty() )
+        return;
+
+    const int MINUTES_24H = 24*60;
+    kvUpdateList_cit head = data.begin(), tail = data.begin();
+    float sum = 0;
+    std::list<kvUpdateList_cit> discarded;
+
+    miutil::miTime nextXX06 = head->obstime();
+    if( nextXX06.hour() > 6 )
+        nextXX06.addDay(1);
+    nextXX06.addHour(6 - nextXX06.hour());
+    nextXX06.addMin(-nextXX06.min());
+    nextXX06.addSec(-nextXX06.sec());
+
+    for(; head != data.end(); ++head) {
+        for( ; minutesBetween(nextXX06, tail->obstime()) > MINUTES_24H; ++tail ) {
+            if( tail->original()>0 )
+                sum = Helpers::round(sum - tail->original(), 1000);
+            if( !discarded.empty() && tail == discarded.front() ) {
+                discarded.pop_front();
+            }
+        }
+        if( discarded.empty() ) {
+            while( head->obstime() > nextXX06 ) {
+                compareWithNeighborStations(stationid, nextXX06, sum);
+                nextXX06.addDay(1);
+            }
+        }
+        for( ; minutesBetween(head->obstime(), tail->obstime()) >= MINUTES_24H; ++tail ) {
+            if( tail->original()>0 )
+                sum = Helpers::round(sum - tail->original(), 1000);
+            if( !discarded.empty() && tail == discarded.front() ) {
+                discarded.pop_front();
+            }
+        }
+        if( head->original()>0 )
+            sum = Helpers::round(sum + head->original(), 1000);
+        if( isBadData(*head) ) {
+            discarded.push_back(head);
+        }
+    }
+}
+
+// ------------------------------------------------------------------------
+
+void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil::miTime& obstime, float sum)
+{
+    DBG("station=" << stationid << " obstime=" << obstime << " sum=" << sum);
+
+    if( !mNeighbors->hasStationList() ) {
+        std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
+        std::list<int> allStationIDs;
+        fillStationLists(allStations, allStationIDs);
+        mNeighbors->setStationList(allStations);
+    }
+    
+    std::list<int> neighbors = mNeighbors->findNeighbors(stationid);
+    std::vector<int> neighborsSorted;
+    foreach(int n, neighbors) {
+        if( mNeighbors->getWeight(n) > 0 )
+            neighborsSorted.push_back(n);
+    }
+    // sort neighbors by decreasing weight
+    std::sort(neighborsSorted.begin(), neighborsSorted.end(),
+              boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _1 ) > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _2 ));
+
+    std::list<kvalobs::kvData> ndata;
+    const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
+        && C::Paramid( 110 /* RR_24 */ ) //&& C::Typeid(endpoint.typeID())
+        && C::Obstime(obstime)
+        && C::Station(neighbors);
+    database()->selectData(ndata, cNeighbors, (O::Obstime().desc(), O::Stationid()));
+    if( ndata.empty() ) {
+        DBG("no neighbors with data");
+        return;
+    }
+    
+    typedef std::map<int, kvalobs::kvData> neighborDataByID_t;
+    neighborDataByID_t neighborDataByID;
+    foreach(const kvalobs::kvData& n, ndata) {
+        neighborDataByID[n.stationID()] = n;
+    }
+
+    const float THRESHOLD_WET_DRY = 0.5;
+
+    bool neighborsDry = true, neighborsWet = true;
+    int countNeighbors = 0;
+    foreach(int n, neighborsSorted) {
+        neighborDataByID_t::const_iterator itN = neighborDataByID.find(n);
+        if( itN == neighborDataByID.end() )
+            continue;
+        const float nOriginal = itN->second.original();
+        //DBG("n=" << n << " o=" << nOriginal);
+        if( nOriginal >= THRESHOLD_WET_DRY )
+            neighborsDry = false;
+        else
+            neighborsWet = false;
+        if( ++countNeighbors >= 5 )
+            break;
+    }
+    DBG("sum=" << sum << " n wet=" << neighborsWet << " dry=" << neighborsDry);
+    if( sum < THRESHOLD_WET_DRY ) {
+        if( neighborsWet ) {
+            info() << "Plumatic: station " << stationid << " is dry (" << sum
+                   << ") while neighbors are wet in 24h before " << obstime;
+        }
+    } else {
+        if( neighborsDry ) {
+            info() << "Plumatic: station " << stationid << " is wet (" << sum
+                   << ") while neighbors are dry in 24h before " << obstime;
+        }
+    }
 }

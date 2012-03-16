@@ -13,7 +13,8 @@
 
 namespace Helpers {
 
-float round(float f);
+float round1(float f);
+float round(float f, float factor);
 
 int hexCharToInt(char n);
 

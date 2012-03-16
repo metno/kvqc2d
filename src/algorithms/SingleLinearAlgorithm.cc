@@ -120,7 +120,7 @@ void SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, Da
     if( isNeighborOk(before) && isNeighborOk(after) ) {
         DBGV(ftime);
         if( ftime == 0 || ftime == 1 ) {
-            middle.corrected(Helpers::round( 0.5*(before.original()+after.original()) ));
+            middle.corrected(Helpers::round1( 0.5*(before.original()+after.original()) ));
             if( ftime == 0 )
                 middle.controlinfo(ftime0_flagchange.apply(middle.controlinfo()));
             middle.cfailed("QC2d-2", CFAILED_STRING);
@@ -134,7 +134,7 @@ void SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, Da
             middle.corrected(rejected);
         } else {
             // XXX this is not in the specification
-            middle.corrected(Helpers::round( 0.5*(before.original()+after.original()) ));
+            middle.corrected(Helpers::round1( 0.5*(before.original()+after.original()) ));
         }
         middle.controlinfo(ftime1_flagchange.apply(middle.controlinfo()));
         middle.cfailed("QC2d-2", CFAILED_STRING);

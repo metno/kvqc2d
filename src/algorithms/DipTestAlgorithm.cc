@@ -158,7 +158,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
         return;
     }
 
-    float interpolated = Helpers::round( 0.5*(before.original() + after.original()) );
+    float interpolated = Helpers::round1( 0.5*(before.original() + after.original()) );
 
     const bool AkimaPresent = tryAkima(candidate, interpolated);
 
@@ -203,7 +203,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     }
 
     const AkimaSpline AkimaX(xt,yt);
-    const float AkimaInterpolated = Helpers::round( AkimaX.AkimaPoint(N_BEFORE) );
+    const float AkimaInterpolated = Helpers::round1( AkimaX.AkimaPoint(N_BEFORE) );
 
     DBInterface::kvStationParamList_t splist;
     std::ostringstream qcx;

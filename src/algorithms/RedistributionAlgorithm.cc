@@ -162,7 +162,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         }
         const bool m_missOrRej = equal(m.corrected(), missing) || equal(m.corrected(), rejected);
         if( !m_missOrRej ) {
-            redistributed_sum = Helpers::round(redistributed_sum + dry2real(m.corrected()));
+            redistributed_sum = Helpers::round1(redistributed_sum + dry2real(m.corrected()));
             count_corrected += 1;
         }
         const int m_fhqc = m.controlinfo().flag(kvQCFlagTypes::f_fhqc);
@@ -468,7 +468,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     }
     float corrected_sum = 0;
     foreach(RedisUpdate& b, before) {
-        const float corr = Helpers::round(scale * b.corrected());
+        const float corr = Helpers::round1(scale * b.corrected());
         corrected_sum += corr;
         if( b.hasAllNeighborsBoneDry() )
             b.corrected(-1.0f);
@@ -477,16 +477,16 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     }
 
     // make sure that sum of re-distributed is the same as the original accumulated value
-    float delta = Helpers::round(corrected_sum - accumulated);
+    float delta = Helpers::round1(corrected_sum - accumulated);
     if( !accumulationIsDry ) {
         foreach(RedisUpdate& b, before) {
             if( fabs(delta) <= 0.05f )
                 break;
             const float corr = b.corrected(), threshold = b.hasNeighborsWithPrecipitation() ? (delta+0.1) : 0.05;
             if( corr >= threshold ) {
-                const float newCorr = std::max(Helpers::round(corr - delta), 0.0f);
+                const float newCorr = std::max(Helpers::round1(corr - delta), 0.0f);
                 b.corrected(newCorr);
-                delta = Helpers::round(delta - (corr - newCorr));
+                delta = Helpers::round1(delta - (corr - newCorr));
             }
         }
     }
