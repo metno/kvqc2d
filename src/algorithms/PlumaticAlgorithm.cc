@@ -417,7 +417,7 @@ void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower&
             }
         }
         if( needInsert ) {
-            PlumaticUpdate insert(shower.first->data(), t, now, 0.0, missing, "0008002000000000");
+            PlumaticUpdate insert(shower.first->data(), t, now, missing, missing, "0008003000000000");
             insert.controlinfo(interruptedrain_flagchange.apply(insert.controlinfo()))
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
             data.insert(shower.first, insert);
