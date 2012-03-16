@@ -1,6 +1,7 @@
 
 #include "Helpers.h"
 
+#include <kvalobs/kvDataOperations.h>
 #include <boost/algorithm/string/trim.hpp>
 
 #define NDEBUG 1
@@ -58,6 +59,15 @@ bool fillMapFromList(const std::string& list, std::map<int, float>& map, const c
     if( error )
         map.clear();
     return !error;
+}
+
+// ------------------------------------------------------------------------
+
+bool isMissingOrRejected(const kvalobs::kvData& data)
+{
+    return equal(data.original(), -32767)
+        || equal(data.original(), -32766)
+        || kvalobs::missing(data) || kvalobs::rejected(data);
 }
 
 // ------------------------------------------------------------------------

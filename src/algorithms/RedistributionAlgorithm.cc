@@ -90,8 +90,8 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 
 bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
 {
-    if( equal(endpoint.original(), missing) || equal(endpoint.original(), rejected) ) {
-        warning() << "original = missing/rejected for endpoint" << Helpers::datatext(endpoint);
+    if( Helpers::isMissingOrRejected(endpoint) ) {
+        warning() << "endpoint missing/rejected: " << Helpers::datatext(endpoint);
         return false;
     }
     if( endpoint.obstime().hour() != mMeasurementHour ) {
@@ -252,8 +252,9 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         info() << "database starts with accumulation ending in " << Helpers::datatext(endpoint);
         return false;
     }
-    if( equal(it->original(), missing) || equal(it->original(), rejected) ) {
-        warning() << "suspicious row " << *it << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
+    if( Helpers::isMissingOrRejected(it->data()) ) {
+        warning() << "suspicious (missing/rejected) row " << *it
+                  << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
                   << "; giving up";
         return false;
     }

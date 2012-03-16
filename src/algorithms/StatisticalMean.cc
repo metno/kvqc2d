@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011 met.no
+  Copyright (C) 2011-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -120,21 +120,53 @@ void StatisticalMean::configure(const AlgorithmConfig& params)
     mNeighbors->configure(params);
 }
 
-// ------------------------------------------------------------------------
+// ========================================================================
 
 class DailyValueExtractor {
 public:
-    void newDay() { mHours = 0; mCountHours = 0; mMean = 0; }
-    void addObservation(const miutil::miTime& obstime, float original)
-        { int h = obstime.hour(); if( h == 6 || h == 12 || h == 18 ) { mHours |= (1 << h); mCountHours += 1; mMean += original; } }
-    bool completeDay()
-        { return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18)); }
-    float value()
-        { return mMean / mCountHours; }
+    void newDay();
+    void addObservation(const miutil::miTime& obstime, float original);
+    bool isCompleteDay();
+    float value();
 private:
     int mHours, mCountHours;
     float mMean;
 };
+
+// ------------------------------------------------------------------------
+
+void DailyValueExtractor::newDay()
+{
+    mHours = 0;
+    mCountHours = 0;
+    mMean = 0;
+}
+
+// ------------------------------------------------------------------------
+
+void DailyValueExtractor::addObservation(const miutil::miTime& obstime, float original)
+{
+    int h = obstime.hour();
+    if( h == 6 || h == 12 || h == 18 ) {
+        mHours |= (1 << h);
+        mCountHours += 1;
+        mMean += original;
+    }
+}
+
+// ------------------------------------------------------------------------
+
+bool DailyValueExtractor::isCompleteDay()
+{
+    return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18));
+}
+
+// ------------------------------------------------------------------------
+
+float DailyValueExtractor::value()
+{
+    return mMean / mCountHours;
+}
 
 // ========================================================================
 
@@ -404,16 +436,21 @@ bool CheckerQuartiles::pass()
 
 void StatisticalMean::run()
 {
+    // this fetches all data with this paramid for all stations at
+    // once; this might be a lot, but we need all neighbors for each
+    // station anyhow
     std::list<kvalobs::kvData> sdata;
     const C::DBConstraint cData = C::Paramid(mParamid) && C::Typeid(mTypeids)
             && C::Obstime(mUT0extended, UT1);
     database()->selectData(sdata, cData, O::Obstime().asc());
-    
+
+    // sort by station; as sdata is ordered by time, data for each
+    // station will keep this ordering
     typedef std::vector<kvalobs::kvData> dlist_t;
     typedef std::map<int, dlist_t > smap_t;
     smap_t smap;
     foreach(const kvalobs::kvData& d, sdata) {
-        if( !Helpers::equal(d.original(), missing) && !Helpers::equal(d.original(), rejected) )
+        if( !Helpers::isMissingOrRejected(d) )
             smap[d.stationID()].push_back(d);
     }
 
@@ -428,7 +465,7 @@ void StatisticalMean::run()
 
     DailyValueExtractor dve;
 
-    // calculate daily mean values
+    // calculate daily mean values TODO skip for RR_x
     foreach(const smap_t::value_type& sd, smap) {
         const dlist_t& dl = sd.second;
         for(dlist_t::const_iterator itB = dl.begin(), itE=itB; itB != dl.end(); itB = itE) {
@@ -436,7 +473,7 @@ void StatisticalMean::run()
             const int day = itB->obstime().date().julianDay() - day0;
             for( ; itE != dl.end() && (itE->obstime().date().julianDay() - day0) == day; itE++ )
                 dve.addObservation(itE->obstime(), itE->original());
-            if( dve.completeDay() )
+            if( dve.isCompleteDay() )
                 stationDailyMeans[sd.first].push_back(DayMean(day, dve.value()));
         }
     }

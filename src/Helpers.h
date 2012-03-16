@@ -22,6 +22,8 @@ bool fillMapFromList(const std::string& list, std::map<int, float>& map, const c
 inline bool equal(float a,  float b)  { return fabs(a - b) < 4*std::numeric_limits<float> ::epsilon(); }
 inline bool equal(double a, double b) { return fabs(a - b) < 4*std::numeric_limits<double>::epsilon(); }
 
+bool isMissingOrRejected(const kvalobs::kvData& data);
+
 std::ostream& digits1(std::ostream& out);
 
 std::string datatext(const kvalobs::kvData& data, int hoursBefore=0);
