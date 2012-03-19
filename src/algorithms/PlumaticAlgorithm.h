@@ -22,23 +22,32 @@ private:
     class PlumaticUpdate : public DataUpdate {
     public:
         PlumaticUpdate()
-            : DataUpdate(), mNotOperational(false) { }
+            : DataUpdate(), mNotOperationalStart(false), mNotOperationalEnd(false) { }
 
         PlumaticUpdate(const kvalobs::kvData& data)
-            : DataUpdate(data), mNotOperational(false) { }
+            : DataUpdate(data), mNotOperationalStart(false), mNotOperationalEnd(false) { }
 
         PlumaticUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
                        float original, float corrected, const std::string& controlinfo)
-            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo), mNotOperational(false) { }
+            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo), mNotOperationalStart(false), mNotOperationalEnd(false) { }
 
-        PlumaticUpdate& setNotOperational()
-            { mNotOperational = true; return *this; }
+        PlumaticUpdate& setNotOperationalStart()
+            { mNotOperationalStart = true; return *this; }
+
+        PlumaticUpdate& setNotOperationalEnd()
+            { mNotOperationalEnd = true; return *this; }
 
         bool isNotOperational() const
-            { return mNotOperational; }
+            { return mNotOperationalStart || mNotOperationalEnd; }
+
+        bool isNotOperationalStart() const
+            { return mNotOperationalStart; }
+
+        bool isNotOperationalEnd() const
+            { return mNotOperationalEnd; }
 
     private:
-        bool mNotOperational;
+        bool mNotOperationalStart, mNotOperationalEnd;
     };
 
     typedef std::list<kvalobs::kvData> kvDataList_t;

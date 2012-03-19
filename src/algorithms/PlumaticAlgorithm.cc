@@ -73,10 +73,10 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 
     pid = params.getParameter<int>("ParamId");
     mThresholdDry = params.getParameter<float>("threshold_dry", 0.5);
-    mThresholdWet = params.getParameter<float>("threshold_wet", 0.5);
+    mThresholdWet = params.getParameter<float>("threshold_wet", 3.0);
 
     params.getFlagSetCU(discarded_flags, "discarded", "fr=9|fs=8|fmis=2", "");
-    params.getFlagSetCU(neighbor_flags,  "neighbor",  "fd=1", "U2=0");
+    params.getFlagSetCU(neighbor_flags,  "neighbor",  "", "U2=0");
     params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
     params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
@@ -187,8 +187,11 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
                 flagged.pop_front();
             }
         }
-        if( head->original()>0 )
+        if( head->original()>0 ) {
+            // no need to look at operational start / end here as we
+            // do not look at fixed time intervals
             sum += head->original();
+        }
         if( isBadData(*head) ) {
             discarded.push_back(head);
         }
@@ -301,11 +304,13 @@ void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdate
            << " between " << beginTime << " and "
            << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
     
-    begin->setNotOperational();
-    if( begin == end )
+    begin->setNotOperationalStart();
+    if( begin == end ) {
+        begin->setNotOperationalEnd();
         return;
+    }
     if( end != data.end() )
-        end->setNotOperational();
+        end->setNotOperationalEnd();
     begin++;
     data.erase(begin, end);
 }
@@ -522,51 +527,45 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
     if( data.empty() )
         return;
 
-    const int MINUTES_24H = 24*60;
-    kvUpdateList_cit head = data.begin(), tail = data.begin();
-    float sum = 0;
-    std::list<kvUpdateList_cit> discarded;
-
-    miutil::miTime nextXX06 = head->obstime();
+    miutil::miTime nextXX06 = UT0extended;
     if( nextXX06.hour() > 6 )
         nextXX06.addDay(1);
     nextXX06.addHour(6 - nextXX06.hour());
     nextXX06.addMin(-nextXX06.min());
     nextXX06.addSec(-nextXX06.sec());
 
-    DBGV(nextXX06); DBGV(UT0extended);
-    if( minutesBetween(nextXX06, UT0extended) < MINUTES_24H ) {
-        nextXX06.addDay(1);
-        DBG(nextXX06);
+    bool operational = true;
+
+    // advance mark just beyond first ..:06 measurement
+    kvUpdateList_cit mark = data.begin();
+    while( mark != data.end() && mark->obstime() < nextXX06 ) {
+        if( mark->isNotOperationalStart() )
+            operational = false;
+        if( mark->isNotOperationalEnd() )
+            operational = true;
+        ++mark;
     }
 
-    for(; head != data.end(); ++head) {
-        for( ; tail != head && minutesBetween(nextXX06, tail->obstime()) > MINUTES_24H; ++tail ) {
-            if( tail->original()>0 )
-                sum = Helpers::round(sum - tail->original(), 1000);
-            if( !discarded.empty() && tail == discarded.front() ) {
-                discarded.pop_front();
+    while( mark != data.end() ) {
+        nextXX06.addDay(1);
+        bool discarded = false;
+        float sum = 0;
+        for( ; mark != data.end() && mark->obstime() <= nextXX06; ++mark ) {
+            if( mark->isNotOperationalStart() )
+                operational = false;
+            if( mark->isNotOperationalEnd() )
+                operational = true;
+            if( isBadData(*mark) ) {
+                discarded = true;
+                // no break here as we have to advance to the next ..:06 observation
+            } else if( mark->original() > 0 ) {
+                sum = Helpers::round(sum + mark->original(), 1000);
             }
         }
-        if( discarded.empty() ) {
-            while( head->obstime() > nextXX06 ) {
-                compareWithNeighborStations(stationid, nextXX06, sum);
-                nextXX06.addDay(1);
-            }
-        }
-        for( ; tail != head && minutesBetween(head->obstime(), tail->obstime()) >= MINUTES_24H; ++tail ) {
-            if( tail->original()>0 )
-                sum = Helpers::round(sum - tail->original(), 1000);
-            if( !discarded.empty() && tail == discarded.front() ) {
-                discarded.pop_front();
-            }
-        }
-        if( head->original()>0 )
-            sum = Helpers::round(sum + head->original(), 1000);
-        if( isBadData(*head) ) {
-            discarded.push_back(head);
-        }
-    }
+        
+        if( !discarded && operational )
+            compareWithNeighborStations(stationid, nextXX06, sum);
+    }        
 }
 
 // ------------------------------------------------------------------------
@@ -603,7 +602,7 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         && C::Station(neighbors);
     database()->selectData(ndata, cNeighbors);
     if( ndata.empty() ) {
-        DBG("no neighbors with data");
+        info() << "no neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
         return;
     }
     
@@ -613,30 +612,39 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         neighborDataByID[n.stationID()] = n;
     }
 
-    bool neighborsDry = true, neighborsWet = true;
-    int countNeighbors = 0;
+    int nNeighbors = 0, nNeighborsDry = 0, nNeighborsWet = 0;
+    float highestDryNeighbor = 0, lowestWetNeighbor = 0;
     foreach(int n, neighborsSorted) {
         neighborDataByID_t::const_iterator itN = neighborDataByID.find(n);
         if( itN == neighborDataByID.end() )
             continue;
         const float nOriginal = itN->second.original();
-        if( nOriginal >= mThresholdDry )
-            neighborsDry = false;
-        if( nOriginal <= mThresholdWet )
-            neighborsWet = false;
-        if( ++countNeighbors >= 5 )
+        if( nOriginal <= mThresholdDry ) {
+            if( nNeighborsDry == 0 || nOriginal > highestDryNeighbor )
+                highestDryNeighbor = nOriginal;
+            nNeighborsDry += 1;
+        }
+        if( nOriginal >= mThresholdWet ) {
+            if( nNeighborsWet == 0 || nOriginal < lowestWetNeighbor )
+                lowestWetNeighbor = nOriginal;
+            nNeighborsWet += 1;
+        }
+        if( ++nNeighbors >= 6 )
             break;
     }
-    DBG("sum=" << sum << " n wet=" << neighborsWet << " dry=" << neighborsDry);
-    if( sum <= mThresholdDry ) {
-        if( neighborsWet ) {
+    DBG("sum=" << sum << " n wet=" << nNeighborsWet << " dry=" << nNeighborsDry);
+    if( nNeighbors >= 3 ) {
+        if( sum <= mThresholdDry && nNeighborsWet == nNeighbors ) {
             info() << "Plumatic: station " << stationid << " is dry (" << sum
-                   << ") while neighbors are wet in 24h before " << obstime;
-        }
-    } else if( sum >= mThresholdWet ) {
-        if( neighborsDry ) {
+                   << ") while " << nNeighbors << " neighbors are wet (lowest:"
+                   << lowestWetNeighbor << ") in 24h before " << obstime;
+        } else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors ) {
             info() << "Plumatic: station " << stationid << " is wet (" << sum
-                   << ") while neighbors are dry in 24h before " << obstime;
+                   << ") while " << nNeighbors << " neighbors are dry (highest="
+                   << highestDryNeighbor << ") in 24h before " << obstime;
         }
+    } else {
+        info() << "found only " << nNeighbors << " neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
+        return;
     }
 }

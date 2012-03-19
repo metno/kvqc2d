@@ -66,9 +66,9 @@ AlgorithmDispatcher::AlgorithmDispatcher()
     Qc2Algorithm* algorithms[] = {
         new SingleLinearAlgorithm(),
         new RedistributionAlgorithm(),
-        new DipTestAlgorithm()
+        new DipTestAlgorithm(),
 //        new GapInterpolationAlgorithm(),
-//        new PlumaticAlgorithm(),
+        new PlumaticAlgorithm()
 //        new DummyAlgorithm()
     };
     const int N = sizeof(algorithms)/sizeof(algorithms[0]);

@@ -1089,8 +1089,10 @@ TEST_F(PlumaticTest, Neighbors)
             if( (tC >= miutil::miTime(2011, 10, 1, 6, 0, 0) && tC <= miutil::miTime(2011, 10, 2, 5, 59, 0))
                 || (tC >= miutil::miTime(2011, 10, 3, 6, 0, 0) && tC <= miutil::miTime(2011, 10, 4, 5, 59, 0)) )
             {
-                tC.addMin(hour+1);
+                tC.addMin(15);
                 dataC.add(tC, 0.1, "0101000000000000", "");
+                tC.addMin(1);
+                dataC.add(tC, 0.5, "0101000000000000", "");
                 tC.addMin(1);
                 dataC.add(tC, 0.1, "0101000000000000", "");
             }
@@ -1100,11 +1102,11 @@ TEST_F(PlumaticTest, Neighbors)
 
     const int neighborIDs[] = { 27450, 3005, 17000, 17090, 17150, 17280, 17400, 27045, 27470, 30420, -1 };
     DataList dataN(neighborIDs[0], 110, 302);
-    for(int day=0; day<NDAYS; ++day) {
+    for(int day=0; day<=NDAYS; ++day) {
         const miutil::miTime tN(2011, 10, 1 + day, 6, 0, 0);
         for(int i=0; neighborIDs[i]>0; ++i) {
             dataN.setStation(neighborIDs[i])
-                .add(tN, (day == 1 || day==2) ? 1 : 0, "0110000000001000", "");
+                .add(tN, (day == 1 || day==2) ? 5 : 0, "0101000000000000", "");
         }
     }
     ASSERT_NO_THROW(dataN.insert(db));
@@ -1118,4 +1120,72 @@ TEST_F(PlumaticTest, Neighbors)
     ASSERT_EQ(2, logs->count());
     EXPECT_EQ(0, logs->find("station 27270 is dry .* before 2011-10-03 06:00:00"));
     EXPECT_EQ(1, logs->find("station 27270 is wet .* before 2011-10-04 06:00:00"));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(44640, 58.9572,  5.73,   72, 0, 'STAVANGER - VAALAND', 1416, 44640, NULL, NULL, NULL, 8, 't', '2008-07-23 00:00:00');"
+        << "INSERT INTO station VALUES(44480, 58.6842, 5.9847, 263, 0, 'SAAYLAND I GJESDAL',  NULL, 44480, NULL, NULL, NULL, 9, 't', '1902-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(46300, 59.5887,  6.809, 333, 0, 'SULDALSVATN       ',  NULL, 46300, NULL, NULL, NULL, 9, 't', '1895-07-01 00:00:00');"
+        << "INSERT INTO station VALUES(46850, 59.5558, 5.9955, 159, 0, 'HUNDSEID I VIKEDAL',  NULL, 46850, NULL, NULL, NULL, 9, 't', '1936-10-01 00:00:00');"
+        << "INSERT INTO station VALUES(48090, 59.7927, 5.4318,  35, 0, 'LITLAB� - DALE    ',  NULL, 48090, NULL, NULL, NULL, 9, 't', '1971-08-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    {
+        // fake Pluviometer data
+        DataList data(44640, 105, 4);
+        data.add("2010-08-08 00:00:00", 0, "0101000000000000", "")
+            .add("2010-08-08 01:00:00", 0, "0101000000000000", "");
+        // 5 days non-operational time here
+        miutil::miTime t(2010, 8, 13, 4, 0, 0);
+        for(int hour=0; hour<3; ++hour, t.addHour(1))
+            data.add(t, 0, "0101000000000000", "");
+        for(int hour=0; hour<24; ++hour, t.addHour(1)) {
+            data.add(t, 0.1, "0101000000000000", "");
+            t.addMin(1);
+            data.add(t, 0.5, "0101000000000000", "");
+            t.addMin(1);
+            data.add(t, 0.1, "0101000000000000", "");
+            t.addMin(-2);
+        }
+        for(int hour=0; hour<24; ++hour, t.addHour(1))
+            data.add(t, 0, "0101000000000000", "");
+        ASSERT_NO_THROW(data.insert(db));
+    }
+    {
+        // fake neighbor data
+        const int neighborIDs[] = { 44480, 46300, 48090, 46850, -1 };
+        DataList data(neighborIDs[0], 110, 302);
+        for(int day=0; day<8; ++day) {
+            const miutil::miTime t(2010, 8, 8+day, 6, 0, 0);
+            for(int i=0; neighborIDs[i]>0; ++i)
+                data.setStation(neighborIDs[i]).add(t, 0, "0101000000000000", "");
+        }
+        ASSERT_NO_THROW(data.insert(db));
+    }
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2010\n"
+        "Start_MM   =   08\n"
+        "Start_DD   =   08\n"
+        "Start_hh   =   00\n"
+        "End_YYYY   = 2010\n"
+        "End_MM     =   08\n"
+        "End_DD     =   15\n"
+        "End_hh     =   06\n"
+        "stations = 0.1:44640\n"
+        "sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    ASSERT_EQ(2, logs->count());
+    EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
+    EXPECT_EQ(1, logs->find("station 44640 is wet .* while .* neighbors are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
 }
