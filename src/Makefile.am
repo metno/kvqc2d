@@ -100,8 +100,11 @@ ebrowse:
 
 $(VERSION_GIT_STAMP):
 	@if $(GIT) rev-parse HEAD >/dev/null 2>&1; then \
-	    GIT_REF=$$($(GIT) rev-parse HEAD); \
-	    if [ "x$$($(GIT) diff-files)" = "x" ] && [ "x$$($(GIT) diff-index --cached HEAD)" = "x" ]; then \
+	    $(GIT) update-index --refresh; \
+	    GIT_REF="$$($(GIT) rev-parse HEAD)"; \
+	    GIT_DIFF_FILES="$$($(GIT) diff-files)"; \
+	    GIT_DIFF_INDEX="$$($(GIT) diff-index --cached HEAD)"; \
+	    if [ "x$$GIT_DIFF_FILES" = "x" ] && [ "x$$GIT_DIFF_INDEX" = "x" ]; then \
 	        DEBIAN_VERSION=$$(head -n 1 ../debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+-[^-)]\)).*$$/\1/'); \
 	        TAG_NAME="@PACKAGE_NAME@_$$(echo $$DEBIAN_VERSION | tr '.' '_')"; \
 	        if [ "x$$($(GIT) rev-parse $$TAG_NAME 2>/dev/null || true)" = "x$$GIT_REF" ]; then \
@@ -119,6 +122,7 @@ $(VERSION_GIT_STAMP):
 	    echo "No '$(srcdir)/$(VERSION_GIT_H)' and no git either"; exit 1; \
 	fi
 	@if cmp -s "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; then \
+	    echo "Not updating '$(VERSION_GIT_H)'"; \
 	    rm -f "$(VERSION_GIT_H).tmp"; \
 	else \
 	    echo "Updating '$(VERSION_GIT_H)'"; \

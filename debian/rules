@@ -87,7 +87,7 @@ version-check:
 	    echo "Error: debian version '$$DEBIAN_VERSION' != version '$$AC_VERSION' from configure.ac"; \
 	    if [ "x$$KVQC2D_BUILD_VERSION_CHECK" != "xNO" ]; then exit 1; fi \
 	fi; \
-	$(MAKE) -C src version_git.stamp; \
+	$(MAKE) -C src version_git.stamp ; \
 	if grep -q "KVQC2D_VERSION_FULL.*_no_version" src/version_git.h; then \
 	    echo "Error: invalid version for packaging in src/version_git.h"; \
 	    if [ "x$$KVQC2D_BUILD_VERSION_CHECK" != "xNO" ]; then exit 1; fi \
