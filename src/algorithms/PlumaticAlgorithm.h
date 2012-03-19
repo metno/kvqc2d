@@ -95,6 +95,7 @@ private:
 
 private:
     int pid;
+    float mThresholdDry, mThresholdWet;
     FlagSetCU discarded_flags, neighbor_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
     std::vector<ResolutionStations> mStationlist;

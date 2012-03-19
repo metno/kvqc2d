@@ -72,6 +72,8 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     Qc2Algorithm::configure(params);
 
     pid = params.getParameter<int>("ParamId");
+    mThresholdDry = params.getParameter<float>("threshold_dry", 0.5);
+    mThresholdWet = params.getParameter<float>("threshold_wet", 0.5);
 
     params.getFlagSetCU(discarded_flags, "discarded", "fr=9|fs=8|fmis=2", "");
     params.getFlagSetCU(neighbor_flags,  "neighbor",  "fd=1", "U2=0");
@@ -532,8 +534,14 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
     nextXX06.addMin(-nextXX06.min());
     nextXX06.addSec(-nextXX06.sec());
 
+    DBGV(nextXX06); DBGV(UT0extended);
+    if( minutesBetween(nextXX06, UT0extended) < MINUTES_24H ) {
+        nextXX06.addDay(1);
+        DBG(nextXX06);
+    }
+
     for(; head != data.end(); ++head) {
-        for( ; minutesBetween(nextXX06, tail->obstime()) > MINUTES_24H; ++tail ) {
+        for( ; tail != head && minutesBetween(nextXX06, tail->obstime()) > MINUTES_24H; ++tail ) {
             if( tail->original()>0 )
                 sum = Helpers::round(sum - tail->original(), 1000);
             if( !discarded.empty() && tail == discarded.front() ) {
@@ -546,7 +554,7 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
                 nextXX06.addDay(1);
             }
         }
-        for( ; minutesBetween(head->obstime(), tail->obstime()) >= MINUTES_24H; ++tail ) {
+        for( ; tail != head && minutesBetween(head->obstime(), tail->obstime()) >= MINUTES_24H; ++tail ) {
             if( tail->original()>0 )
                 sum = Helpers::round(sum - tail->original(), 1000);
             if( !discarded.empty() && tail == discarded.front() ) {
@@ -566,6 +574,10 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
 void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil::miTime& obstime, float sum)
 {
     DBG("station=" << stationid << " obstime=" << obstime << " sum=" << sum);
+    if( sum > mThresholdDry && sum < mThresholdWet ) {
+        // neither dry nor wet :-) -- no need to check neighbor stations
+        return;
+    }
 
     if( !mNeighbors->hasStationList() ) {
         std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
@@ -589,7 +601,7 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         && C::Paramid( 110 /* RR_24 */ ) //&& C::Typeid(endpoint.typeID())
         && C::Obstime(obstime)
         && C::Station(neighbors);
-    database()->selectData(ndata, cNeighbors, (O::Obstime().desc(), O::Stationid()));
+    database()->selectData(ndata, cNeighbors);
     if( ndata.empty() ) {
         DBG("no neighbors with data");
         return;
@@ -601,8 +613,6 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         neighborDataByID[n.stationID()] = n;
     }
 
-    const float THRESHOLD_WET_DRY = 0.5;
-
     bool neighborsDry = true, neighborsWet = true;
     int countNeighbors = 0;
     foreach(int n, neighborsSorted) {
@@ -610,21 +620,20 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         if( itN == neighborDataByID.end() )
             continue;
         const float nOriginal = itN->second.original();
-        //DBG("n=" << n << " o=" << nOriginal);
-        if( nOriginal >= THRESHOLD_WET_DRY )
+        if( nOriginal >= mThresholdDry )
             neighborsDry = false;
-        else
+        if( nOriginal <= mThresholdWet )
             neighborsWet = false;
         if( ++countNeighbors >= 5 )
             break;
     }
     DBG("sum=" << sum << " n wet=" << neighborsWet << " dry=" << neighborsDry);
-    if( sum < THRESHOLD_WET_DRY ) {
+    if( sum <= mThresholdDry ) {
         if( neighborsWet ) {
             info() << "Plumatic: station " << stationid << " is dry (" << sum
                    << ") while neighbors are wet in 24h before " << obstime;
         }
-    } else {
+    } else if( sum >= mThresholdWet ) {
         if( neighborsDry ) {
             info() << "Plumatic: station " << stationid << " is wet (" << sum
                    << ") while neighbors are dry in 24h before " << obstime;
