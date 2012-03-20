@@ -290,7 +290,7 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
         && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
         && C::Obstime(before.back().obstime(), endpoint.obstime())
         && C::Station(neighbors);
-    database()->selectData(ndata, cNeighbors, (O::Obstime().desc(), O::Stationid()));
+    database()->selectData(ndata, cNeighbors, O::Obstime().desc());
 
     foreach(const kvalobs::kvData& n, ndata) {
         if( n.obstime().hour() != mMeasurementHour ) {
