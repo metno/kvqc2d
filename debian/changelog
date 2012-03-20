@@ -1,3 +1,10 @@
+kvqc2d (1.3.14pre5-1) unstable; urgency=low
+
+  * DipTest: do not complain if data outside specified timerange are
+    missing (they might not exist yet)
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 20 Mar 2012 11:03:54 +0100
+
 kvqc2d (1.3.14pre4-1) unstable; urgency=low
 
   * Plumatic: simple neighbor check
