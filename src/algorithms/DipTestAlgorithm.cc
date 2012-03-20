@@ -119,6 +119,8 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     miutil::miTime linearStart = candidate.obstime(), linearStop = candidate.obstime();
     linearStart.addHour(-1);
     linearStop.addHour(1);
+    if( linearStart < UT0 || linearStop > UT1 )
+        return;
 
     const C::DBConstraint cDipAroundL = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
         && ( C::Obstime(linearStart) || C::Obstime(linearStop) );

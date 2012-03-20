@@ -572,3 +572,38 @@ TEST_F(DipTestTest, BadFlagsBeforeAfter)
     ASSERT_EQ(2, logs->count(Message::INFO));
     ASSERT_EQ(0, logs->count(Message::WARNING));
 }
+
+TEST_F(DipTestTest, NoWARNIfDataMissingOutsideTimeRange)
+{
+    // very last row is a potential dip, and test time period is just
+    // ending at this time: it is not possible to have data
+    // afterwards, so the algorithm should not complain
+
+    DataList data(27500, 213, 330);
+    data.add("2012-03-20 00:00:00",  1.9, "0111000000000000", "");
+    data.add("2012-03-20 01:00:00",  1.5, "0111000000000000", "");
+    data.add("2012-03-20 02:00:00",  0.4, "0111000000000000", "");
+    data.add("2012-03-20 03:00:00", -0.2, "0111000000000000", "");
+    data.add("2012-03-20 04:00:00", -0.1, "0111000000000000", "");
+    data.add("2012-03-20 05:00:00",  8.2, "0112000000000000", "QC1-3a-213");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012" << std::endl
+           << "Start_MM   =   03" << std::endl
+           << "Start_DD   =   20" << std::endl
+           << "Start_hh   =   00" << std::endl
+           << "End_YYYY   = 2012" << std::endl
+           << "End_MM     =   03" << std::endl
+           << "End_DD     =   20" << std::endl
+           << "End_hh     =   05" << std::endl
+           << "ParValFilename = list: 213 7.5" << std::endl;
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    ASSERT_EQ(0, logs->count(Message::WARNING));
+    ASSERT_EQ(0, logs->count(Message::INFO));
+}
