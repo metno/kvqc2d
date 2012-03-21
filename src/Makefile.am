@@ -110,7 +110,7 @@ $(VERSION_GIT_STAMP):
 	        GIT_VERSION=" (git:$$GIT_REF/dirty)"; \
 	    fi; \
 	elif grep -q "(git:.*)" "$(VERSION_GIT_H)"; then \
-	    GIT_VERSION="`sed -e 's,^.*(git:\([a-f0-9]\+/[a-z]\+\)\( ?\)\?).*$$,(git:\1 ?),' \"$(VERSION_GIT_H)\"`"; \
+	    GIT_VERSION="`sed -e 's,^.*(git:\([a-f0-9]\+/[a-z]\+\)\( ?\)\?).*$$, (git:\1 ?),' \"$(VERSION_GIT_H)\"`"; \
 	else \
 	    GIT_VERSION=""; \
 	fi; \
