@@ -613,6 +613,7 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     }
 
     int nNeighbors = 0, nNeighborsDry = 0, nNeighborsWet = 0;
+    std::ostringstream textNeighbors;
     float highestDryNeighbor = 0, lowestWetNeighbor = 0;
     foreach(int n, neighborsSorted) {
         neighborDataByID_t::const_iterator itN = neighborDataByID.find(n);
@@ -623,11 +624,13 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
             if( nNeighborsDry == 0 || nOriginal > highestDryNeighbor )
                 highestDryNeighbor = nOriginal;
             nNeighborsDry += 1;
+            textNeighbors << ' ' << n;
         }
         if( nOriginal >= mThresholdWet ) {
             if( nNeighborsWet == 0 || nOriginal < lowestWetNeighbor )
                 lowestWetNeighbor = nOriginal;
             nNeighborsWet += 1;
+            textNeighbors << ' ' << n;
         }
         if( ++nNeighbors >= 6 )
             break;
@@ -636,12 +639,12 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     if( nNeighbors >= 3 ) {
         if( sum <= mThresholdDry && nNeighborsWet == nNeighbors ) {
             info() << "Plumatic: station " << stationid << " is dry (" << sum
-                   << ") while " << nNeighbors << " neighbors are wet (lowest:"
-                   << lowestWetNeighbor << ") in 24h before " << obstime;
+                   << ") while " << nNeighbors << " neighbors" << textNeighbors.str()
+                   << " are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
         } else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors ) {
             info() << "Plumatic: station " << stationid << " is wet (" << sum
-                   << ") while " << nNeighbors << " neighbors are dry (highest="
-                   << highestDryNeighbor << ") in 24h before " << obstime;
+                   << ") while " << nNeighbors << " neighbors" << textNeighbors.str()
+                   << " are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
         }
     } else {
         info() << "found only " << nNeighbors << " neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;

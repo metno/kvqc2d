@@ -1187,5 +1187,5 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
 
     ASSERT_EQ(2, logs->count());
     EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
-    EXPECT_EQ(1, logs->find("station 44640 is wet .* while .* neighbors are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
+    EXPECT_EQ(1, logs->find("station 44640 is wet .* while .* neighbors [ 0-9]+ are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
 }
