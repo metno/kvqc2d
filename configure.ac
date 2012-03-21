@@ -10,8 +10,12 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 KV_POSTGRESQL
-PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
-PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8 sqlite3 >= 3.3])
+PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0~rc2 gsl >= 1.8],, [
+   PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
+])
+PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0~rc2 gsl >= 1.8 sqlite3 >= 3.3],, [
+   PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8 sqlite3 >= 3.3])
+])
 GTEST_LIB_CHECK
 
 AX_BOOST_BASE([1.33.1])
@@ -28,4 +32,5 @@ AH_BOTTOM([#include "sqlite3.h"
 
 AC_CONFIG_HEADERS(src/config.h)
 AC_CONFIG_FILES([Makefile src/Makefile test/Makefile])
+AC_CONFIG_FILES([src/version.h])
 AC_OUTPUT

@@ -3,7 +3,7 @@
 
   $Id$                                                       
 
-  Copyright (C) 2007 met.no
+  Copyright (C) 2007-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -41,7 +41,7 @@
 #include <boost/filesystem/exception.hpp>
 #include <string>
 
-#include "version_git.h"
+#include "version.h"
 
 const char* options[][ 2 ] =
   {

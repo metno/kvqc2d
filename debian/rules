@@ -82,13 +82,28 @@ binary: binary-indep binary-arch
 
 version-check:
 	@AC_VERSION=$$(grep ^AC_INIT configure.ac | sed -e 's/^AC_INIT(\[[a-zA-Z0-9_.~]\+\], *\[//' -e 's/\], *\[[a-z@.-]\+\])//'); \
+	DEBIAN_PACKAGE=$$(head -n 1 debian/changelog | sed -e 's/^\([a-z_0-9-]\+\) (/\1/'); \
 	DEBIAN_VERSION=$$(head -n 1 debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+\)-[^-)]).*$$/\1/'); \
 	if [ "x$$DEBIAN_VERSION" != "x$$AC_VERSION" ]; then \
 	    echo "Error: debian version '$$DEBIAN_VERSION' != version '$$AC_VERSION' from configure.ac"; \
 	    if [ "x$$KVQC2D_BUILD_VERSION_CHECK" != "xNO" ]; then exit 1; fi \
 	fi; \
-	$(MAKE) -C src version_git.stamp ; \
-	if grep -q "KVQC2D_VERSION_FULL.*_no_version" src/version_git.h; then \
-	    echo "Error: invalid version for packaging in src/version_git.h"; \
-	    if [ "x$$KVQC2D_BUILD_VERSION_CHECK" != "xNO" ]; then exit 1; fi \
-	fi
+	TAG_NAME="$${DEBIAN_PACKAGE}_$$(echo $$DEBIAN_VERSION | tr '.' '_')"; \
+	GIT_REF="$$(git rev-parse HEAD 2>/dev/null || true)"; \
+	if [ -n "$$GIT_REF" ]; then \
+	    git update-index --refresh > /dev/null; \
+	    GIT_DIFF_FILES="$$(git diff-files)"; \
+	    GIT_DIFF_INDEX="$$(git diff-index --cached HEAD)"; \
+	    if [ "x$$GIT_DIFF_FILES" != "x" ] || [ "x$$GIT_DIFF_INDEX" != "x" ]; then \
+	        WARN_GIT="yes"; \
+	    fi; \
+	elif test -r "src/version_git.h" && grep -q "dirty" src/version_git.h; then \
+	    WARN_GIT="yes"; \
+	else \
+	    echo "No repository check -- git or git repository not available."; \
+	fi; \
+	if [ "x$$WARN_GIT" != "x" ]; then \
+	    echo; echo; echo; echo "=================================================="; \
+	    echo "Warning: git working directory might not be clean"; \
+	    echo "=================================================="; echo; echo; echo; \
+	fi; \
