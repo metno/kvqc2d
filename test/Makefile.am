@@ -19,6 +19,7 @@ kvqc2dTest_SOURCES= \
 	algorithms/SingleLinearTest.cc \
 	algorithms/StatisticalMeanTest.cc \
 	ConfigParserTest.cc \
+	CorrelatedNeighborInterpolatorTest.cc \
 	FlagChangeTest.cc \
 	FlagPatternsTest.cc \
 	FlagPatternTest.cc \

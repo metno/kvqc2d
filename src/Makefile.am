@@ -50,6 +50,8 @@ libkvqc2d_a_SOURCES = \
 	config_bottom.h \
 	ConfigParser.cc \
 	ConfigParser.h \
+	CorrelatedNeighborInterpolator.cc \
+	CorrelatedNeighborInterpolator.h \
 	DBConstraintsBase.h \
 	DBConstraints.cc \
 	DBConstraints.h \
@@ -69,6 +71,8 @@ libkvqc2d_a_SOURCES = \
 	Helpers.h \
 	InitLogger.cc \
 	InitLogger.h \
+	Interpolator.cc \
+	Interpolator.h \
 	KvalobsDB.cc \
 	KvalobsDB.h \
 	KvServicedBroadcaster.cc \

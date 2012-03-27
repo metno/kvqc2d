@@ -91,4 +91,11 @@ miutil::miTime plusDay(const miutil::miTime& t, int nDays)
     return p;
 }
 
+miutil::miTime plusHour(const miutil::miTime& t, int nHours)
+{
+    miutil::miTime p(t);
+    p.addHour(nHours);
+    return p;
+}
+
 } // namespace Helpers

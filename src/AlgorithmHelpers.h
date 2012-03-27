@@ -59,6 +59,7 @@ void GetAllStations(DBInterface* db, std::list<kvalobs::kvStation>& stations);
 double distance(double lon1, double lat1, double lon2, double lat2);
 
 miutil::miTime plusDay(const miutil::miTime& t, int nDays);
+miutil::miTime plusHour(const miutil::miTime& t, int nHours);
 
 } // namespace Helpers
 
