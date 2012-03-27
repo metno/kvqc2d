@@ -160,3 +160,26 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Linear)
         EXPECT_FLOAT_EQ(i+4, interpolated[i].value);
     }
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(CorrelatedNeighborInterpolatorTest, Triangel)
+{
+    const int Ngap = 3, N = Ngap + 2 + 4;
+    const float centerObs[N] = { 0, 1, 2, -32767, -32767, -32767, 2, 1,  0 };
+    const float centerMdl[N] = { 1, 2, 3,      4,      6,      7, 8, 9, 10 };
+    mDax->setCenter(1234, series_t(centerObs, centerObs+N), series_t(centerMdl, centerMdl+N));
+    
+    const float nbr1Obs[N]   = { 1, 1, 1, 2, 3, 2, 1, 1, 1 };
+    const float nbr2Obs[N]   = { 0, 1, 2, 3, 4, 3, 2, 1, 0 };
+    mDax->addNeighbor(1, series_t(nbr1Obs, nbr1Obs+N));
+    mDax->addNeighbor(2, series_t(nbr2Obs, nbr2Obs+N));
+
+    const miutil::miTime t0(2012, 3, 27, 16, 0);
+    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(t0, Helpers::plusHour(t0, Ngap+1), 1234, 211);
+    EXPECT_EQ(Ngap, interpolated.size());
+    for(unsigned int i=0; i<interpolated.size(); ++i) {
+        const float expected = (i==1) ? 4 : 3;
+        EXPECT_FLOAT_EQ(expected, interpolated[i].value) << "i=" << i;
+    }
+}
