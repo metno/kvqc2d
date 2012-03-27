@@ -119,7 +119,7 @@ void CorrelatedNeighborInterpolatorTest::TestDataAccess::addNeighbor(int station
 
 // ========================================================================
 
-TEST_F(CorrelatedNeighborInterpolatorTest, Mini)
+TEST_F(CorrelatedNeighborInterpolatorTest, Constant)
 {
     const int Ngap = 4, N = Ngap + 2 + 4;
     const float centerObs[N] = { 1, 1, 1, -32767, -32767, -32767, -32767, 1, 1, 1 };
@@ -132,10 +132,31 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Mini)
     mDax->addNeighbor(2, series_t(nbr2Obs, nbr2Obs+N));
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
-
     Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(t0, Helpers::plusHour(t0, Ngap+1), 1234, 211);
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         EXPECT_FLOAT_EQ(1.0f, interpolated[i].value);
+    }
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(CorrelatedNeighborInterpolatorTest, Linear)
+{
+    const int Ngap = 4, N = Ngap + 2 + 4;
+    const float centerObs[N] = { 0, 1, 2, -32767, -32767, -32767, -32767, 7, 8,  9 };
+    const float centerMdl[N] = { 1, 2, 3,      4,      5,      6,      7, 8, 9, 10 };
+    mDax->setCenter(1234, series_t(centerObs, centerObs+N), series_t(centerMdl, centerMdl+N));
+    
+    const float nbr1Obs[N]   = { 1, 1, 1, 2, 2, 2, 2, 1, 1, 1 };
+    const float nbr2Obs[N]   = { 3, 3, 3, 4, 4, 4, 4, 3, 3, 3 };
+    mDax->addNeighbor(1, series_t(nbr1Obs, nbr1Obs+N));
+    mDax->addNeighbor(2, series_t(nbr2Obs, nbr2Obs+N));
+
+    const miutil::miTime t0(2012, 3, 27, 16, 0);
+    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(t0, Helpers::plusHour(t0, Ngap+1), 1234, 211);
+    EXPECT_EQ(Ngap, interpolated.size());
+    for(unsigned int i=0; i<interpolated.size(); ++i) {
+        EXPECT_FLOAT_EQ(i+4, interpolated[i].value);
     }
 }

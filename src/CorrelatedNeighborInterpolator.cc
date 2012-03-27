@@ -70,7 +70,7 @@ Interpolator::ValuesWithQualities_t CorrelatedNeighborInterpolator::interpolate(
     const bool haveAkima = ( nBefore >= NA && nAfter >= NA );
 #endif
     
-    const double data0 = observations[NA-1], dataN1 = modelvalues[gapLength+NA];
+    const double data0 = observations[NA-1], dataN1 = observations[gapLength+NA];
     double model_slope, model_offset, inter_slope, inter_offset;
     calculate_delta(data0, dataN1,
                     modelvalues[NA-1], modelvalues[gapLength+NA],
@@ -92,7 +92,7 @@ Interpolator::ValuesWithQualities_t CorrelatedNeighborInterpolator::interpolate(
             combiValue += akimaWeight * akima.interpolate(i);
             combiWeights += akimaWeight;
         }
-        if( combiWeights == 0 && interI > -1000 ) {
+        if( combiWeights == 0 && interI > INVALID ) {
             const double delta = inter_offset + i * inter_slope;
             if( fabs(delta) < maxdelta ) {
                 combiValue += interI - delta;
