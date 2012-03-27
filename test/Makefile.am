@@ -6,6 +6,7 @@ corbatest_SOURCES= \
 	dummy-kvserviced.cc
 
 kvqc2dTest_SOURCES= \
+	AkimaTest.cc \
 	AlgorithmConfigTest.cc \
 	algorithms/AkimaSplineTest.cc \
 	algorithms/AlgorithmHelpersTest.cc \

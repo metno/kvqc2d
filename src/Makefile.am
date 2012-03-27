@@ -12,6 +12,8 @@ kvqc2d_SOURCES = Qc2Main.cc
 noinst_LIBRARIES = libkvqc2d.a
 
 libkvqc2d_a_SOURCES = \
+	Akima.cc \
+	Akima.h \
 	AlgorithmConfig.cc \
 	AlgorithmConfig.h \
 	AlgorithmDispatcher.cc \
