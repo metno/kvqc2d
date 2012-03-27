@@ -31,7 +31,6 @@
 #define DBINTERFACE_H_
 
 #include <kvalobs/kvData.h>
-#include <kvalobs/kvQueries.h>
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
 
