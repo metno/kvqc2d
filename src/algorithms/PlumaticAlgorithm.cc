@@ -638,13 +638,13 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     DBG("sum=" << sum << " n wet=" << nNeighborsWet << " dry=" << nNeighborsDry);
     if( nNeighbors >= 3 ) {
         if( sum <= mThresholdDry && nNeighborsWet == nNeighbors ) {
-            info() << "Plumatic: station " << stationid << " is dry (" << sum
-                   << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
-                   << ") are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
+            warning() << "Plumatic: station " << stationid << " is dry (" << sum
+                      << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
+                      << ") are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
         } else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors ) {
-            info() << "Plumatic: station " << stationid << " is wet (" << sum
-                   << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
-                   << ") are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
+            warning() << "Plumatic: station " << stationid << " is wet (" << sum
+                      << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
+                      << ") are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
         }
     } else {
         info() << "found only " << nNeighbors << " neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
