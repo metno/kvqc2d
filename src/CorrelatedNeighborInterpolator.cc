@@ -5,12 +5,15 @@
 #include "AlgorithmHelpers.h"
 #include "foreach.h"
 
-#include <puTools/miTime.h>
 #include <kvalobs/kvData.h>
 #include <vector>
 
 #define NDEBUG 1
 #include "debug.h"
+
+namespace CorrelatedNeighbors {
+
+static const float INVALID = -32767.0f;
 
 DataAccess::~DataAccess()
 {
@@ -18,22 +21,19 @@ DataAccess::~DataAccess()
 
 // ========================================================================
 
-CorrelatedNeighborInterpolator::CorrelatedNeighborInterpolator(DataAccess* dax)
+Interpolator::Interpolator(DataAccess* dax)
     : mDax(dax)
 {
 }
 
-static const float INVALID = -32767.0f;
-
 // ------------------------------------------------------------------------
 
-Interpolator::ValuesWithQualities_t CorrelatedNeighborInterpolator::interpolate(const miutil::miTime& beforeGap, const miutil::miTime& afterGap,
-                                                                                int stationid, int paramid)
+::Interpolator::ValuesWithQualities_t Interpolator::interpolate(const Instrument& instrument, const TimeRange& t)
 {
     ValuesWithQualities_t interpolated;
 
     float maxdelta, limit_low, limit_high;
-    switch(paramid) {
+    switch(instrument.paramid) {
     case 178: maxdelta =  5; limit_low = 800; limit_high = 1200; break;
     case 211: maxdelta = 15; limit_low = -80; limit_high =  100; break;
     case 217: maxdelta = 15; limit_low = -80; limit_high =  100; break;
@@ -42,15 +42,17 @@ Interpolator::ValuesWithQualities_t CorrelatedNeighborInterpolator::interpolate(
         return interpolated;
     }
 
-    const int gapLength = miutil::miTime::hourDiff(afterGap, beforeGap) - 1;
+    const int gapLength = t.hours() - 1;
     if( gapLength < 1 )
         return interpolated;
 
     const int NA = 3;
-    const miutil::miTime t0 = Helpers::plusHour(beforeGap, -(NA-1)), tN1 = Helpers::plusHour(afterGap, (NA-1));
-    const std::vector<float> observations = mDax->fetchObservations(stationid, paramid, t0, tN1);
-    const std::vector<float> modelvalues  = mDax->fetchModelValues (stationid, paramid, t0, tN1);
-    const std::vector<float> interpolations  =  interpolate_simple(stationid, paramid, t0, tN1);
+    const TimeRange tExtended(Helpers::plusHour(t.t0, -(NA-1)), Helpers::plusHour(t.t1, (NA-1)));
+    DBGV(tExtended.t0);
+    const std::vector<float> observations = mDax->fetchObservations(instrument, tExtended);
+    const std::vector<float> modelvalues  = mDax->fetchModelValues (instrument, tExtended);
+    const std::vector<float> interpolations  =  interpolate_simple(instrument, tExtended);
+    DBGV(interpolations.size());
 
 #if 1
     Akima akima;
@@ -82,6 +84,7 @@ Interpolator::ValuesWithQualities_t CorrelatedNeighborInterpolator::interpolate(
     for(int i=0; i<gapLength; ++i) {
         const double modelI = modelvalues[NA+i];
         const double interI = interpolations[NA+i];
+        DBG("i=" << i << " inter=" << interI);
         
         double combiValue = 0, combiWeights = 0;
         
@@ -128,26 +131,27 @@ Interpolator::ValuesWithQualities_t CorrelatedNeighborInterpolator::interpolate(
 
 // ------------------------------------------------------------------------
 
-void CorrelatedNeighborInterpolator::configure(const AlgorithmConfig& config)
+void Interpolator::configure(const AlgorithmConfig& config)
 {
 }
 
 // ------------------------------------------------------------------------
 
-std::vector<float> CorrelatedNeighborInterpolator::interpolate_simple(int ctr, int paramid,
-                                                                      const miutil::miTime& t0, const miutil::miTime& t1)
+std::vector<float> Interpolator::interpolate_simple(const Instrument& ctr, const TimeRange& tExtended)
 {
-    const int length = miutil::miTime::hourDiff(t1, t0) + 1;
+    const int length = tExtended.hours() + 1;
     std::vector<float> interpolated(length, INVALID);
 
-    const neighbors_t& neighbors = find_neighbors(ctr, paramid, 2.7);
+    const neighbors_t& neighbors = find_neighbors(ctr, 2.7);
+    DBGV(neighbors.size());
     if( neighbors.empty() )
         return interpolated;
 
     std::vector< std::vector<float> > neighbor_observations(neighbors.size());
     int n = 0;
     foreach(const NeighborData& nd, neighbors) {
-        neighbor_observations[n++] = mDax->fetchObservations(nd.neighborid, paramid, t0, t1);
+        const Instrument nbr(nd.neighborid, ctr.paramid, -1, -1, -1);
+        neighbor_observations[n++] = mDax->fetchObservations(nbr, tExtended);
     }
     for(int t=0; t<length; ++t) {
         double sn = 0, sw = 0;
@@ -175,7 +179,7 @@ std::vector<float> CorrelatedNeighborInterpolator::interpolate_simple(int ctr, i
 
 // ------------------------------------------------------------------------
 
-void CorrelatedNeighborInterpolator::calculate_delta(const double data0, const double dataN1, const double i0, const double iN1, int N,
+void Interpolator::calculate_delta(const double data0, const double dataN1, const double i0, const double iN1, int N,
                                                      double& slope, double& offset)
 {
     const bool have0 = (i0 > INVALID && data0 > INVALID), haveN1 = (iN1 > INVALID && dataN1 > INVALID);
@@ -197,14 +201,14 @@ void CorrelatedNeighborInterpolator::calculate_delta(const double data0, const d
 
 // ------------------------------------------------------------------------
 
-const neighbors_t& CorrelatedNeighborInterpolator::find_neighbors(int stationid, int paramid, double maxsigma)
+const neighbors_t& Interpolator::find_neighbors(const Instrument& instrument, double maxsigma)
 {
-    neighbor_map_t::iterator it = neighbor_map.find(stationid);
+    neighbor_map_t::iterator it = neighbor_map.find(instrument.stationid);
     if( it != neighbor_map.end() )
         return it->second;
     
-    neighbor_map[stationid] = mDax->findNeighbors(stationid, paramid, maxsigma);
-    return neighbor_map[stationid];
+    neighbor_map[instrument.stationid] = mDax->findNeighbors(instrument, maxsigma);
+    return neighbor_map[instrument.stationid];
 }
 
-
+} // namespace CorrelatedNeigbors

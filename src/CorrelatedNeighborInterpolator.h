@@ -8,6 +8,8 @@
 #include <map>
 #include <vector>
 
+namespace CorrelatedNeighbors {
+
 struct NeighborData {
     int neighborid;
     double offset, slope, sigma;
@@ -22,19 +24,18 @@ typedef std::vector<NeighborData> neighbors_t;
 class DataAccess {
 public:
     virtual ~DataAccess();
-    virtual const std::vector<float> fetchObservations(int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1) = 0;
-    virtual const std::vector<float> fetchModelValues (int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1) = 0;
-    virtual const neighbors_t findNeighbors(int stationid, int paramid, double maxsigma) = 0;
+    virtual const std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t) = 0;
+    virtual const std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t) = 0;
+    virtual const neighbors_t findNeighbors(const Instrument& instrument, double maxsigma) = 0;
 };
 
 // ========================================================================
 
-class CorrelatedNeighborInterpolator : public Interpolator {
+class Interpolator : public ::Interpolator {
 public:
-    CorrelatedNeighborInterpolator(DataAccess* dax);
+    Interpolator(DataAccess* dax);
 
-    ValuesWithQualities_t interpolate(const miutil::miTime& beforeGap, const miutil::miTime& afterGap,
-                                      int stationid, int paramid);
+    ValuesWithQualities_t interpolate(const Instrument& instrument, const TimeRange& t);
 
     void configure(const AlgorithmConfig& config);
 
@@ -42,17 +43,19 @@ private:
     typedef std::map<int, neighbors_t> neighbor_map_t;
 
 private:
-    std::vector<float> interpolate_simple(int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1);
+    std::vector<float> interpolate_simple(const Instrument& instrument, const TimeRange& t);
     
     void calculate_delta(const double data0, const double dataN1, const double i0, const double iN1, int N,
                          double& slope, double& offset);
 
-    const neighbors_t& find_neighbors(int stationid, int paramid, double maxsigma);
+    const neighbors_t& find_neighbors(const Instrument& instrument, double maxsigma);
 
 private:
     DataAccess* mDax;
 
     neighbor_map_t neighbor_map;
 };
+
+} // namespace CorrelatedNeigbors
 
 #endif /* CORRELATEDNEIGHBORINTERPOLATOR_H */

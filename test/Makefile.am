@@ -14,6 +14,7 @@ kvqc2dTest_SOURCES= \
 	algorithms/AlgorithmTestBase.h \
 	algorithms/DataUpdateTest.cc \
 	algorithms/DipTestTest.cc \
+	algorithms/GapInterpolationTest.cc \
 	algorithms/PlumaticTest.cc \
 	algorithms/RedistributionTest.cc \
 	algorithms/SingleLinearTest.cc \

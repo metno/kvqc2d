@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011 met.no
+  Copyright (C) 2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -29,101 +29,177 @@
 
 #include "GapInterpolationAlgorithm.h"
 
-#include "AkimaSpline.h"
 #include "AlgorithmHelpers.h"
 #include "DBConstraints.h"
 #include "DBInterface.h"
 #include "foreach.h"
 
-#include <milog/milog.h>
+#define NDEBUG 1
+#include "debug.h"
 
 namespace C = Constraint;
 namespace O = Ordering;
+
+const std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
+{
+    FlagSetCU neighbor_flags;
+    neighbor_flags.setC(FlagPatterns("fmis=0", FlagPattern::CONTROLINFO));
+    neighbor_flags.setU(FlagPatterns("U0=[37]&U2=0", FlagPattern::USEINFO));
+
+    C::DBConstraint c = C::Station(instrument.stationid)
+        && C::Paramid(instrument.paramid)
+        && C::ControlUseinfo(neighbor_flags)
+        && C::Obstime(t.t0, t.t1);
+    if( instrument.type >= 0 )
+        c = c && C::Typeid(instrument.type);
+    if( instrument.sensor >= 0 )
+        c = c && C::Sensor(instrument.sensor);
+    if( instrument.level >= 0 )
+        c = c && C::Sensor(instrument.level);
+    DBGV(c.sql());
+
+    std::list<kvalobs::kvData> obs;
+    mDB->selectData(obs, c, O::Obstime().asc());
+    DBGV(obs.size());
+    
+    miutil::miTime tt = t.t0;
+    std::vector<float> series;
+    foreach(const kvalobs::kvData& d, obs) {
+        while( tt < d.obstime() && tt <= t.t1 ) {
+            series.push_back(-32767.0f);
+            tt.addHour(1);
+        }
+        DBG("obstime = " << d.obstime() << " tt=" << tt);
+        if( d.obstime() == tt ) {
+            DBG("station=" << d.stationID() << " t=" << tt << " orig=" << d.original());
+            series.push_back(d.original());
+            tt.addHour(1);
+        }
+    }
+    for( ; tt < t.t1; tt.addHour(1) )
+        series.push_back(-32767.0f);
+    return series;
+}
+
+const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
+{
+    return std::vector<float>(t.hours()+1, -32767.0f);
+}
+
+const CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
+{
+    CorrelatedNeighbors::neighbors_t neighbors;
+    if( instrument.stationid == 18700 and instrument.paramid == 211 ) {
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(18210,  0.359377,  0.936164, 0.837205));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(18230,  0.432384,  0.946009, 0.890819));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData( 4780,  1.82088,   0.949237, 1.15107 ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(17850,  1.07924,   0.974772, 1.356   ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(26990,  0.682128,  0.971464, 1.38741 ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(18500,  2.65349,   0.979765, 1.40503 ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(20301,  1.57686,   0.917686, 1.40677 ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData( 4200,  1.58401,   0.921502, 1.46844 ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData( 4460,  2.0924,    0.928709, 1.51339 ));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(17150, -0.0143439, 1.00587,  1.53928 ));
+    } else if( instrument.stationid == 69150 and instrument.paramid == 211 ) {
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(69100, -0.0739351, 0.999815, 0.774052));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(68860,  0.0443254, 1.02678,  1.29483));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(69655, -1.04465,   1.06465,  1.32951));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(68290,  1.1234,    0.941565, 1.37513));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(69380,  1.67007,   0.907408, 1.46907));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(68130,  0.230591,  1.04775,  1.47233));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(70991,  1.08758,   0.923029, 1.72307));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(70990,  1.00074,   0.892268, 1.76754));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(67280,  2.04537,   0.926591, 1.86768));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(71000,  1.09259,   0.932182, 1.87565));
+    }
+    return neighbors;
+}
+
+// ========================================================================
+
+GapInterpolationAlgorithm::GapInterpolationAlgorithm()
+    : Qc2Algorithm("GapInterpolate")
+    , mDataAccess(new GapDataAccess(0))
+    , mInterpolator(new CorrelatedNeighbors::Interpolator(mDataAccess))
+{
+}
+
+// ------------------------------------------------------------------------
 
 void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 {
     Qc2Algorithm::configure(params);
 
-    Ngap = params.getParameter("MaxHalfGap", 0);
     pids = params.getMultiParameter<int>("ParamId");
-    tid = params.getParameter<int>("TypeId");
-    StartDay = params.UT0.date().julianDay();
-    params.getFlagChange(fc, "gap_flagchange");
+    tids = params.getMultiParameter<int>("TypeId");
+
+    params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[1234]&fhqc=0", "");
+    params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
+    params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
 }
+
+// ------------------------------------------------------------------------
 
 void GapInterpolationAlgorithm::run()
 {
+    mDataAccess->setDatabase(database());
     std::list<kvalobs::kvStation> StationList;
     std::list<int> StationIds;
     fillStationLists(StationList, StationIds);
+    DBGV(StationIds.size());
 
-    const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tid)
-                && C::Obstime(UT0, UT1) && C::Sensor(0) && C::Level(0));
-
+    const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tids)
+                                      && C::Obstime(UT0, UT1) && C::Sensor(0) && C::Level(0)
+                                      && C::ControlUseinfo(missing_flags) );
+    
     foreach(const kvalobs::kvStation& station, StationList) {
-        std::list<kvalobs::kvData> Qc2SeriesData;
+        std::list<kvalobs::kvData> missingData;
         const C::DBConstraint cStation = C::Station(station.stationID()) && cGeneral;
-        database()->selectData(Qc2SeriesData, cStation);
+        DBGV(cStation.sql());
+        database()->selectData(missingData, cStation, O::Obstime().asc());
+        DBGV(missingData.size());
 
-        std::vector<double> xt,yt;
-        // Go through the data and fit an Akima Spline to the good points
-        foreach(const kvalobs::kvData& d, Qc2SeriesData) {
-            if( d.useinfo().flag(2)==0 ) {
-                const miutil::miDate PDate = d.obstime().date();
-                const double JulDec = PDate.julianDay()+d.obstime().hour()/24.0 +
-                    d.obstime().min()/(24.0*60)+d.obstime().sec()/(24.0*60.0*60.0);
-                const double HourDec = (PDate.julianDay()-StartDay)*24.0 + d.obstime().hour() +
-                    d.obstime().min()/60.0+d.obstime().sec()/3600.0;
-                xt.push_back(HourDec);
-                yt.push_back(d.original());
-            }
-        }
-        // Calculate the Akima Spline if there are enough points and the fill missing points
-        if( xt.size() <= 4 )
+        if( missingData.empty() )
             continue;
 
-        AkimaSpline AkimaX(xt, yt);
-        // Find the missing points and their distance from a good point etc ..
-        foreach(const kvalobs::kvData& d, Qc2SeriesData) {
-            const int flag6 = d.controlinfo().flag(6);
-            if( flag6==1 || flag6==2 || flag6==3 || flag6==4 ) {
-                //value is missing so find the time stamp wrt Akima fit
-                const miutil::miDate PDate = d.obstime().date();
-                const double JulDec = PDate.julianDay()+d.obstime().hour()/24.0 +
-                    d.obstime().min()/(24.0*60)+d.obstime().sec()/(24.0*60.0*60.0);
-                const double HourDec = (PDate.julianDay()-StartDay)*24.0 + d.obstime().hour() +
-                    d.obstime().min()/60.0+d.obstime().sec()/3600.0;
-                // Check to see how many hours the point is away from good data ... in the past ...
-                double lowHour, highHour; // FIXME not initialised
-                foreach(double v, xt) {
-                    if( v < HourDec )
-                        lowHour = v;
-                }
-                // ... and in the future
-                foreach_r(double v, xt) {
-                    if( v > HourDec )
-                        highHour = v;
-                }
-                //std::cout << lowHour << " :: " << HourDec << " :: " << highHour << std::endl;
-                if ( ( std::find(xt.begin(), xt.end(), highHour+1) != xt.end() ) &&
-                     ( std::find(xt.begin(), xt.end(), lowHour-1)  != xt.end() ) &&
-                     ( std::find(xt.begin(), xt.end(), lowHour-2)  != xt.end() || std::find(xt.begin(), xt.end(), highHour+2)  != xt.end() ) &&
-                     ( HourDec - lowHour <= Ngap ) &&
-                     ( highHour - HourDec  < Ngap ) )
-                {
-                    // Do Akima Interpolation
-                    std::cout << d.stationID() << " " << d.obstime() << " " << d.original() << " " << d.corrected() << " Sub Akima " << AkimaX.AkimaPoint(HourDec) << std::endl;
-                    const float NewCorrected = Helpers::round1(AkimaX.AkimaPoint(HourDec));
+        DataList_t updates;
+        for(DataList_cit mark = missingData.begin(); mark != missingData.end(); /* */ ) {
 
-                    // Push the data back
-                    kvalobs::kvData dwrite(d);
-                    dwrite.corrected(NewCorrected);
-                    dwrite.controlinfo(fc.apply(dwrite.controlinfo()));
-                    Helpers::updateCfailed(dwrite, "QC2d-2-A", CFAILED_STRING);
-                    Helpers::updateUseInfo(dwrite);
-                    updateSingle(dwrite);
-                }
+            // find a series of continuous hours with missing data
+            DataList_cit start = mark;
+            DBGV(*start);
+            miutil::miTime t = start->obstime();
+            do {
+                t.addHour(1);
+                ++mark;
+                DBGV(t);
+            } while( mark != missingData.end() && mark->obstime() == t );
+            DataList_cit end = mark;
+            --end;
+            DBGV(*end);
+
+            const TimeRange missingTime(Helpers::plusHour(start->obstime(), -1), Helpers::plusHour(end->obstime(), 1));
+            DBGV(missingTime.t0);
+            DBGV(missingTime.t1);
+            const Instrument instrument(start->stationID(), start->paramID(), start->sensor(), start->typeID(), start->level());
+            DBGV(instrument.stationid);
+            const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(instrument, missingTime);
+            DBGV(interpolated.size());
+
+            foreach(const ::Interpolator::ValueWithQuality vq, interpolated) {
+                kvalobs::kvData dwrite(*start++);
+                DBGV(dwrite);
+                DBGV(vq.value);
+                if( Helpers::equal(dwrite.corrected(), vq.value) )
+                    continue;
+                dwrite.corrected(vq.value);
+                dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
+                Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
+                Helpers::updateUseInfo(dwrite);
+                updates.push_back(dwrite);
             }
         }
+        if( !updates.empty() )
+            storeData(updates);
     }
 }

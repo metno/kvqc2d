@@ -19,11 +19,11 @@ public:
     void TearDown();
 
 private:
-    class TestDataAccess : public DataAccess {
+    class TestDataAccess : public CorrelatedNeighbors::DataAccess {
     public:
-        const series_t fetchObservations(int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1);
-        const series_t fetchModelValues (int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1);
-        const neighbors_t findNeighbors(int stationid, int paramid, double maxsigma);
+        const series_t fetchObservations(const Instrument& instrument, const TimeRange& t);
+        const series_t fetchModelValues (const Instrument& instrument, const TimeRange& t);
+        const CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
 
         void setCenter(int stationid, const series_t& observations, const series_t& modelvalues);
         void addNeighbor(int stationid, const series_t& observations);
@@ -37,7 +37,7 @@ private:
 
 protected:
     TestDataAccess* mDax;
-    CorrelatedNeighborInterpolator* mCNI;
+    CorrelatedNeighbors::Interpolator* mCNI;
 };
 
 // ------------------------------------------------------------------------
@@ -45,7 +45,7 @@ protected:
 void CorrelatedNeighborInterpolatorTest::SetUp()
 {
     mDax = new TestDataAccess();
-    mCNI = new CorrelatedNeighborInterpolator(mDax);
+    mCNI = new CorrelatedNeighbors::Interpolator(mDax);
 }
 
 // ------------------------------------------------------------------------
@@ -58,16 +58,15 @@ void CorrelatedNeighborInterpolatorTest::TearDown()
 
 // ------------------------------------------------------------------------
 
-const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchObservations
-    (int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1)
+const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
 {
-    if( miutil::miTime::hourDiff(t1, t0) != (int)mCenterObservations.size()-1 )
+    if( t.hours() != (int)mCenterObservations.size()-1 )
         throw std::runtime_error("bad series length");
 
-    if( stationid == mCenterStationId )
+    if( instrument.stationid == mCenterStationId )
         return mCenterObservations;
     
-    mNeighborObservations_t::const_iterator it = mNeighborObservations.find(stationid);
+    mNeighborObservations_t::const_iterator it = mNeighborObservations.find(instrument.stationid);
     if( it != mNeighborObservations.end() )
         return it->second;
 
@@ -76,13 +75,12 @@ const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchObservat
 
 // ------------------------------------------------------------------------
 
-const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchModelValues
-    (int stationid, int paramid, const miutil::miTime& t0, const miutil::miTime& t1)
+const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchModelValues(const Instrument& instrument, const TimeRange& t)
 {
-    if( miutil::miTime::hourDiff(t1, t0) != (int)mCenterObservations.size()-1 )
+    if( t.hours() != (int)mCenterObservations.size()-1 )
         throw std::runtime_error("bad series length");
 
-    if( stationid == mCenterStationId )
+    if( instrument.stationid == mCenterStationId )
         return mCenterModelvalues;
     
     throw std::runtime_error("bad station id for model data");
@@ -90,14 +88,14 @@ const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchModelVal
 
 // ------------------------------------------------------------------------
 
-const neighbors_t CorrelatedNeighborInterpolatorTest::TestDataAccess::findNeighbors(int stationid, int paramid, double maxsigma)
+const CorrelatedNeighbors::neighbors_t CorrelatedNeighborInterpolatorTest::TestDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
-    if( stationid != mCenterStationId )
+    if( instrument.stationid != mCenterStationId )
         throw std::runtime_error("bad station id for neighbor list");
 
-    neighbors_t neighbors;
+    CorrelatedNeighbors::neighbors_t neighbors;
     foreach(mNeighborObservations_t::value_type& n, mNeighborObservations)
-        neighbors.push_back(NeighborData(n.first, 0, 1, 2));
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(n.first, 0, 1, 2));
     return neighbors;
 }
 
@@ -132,7 +130,8 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Constant)
     mDax->addNeighbor(2, series_t(nbr2Obs, nbr2Obs+N));
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
-    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(t0, Helpers::plusHour(t0, Ngap+1), 1234, 211);
+    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(Instrument(1234, 211, 0, 302, 0),
+                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap+1)));
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         EXPECT_FLOAT_EQ(1.0f, interpolated[i].value);
@@ -154,7 +153,8 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Linear)
     mDax->addNeighbor(2, series_t(nbr2Obs, nbr2Obs+N));
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
-    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(t0, Helpers::plusHour(t0, Ngap+1), 1234, 211);
+    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(Instrument(1234, 211, 0, 302, 0),
+                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap+1)));
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         EXPECT_FLOAT_EQ(i+4, interpolated[i].value);
@@ -176,7 +176,8 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Triangel)
     mDax->addNeighbor(2, series_t(nbr2Obs, nbr2Obs+N));
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
-    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(t0, Helpers::plusHour(t0, Ngap+1), 1234, 211);
+    Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(Instrument(1234, 211, 0, 302, 0),
+                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap+1)));
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         const float expected = (i==1) ? 4 : 3;
