@@ -107,20 +107,22 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     int lookback = maxRainInterrupt+minRainBeforeAndAfter;
     mSlidingAlarms.clear();
     const std::string slidingAlarms = params.getParameter<std::string>("sliding_alarms");
-    const std::vector<std::string> msa = Helpers::splitN(slidingAlarms, ";", true);
-    foreach(const std::string& length_max, msa) {
-        Helpers::split2_t l_m = Helpers::split2(length_max, "<", true);
-        const int length = atoi(l_m.first.c_str());
-        if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
-            throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
-        const float maxi = atof(l_m.second.c_str());
-        if( maxi <= 0.0f )
-            throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
-        mSlidingAlarms.push_back(SlidingAlarm(length, maxi));
-        if( lookback < length )
-            lookback = length;
+    if( !slidingAlarms.empty() ) {
+        const std::vector<std::string> msa = Helpers::splitN(slidingAlarms, ";", true);
+        foreach(const std::string& length_max, msa) {
+            Helpers::split2_t l_m = Helpers::split2(length_max, "<", true);
+            const int length = atoi(l_m.first.c_str());
+            if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
+                throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
+            const float maxi = atof(l_m.second.c_str());
+            if( maxi <= 0.0f )
+                throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
+            mSlidingAlarms.push_back(SlidingAlarm(length, maxi));
+            if( lookback < length )
+                lookback = length;
+        }
     }
-
+    
     UT0extended = params.UT0;
     UT0extended.addMin(-lookback);
 }

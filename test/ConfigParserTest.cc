@@ -58,7 +58,7 @@ TEST(ConfigParserTest, testParseErrors)
        << "=1" << std::endl
        << "hallo" << std::endl
        << "=bert=brot" << std::endl
-       << "wurm=" << std::endl
+       << "wurm=" << std::endl // empty value ok
        << "roger#=alles ok" << std::endl
        << "#bert=#vogelmann" << std::endl
        << "bert=#vogelmann#" << std::endl;
@@ -70,7 +70,7 @@ TEST(ConfigParserTest, testParseErrors)
     ASSERT_EQ( 1, c.get("bert").count() );
     ASSERT_EQ( "#vogelmann#", c.get("bert").convert<std::string>(0) );
 
-    ASSERT_EQ( 5, c.errors().size() );
+    ASSERT_EQ( 4, c.errors().size() );
 }
 
 // ------------------------------------------------------------------------
@@ -166,7 +166,7 @@ TEST(ConfigParserTest, ValueOnlyWS)
     io << "boa = "   << std::endl;
 
     ConfigParser c;
-    ASSERT_FALSE( c.load(io) );
+    ASSERT_TRUE( c.load(io) );
 }
 
 // ------------------------------------------------------------------------
