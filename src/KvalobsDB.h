@@ -31,7 +31,7 @@
 #define STANDARDDB_H_
 
 #include "DBInterface.h"
-#include <kvalobs/kvDbGate.h>
+#include "KvalobsDbGate.h"
 
 class Qc2App;
 
@@ -52,8 +52,7 @@ private:
     
 private:
     Qc2App& mApp;
-    dnmi::db::Connection* mConnection;
-    kvalobs::kvDbGate mDbGate;
+    KvalobsDbGate mDbGate;
 };
 
 #endif /* STANDARDDB_H_ */

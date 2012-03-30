@@ -75,6 +75,8 @@ libkvqc2d_a_SOURCES = \
 	Interpolator.h \
 	KvalobsDB.cc \
 	KvalobsDB.h \
+	KvalobsDbGate.cc \
+	KvalobsDbGate.h \
 	KvServicedBroadcaster.cc \
 	KvServicedBroadcaster.h \
 	LogfileNotifier.cc \

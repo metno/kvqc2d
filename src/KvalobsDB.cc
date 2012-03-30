@@ -37,7 +37,6 @@
 
 KvalobsDB::KvalobsDB(Qc2App& app)
     : mApp( app )
-    , mConnection(0)
 {
     connect();
 }
@@ -47,24 +46,26 @@ KvalobsDB::~KvalobsDB()
     disconnect();
 }
 
+template<class E, class I> KvalobsElemExtract<E, I>* kee(const E&, I i) { return new KvalobsElemExtract<E, I>(i); }
+
 void KvalobsDB::selectData(kvDataList_t& d, const std::string& where) throw (DBException)
 {
-    if( !mDbGate.select(d, where) )
-        throw DBException("Database problem with SELECT data " + where + ": " + mDbGate.getErrorStr());
+    std::auto_ptr<KvalobsDbExtract> extract(kee(kvalobs::kvData(), std::back_inserter(d)));
+    mDbGate.select(extract.get(), where);
 }
 
 void KvalobsDB::selectStations(kvStationList_t& s) throw (DBException)
 {
-    if( !mDbGate.select(s) )
-        throw DBException("Database problem with SELECT stations: " + mDbGate.getErrorStr());
+    std::auto_ptr<KvalobsDbExtract> extract(kee(kvalobs::kvStation(), std::back_inserter(s)));
+    mDbGate.select(extract.get(), "");
 }
 
 void KvalobsDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     const std::list<int> station(1, stationID);
     const std::string where = kvQueries::selectStationParam(station, time, qcx );
-    if( !mDbGate.select(s, where) )
-        throw DBException("Database problem with SELECT stationparam " + where);
+    std::auto_ptr<KvalobsDbExtract> extract(kee(kvalobs::kvStationParam(), std::back_inserter(s)));
+    mDbGate.select(extract.get(), "");
 }
 
 void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
@@ -80,14 +81,14 @@ void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toIn
         sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl;
-    if( !mDbGate.exec(sql.str()) ) {
-        std::string message = "Database problem with UPDATE/INSERT: " + mDbGate.getErrorStr()
-            + "; SQL statement = '" + sql.str() + "'";
-        if( !mDbGate.exec("ROLLBACK;") ) {
-            message += "; ROLLBACK also failed; trying to re-connect (timeout messages may appear before this message)";
-            connect();
+    try {
+        mDbGate.exec(sql.str());
+    } catch( dnmi::db::SQLException& ex ) {
+        try {
+            mDbGate.exec("ROLLBACK;");
+        } catch( dnmi::db::SQLException& rex ) {
         }
-        throw DBException(message);
+        connect();
     }
 }
 
@@ -98,12 +99,12 @@ DBInterface::reference_value_map_t KvalobsDB::selectStatisticalReferenceValues(i
 
 void KvalobsDB::connect()
 {
-    if( mConnection != 0 )
+    if( mDbGate.getConnection() != 0 )
         disconnect();
     while( !mApp.isShuttingDown() ) {
-        mConnection = mApp.getNewDbConnection();
-        if( mConnection ) {
-            mDbGate = kvalobs::kvDbGate(mConnection);
+        dnmi::db::Connection* c = mApp.getNewDbConnection();
+        if( c ) {
+            mDbGate.setConnection( c );
             break;
         }
         LOGINFO( "Cannot connect to database now, retry in 5 seconds." );
@@ -113,8 +114,9 @@ void KvalobsDB::connect()
 
 void KvalobsDB::disconnect()
 {
-    if( mConnection != 0 ) {
-        mApp.releaseDbConnection( mConnection );
-        mConnection = 0;
+    dnmi::db::Connection* c = mDbGate.getConnection();
+    if( c != 0 ) {
+        mApp.releaseDbConnection( c );
+        mDbGate.setConnection( 0 );
     }
 }
