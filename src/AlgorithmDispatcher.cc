@@ -43,22 +43,6 @@
 #include "Qc2App.h"
 
 #include <milog/milog.h>
-#include <kvalobs/kvDbGate.h>
-
-class DummyAlgorithm : public Qc2Algorithm {
-public:
-    DummyAlgorithm()
-        : Qc2Algorithm("Dummy") { }
-
-    virtual void configure(const AlgorithmConfig&) {
-        LOGINFO("Dummy algorithm configuration.");
-    }
-    virtual void run() {
-        LOGINFO("Dummy algorithm run.");
-    }
-};
-
-// ########################################################################
 
 AlgorithmDispatcher::AlgorithmDispatcher()
     : mBroadcaster(0), mDatabase(0), mNotifier(0)
@@ -69,7 +53,6 @@ AlgorithmDispatcher::AlgorithmDispatcher()
         new DipTestAlgorithm(),
 //        new GapInterpolationAlgorithm(),
         new PlumaticAlgorithm()
-//        new DummyAlgorithm()
     };
     const int N = sizeof(algorithms)/sizeof(algorithms[0]);
     for(int i=0; i<N; ++i) {
@@ -78,12 +61,16 @@ AlgorithmDispatcher::AlgorithmDispatcher()
     }
 }
 
+// ------------------------------------------------------------------------
+
 AlgorithmDispatcher::~AlgorithmDispatcher()
 {
-    foreach(algorithms_t::value_type algo, mAlgorithms) {
+    foreach(algorithms_t::value_type& algo, mAlgorithms) {
         delete algo.second;
     }
 }
+
+// ------------------------------------------------------------------------
 
 int AlgorithmDispatcher::select(const AlgorithmConfig& params)
 {
@@ -113,6 +100,8 @@ int AlgorithmDispatcher::select(const AlgorithmConfig& params)
     return 0;
 }
 
+// ------------------------------------------------------------------------
+
 void AlgorithmDispatcher::setBroadcaster(Broadcaster* b)
 {
     mBroadcaster = b;
@@ -120,12 +109,16 @@ void AlgorithmDispatcher::setBroadcaster(Broadcaster* b)
         a.second->setBroadcaster(b);
 }
 
+// ------------------------------------------------------------------------
+
 void AlgorithmDispatcher::setDatabase(DBInterface* db)
 {
     mDatabase = db;
     foreach(algorithms_t::value_type& a, mAlgorithms)
         a.second->setDatabase(db);
 }
+
+// ------------------------------------------------------------------------
 
 void AlgorithmDispatcher::setNotifier(Notifier* n)
 {
