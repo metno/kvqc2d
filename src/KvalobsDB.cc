@@ -29,6 +29,7 @@
 
 #include "KvalobsDB.h"
 
+#include "KvalobsElemExtract.h"
 #include "foreach.h"
 #include "Qc2App.h"
 
@@ -46,26 +47,24 @@ KvalobsDB::~KvalobsDB()
     disconnect();
 }
 
-template<class E, class I> KvalobsElemExtract<E, I>* kee(const E&, I i) { return new KvalobsElemExtract<E, I>(i); }
-
 void KvalobsDB::selectData(kvDataList_t& d, const std::string& where) throw (DBException)
 {
-    std::auto_ptr<KvalobsDbExtract> extract(kee(kvalobs::kvData(), std::back_inserter(d)));
-    mDbGate.select(extract.get(), where);
+    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
+    mDbGate.select(extract.get(), kvalobs::kvData().selectAllQuery() + " " + where);
 }
 
 void KvalobsDB::selectStations(kvStationList_t& s) throw (DBException)
 {
-    std::auto_ptr<KvalobsDbExtract> extract(kee(kvalobs::kvStation(), std::back_inserter(s)));
-    mDbGate.select(extract.get(), "");
+    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
+    mDbGate.select(extract.get(), kvalobs::kvStation().selectAllQuery());
 }
 
 void KvalobsDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
     const std::list<int> station(1, stationID);
     const std::string where = kvQueries::selectStationParam(station, time, qcx );
-    std::auto_ptr<KvalobsDbExtract> extract(kee(kvalobs::kvStationParam(), std::back_inserter(s)));
-    mDbGate.select(extract.get(), "");
+    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
+    mDbGate.select(extract.get(), kvalobs::kvStationParam().selectAllQuery());
 }
 
 void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
@@ -84,17 +83,48 @@ void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toIn
     try {
         mDbGate.exec(sql.str());
     } catch( dnmi::db::SQLException& ex ) {
+        LOGERROR("Problem while storing data, SQL='" + sql.str() + "'; exception=" + ex.what() + "; trying rollback");
         try {
             mDbGate.exec("ROLLBACK;");
         } catch( dnmi::db::SQLException& rex ) {
+            LOGERROR("Rollback failed after problem wit SQL='" + sql.str() + "'; exception=" + ex.what());
         }
         connect();
     }
 }
 
+struct ExtractReferenceValue : public KvalobsDbExtract {
+    ExtractReferenceValue(DBInterface::reference_value_map_t& rvm, float missingValue)
+        : mRVM(rvm), mMissingValue(missingValue) { }
+
+    void extractFromRow(const dnmi::db::DRow& row);
+
+private:
+    DBInterface::reference_value_map_t& mRVM;
+    float mMissingValue;
+};
+
+void ExtractReferenceValue::extractFromRow(const dnmi::db::DRow& row)
+{
+    dnmi::db::CIDRow col = row.begin();
+    const int stationid   = std::atoi((*col++).c_str());
+    const int day_of_year = std::atoi((*col++).c_str());
+    const float value     = std::atof((*col++).c_str());
+    if( mRVM.find(stationid) == mRVM.end() )
+        mRVM[stationid] = DBInterface::reference_values_t(365, mMissingValue);
+    if( day_of_year >= 1 && day_of_year <= 365 )
+        mRVM[stationid][day_of_year-1] = value;
+}
+
 DBInterface::reference_value_map_t KvalobsDB::selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue)
 {
-    return DBInterface::reference_value_map_t();
+    DBInterface::reference_value_map_t rvm;
+    std::auto_ptr<KvalobsDbExtract> extract(new ExtractReferenceValue(rvm, missingValue));
+    std::ostringstream sql;
+    sql << "SELECT stationid, day_of_year, value FROM statistical_reference_values"
+        << " WHERE paramid = " << paramid << " AND key = '" << key << "'";
+    mDbGate.select(extract.get(), sql.str());
+    return rvm;
 }
 
 void KvalobsDB::connect()
@@ -116,7 +146,7 @@ void KvalobsDB::disconnect()
 {
     dnmi::db::Connection* c = mDbGate.getConnection();
     if( c != 0 ) {
-        mApp.releaseDbConnection( c );
         mDbGate.setConnection( 0 );
+        mApp.releaseDbConnection( c );
     }
 }

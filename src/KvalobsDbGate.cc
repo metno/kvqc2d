@@ -136,8 +136,10 @@ void KvalobsDbGate::select(KvalobsDbExtract* extract, const std::string& query)
 {
     checkConnection();
     std::auto_ptr<dnmi::db::Result> results(retryWhileBusy<dnmi::db::Result*>(mBusyTimeout, boost::bind(&Connection_t::execQuery, mConnection, query)));
-    while (results->hasNext())
-        extract->extractFromRow(retryWhileBusy<const dnmi::db::DRow&>(mBusyTimeout, boost::bind(&dnmi::db::Result::next, results.get())));
+    if( extract != 0 ) {
+        while (results->hasNext())
+            extract->extractFromRow(retryWhileBusy<const dnmi::db::DRow&>(mBusyTimeout, boost::bind(&dnmi::db::Result::next, results.get())));
+    }
 }
 
 // ------------------------------------------------------------------------

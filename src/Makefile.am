@@ -77,6 +77,7 @@ libkvqc2d_a_SOURCES = \
 	KvalobsDB.h \
 	KvalobsDbGate.cc \
 	KvalobsDbGate.h \
+	KvalobsElemExtract.h \
 	KvServicedBroadcaster.cc \
 	KvServicedBroadcaster.h \
 	LogfileNotifier.cc \

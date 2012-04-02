@@ -43,21 +43,6 @@ public:
 
 // ========================================================================
 
-template<class Elem, class Iterator>
-class KvalobsElemExtract : public KvalobsDbExtract {
-public:
-    KvalobsElemExtract(Iterator push)
-        : mPush(push) { }
-    
-    void extractFromRow(const dnmi::db::DRow& row)
-        { *mPush++ = Elem(row); }
-
-private:
-    Iterator mPush;
-};
-
-// ========================================================================
-
 class KvalobsDbGate  {
 public:
     typedef dnmi::db::Connection Connection_t;
