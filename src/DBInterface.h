@@ -31,10 +31,12 @@
 #define DBINTERFACE_H_
 
 #include <kvalobs/kvData.h>
+#include <kvalobs/kvModelData.h>
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
 
 #include "DBConstraintsBase.h"
+#include "CorrelatedNeighborInterpolator.h"
 
 #include <exception>
 
@@ -55,6 +57,7 @@ public:
     typedef std::list<kvalobs::kvStationParam> kvStationParamList_t;
     typedef std::list<int> kvStationIDList_t;
     typedef std::list<kvalobs::kvStation> kvStationList_t;
+    typedef std::list<kvalobs::kvModelData> kvModelDataList_t;
 
     virtual void selectData(kvDataList_t&, const std::string& where) throw (DBException) = 0;
 
@@ -69,6 +72,10 @@ public:
     typedef std::vector<float> reference_values_t;
     typedef std::map<int, reference_values_t> reference_value_map_t;
     virtual reference_value_map_t selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) = 0;
+
+    virtual CorrelatedNeighbors::neighbors_t selectNeighborData(int stationid, int paramid) = 0;
+
+    virtual void selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time) = 0;
 
     /**
      * Update and insert data.

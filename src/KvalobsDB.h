@@ -45,6 +45,8 @@ public:
     virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
     virtual reference_value_map_t selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue);
+    virtual CorrelatedNeighbors::neighbors_t selectNeighborData(int stationid, int paramid);
+    virtual void selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time);
 
 private:
     void connect();

@@ -51,6 +51,8 @@ public:
     virtual void selectStations(kvStationList_t&) throw (DBException);
     virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
     virtual reference_value_map_t selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue);
+    virtual CorrelatedNeighbors::neighbors_t selectNeighborData(int stationid, int paramid);
+    virtual void selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time);
 
     // test helpers
     void exec(const std::string& statement) throw (DBException);

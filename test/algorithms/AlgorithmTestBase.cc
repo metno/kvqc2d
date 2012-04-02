@@ -164,6 +164,22 @@ SqliteTestDB::SqliteTestDB()
         "day_of_year INTEGER NOT NULL, "
         "key         TEXT NOT NULL, "
         "value       FLOAT NOT NULL);");
+
+    exec("CREATE TABLE interpolation_best_neighbors ("
+         "stationid   INTEGER NOT NULL, "
+         "neighborid  INTEGER NOT NULL, "
+         "paramid     INTEGER NOT NULL, "
+         "offset      FLOAT NOT NULL, "
+         "slope       FLOAT NOT NULL, "
+         "sigma       FLOAT NOT NULL);");
+    
+    exec("CREATE TABLE model_data ("
+         "stationid INTEGER   NOT NULL, "
+         "obstime   TIMESTAMP NOT NULL, "
+         "paramid   INTEGER   NOT NULL, "
+         "level     INTEGER   NOT NULL, "
+         "modelid   INTEGER   NOT NULL, "
+         "original  DOUBLE);");
 }
 
 // ------------------------------------------------------------------------
@@ -357,6 +373,55 @@ DBInterface::reference_value_map_t SqliteTestDB::selectStatisticalReferenceValue
     }
     finalize_statement(stmt, step);
     return rvm;
+}
+
+// ------------------------------------------------------------------------
+
+void SqliteTestDB::selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time)
+{
+    modelData.clear();
+    std::ostringstream sql;
+    sql << kvalobs::kvModelData().selectAllQuery()
+        << " WHERE stationid = " << stationid << " AND paramid = " << paramid << " AND level = " << level
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'";
+    sqlite3_stmt *stmt = prepare_statement(sql.str());
+    int step;
+    while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
+        int col = 0;
+
+        const int stationid = sqlite3_column_int(stmt, col++);
+	const miutil::miTime obstime((const char*)(sqlite3_column_text(stmt, col++)));
+        const int paramid = sqlite3_column_int(stmt, col++);
+        const int level = sqlite3_column_int(stmt, col++);
+        const int modelid = sqlite3_column_int(stmt, col++);
+        const float original = sqlite3_column_double(stmt, col++);
+        modelData.push_back(kvalobs::kvModelData(stationid, obstime, paramid, level, modelid, original));
+    }
+    finalize_statement(stmt, step);
+}
+
+// ------------------------------------------------------------------------
+
+CorrelatedNeighbors::neighbors_t SqliteTestDB::selectNeighborData(int stationid, int paramid)
+{
+    std::ostringstream sql;
+    sql << "SELECT neighborid, offset, slope, sigma FROM interpolation_best_neighbors"
+        << " WHERE stationid = " << stationid << " AND paramid = " << paramid;
+    sqlite3_stmt *stmt = prepare_statement(sql.str());
+
+    CorrelatedNeighbors::neighbors_t neighbors;
+
+    int step;
+    while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
+        int col = 0;
+        const int neighborid = sqlite3_column_int(stmt, col++);
+        const float offset   = sqlite3_column_double(stmt, col++);
+        const float slope    = sqlite3_column_double(stmt, col++);
+        const float sigma    = sqlite3_column_double(stmt, col++);
+        neighbors.push_back(CorrelatedNeighbors::NeighborData(neighborid, offset, slope, sigma));
+    }
+    finalize_statement(stmt, step);
+    return neighbors;
 }
 
 // ------------------------------------------------------------------------

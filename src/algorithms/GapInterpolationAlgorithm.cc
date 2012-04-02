@@ -83,36 +83,31 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
 
 const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
 {
-    return std::vector<float>(t.hours()+1, -32767.0f);
+    DBInterface::kvModelDataList_t modelData;
+    mDB->selectModelData(modelData, instrument.stationid, instrument.paramid, instrument.level, t);
+
+    miutil::miTime tt = t.t0;
+    std::vector<float> series;
+    foreach(const kvalobs::kvModelData& d, modelData) {
+        while( tt < d.obstime() && tt <= t.t1 ) {
+            series.push_back(-32767.0f);
+            tt.addHour(1);
+        }
+        DBG("obstime = " << d.obstime() << " tt=" << tt);
+        if( d.obstime() == tt ) {
+            DBG("station=" << d.stationID() << " t=" << tt << " orig=" << d.original());
+            series.push_back(d.original());
+            tt.addHour(1);
+        }
+    }
+    for( ; tt < t.t1; tt.addHour(1) )
+        series.push_back(-32767.0f);
+    return series;
 }
 
 const CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
-    CorrelatedNeighbors::neighbors_t neighbors;
-    if( instrument.stationid == 18700 and instrument.paramid == 211 ) {
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(18210,  0.359377,  0.936164, 0.837205));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(18230,  0.432384,  0.946009, 0.890819));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData( 4780,  1.82088,   0.949237, 1.15107 ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(17850,  1.07924,   0.974772, 1.356   ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(26990,  0.682128,  0.971464, 1.38741 ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(18500,  2.65349,   0.979765, 1.40503 ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(20301,  1.57686,   0.917686, 1.40677 ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData( 4200,  1.58401,   0.921502, 1.46844 ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData( 4460,  2.0924,    0.928709, 1.51339 ));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(17150, -0.0143439, 1.00587,  1.53928 ));
-    } else if( instrument.stationid == 69150 and instrument.paramid == 211 ) {
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(69100, -0.0739351, 0.999815, 0.774052));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(68860,  0.0443254, 1.02678,  1.29483));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(69655, -1.04465,   1.06465,  1.32951));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(68290,  1.1234,    0.941565, 1.37513));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(69380,  1.67007,   0.907408, 1.46907));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(68130,  0.230591,  1.04775,  1.47233));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(70991,  1.08758,   0.923029, 1.72307));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(70990,  1.00074,   0.892268, 1.76754));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(67280,  2.04537,   0.926591, 1.86768));
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(71000,  1.09259,   0.932182, 1.87565));
-    }
-    return neighbors;
+    return mDB->selectNeighborData(instrument.stationid, instrument.paramid);
 }
 
 // ========================================================================

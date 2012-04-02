@@ -49,18 +49,21 @@ KvalobsDB::~KvalobsDB()
 
 void KvalobsDB::selectData(kvDataList_t& d, const std::string& where) throw (DBException)
 {
+    d.clear();
     std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
     mDbGate.select(extract.get(), kvalobs::kvData().selectAllQuery() + " " + where);
 }
 
 void KvalobsDB::selectStations(kvStationList_t& s) throw (DBException)
 {
+    s.clear();
     std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
     mDbGate.select(extract.get(), kvalobs::kvStation().selectAllQuery());
 }
 
 void KvalobsDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
+    s.clear();
     const std::list<int> station(1, stationID);
     const std::string where = kvQueries::selectStationParam(station, time, qcx );
     std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
@@ -93,6 +96,10 @@ void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toIn
     }
 }
 
+// ------------------------------------------------------------------------
+
+namespace {
+
 struct ExtractReferenceValue : public KvalobsDbExtract {
     ExtractReferenceValue(DBInterface::reference_value_map_t& rvm, float missingValue)
         : mRVM(rvm), mMissingValue(missingValue) { }
@@ -116,6 +123,8 @@ void ExtractReferenceValue::extractFromRow(const dnmi::db::DRow& row)
         mRVM[stationid][day_of_year-1] = value;
 }
 
+} // anonymous namespace
+
 DBInterface::reference_value_map_t KvalobsDB::selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue)
 {
     DBInterface::reference_value_map_t rvm;
@@ -126,6 +135,59 @@ DBInterface::reference_value_map_t KvalobsDB::selectStatisticalReferenceValues(i
     mDbGate.select(extract.get(), sql.str());
     return rvm;
 }
+
+// ------------------------------------------------------------------------
+
+namespace {
+
+struct ExtractNeighborData : public KvalobsDbExtract {
+    ExtractNeighborData(CorrelatedNeighbors::neighbors_t& neighbors)
+        : mNeighbors(neighbors) { }
+
+    void extractFromRow(const dnmi::db::DRow& row);
+
+private:
+    CorrelatedNeighbors::neighbors_t& mNeighbors;
+};
+
+void ExtractNeighborData::extractFromRow(const dnmi::db::DRow& row)
+{
+    dnmi::db::CIDRow col = row.begin();
+    const int neighborid = std::atoi((*col++).c_str());
+    const float offset   = std::atof((*col++).c_str());
+    const float slope    = std::atof((*col++).c_str());
+    const float sigma    = std::atof((*col++).c_str());
+
+    mNeighbors.push_back(CorrelatedNeighbors::NeighborData(neighborid, offset, slope, sigma));
+}
+
+} // anonymous namespace
+
+CorrelatedNeighbors::neighbors_t KvalobsDB::selectNeighborData(int stationid, int paramid)
+{
+    CorrelatedNeighbors::neighbors_t neighbors;
+    std::auto_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
+    std::ostringstream sql;
+    sql << "SELECT neighborid, offset, slope, sigma FROM interpolation_best_neighbors"
+        << " WHERE stationid = " << stationid << " AND paramid = " << paramid;
+    mDbGate.select(extract.get(), sql.str());
+    return neighbors;
+}
+
+// ------------------------------------------------------------------------
+
+void KvalobsDB::selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time)
+{
+    modelData.clear();
+    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvModelData>(std::back_inserter(modelData)));
+    std::ostringstream sql;
+    sql << kvalobs::kvModelData().selectAllQuery()
+        << " WHERE stationid = " << stationid << " AND paramid = " << paramid << " AND level = " << level
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'";
+    mDbGate.select(extract.get(), sql.str());
+}
+
+// ------------------------------------------------------------------------
 
 void KvalobsDB::connect()
 {
