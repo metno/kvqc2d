@@ -12,7 +12,7 @@ double Akima::interpolate(double x) const
     std::vector<double>::const_iterator iX1 = std::lower_bound(mX.begin(), mX.end(), x);
     if( iX1 == mX.end() )
         return -99999999;
-    const int i = std::max(0, iX1 - mX.begin() - 1);
+    const int i = std::max(0, static_cast<int>(iX1 - mX.begin() - 1));
     if( i >= N )
         return -99999999;
     if( x < mX[i] || x > mX[i+1] ) {
