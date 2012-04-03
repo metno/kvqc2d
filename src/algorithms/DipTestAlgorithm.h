@@ -4,6 +4,7 @@
 #define DipTestAlgorithm_H 1
 
 #include "Qc2Algorithm.h"
+#include "DBInterface.h"
 
 /**
  * See https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:requirements:algorithms:diptest03
@@ -25,7 +26,7 @@ private:
 
 private:
     std::map<int, float> PidValMap;
-    std::list<int> StationIds;
+    DBInterface::StationIDList mStationIDs;
     FlagSetCU akima_flags, candidate_flags, dip_before_flags, dip_after_flags, message_before_flags, message_after_flags;
     FlagChange dip_flagchange, afterdip_flagchange;
 };

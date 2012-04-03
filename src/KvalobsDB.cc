@@ -33,8 +33,10 @@
 #include "foreach.h"
 #include "Qc2App.h"
 
-#include <kvalobs/kvQueries.h>
 #include <milog/milog.h>
+
+#include <iterator>
+#include <memory>
 
 KvalobsDB::KvalobsDB(Qc2App& app)
     : mApp( app )
@@ -42,58 +44,66 @@ KvalobsDB::KvalobsDB(Qc2App& app)
     connect();
 }
 
+// ------------------------------------------------------------------------
+
 KvalobsDB::~KvalobsDB()
 {
     disconnect();
 }
 
-void KvalobsDB::selectData(kvDataList_t& d, const std::string& where) throw (DBException)
-{
-    d.clear();
-    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
-    mDbGate.select(extract.get(), kvalobs::kvData().selectAllQuery() + " " + where);
-}
+// ------------------------------------------------------------------------
 
-void KvalobsDB::selectStations(kvStationList_t& s) throw (DBException)
+DBInterface::StationList KvalobsDB::extractStations(const std::string& sql) throw (DBException)
 {
-    s.clear();
+    DBInterface::StationList s;
     std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
-    mDbGate.select(extract.get(), kvalobs::kvStation().selectAllQuery());
+    mDbGate.select(extract.get(), sql);
+    return s;
 }
 
-void KvalobsDB::selectStationparams(kvStationParamList_t& s, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
+// ------------------------------------------------------------------------
+
+namespace {
+
+class ExtractStationIDs : public KvalobsDbExtract {
+public:
+    void extractFromRow(const dnmi::db::DRow& row)
+        { mStationIds.push_back(std::atoi(row.begin()->c_str())); }
+
+    DBInterface::StationIDList& ids()
+        { return mStationIds; }
+
+private:
+    DBInterface::StationIDList mStationIds;
+};
+
+} // anonymous namespace
+
+DBInterface::StationIDList KvalobsDB::extractStationIDs(const std::string& sql) throw (DBException)
 {
-    s.clear();
-    const std::list<int> station(1, stationID);
-    const std::string where = kvQueries::selectStationParam(station, time, qcx );
+    std::auto_ptr<ExtractStationIDs> extract(new ExtractStationIDs());
+    mDbGate.select(extract.get(), sql);
+    return extract->ids();
+}
+
+// ------------------------------------------------------------------------
+
+DBInterface::StationParamList KvalobsDB::extractStationParams(const std::string& sql) throw (DBException)
+{
+    StationParamList s;
     std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
-    mDbGate.select(extract.get(), kvalobs::kvStationParam().selectAllQuery());
+    mDbGate.select(extract.get(), sql);
+    return s;
 }
 
-void KvalobsDB::storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException)
+// ------------------------------------------------------------------------
+
+DBInterface::DataList KvalobsDB::extractData(const std::string& sql) throw (DBException)
 {
-    if( toUpdate.empty() && toInsert.empty() )
-        return;
-    std::ostringstream sql;
-    if( (toUpdate.size() + toInsert.size()) > 1 )
-        sql << "BEGIN; ";
-    foreach(const kvalobs::kvData& i, toInsert)
-        sql << "INSERT INTO " << i.tableName() << " VALUES" << i.toSend() << "; ";
-    foreach(const kvalobs::kvData& u, toUpdate)
-        sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
-    if( (toUpdate.size() + toInsert.size()) > 1 )
-        sql << "COMMIT; " << std::endl;
-    try {
-        mDbGate.exec(sql.str());
-    } catch( dnmi::db::SQLException& ex ) {
-        LOGERROR("Problem while storing data, SQL='" + sql.str() + "'; exception=" + ex.what() + "; trying rollback");
-        try {
-            mDbGate.exec("ROLLBACK;");
-        } catch( dnmi::db::SQLException& rex ) {
-            LOGERROR("Rollback failed after problem wit SQL='" + sql.str() + "'; exception=" + ex.what());
-        }
-        connect();
-    }
+    DataList d;
+    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
+    mDbGate.select(extract.get(), sql);
+    return d;
 }
 
 // ------------------------------------------------------------------------
@@ -125,14 +135,11 @@ void ExtractReferenceValue::extractFromRow(const dnmi::db::DRow& row)
 
 } // anonymous namespace
 
-DBInterface::reference_value_map_t KvalobsDB::selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue)
+DBInterface::reference_value_map_t KvalobsDB::extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException)
 {
     DBInterface::reference_value_map_t rvm;
     std::auto_ptr<KvalobsDbExtract> extract(new ExtractReferenceValue(rvm, missingValue));
-    std::ostringstream sql;
-    sql << "SELECT stationid, day_of_year, value FROM statistical_reference_values"
-        << " WHERE paramid = " << paramid << " AND key = '" << key << "'";
-    mDbGate.select(extract.get(), sql.str());
+    mDbGate.select(extract.get(), sql);
     return rvm;
 }
 
@@ -163,28 +170,39 @@ void ExtractNeighborData::extractFromRow(const dnmi::db::DRow& row)
 
 } // anonymous namespace
 
-CorrelatedNeighbors::neighbors_t KvalobsDB::selectNeighborData(int stationid, int paramid)
+CorrelatedNeighbors::neighbors_t KvalobsDB::extractNeighborData(const std::string& sql) throw (DBException)
 {
     CorrelatedNeighbors::neighbors_t neighbors;
     std::auto_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
-    std::ostringstream sql;
-    sql << "SELECT neighborid, offset, slope, sigma FROM interpolation_best_neighbors"
-        << " WHERE stationid = " << stationid << " AND paramid = " << paramid;
-    mDbGate.select(extract.get(), sql.str());
+    mDbGate.select(extract.get(), sql);
     return neighbors;
 }
 
 // ------------------------------------------------------------------------
 
-void KvalobsDB::selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time)
+DBInterface::ModelDataList KvalobsDB::extractModelData(const std::string& sql) throw (DBException)
 {
-    modelData.clear();
+    ModelDataList modelData;
     std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvModelData>(std::back_inserter(modelData)));
-    std::ostringstream sql;
-    sql << kvalobs::kvModelData().selectAllQuery()
-        << " WHERE stationid = " << stationid << " AND paramid = " << paramid << " AND level = " << level
-        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'";
-    mDbGate.select(extract.get(), sql.str());
+    mDbGate.select(extract.get(), sql);
+    return modelData;
+}
+
+// ------------------------------------------------------------------------
+
+void KvalobsDB::execSQLUpdate(const std::string& sql) throw (DBException)
+{
+    try {
+        mDbGate.exec(sql);
+    } catch( dnmi::db::SQLException& ex ) {
+        LOGERROR("Problem in update, SQL='" + sql + "'; exception=" + ex.what() + "; trying rollback");
+        try {
+            mDbGate.exec("ROLLBACK;");
+        } catch( dnmi::db::SQLException& rex ) {
+            LOGERROR("Rollback failed after problem wit SQL='" + sql + "'; exception=" + ex.what());
+        }
+        connect();
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -203,6 +221,8 @@ void KvalobsDB::connect()
         sleep( 5 );
     }
 }
+
+// ------------------------------------------------------------------------
 
 void KvalobsDB::disconnect()
 {

@@ -52,10 +52,8 @@ libkvqc2d_a_SOURCES = \
 	ConfigParser.h \
 	CorrelatedNeighborInterpolator.cc \
 	CorrelatedNeighborInterpolator.h \
-	DBConstraintsBase.h \
-	DBConstraints.cc \
-	DBConstraints.h \
-	DBInterface.cc \
+	DataAccessSQLQueries.cc \
+	DataAccessSQLQueries.h \
 	DBInterface.h \
 	debug.h \
 	FlagChange.cc \
@@ -84,6 +82,8 @@ libkvqc2d_a_SOURCES = \
 	LogfileNotifier.h \
 	Notifier.cc \
 	Notifier.h \
+	SQLDataAccess.cc \
+	SQLDataAccess.h \
 	Qc2Algorithm.cc \
 	Qc2Algorithm.h \
 	Qc2App.cc \

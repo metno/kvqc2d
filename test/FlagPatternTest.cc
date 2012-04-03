@@ -163,18 +163,18 @@ TEST_F(FlagPatternTest, SQLquery)
     std::list<kvalobs::kvData> series;
 
     const std::string sql1 = FlagPattern().permit(f_fd, 2).permit(f_fd, 3).permit(f_fhqc, 0).sql(true);
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql1)) << "sql='" << sql1 << "'";
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE " + sql1)) << "sql='" << sql1 << "'";
     EXPECT_EQ(4, series.size()) << "sql='" << sql1 << "'";
 
     const std::string sql2 = FlagPattern().sql(true);
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql2)) << "sql='" << sql2 << "'";
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE " + sql2)) << "sql='" << sql2 << "'";
     EXPECT_EQ(10, series.size()) << "sql='" << sql2 << "'";
 
     const std::string sql3 = FlagPattern().forbid(f_fcc, 4).sql(true);
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql3)) << "sql='" << sql3 << "'";
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE " + sql3)) << "sql='" << sql3 << "'";
     EXPECT_EQ(5, series.size()) << "sql='" << sql3 << "'";
 
     const std::string sql4 = FlagPattern().permit(f_fcc, 1).sql(true);
-    ASSERT_NO_THROW(db->selectData(series, "WHERE " + sql4)) << "sql='" << sql4 << "'";
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE " + sql4)) << "sql='" << sql4 << "'";
     EXPECT_EQ(1, series.size()) << "sql='" << sql4 << "'";
 }

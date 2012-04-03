@@ -4,13 +4,13 @@
 #define Qc2Algorithm_H
 
 #include "AlgorithmConfig.h"
+#include "DBInterface.h"
 #include "Notifier.h"
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvData.h>
 #include <list>
 
 class Broadcaster;
-class DBInterface;
 
 // #######################################################################
 
@@ -57,12 +57,12 @@ public:
     Message error()
         { return Message(Message::ERROR, mNotifier); }
 
-    void fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList);
-    void fillStationIDList(std::list<int>& idList);
+    void fillStationLists(DBInterface::StationList& stations, DBInterface::StationIDList& idList);
+    void fillStationIDList(DBInterface::StationIDList& idList);
 
 protected:
     void updateSingle(const kvalobs::kvData& update);
-    void storeData(const std::list<kvalobs::kvData>& toUpdate, const std::list<kvalobs::kvData>& toInsert = std::list<kvalobs::kvData>());
+    void storeData(const DBInterface::DataList& toUpdate, const DBInterface::DataList& toInsert = DBInterface::DataList());
 
 protected:
     miutil::miTime UT0, UT1;

@@ -30,12 +30,8 @@
 #include "NeighborsDistance2.h"
 
 #include "AlgorithmHelpers.h"
-#include "DBConstraints.h"
 #include "AlgorithmConfig.h"
 #include "foreach.h"
-
-namespace C = Constraint;
-namespace O = Ordering;
 
 // ------------------------------------------------------------------------
 

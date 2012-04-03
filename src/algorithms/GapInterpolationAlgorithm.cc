@@ -30,15 +30,11 @@
 #include "GapInterpolationAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
-#include "DBConstraints.h"
 #include "DBInterface.h"
 #include "foreach.h"
 
 #define NDEBUG 1
 #include "debug.h"
-
-namespace C = Constraint;
-namespace O = Ordering;
 
 const std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
 {
@@ -46,20 +42,20 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
     neighbor_flags.setC(FlagPatterns("fmis=0", FlagPattern::CONTROLINFO));
     neighbor_flags.setU(FlagPatterns("U0=[37]&U2=0", FlagPattern::USEINFO));
 
-    C::DBConstraint c = C::Station(instrument.stationid)
-        && C::Paramid(instrument.paramid)
-        && C::ControlUseinfo(neighbor_flags)
-        && C::Obstime(t.t0, t.t1);
-    if( instrument.type >= 0 )
-        c = c && C::Typeid(instrument.type);
-    if( instrument.sensor >= 0 )
-        c = c && C::Sensor(instrument.sensor);
-    if( instrument.level >= 0 )
-        c = c && C::Sensor(instrument.level);
-    DBGV(c.sql());
+    // C::DBConstraint c = C::Station(instrument.stationid)
+    //     && C::Paramid(instrument.paramid)
+    //     && C::ControlUseinfo(neighbor_flags)
+    //     && C::Obstime(t.t0, t.t1);
+    // if( instrument.type >= 0 )
+    //     c = c && C::Typeid(instrument.type);
+    // if( instrument.sensor >= 0 )
+    //     c = c && C::Sensor(instrument.sensor);
+    // if( instrument.level >= 0 )
+    //     c = c && C::Sensor(instrument.level);
+    // DBGV(c.sql());
 
-    std::list<kvalobs::kvData> obs;
-    mDB->selectData(obs, c, O::Obstime().asc());
+    const DBInterface::DataList obs
+        = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type, instrument.sensor, instrument.level, t, neighbor_flags);
     DBGV(obs.size());
     
     miutil::miTime tt = t.t0;
@@ -83,8 +79,8 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
 
 const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
 {
-    DBInterface::kvModelDataList_t modelData;
-    mDB->selectModelData(modelData, instrument.stationid, instrument.paramid, instrument.level, t);
+    const DBInterface::ModelDataList modelData
+        = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
 
     miutil::miTime tt = t.t0;
     std::vector<float> series;
@@ -107,7 +103,7 @@ const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& inst
 
 const CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
-    return mDB->selectNeighborData(instrument.stationid, instrument.paramid);
+    return mDB->findNeighborData(instrument.stationid, instrument.paramid);
 }
 
 // ========================================================================
@@ -138,20 +134,21 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 void GapInterpolationAlgorithm::run()
 {
     mDataAccess->setDatabase(database());
-    std::list<kvalobs::kvStation> StationList;
-    std::list<int> StationIds;
+    DBInterface::StationList StationList;
+    DBInterface::StationIDList StationIds;
     fillStationLists(StationList, StationIds);
     DBGV(StationIds.size());
 
-    const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tids)
-                                      && C::Obstime(UT0, UT1) && C::Sensor(0) && C::Level(0)
-                                      && C::ControlUseinfo(missing_flags) );
+    // const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tids)
+    //                                   && C::Obstime(UT0, UT1) && C::Sensor(0) && C::Level(0)
+    //                                   && C::ControlUseinfo(missing_flags) );
     
     foreach(const kvalobs::kvStation& station, StationList) {
-        std::list<kvalobs::kvData> missingData;
-        const C::DBConstraint cStation = C::Station(station.stationID()) && cGeneral;
-        DBGV(cStation.sql());
-        database()->selectData(missingData, cStation, O::Obstime().asc());
+        
+        // const C::DBConstraint cStation = C::Station(station.stationID()) && cGeneral;
+        // DBGV(cStation.sql());
+        const DBInterface::DataList missingData
+            = database()->findDataOrderObstime(station.stationID(), pids, tids, 0, 0, TimeRange(UT0, UT1), missing_flags);
         DBGV(missingData.size());
 
         if( missingData.empty() )

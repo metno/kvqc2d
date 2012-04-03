@@ -20,10 +20,9 @@ Qc2Algorithm::~Qc2Algorithm()
 {
 }
 
-void Qc2Algorithm::fillStationLists(std::list<kvalobs::kvStation>& stations, std::list<int>& idList)
+void Qc2Algorithm::fillStationLists(DBInterface::StationList& stations, DBInterface::StationIDList& idList)
 {
-    // TODO this list is not updated very often; maybe cache the results somewhere else
-    Helpers::GetNorwegianFixedStations(mDatabase, stations);
+    stations = mDatabase->findNorwegianFixedStations();
 
     idList.clear();
     foreach(const kvalobs::kvStation& s, stations) {
@@ -39,11 +38,11 @@ void Qc2Algorithm::fillStationIDList(std::list<int>& idList)
 
 void Qc2Algorithm::updateSingle(const kvalobs::kvData& update)
 {
-    const std::list<kvalobs::kvData> toUpdate(1, update);
+    const DBInterface::DataList toUpdate(1, update);
     storeData(toUpdate);
 }
 
-void Qc2Algorithm::storeData(const std::list<kvalobs::kvData>& toUpdate, const std::list<kvalobs::kvData>& toInsert)
+void Qc2Algorithm::storeData(const DBInterface::DataList& toUpdate, const DBInterface::DataList& toInsert)
 {
     database()->storeData(toUpdate, toInsert);
     foreach(const kvalobs::kvData& i, toInsert) {

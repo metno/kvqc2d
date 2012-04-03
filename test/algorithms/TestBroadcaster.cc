@@ -27,22 +27,36 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "AlgorithmTestBase.h"
-#include "AlgorithmHelpers.h"
+#include "TestBroadcaster.h"
 
-class AlgorithmHelpersTest : public AlgorithmTestBase {
-};
+TestBroadcaster::TestBroadcaster()
+{ }
 
-#if 0
-TEST_F(AlgorithmHelpersTest, testGetNorwegianFixedStations)
+void TestBroadcaster::queueChanged(const kvalobs::kvData& d)
 {
-    std::ostringstream sql;
-    sql << "INSERT INTO station VALUES (180, 61.2944, 12.2719, 360, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, '', '', '', 8, 1, '1993-11-10 00:00:00');";
-    ASSERT_NO_THROW(db->exec(sql.str()));
-
-    std::list<kvalobs::kvStation> stations;
-    Helpers::GetNorwegianFixedStations(db, stations);
-    ASSERT_EQ(1, stations.size());
-    ASSERT_EQ(180, stations.begin()->stationID());
+    mUpdates.push_back(d);
 }
-#endif
+
+void TestBroadcaster::sendChanges()
+{
+}
+
+int TestBroadcaster::count() const
+{
+    return mUpdates.size();
+}
+
+void TestBroadcaster::clear()
+{
+    mUpdates.clear();
+}
+
+const TestBroadcaster::updates_t& TestBroadcaster::updates() const
+{
+    return mUpdates;
+}
+
+const kvalobs::kvData& TestBroadcaster::update(int i) const
+{
+    return mUpdates[i];
+}

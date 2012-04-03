@@ -53,27 +53,6 @@ void updateUseInfo(kvalobs::kvData& data)
     data.useinfo( ui );
 }
 
-void GetNorwegianFixedStations(DBInterface* db, std::list<kvalobs::kvStation>& stations)
-{
-    std::list<kvalobs::kvStation> tempStations;
-    GetAllStations(db, tempStations);
-
-    // Make Qc2 specific selection on the StationList here
-    // Only use stations less than 100000 i.e. only Norwegian stations
-    // Also remove stations that are moving, e.g. ships.
-    stations.clear();
-    foreach( const kvalobs::kvStation& s, tempStations ) {
-        if( s.stationID() >= 60 && s.stationID() <= 99999 &&  s.maxspeed()==0.0 )
-            stations.push_back(s);
-    }
-}
-
-void GetAllStations(DBInterface* db, std::list<kvalobs::kvStation>& stations)
-{
-    stations.clear();
-    db->selectStations( stations );
-}
-
 double distance(double lon1, double lat1, double lon2, double lat2)
 {
     const double DEG_RAD = M_PI/180, EARTH_RADIUS = 6371.0;

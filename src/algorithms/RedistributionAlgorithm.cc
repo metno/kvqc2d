@@ -31,7 +31,6 @@
 
 #include "AlgorithmHelpers.h"
 #include "algorithms/NeighborsDistance2.h"
-#include "DBConstraints.h"
 #include "DBInterface.h"
 #include "foreach.h"
 
@@ -43,8 +42,6 @@
 #define NDEBUG
 #include "debug.h"
 
-namespace C = Constraint;
-namespace O = Ordering;
 using Helpers::equal;
 
 // ------------------------------------------------------------------------
@@ -231,12 +228,12 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
 
 bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& mdata)
 {
-    dataList_t mdatao;
-    const C::DBConstraint cMissing = C::SameDevice(endpoint)
-        && C::Obstime(stepTime(earliest), stepTime(endpoint.obstime()));
-    database()->selectData(mdatao, cMissing, O::Obstime().desc());
+    // const C::DBConstraint cMissing = C::SameDevice(endpoint)
+    //     && C::Obstime(stepTime(earliest), stepTime(endpoint.obstime()));
+    const DBInterface::DataList mdatao
+        = database()->findDataOrderObstime(endpoint.stationID(), endpoint.paramID(), endpoint.typeID(), TimeRange(stepTime(earliest), stepTime(endpoint.obstime())));
     DBGV(cMissing.sql());
-    mdata = updateList_t(mdatao.begin(), mdatao.end());
+    mdata = updateList_t(mdatao.rbegin(), mdatao.rend());
 
 #ifndef NDEBUG
     DBG("  missingdata.size=" << mdata.size());
@@ -286,13 +283,15 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
         return false;
     }
 
-    const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
-        && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
-        && C::Obstime(before.back().obstime(), endpoint.obstime())
-        && C::Station(neighbors);
-    database()->selectData(ndata, cNeighbors, O::Obstime().desc());
+    // const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
+    //     && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
+    //     && C::Obstime(before.back().obstime(), endpoint.obstime())
+    //     && C::Station(neighbors);
+    ndata = database()->findDataOrderObstime(neighbors, endpoint.paramID(), endpoint.typeID(),
+                                             TimeRange(before.back().obstime(), endpoint.obstime()), neighbor_flags);
+    // O::Obstime().desc());
 
-    foreach(const kvalobs::kvData& n, ndata) {
+    foreach_r(const kvalobs::kvData& n, ndata) {
         if( n.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                       << " not seen in neighbor " << Helpers::datatext(n)
@@ -331,11 +330,13 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 
 void RedistributionAlgorithm::run()
 {
-    dataList_t edata;
-    const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
-            && C::Paramid(pids) && C::Typeid(tids)
-            && C::Obstime(UT0, UT1);
-    database()->selectData(edata, cEndpoints, (O::Stationid(), O::Obstime().asc()));
+    const DBInterface::StationIDList stations = database()->findNorwegianFixedStationIDs();
+    // const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
+    //         && C::Paramid(pids) && C::Typeid(tids)
+    //         && C::Obstime;
+    const DBInterface::DataList edata
+        = database()->findDataOrderStationObstime(stations, pids, tids, TimeRange(UT0, UT1), endpoint_flags);
+    // (O::Stationid(), O::Obstime().asc()));
     
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;

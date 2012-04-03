@@ -33,7 +33,6 @@
 
 #include "AkimaSpline.h"
 #include "AlgorithmHelpers.h"
-#include "DBConstraints.h"
 #include "DBInterface.h"
 #include "foreach.h"
 #include "GetStationParam.h"
@@ -45,8 +44,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
-namespace C = Constraint;
-namespace O = Ordering;
 using namespace kvQCFlagTypes;
 
 bool DipTestAlgorithm::fillParameterDeltaMap(const AlgorithmConfig& params, std::map<int, float>& map)
@@ -65,10 +62,9 @@ bool DipTestAlgorithm::fillParameterDeltaMap(const AlgorithmConfig& params, std:
 
 float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
 {
-    DBInterface::kvStationParamList_t splist;
     std::ostringstream qcx;
     qcx << "QC1-3a-" << pid;
-    database()->selectStationparams(splist, 0, time, qcx.str()); /// FIXME what time to use here?
+    DBInterface::StationParamList splist = database()->findStationParams(0, time, qcx.str()); /// FIXME what time to use here?
     if( splist.empty() ) {
         error() << "empty station_param for stationid=0 list";
         return -1e8; // FIXME throw an exception or so
@@ -83,7 +79,7 @@ void DipTestAlgorithm::configure(const AlgorithmConfig& params)
     Qc2Algorithm::configure(params);
 
     fillParameterDeltaMap(params, PidValMap);
-    fillStationIDList(StationIds);
+    fillStationIDList(mStationIDs);
 
     params.getFlagSetCU(akima_flags,          "akima",          "", "U2=0");
     params.getFlagSetCU(candidate_flags,      "candidate",      "fs=2&fhqc=0", "");
@@ -101,12 +97,7 @@ void DipTestAlgorithm::run()
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         const int pid = it->first, delta = it->second;
 
-        const C::DBConstraint cDipCandidate = C::ControlUseinfo(candidate_flags)
-            && C::Station(StationIds) && C::Paramid(pid) && C::Obstime(UT0, UT1);
-
-        std::list<kvalobs::kvData> candidates;
-        database()->selectData(candidates, cDipCandidate);
-
+        const DBInterface::DataList candidates = database()->findDataOrderNone(mStationIDs, pid, TimeRange(UT0, UT1), candidate_flags);
         foreach(const kvalobs::kvData& c, candidates) {
             if( c.original() > missing )
                 checkDipAndInterpolate(c, delta);
@@ -122,12 +113,9 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     if( linearStart < UT0 || linearStop > UT1 )
         return;
 
-    const C::DBConstraint cDipAroundL = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
-        && ( C::Obstime(linearStart) || C::Obstime(linearStop) );
-    
-    std::list<kvalobs::kvData> seriesLinear;
-    database()->selectData(seriesLinear, cDipAroundL, O::Obstime());
-    if( seriesLinear.size() != 2 ) {
+    const DBInterface::DataList seriesLinear
+        = database()->findDataOrderObstime(candidate.stationID(), candidate.paramID(), candidate.typeID(), TimeRange(linearStart, linearStop));
+    if( seriesLinear.size() != 3 ) {
         warning() << "did not find rows before or after (latter needs fhqc=0) potential dip"
                   << Helpers::datatext(candidate, 1);
         return;
@@ -177,14 +165,14 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     linearStart.addHour(-1);
     linearStop.addHour(1);
 
-    const C::DBConstraint cDipAroundA = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
-        && C::Obstime(akimaStart, akimaStop) && (!C::Obstime(candidate.obstime()))
-        && (C::ControlUseinfo(akima_flags) || C::Obstime(linearStart) || C::Obstime(linearStop));
+    // const C::DBConstraint cDipAroundA = C::Station(candidate.stationID()) && C::Paramid(candidate.paramID()) && C::Typeid(candidate.typeID())
+    //     && C::Obstime(akimaStart, akimaStop) && (!C::Obstime(candidate.obstime()))
+    //     && (C::ControlUseinfo(akima_flags) || C::Obstime(linearStart) || C::Obstime(linearStop));
     
-    std::list<kvalobs::kvData> seriesAkima;
-    database()->selectData(seriesAkima, cDipAroundA, O::Obstime());
+    const DBInterface::DataList seriesAkima
+        = database()->findDataOrderObstime(candidate.stationID(), candidate.paramID(), candidate.typeID(), TimeRange(akimaStart, akimaStop));
 
-    if( (int)seriesAkima.size() != N_AKIMA )        
+    if( (int)seriesAkima.size() != N_AKIMA+1 )
         return false;
 
     // check that the akima support points are in the right order and with the right time
@@ -192,25 +180,23 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     std::vector<double> xt,yt;
     int i = 0;
     foreach(const kvalobs::kvData& a, seriesAkima) {
-        if( a.original() <= missing || a.obstime() != akimaTime )
-            return false;
-        xt.push_back(i);
-        yt.push_back(a.original());
-        i += 1;
-        akimaTime.addHour(1);
-        if( i == N_BEFORE ) {
+        if( i != N_BEFORE ) {
+            if( a.original() <= missing || a.obstime() != akimaTime )
+                return false;
+            xt.push_back(i);
+            yt.push_back(a.original());
             i += 1;
-            akimaTime.addHour(1);
         }
+        akimaTime.addHour(1);
     }
 
     const AkimaSpline AkimaX(xt,yt);
     const float AkimaInterpolated = Helpers::round1( AkimaX.AkimaPoint(N_BEFORE) );
 
-    DBInterface::kvStationParamList_t splist;
     std::ostringstream qcx;
     qcx << "QC1-1-" << candidate.paramID();
-    database()->selectStationparams(splist, candidate.stationID(), candidate.obstime(), qcx.str());
+    const DBInterface::StationParamList splist
+        = database()->findStationParams(candidate.stationID(), candidate.obstime(), qcx.str());
     if( splist.empty() ) {
         error() << "no station params for akima MinimumCheck for candidate " << Helpers::datatext(candidate) << ". Assuming no akima interpolation.";
         return false;

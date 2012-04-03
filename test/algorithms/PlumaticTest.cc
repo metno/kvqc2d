@@ -30,13 +30,10 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/PlumaticAlgorithm.h"
 #include "AlgorithmHelpers.h"
-#include "DBConstraints.h"
 #include "foreach.h"
 
 #include <algorithm>
 #include <numeric>
-
-namespace C = Constraint;
 
 class PlumaticTest : public AlgorithmTestBase {
 public:
@@ -283,7 +280,7 @@ TEST_F(PlumaticTest, RainInterrupt)
     ASSERT_RUN(algo, bc, 1+3+3+1);
 
     std::list<kvalobs::kvData> series;
-    ASSERT_NO_THROW(db->selectData(series, "WHERE obstime BETWEEN '2011-10-01 23:57:00' AND '2011-10-02 00:03:00';"));
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE obstime BETWEEN '2011-10-01 23:57:00' AND '2011-10-02 00:03:00';"));
     ASSERT_EQ(7, series.size());
 
     // unusual time ordering due to update/insert (inserts first, then updates)
@@ -1027,7 +1024,7 @@ TEST_F(PlumaticTest, NonOperationalMarked)
 
     std::list<kvalobs::kvData> series;
     miutil::miTime t0("2011-10-01 12:04:00"), t1("2011-10-01 12:06:00");
-    ASSERT_NO_THROW(db->selectData(series, C::Station(27270) && C::Paramid(105) && C::Obstime(t0, t1)));
+    ASSERT_NO_THROW(series = db->findDataOrderObstime(27270, 105, TimeRange(t0, t1)));
     ASSERT_EQ(3, series.size());
 
     ASSERT_RUN(algo, bc, 3);

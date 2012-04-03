@@ -30,9 +30,6 @@
 #include "AlgorithmTestBase.h"
 #include "AlgorithmHelpers.h"
 #include "algorithms/GapInterpolationAlgorithm.h"
-#include "DBConstraints.h"
-
-namespace C = Constraint;
 
 class GapInterpolationTest : public AlgorithmTestBase {
 public:

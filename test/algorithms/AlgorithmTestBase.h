@@ -32,141 +32,12 @@
 
 #include <gtest/gtest.h>
 
-#include "Broadcaster.h"
-#include "DBInterface.h"
-#include "Qc2Algorithm.h"
+#include "TestBroadcaster.h"
+#include "TestData.h"
+#include "TestDB.h"
+#include "TestNotifier.h"
 
-#include <sqlite3.h>
-#include <vector>
-
-class SqliteTestDB : public DBInterface {
-public:
-    SqliteTestDB();
-    ~SqliteTestDB();
-
-    virtual void selectData(kvDataList_t& d, const Constraint::DBConstraint& where) throw (DBException)
-        { DBInterface::selectData(d, where); }
-    virtual void selectData(kvDataList_t&, const std::string& where)  throw (DBException);
-    virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
-    virtual void selectStations(kvStationList_t&) throw (DBException);
-    virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException);
-    virtual reference_value_map_t selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue);
-    virtual CorrelatedNeighbors::neighbors_t selectNeighborData(int stationid, int paramid);
-    virtual void selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time);
-
-    // test helpers
-    void exec(const std::string& statement) throw (DBException);
-
-private:
-    sqlite3_stmt* prepare_statement(const std::string& sql);
-    void finalize_statement(sqlite3_stmt* stmt, int lastStep);
-
-private:
-    sqlite3 *db;
-};
-
-// #######################################################################
-
-class TestBroadcaster: public Broadcaster {
-public:
-    typedef std::vector<kvalobs::kvData> updates_t;
-
-    TestBroadcaster()
-        { }
-
-    virtual void queueChanged(const kvalobs::kvData& d)
-        { mUpdates.push_back(d); }
-
-    virtual void sendChanges()
-        { }
-
-    int count() const
-        { return mUpdates.size(); }
-
-    void clear()
-        { mUpdates.clear(); }
-
-    const updates_t& updates() const
-        { return mUpdates; }
-
-    const kvalobs::kvData& update(int i) const
-        { return mUpdates[i]; }
-
-private:
-    updates_t mUpdates;
-};
-
-// ########################################################################
-
-class MemoryNotifier : public Notifier {
-public:
-    struct Record {
-        Message::Level level;
-        std::string text;
-        Record(Message::Level l, const std::string& t)
-            : level(l), text(t) { }
-    };        
-
-    int find(const std::string& needle, int level=-1, int start=0) const;
-
-    int count(int level=-1) const;
-
-    int next(Message::Level level, int startIdx=0) const;
-
-    const std::string& text(int idx) const
-        { return mMessages[idx].text; }
-
-    Message::Level level(int idx) const
-        { return mMessages[idx].level; }
-
-    void clear()
-        { mMessages.clear(); }
-
-    void sendText(Message::Level level, const std::string& message);
-
-    void dump();
-    void dump(std::ostream& out);
-
-private:
-    std::vector<Record> mMessages;
-
-    static const char* levels[];
-};
-
-// #######################################################################
-
-class DataList : public std::list<kvalobs::kvData> {
-public:
-    DataList(int stationid, int paramid, int tid)
-        : mStationId(stationid), mParamId(paramid), mTypeId(tid) { }
-
-    DataList& setStation(int sid)
-        { mStationId = sid; return *this; }
-    DataList& setParam(int pid)
-        { mParamId = pid; return *this; }
-    DataList& setType(int tid)
-        { mTypeId = tid; return *this; }
-
-    DataList& add(int stationid, const miutil::miTime& obstime, float original, int paramid, int type, float corrected, const std::string& controlinfo, const std::string& cfailed);
-
-    DataList& add(int stationid, const miutil::miTime& obstime, float original, int paramid, int type, const std::string& controlinfo, const std::string& cfailed)
-        { return add(stationid, obstime, original, paramid, type, original, controlinfo, cfailed); }
-
-    DataList& add(const miutil::miTime& obstime, float original, float corrected, const std::string& controlinfo, const std::string& cfailed)
-        { return add(mStationId, obstime, original, mParamId, mTypeId, corrected, controlinfo, cfailed); }
-
-    DataList& add(const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
-        { return add(obstime, original, original, controlinfo, cfailed); }
-
-    DataList& add(int stationid, const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
-        { return add(stationid, obstime, original, mParamId, mTypeId, original, controlinfo, cfailed); }
-
-    void insert(SqliteTestDB* db);
-    void update(SqliteTestDB* db);
-
-private:
-    int mStationId, mParamId, mTypeId;
-};
+class Qc2Algorithm;
 
 // ########################################################################
 
@@ -229,7 +100,7 @@ protected:
     Qc2Algorithm* algo;
     SqliteTestDB* db;
     TestBroadcaster* bc;
-    MemoryNotifier* logs;
+    TestNotifier* logs;
 };
 
 #endif /* ALGORITHMTESTBASE_H_ */

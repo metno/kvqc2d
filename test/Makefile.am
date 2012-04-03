@@ -18,6 +18,14 @@ kvqc2dTest_SOURCES= \
 	algorithms/PlumaticTest.cc \
 	algorithms/RedistributionTest.cc \
 	algorithms/SingleLinearTest.cc \
+	algorithms/TestBroadcaster.cc \
+	algorithms/TestBroadcaster.h \
+	algorithms/TestData.cc \
+	algorithms/TestData.h \
+	algorithms/TestDB.cc \
+	algorithms/TestDB.h \
+	algorithms/TestNotifier.cc \
+	algorithms/TestNotifier.h \
 	algorithms/StatisticalMeanTest.cc \
 	ConfigParserTest.cc \
 	CorrelatedNeighborInterpolatorTest.cc \

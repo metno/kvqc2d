@@ -30,7 +30,6 @@
 #include "PlumaticAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
-#include "DBConstraints.h"
 #include "DBInterface.h"
 #include "NeighborsDistance2.h"
 #include "foreach.h"
@@ -42,9 +41,6 @@
 
 #define NDEBUG
 #include "debug.h"
-
-namespace C = Constraint;
-namespace O = Ordering;
 
 namespace {
 
@@ -143,11 +139,10 @@ void PlumaticAlgorithm::run()
 
 void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 {
-    const C::DBConstraint cSeries = C::Station(stationid)
-        && C::Paramid(pid) && C::Obstime(UT0extended, UT1);
+    //const C::DBConstraint cSeries = C::Station(stationid) && C::Paramid(pid) && C::Obstime(UT0extended, UT1);
 
-    kvDataList_t data_orig;
-    database()->selectData(data_orig, cSeries, O::Obstime());
+    DBInterface::DataList data_orig
+        = database()->findDataOrderObstime(stationid, pid, TimeRange(UT0extended, UT1));
     if( data_orig.empty() )
         return;
     kvUpdateList_t data(data_orig.begin(), data_orig.end());
@@ -597,12 +592,12 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     std::sort(neighborsSorted.begin(), neighborsSorted.end(),
               boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _1 ) > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _2 ));
 
-    std::list<kvalobs::kvData> ndata;
-    const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
-        && C::Paramid( 110 /* RR_24 */ ) //&& C::Typeid(endpoint.typeID())
-        && C::Obstime(obstime)
-        && C::Station(neighbors);
-    database()->selectData(ndata, cNeighbors);
+    // const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
+    //     && C::Paramid( 110 /* RR_24 */ ) //&& C::Typeid(endpoint.typeID())
+    //     && C::Obstime(obstime)
+    //     && C::Station(neighbors);
+    const DBInterface::DataList ndata
+        = database()->findDataOrderNone(neighbors, 110 /* RR_24 */, TimeRange(obstime, obstime), neighbor_flags);
     if( ndata.empty() ) {
         info() << "no neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
         return;

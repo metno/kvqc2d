@@ -30,7 +30,6 @@
 #include "SingleLinearAlgorithm.h"
 
 #include "AlgorithmHelpers.h"
-#include "DBConstraints.h"
 #include "DBInterface.h"
 #include "foreach.h"
 
@@ -40,8 +39,6 @@
 #define NDEBUG
 #include "debug.h"
 
-namespace C = Constraint;
-namespace O = Ordering;
 using Helpers::equal;
 
 // ########################################################################
@@ -75,13 +72,14 @@ void SingleLinearAlgorithm::configure(const AlgorithmConfig& params)
 
 void SingleLinearAlgorithm::run()
 {
+    const DBInterface::StationIDList stationIDs = database()->findNorwegianFixedStationIDs();
     foreach(int pid, pids) {
-        const C::DBConstraint cSingleMissing =
-            C::ControlUseinfo(missing_flags)
-            && C::Paramid(pid)
-            && C::Obstime(UT0, UT1); // TODO AND stationid BETWEEN 60 and 99999"?
-        std::list<kvalobs::kvData> Qc2Data;
-        database()->selectData(Qc2Data, cSingleMissing);
+        // const C::DBConstraint cSingleMissing =
+        //     C::ControlUseinfo(missing_flags)
+        //     && C::Paramid(pid)
+        //     && C::Obstime(UT0, UT1); // TODO AND stationid BETWEEN 60 and 99999"?
+        const DBInterface::DataList Qc2Data
+            = database()->findDataOrderNone(stationIDs, pid, TimeRange(UT0, UT1), missing_flags);
         DBGV(Qc2Data.size());
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
@@ -89,14 +87,14 @@ void SingleLinearAlgorithm::run()
             timeBefore.addHour(-1);
             timeAfter.addHour(1);
 
-            const C::DBConstraint cNeighbors = C::SameDevice(d)
-                && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
-            DBGV(cNeighbors.sql());
+            // const C::DBConstraint cNeighbors = C::SameDevice(d)
+            //     && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
+            // DBGV(cNeighbors.sql());
 
-            std::list<kvalobs::kvData> series;
-            database()->selectData(series, cNeighbors, O::Obstime());
+            const DBInterface::DataList series
+                = database()->findDataOrderObstime(d.stationID(), d.paramID(), d.typeID(), d.sensor(), d.level(), TimeRange(timeBefore, timeAfter));
             DBGV(series.size());
-            if( series.size() != 2 ) {
+            if( series.size() != 3 ) {
                 DBG("got " << series.size() << " neighbors at d=" << d);
                 continue;
             }

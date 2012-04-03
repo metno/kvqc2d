@@ -35,7 +35,6 @@
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
 
-#include "DBConstraintsBase.h"
 #include "CorrelatedNeighborInterpolator.h"
 
 #include <exception>
@@ -46,6 +45,8 @@ public:
         : std::runtime_error(what) { }
 };
 
+class FlagSetCU;
+
 /**
  * Wrapper for kvalobs database connections.
  */
@@ -53,46 +54,53 @@ class DBInterface {
 public:
     virtual ~DBInterface() { }
 
-    typedef std::list<kvalobs::kvData> kvDataList_t;
-    typedef std::list<kvalobs::kvStationParam> kvStationParamList_t;
-    typedef std::list<int> kvStationIDList_t;
-    typedef std::list<kvalobs::kvStation> kvStationList_t;
-    typedef std::list<kvalobs::kvModelData> kvModelDataList_t;
+    // ----------------------------------------
 
-    virtual void selectData(kvDataList_t&, const std::string& where) throw (DBException) = 0;
+    typedef std::list<kvalobs::kvStation> StationList;
+    virtual StationList findNorwegianFixedStations() throw (DBException) = 0;
 
-    virtual void selectData(kvDataList_t&, const Constraint::DBConstraint& where) throw (DBException);
+    // ----------------------------------------
 
-    virtual void selectData(kvDataList_t&, const Constraint::DBConstraint& where, const Ordering::DBOrdering& order_by) throw (DBException);
+    typedef std::list<int> StationIDList;
+    virtual StationIDList findNorwegianFixedStationIDs() throw (DBException) = 0;
 
-    virtual void selectStationparams(kvStationParamList_t&, int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException) = 0;
+    // ----------------------------------------
 
-    virtual void selectStations(kvStationList_t&) throw (DBException) = 0;
+    typedef std::list<kvalobs::kvStationParam> StationParamList;
+    virtual StationParamList findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException) = 0;
+
+    // ----------------------------------------
+
+    typedef std::list<kvalobs::kvData> DataList;
+    virtual DataList findDataOrderNone(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) throw (DBException) = 0;
+    virtual DataList findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t, const FlagSetCU& flags) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, const std::vector<int>& tids, const TimeRange& time) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) throw (DBException) = 0;
+    virtual DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException) = 0;
+
+    // ----------------------------------------
 
     typedef std::vector<float> reference_values_t;
     typedef std::map<int, reference_values_t> reference_value_map_t;
-    virtual reference_value_map_t selectStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) = 0;
+    virtual reference_value_map_t findStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) throw (DBException) = 0;
 
-    virtual CorrelatedNeighbors::neighbors_t selectNeighborData(int stationid, int paramid) = 0;
+    // ----------------------------------------
 
-    virtual void selectModelData(kvModelDataList_t& modelData, int stationid, int paramid, int level, const TimeRange& time) = 0;
+    virtual CorrelatedNeighbors::neighbors_t findNeighborData(int stationid, int paramid) throw (DBException) = 0;
 
-    /**
-     * Update and insert data.
-     */
-    virtual void storeData(const kvDataList_t& toUpdate, const kvDataList_t& toInsert) throw (DBException) = 0;
+    // ----------------------------------------
 
-    /**
-     * Updates single data item in its table.
-     * Calls storeData.
-     */
-    void updateSingle(const kvalobs::kvData& toUpdate) throw (DBException);
+    typedef std::list<kvalobs::kvModelData> ModelDataList;
+    virtual ModelDataList findModelData(int stationID, int paramID, int level, const TimeRange& time) throw (DBException) = 0;
 
-    /**
-     * Insert a single data item to its table.
-     * Calls storeData.
-     */
-    void insertSingle(const kvalobs::kvData& toInsert) throw (DBException);
+    // ----------------------------------------
+
+    /** Update and/or insert data. */
+    virtual void storeData(const DataList& toUpdate, const DataList& toInsert) throw (DBException) = 0;
 
 };
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,20 +27,19 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef KvalobsDB_h
-#define KvalobsDB_h 1
+#ifndef MEMORYTESTDB_H
+#define MEMORYTESTDB_H
 
 #include "SQLDataAccess.h"
-#include "KvalobsDbGate.h"
 
-class Qc2App;
+#include <sqlite3.h>
 
-class KvalobsDB : public SQLDataAccess {
+class SqliteTestDB: public SQLDataAccess {
 public:
-    KvalobsDB(Qc2App& app);
-    virtual ~KvalobsDB();
+    SqliteTestDB();
+    ~SqliteTestDB();
 
-protected:
+public:
     virtual StationList extractStations(const std::string& sql) throw (DBException);
     virtual StationIDList extractStationIDs(const std::string& sql) throw (DBException);
     virtual StationParamList extractStationParams(const std::string& sql) throw (DBException);
@@ -50,13 +49,16 @@ protected:
     virtual ModelDataList extractModelData(const std::string& sql) throw (DBException);
     virtual void execSQLUpdate(const std::string& sql) throw (DBException);
 
+    // test helpers
+    void exec(const std::string& statements) throw (DBException)
+        { execSQLUpdate(statements); }
+
 private:
-    void connect();
-    void disconnect();
-    
+    sqlite3_stmt* prepare_statement(const std::string& sql);
+    void finalize_statement(sqlite3_stmt* stmt, int lastStep);
+
 private:
-    Qc2App& mApp;
-    KvalobsDbGate mDbGate;
+    sqlite3 *db;
 };
 
-#endif /* KvalobsDB_h */
+#endif /* MEMORYTESTDB_H */

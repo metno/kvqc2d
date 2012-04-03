@@ -34,7 +34,6 @@
 
 #include "AlgorithmHelpers.h"
 #include "algorithms/NeighborsDistance2.h"
-#include "DBConstraints.h"
 #include "DBInterface.h"
 #include "foreach.h"
 
@@ -47,8 +46,6 @@
 #define NDEBUG
 #include "debug.h"
 
-namespace C = Constraint;
-namespace O = Ordering;
 using Helpers::equal;
 
 // ========================================================================
@@ -439,10 +436,11 @@ void StatisticalMean::run()
     // this fetches all data with this paramid for all stations at
     // once; this might be a lot, but we need all neighbors for each
     // station anyhow
-    std::list<kvalobs::kvData> sdata;
-    const C::DBConstraint cData = C::Paramid(mParamid) && C::Typeid(mTypeids)
-            && C::Obstime(mUT0extended, UT1);
-    database()->selectData(sdata, cData, O::Obstime().asc());
+    const DBInterface::StationIDList stationIDs = database()->findNorwegianFixedStationIDs();
+    // const C::DBConstraint cData = C::Paramid(mParamid) && C::Typeid(mTypeids)
+    //     && C::Obstime(mUT0extended, UT1);
+    DBInterface::DataList sdata
+        = database()->findDataOrderObstime(stationIDs, mParamid, mTypeids, TimeRange(mUT0extended, UT1));
 
     // sort by station; as sdata is ordered by time, data for each
     // station will keep this ordering
@@ -581,7 +579,7 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
     // for quartiles and PR, nothing like this needs to be done
 
     if( mReferenceKeys.find(key) == mReferenceKeys.end() ) {
-        DBInterface::reference_value_map_t rvps = database()->selectStatisticalReferenceValues(mParamid, key, missing);
+        DBInterface::reference_value_map_t rvps = database()->findStatisticalReferenceValues(mParamid, key, missing);
         if( mParamid == 211 && key == "ref_value" ) {
             DBInterface::reference_value_map_t rvps_mean;
             AccumulatorMeanOrSum acc(true, mDays, mDaysRequired);

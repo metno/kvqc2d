@@ -461,7 +461,7 @@ TEST_F(RedistributionTest, ReRun)
     ASSERT_RUN(algo, bc, 5);
 
     std::list<kvalobs::kvData> series;
-    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
     for(int i=0; i<bc->count()-1; ++i)
@@ -490,7 +490,7 @@ TEST_F(RedistributionTest, ReRun)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 
-    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
     std::ostringstream sql;
@@ -498,12 +498,12 @@ TEST_F(RedistributionTest, ReRun)
         << "UPDATE data SET original = 1.0, corrected = 1.0 WHERE obstime = '2011-10-14 06:00:00' AND stationid IN (83520, 84190, 84070);";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
     ASSERT_RUN(algo, bc, 2);
 
-    ASSERT_NO_THROW(db->selectData(series, "WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
+    ASSERT_NO_THROW(series = db->extractData("SELECT * FROM data WHERE stationid = 83880 AND obstime BETWEEN '2011-10-12 06:00:00' AND '2011-10-17 06:00:00';"));
     ASSERT_EQ(6, series.size());
 
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000", 3.0, bc->update(0));
@@ -1103,7 +1103,7 @@ TEST_F(RedistributionTest, Bugzilla1333)
     EXPECT_CFAILED(",QC2N_83520_84190,QC2-redist", bc->update(1));
 
     std::list<kvalobs::kvData> cfailedWithQC2;
-    ASSERT_NO_THROW(db->selectData(cfailedWithQC2, " WHERE cfailed LIKE '%QC2%' AND stationid != 83880"));
+    ASSERT_NO_THROW(cfailedWithQC2 = db->extractData("SELECT * FROM data  WHERE cfailed LIKE '%QC2%' AND stationid != 83880"));
     ASSERT_TRUE(cfailedWithQC2.empty());
 
     ASSERT_RUN(algo, bc, 0);

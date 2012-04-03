@@ -50,9 +50,6 @@ void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::str
  */
 void updateUseInfo(kvalobs::kvData& data);
 
-void GetNorwegianFixedStations(DBInterface* db, std::list<kvalobs::kvStation>& stations);
-void GetAllStations(DBInterface* db, std::list<kvalobs::kvStation>& stations);
-
 /**
  * AFAIK this does not work well for points near the poles.
  */
