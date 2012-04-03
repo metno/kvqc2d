@@ -41,6 +41,7 @@
 #ifdef __GNUG__
 
 namespace gcc_foreach_helpers {
+
 template<typename T, bool>
 struct iterator_helper;
 
@@ -56,6 +57,23 @@ struct iterator_helper<T, true> {
     typedef typename T::const_reverse_iterator ireverse;
 };
 
+template<typename T, bool R, bool C>
+struct reverse_helper;
+
+template<typename T, bool C>
+struct reverse_helper<T, C, false> {
+    typedef typename iterator_helper<T,C>::iforward iterator;
+    static iterator begin(T& t) { return t.begin(); }
+    static iterator end  (T& t) { return t.end(); }
+};
+
+template<typename T, bool C>
+struct reverse_helper<T, C, true> {
+    typedef typename iterator_helper<T,C>::ireverse iterator;
+    static iterator begin(T& t) { return t.rbegin(); }
+    static iterator end  (T& t) { return t.rend(); }
+};
+
 // this is a simplified version of boost/type_traits/is_const which probably works for fewer types
 template<class T>
 int  is_const_or_not(const T*);
@@ -69,17 +87,51 @@ struct is_const {
     static const bool value = (sizeof(is_const_or_not(t)) != 1);
 };
 
-}
+template<class T, bool R>
+struct looping {
+    static const bool T_is_const = is_const<T>::value;
+    typedef reverse_helper<T, T_is_const, R> helper;
+    typedef typename T::value_type value_type;
+    typedef typename helper::iterator iterator;
+    typedef typename iterator::reference reference;
 
-#define GCC_FOREACH_BASE( i, c, BEGIN, END, ITER )                      \
-    for(bool continu=true; continu; continu=false)                      \
-        for(__typeof__( c )& c_REF = (c); continu; continu = false)     \
-            for( gcc_foreach_helpers::iterator_helper<__typeof__( c ),gcc_foreach_helpers::is_const<__typeof__( c )>::value>::ITER c_ITERATOR = c_REF.BEGIN(); \
-                 continu && c_ITERATOR != c_REF.END();                  \
-                 ++ c_ITERATOR, continu = !continu )                    \
-                for(i = *c_ITERATOR; continu; continu=!continu)
-#define foreach(a, b)   GCC_FOREACH_BASE(a, b, begin,  end,  iforward)
-#define foreach_r(a, b) GCC_FOREACH_BASE(a, b, rbegin, rend, ireverse)
+    looping(T& t)
+        : iter(helper::begin(t))
+        , end(helper::end(t))
+        , go_on(true)
+        { }
+
+    void advance()
+        { //std::cout << "advance: go=" << go_on << std::endl;
+            go_on = !go_on; ++iter; }
+
+    bool at_end() const
+        { //std::cout << "at_end: go=" << go_on << " (iter!=end)=" << (iter != end) << std::endl;
+            return go_on && iter != end; }
+
+    void toggle()
+        { //std::cout << "toggle: go=" << go_on << std::endl;
+            go_on = !go_on; }
+
+    bool keep_going() const
+        { //std::cout << "keep_going: go=" << go_on << std::endl;
+            return go_on; }
+
+    reference operator*() const
+        { return *iter; }
+
+private:
+    iterator iter, end;
+    bool go_on;
+};
+
+} // namespace gcc_foreach_helpers
+
+#define GCC_FOREACH_BASE(variable, container, reverse)                  \
+    for(gcc_foreach_helpers::looping<__typeof__(container), reverse> loop(container); loop.at_end(); loop.advance()) \
+        for(variable = *loop; loop.keep_going(); loop.toggle())
+#define foreach(a, b)   GCC_FOREACH_BASE(a, b, false)
+#define foreach_r(a, b) GCC_FOREACH_BASE(a, b, true)
 
 #else
 
