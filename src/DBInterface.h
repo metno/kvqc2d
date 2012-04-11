@@ -54,6 +54,8 @@ class DBInterface {
 public:
     virtual ~DBInterface() { }
 
+    enum { INVALID_ID = -32767 };
+
     // ----------------------------------------
 
     typedef std::list<kvalobs::kvStation> StationList;
@@ -72,7 +74,7 @@ public:
     // ----------------------------------------
 
     typedef std::list<kvalobs::kvData> DataList;
-    virtual DataList findDataOrderNone(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException) = 0;
+    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException) = 0;
     virtual DataList findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException) = 0;
     virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException) = 0;
     virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) throw (DBException) = 0;

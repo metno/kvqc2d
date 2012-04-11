@@ -3,6 +3,7 @@
 
 #include "Akima.h"
 #include "AlgorithmHelpers.h"
+#include "DBInterface.h"
 #include "foreach.h"
 
 #include <kvalobs/kvData.h>
@@ -150,7 +151,7 @@ std::vector<float> Interpolator::interpolate_simple(const Instrument& ctr, const
     std::vector< std::vector<float> > neighbor_observations(neighbors.size());
     int n = 0;
     foreach(const NeighborData& nd, neighbors) {
-        const Instrument nbr(nd.neighborid, ctr.paramid, -1, -1, -1);
+        const Instrument nbr(nd.neighborid, ctr.paramid, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
         neighbor_observations[n++] = mDax->fetchObservations(nbr, tExtended);
     }
     for(int t=0; t<length; ++t) {

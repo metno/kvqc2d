@@ -42,18 +42,6 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
     neighbor_flags.setC(FlagPatterns("fmis=0", FlagPattern::CONTROLINFO));
     neighbor_flags.setU(FlagPatterns("U0=[37]&U2=0", FlagPattern::USEINFO));
 
-    // C::DBConstraint c = C::Station(instrument.stationid)
-    //     && C::Paramid(instrument.paramid)
-    //     && C::ControlUseinfo(neighbor_flags)
-    //     && C::Obstime(t.t0, t.t1);
-    // if( instrument.type >= 0 )
-    //     c = c && C::Typeid(instrument.type);
-    // if( instrument.sensor >= 0 )
-    //     c = c && C::Sensor(instrument.sensor);
-    // if( instrument.level >= 0 )
-    //     c = c && C::Sensor(instrument.level);
-    // DBGV(c.sql());
-
     const DBInterface::DataList obs
         = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type, instrument.sensor, instrument.level, t, neighbor_flags);
     DBGV(obs.size());
@@ -139,14 +127,7 @@ void GapInterpolationAlgorithm::run()
     fillStationLists(StationList, StationIds);
     DBGV(StationIds.size());
 
-    // const C::DBConstraint cGeneral = (C::Paramid(pids) && C::Typeid(tids)
-    //                                   && C::Obstime(UT0, UT1) && C::Sensor(0) && C::Level(0)
-    //                                   && C::ControlUseinfo(missing_flags) );
-    
     foreach(const kvalobs::kvStation& station, StationList) {
-        
-        // const C::DBConstraint cStation = C::Station(station.stationID()) && cGeneral;
-        // DBGV(cStation.sql());
         const DBInterface::DataList missingData
             = database()->findDataOrderObstime(station.stationID(), pids, tids, 0, 0, TimeRange(UT0, UT1), missing_flags);
         DBGV(missingData.size());

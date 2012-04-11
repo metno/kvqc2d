@@ -139,8 +139,6 @@ void PlumaticAlgorithm::run()
 
 void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 {
-    //const C::DBConstraint cSeries = C::Station(stationid) && C::Paramid(pid) && C::Obstime(UT0extended, UT1);
-
     DBInterface::DataList data_orig
         = database()->findDataOrderObstime(stationid, pid, TimeRange(UT0extended, UT1));
     if( data_orig.empty() )
@@ -592,12 +590,8 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     std::sort(neighborsSorted.begin(), neighborsSorted.end(),
               boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _1 ) > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _2 ));
 
-    // const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
-    //     && C::Paramid( 110 /* RR_24 */ ) //&& C::Typeid(endpoint.typeID())
-    //     && C::Obstime(obstime)
-    //     && C::Station(neighbors);
     const DBInterface::DataList ndata
-        = database()->findDataOrderNone(neighbors, 110 /* RR_24 */, TimeRange(obstime, obstime), neighbor_flags);
+        = database()->findDataOrderObstime(neighbors, 110 /* RR_24 */, TimeRange(obstime, obstime), neighbor_flags);
     if( ndata.empty() ) {
         info() << "no neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
         return;

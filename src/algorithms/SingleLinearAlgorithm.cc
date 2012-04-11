@@ -76,7 +76,7 @@ void SingleLinearAlgorithm::run()
     DBGV(stationIDs.size());
     foreach(int pid, pids) {
         const DBInterface::DataList Qc2Data
-            = database()->findDataOrderNone(stationIDs, pid, TimeRange(UT0, UT1), missing_flags);
+            = database()->findDataOrderObstime(stationIDs, pid, TimeRange(UT0, UT1), missing_flags);
         DBGV(Qc2Data.size());
 
         foreach(const kvalobs::kvData& d, Qc2Data) {

@@ -101,7 +101,7 @@ void DipTestAlgorithm::run()
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         const int pid = it->first, delta = it->second;
 
-        const DBInterface::DataList candidates = database()->findDataOrderNone(mStationIDs, pid, TimeRange(UT0, UT1), candidate_flags);
+        const DBInterface::DataList candidates = database()->findDataOrderObstime(mStationIDs, pid, TimeRange(UT0, UT1), candidate_flags);
         DBGV(candidates.size());
         foreach(const kvalobs::kvData& c, candidates) {
             if( c.original() > missing )

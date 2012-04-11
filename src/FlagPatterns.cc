@@ -55,11 +55,12 @@ std::string FlagPatterns::sql(const std::string& column) const
 std::string FlagSetCU::sql() const
 {
     const std::string sqlC = mControlflags.sql("controlinfo"), sqlU = mUseflags.sql("useinfo");
-    if( sqlC.empty() )
+    const bool emptyC = sqlC.empty(), emptyU = sqlU.empty();
+    if( emptyC && emptyU )
+        return "0=0";
+    if( emptyC )
         return sqlU;
-    if( sqlU.empty() )
+    if( emptyU )
         return sqlC;
-    if( sqlC == "0=1" )
-        return "0=1";
     return "(" + sqlC + " AND " + sqlU + ")";
 }

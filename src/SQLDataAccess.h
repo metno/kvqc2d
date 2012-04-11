@@ -40,7 +40,7 @@ public:
 
     virtual StationParamList findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
 
-    virtual DataList findDataOrderNone(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
+    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
     virtual DataList findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException);
     virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException);
     virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) throw (DBException);
@@ -66,6 +66,9 @@ protected:
     virtual CorrelatedNeighbors::neighbors_t extractNeighborData(const std::string& sql) throw (DBException) = 0;
     virtual ModelDataList extractModelData(const std::string& sql) throw (DBException) = 0;
     virtual void execSQLUpdate(const std::string& sql) throw (DBException) = 0;
+
+private:
+    virtual DataList findData(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags, bool orderByStation=false) throw (DBException);
 };
 
 #endif /* SQLDataAccess_h */
