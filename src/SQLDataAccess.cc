@@ -29,112 +29,233 @@
 
 #include "KvalobsDB.h"
 
-#include "DataAccessSQLQueries.h"
+#include "FlagPatterns.h"
 #include "foreach.h"
+
+#include <kvalobs/kvQueries.h>
+#include <kvalobs/kvStation.h>
+#include <sstream>
+
+#define NDEBUG
+#include "debug.h"
+
+namespace {
+template<class CC>
+void formatIDList(std::ostream& sql, const CC& ids, const std::string& column)
+{
+    sql << ' ';
+    if( ids.empty() ) {
+        sql << "0 = 1";
+    } else if( ids.size() == 1 ) {
+        sql << column << " = " << ids.front();
+    } else {
+        sql << column << " IN ";
+        char sep = '(';
+        foreach(int ii, ids) {
+            sql << sep << ii;
+            sep = ',';
+        }
+        sql << ')';
+    }
+}
+} // anonymous namespace
 
 // ------------------------------------------------------------------------
 
 DBInterface::StationList SQLDataAccess::findNorwegianFixedStations() throw (DBException)
 {
-    return extractStations(DataAccessSQLQueries::queryForNorwegianFixedStations());
+    return extractStations(kvalobs::kvStation().selectAllQuery()
+                           + " WHERE stationid BETWEEN 60 AND 99999 AND maxspeed = 0");
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::StationIDList SQLDataAccess::findNorwegianFixedStationIDs() throw (DBException)
 {
-    return extractStationIDs(DataAccessSQLQueries::queryForNorwegianFixedStationIDs());
+    return extractStationIDs("SELECT stationid FROM station"
+                             " WHERE stationid BETWEEN 60 AND 99999 AND maxspeed = 0");
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
 {
-    return extractStationParams(DataAccessSQLQueries::queryForStationParams(stationID, time, qcx));
+    const std::list<int> station(1, stationID);
+    return extractStationParams(kvalobs::kvStationParam().selectAllQuery()
+                                + kvQueries::selectStationParam(station, time, qcx));
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderNone(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderNone(const StationIDList& stationIDs, int paramID, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationIDs, pid, time, flags));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
+    formatIDList(sql, stationIDs, "stationid");
+    sql << " AND paramid = " << paramID
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND " << flags.sql();
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationID, paramID, time));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery()
+        << " WHERE stationid = " << stationID
+        << " AND paramid = " << paramID
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationID, paramID, typeID, time));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery()
+        << " WHERE stationid = " << stationID
+        << " AND paramid = " << paramID
+        << " AND typeid = " << typeID
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& time) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationID, paramID, typeID, sensor, level, t));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery()
+        << " WHERE stationid = " << stationID
+        << " AND paramid = " << paramID
+        << " AND typeid = " << typeID
+        << " AND sensor = '" << sensor << '\''
+        << " AND level = " << level
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationID, paramID, typeID, sensor, level, t, flags));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery()
+        << " WHERE stationid = " << stationID
+        << " AND paramid = " << paramID;
+    if( typeID > 0 )
+        sql << " AND typeid = " << typeID;
+    if( sensor >= 0 )
+        sql << " AND sensor = '" << sensor << '\'';
+    if( level >= 0 )
+        sql << " AND level = " << level;
+    sql << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND " << flags.sql()
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, const std::vector<int>& tids, const TimeRange& time) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationIDs, paramID, tids, time));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery() << " WHERE ";
+    formatIDList(sql, stationIDs, "stationid");
+    sql << " AND paramid = " << paramID << " AND ";
+    formatIDList(sql, tids, "typeid");
+    sql << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationID, pids, tids, sensor, level, time, flags));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery()
+        << " WHERE stationid = " << stationID << " AND ";
+    formatIDList(sql, pids, "paramid");
+    sql << " AND ";
+    formatIDList(sql, tids, "typeid");
+    sql << " AND sensor = '" << sensor << '\''
+        << " AND level = " << level
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND " << flags.sql()
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationIDs, paramID, typeID, t, flags));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
+    formatIDList(sql, stationIDs, "stationid");
+    sql << " AND paramid = " << paramID
+        << " AND typeid = " << typeID
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND " << flags.sql()
+        << " ORDER BY obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
-    return extractData(DataAccessSQLQueries::queryForData(stationIDs, pids, tids, t, flags));
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
+    formatIDList(sql, stationIDs, "stationid");
+    sql << " AND ";
+    formatIDList(sql, pids, "paramid");
+    sql << " AND ";
+    formatIDList(sql, tids, "typeid");
+    sql << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND " << flags.sql()
+        << " ORDER BY stationid, obstime";
+    return extractData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) throw (DBException)
+DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues(int paramID, const std::string& key, float missingValue) throw (DBException)
 {
-    return extractStatisticalReferenceValues(DataAccessSQLQueries::queryForStatisticalReferenceValues(paramid, key), missingValue);
+    std::ostringstream sql;
+    sql << "SELECT stationid, day_of_year, value FROM statistical_reference_values"
+        << " WHERE paramid = " << paramID << " AND key = '" << key << "'";
+    return extractStatisticalReferenceValues(sql.str(), missingValue);
 }
 
 // ------------------------------------------------------------------------
 
 CorrelatedNeighbors::neighbors_t SQLDataAccess::findNeighborData(int stationid, int paramid) throw (DBException)
 {
-    return extractNeighborData(DataAccessSQLQueries::queryForNeighborData(stationid, paramid));
+    std::ostringstream sql;
+    sql << "SELECT neighborid, offset, slope, sigma FROM interpolation_best_neighbors"
+        << " WHERE stationid = " << stationid << " AND paramid = " << paramid;
+    return extractNeighborData(sql.str());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::ModelDataList SQLDataAccess::findModelData(int stationid, int paramid, int level, const TimeRange& time) throw (DBException)
+DBInterface::ModelDataList SQLDataAccess::findModelData(int stationID, int paramID, int level, const TimeRange& time) throw (DBException)
 {
-    return extractModelData(DataAccessSQLQueries::queryForModelData(stationid, paramid, level, time));
+    std::ostringstream sql;
+    sql << kvalobs::kvModelData().selectAllQuery()
+        << " WHERE stationid = " << stationID
+        << " AND paramid = " << paramID
+        << " AND level = " << level
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'";
+    return extractModelData(sql.str());
 }
 
 // ------------------------------------------------------------------------

@@ -52,8 +52,6 @@ libkvqc2d_a_SOURCES = \
 	ConfigParser.h \
 	CorrelatedNeighborInterpolator.cc \
 	CorrelatedNeighborInterpolator.h \
-	DataAccessSQLQueries.cc \
-	DataAccessSQLQueries.h \
 	DBInterface.h \
 	debug.h \
 	FlagChange.cc \
