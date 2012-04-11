@@ -82,6 +82,7 @@ private:
 
     void checkSlidingSums(kvUpdateList_t& data);
     void checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal);
+    void applyAggregationFlags(kvUpdateList_it start, kvUpdateList_it stop, const SlidingAlarm& slal);
 
     void checkShowers(kvUpdateList_t& data, float mmpv);
     bool isBadData(const PlumaticUpdate& data);

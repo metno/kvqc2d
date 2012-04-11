@@ -77,4 +77,11 @@ miutil::miTime plusHour(const miutil::miTime& t, int nHours)
     return p;
 }
 
+miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes)
+{
+    miutil::miTime p(t);
+    p.addMin(nMinutes);
+    return p;
+}
+
 } // namespace Helpers

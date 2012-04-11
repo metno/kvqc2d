@@ -165,21 +165,16 @@ void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
 
 void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm& slal)
 {
-    std::ostringstream cfailed;
-    cfailed << "QC2h-1-aggregation-" << slal.length;
     kvUpdateList_it head = data.begin(), tail = data.begin();
     float sum = 0;
     std::list<kvUpdateList_it> discarded;
-    std::list<kvUpdateList_it> flagged;
+    kvUpdateList_it flagged_start = data.end(), flagged_stop = data.end();
     for(; head != data.end(); ++head) {
         for( ; minutesBetween(head->obstime(), tail->obstime()) >= slal.length; ++tail ) {
             if( tail->original()>0 )
                 sum -= tail->original();
             if( !discarded.empty() && tail == discarded.front() ) {
                 discarded.pop_front();
-            }
-            if( !flagged.empty() && tail == flagged.front() ) {
-                flagged.pop_front();
             }
         }
         if( head->original()>0 ) {
@@ -191,18 +186,31 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
             discarded.push_back(head);
         }
         if( sum >= slal.max && discarded.empty() ) {
-            kvUpdateList_it stop = head; ++stop;
-            kvUpdateList_it mark = tail;
-            for(; mark != stop; ++mark) {
-                if( std::find(flagged.begin(), flagged.end(), mark) == flagged.end() ) {
-                    if( mark->original() > 0 || mark->obstime().min() != 0 )
-                        mark->controlinfo(aggregation_flagchange.apply(mark->controlinfo()))
-                            . cfailed(cfailed.str(), CFAILED_STRING);
-                    flagged.push_back(mark);
-                }
+            DBGV(sum);
+            if( flagged_start != data.end()
+                && tail->obstime() >= flagged_start->obstime()
+                && tail->obstime() <= Helpers::plusMinute(flagged_stop->obstime(), 1) )
+            {
+                DBG("overlap, stop=head")
+                flagged_stop = head;
+            } else {
+                DBG("no overlap...");
+                if( flagged_start != data.end() )
+                    applyAggregationFlags(flagged_start, flagged_stop, slal);
+                flagged_start = tail;
+                flagged_stop  = head;
             }
         }
     }
+    if( flagged_start != data.end() )
+        applyAggregationFlags(flagged_start, flagged_stop, slal);
+}
+
+// ------------------------------------------------------------------------
+
+void PlumaticAlgorithm::applyAggregationFlags(kvUpdateList_it start, kvUpdateList_it stop, const SlidingAlarm& slal)
+{
+    warning() << "QC2h-1-aggregation-" << slal.length << " triggered for " << stop->text(start->obstime());
 }
 
 // ------------------------------------------------------------------------

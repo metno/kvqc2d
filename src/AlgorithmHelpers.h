@@ -57,6 +57,7 @@ double distance(double lon1, double lat1, double lon2, double lat2);
 
 miutil::miTime plusDay(const miutil::miTime& t, int nDays);
 miutil::miTime plusHour(const miutil::miTime& t, int nHours);
+miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes);
 
 } // namespace Helpers
 
