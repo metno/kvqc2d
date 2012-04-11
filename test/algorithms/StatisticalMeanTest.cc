@@ -222,7 +222,11 @@ TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
            << "days       =   30\n"
            << "tolerance  =   10\n"
            << "ParamId    =  178\n"
-           << "TypeIds    =  22,311,312,330,342\n"
+           << "TypeIds    =   22\n"
+           << "TypeIds    =  311\n"
+           << "TypeIds    =  312\n"
+           << "TypeIds    =  330\n"
+           << "TypeIds    =  342\n"
            << "InterpolationDistance = 5000.0\n";
     AlgorithmConfig params;
     params.Parse(config);
@@ -267,7 +271,11 @@ TEST_F(StatisticalMeanTest, FakeDeviation_PR)
            << "days       =   30\n"
            << "tolerance  =   10\n"
            << "ParamId    =  178\n"
-           << "TypeIds    =  22,311,312,330,342\n"
+           << "TypeIds    =   22\n"
+           << "TypeIds    =  311\n"
+           << "TypeIds    =  312\n"
+           << "TypeIds    =  330\n"
+           << "TypeIds    =  342\n"
            << "InterpolationDistance = 5000.0\n";
     AlgorithmConfig params;
     params.Parse(config);

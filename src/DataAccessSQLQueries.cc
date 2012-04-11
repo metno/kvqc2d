@@ -36,6 +36,9 @@
 #include <kvalobs/kvStation.h>
 #include <sstream>
 
+#define NDEBUG
+#include "debug.h"
+
 namespace DataAccessSQLQueries {
 
 std::string queryForNorwegianFixedStations() throw (DBException)

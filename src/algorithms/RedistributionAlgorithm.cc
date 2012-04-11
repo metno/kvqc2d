@@ -87,6 +87,7 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 
 bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
 {
+    DBG("endpoint=" << endpoint);
     if( Helpers::isMissingOrRejected(endpoint) ) {
         warning() << "endpoint missing/rejected: " << Helpers::datatext(endpoint);
         return false;
@@ -134,8 +135,9 @@ void RedistributionAlgorithm::insertMissingRows(const kvalobs::kvData& endpoint,
 bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
 {
     const int length = mdata.size();
+    DBGV(length);
     if( length == 0 ) {
-        LOGERROR("zero-length accumulation");
+        error() << "zero-length accumulation";
         return false;
     }
     const RedisUpdate& endpoint = mdata.front();
@@ -221,6 +223,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         info() << "stop because fhqc != 0 somewhere for accumulation ending in " << endpoint.text(acc_start);
         stop = true;
     }
+    DBGV(stop);
     return !stop;
 }
 
@@ -228,11 +231,9 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
 
 bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& mdata)
 {
-    // const C::DBConstraint cMissing = C::SameDevice(endpoint)
-    //     && C::Obstime(stepTime(earliest), stepTime(endpoint.obstime()));
     const DBInterface::DataList mdatao
         = database()->findDataOrderObstime(endpoint.stationID(), endpoint.paramID(), endpoint.typeID(), TimeRange(stepTime(earliest), stepTime(endpoint.obstime())));
-    DBGV(cMissing.sql());
+    DBGV(mdatao.size());
     mdata = updateList_t(mdatao.rbegin(), mdatao.rend());
 
 #ifndef NDEBUG
@@ -283,15 +284,12 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
         return false;
     }
 
-    // const C::DBConstraint cNeighbors = C::ControlUseinfo(neighbor_flags)
-    //     && C::Paramid(endpoint.paramID()) && C::Typeid(endpoint.typeID())
-    //     && C::Obstime(before.back().obstime(), endpoint.obstime())
-    //     && C::Station(neighbors);
-    ndata = database()->findDataOrderObstime(neighbors, endpoint.paramID(), endpoint.typeID(),
-                                             TimeRange(before.back().obstime(), endpoint.obstime()), neighbor_flags);
-    // O::Obstime().desc());
+    const dataList_t ndata_r = database()->findDataOrderObstime(neighbors, endpoint.paramID(), endpoint.typeID(),
+                                                                TimeRange(before.back().obstime(), endpoint.obstime()), neighbor_flags);
+    // reverse ordering
+    ndata = dataList_t(ndata_r.rbegin(), ndata_r.rend());
 
-    foreach_r(const kvalobs::kvData& n, ndata) {
+    foreach(const kvalobs::kvData& n, ndata) {
         if( n.obstime().hour() != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                       << " not seen in neighbor " << Helpers::datatext(n)
@@ -331,12 +329,8 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 void RedistributionAlgorithm::run()
 {
     const DBInterface::StationIDList stations = database()->findNorwegianFixedStationIDs();
-    // const C::DBConstraint cEndpoints = C::ControlUseinfo(endpoint_flags)
-    //         && C::Paramid(pids) && C::Typeid(tids)
-    //         && C::Obstime;
     const DBInterface::DataList edata
         = database()->findDataOrderStationObstime(stations, pids, tids, TimeRange(UT0, UT1), endpoint_flags);
-    // (O::Stationid(), O::Obstime().asc()));
     
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;
@@ -371,6 +365,7 @@ void RedistributionAlgorithm::run()
 
 void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
 {
+    DBGV(accumulation.size());
     // accumulated value is -1 => nothing to redistribute, all missing values must be dry (-1), too
     foreach(RedisUpdate& a, accumulation) {
         a.corrected(-1)
@@ -383,12 +378,16 @@ void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
 
 bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 {
+    DBGV(before.size());
     const float accumulated = before.front().original();
     const bool accumulationIsDry = equal(accumulated, 0.0f);
 
     dataList_t ndata;
-    if( !getNeighborData(before, ndata) && !accumulationIsDry )
+    if( !getNeighborData(before, ndata) && !accumulationIsDry ) {
+        DBG("no nieghbor and not dry");
         return false;
+    }
+    DBGV(ndata.size());
 
     // neighbor data are in ndata like this:
     // [endpoint] n3_1 n3_2 n3_3
@@ -401,10 +400,13 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     dataList_t::const_iterator itN = ndata.begin();
     foreach(RedisUpdate& b, before) {
         std::vector<kvalobs::kvData> neighbors;
+        DBGV(b.obstime());
+        DBGV(itN->obstime());
         for( ; itN != ndata.end() && itN->obstime() == b.obstime(); ++itN ) {
             if( dry2real(itN->original()) <= -2.0f )
                 continue;
             const double weight = mNeighbors->getWeight(itN->stationID());
+            DBGV(weight);
             if( weight > 0 )
                 neighbors.push_back(*itN);
         }
@@ -412,6 +414,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         std::sort(neighbors.begin(), neighbors.end(),
                   boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, _1 ))
                   > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, _2 )));
+        DBGV(neighbors.size());
 
         std::ostringstream cfailed;
         cfailed << "QC2N";
@@ -440,6 +443,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
                    << " for accumulation ending in " << before.front().text(before.back().obstime(), false);
         }
         if( usedNeighbors < mMinNeighbors && !accumulationIsDry ) {
+            DBG("not enough neighbors");
             const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
             const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
             (doWARN ? warning() : info())
@@ -456,6 +460,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
             .cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
     }
+    DBGV(weightedNeighborsAccumulated);
 
     const float scale = ( weightedNeighborsAccumulated > 0.0f )
         ? accumulated / weightedNeighborsAccumulated : 0.0f;

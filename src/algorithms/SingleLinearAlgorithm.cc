@@ -73,11 +73,8 @@ void SingleLinearAlgorithm::configure(const AlgorithmConfig& params)
 void SingleLinearAlgorithm::run()
 {
     const DBInterface::StationIDList stationIDs = database()->findNorwegianFixedStationIDs();
+    DBGV(stationIDs.size());
     foreach(int pid, pids) {
-        // const C::DBConstraint cSingleMissing =
-        //     C::ControlUseinfo(missing_flags)
-        //     && C::Paramid(pid)
-        //     && C::Obstime(UT0, UT1); // TODO AND stationid BETWEEN 60 and 99999"?
         const DBInterface::DataList Qc2Data
             = database()->findDataOrderNone(stationIDs, pid, TimeRange(UT0, UT1), missing_flags);
         DBGV(Qc2Data.size());
@@ -86,10 +83,6 @@ void SingleLinearAlgorithm::run()
             miutil::miTime timeBefore = d.obstime(), timeAfter = d.obstime();
             timeBefore.addHour(-1);
             timeAfter.addHour(1);
-
-            // const C::DBConstraint cNeighbors = C::SameDevice(d)
-            //     && (C::Obstime(timeBefore) || C::Obstime(timeAfter));
-            // DBGV(cNeighbors.sql());
 
             const DBInterface::DataList series
                 = database()->findDataOrderObstime(d.stationID(), d.paramID(), d.typeID(), d.sensor(), d.level(), TimeRange(timeBefore, timeAfter));
@@ -137,5 +130,5 @@ void SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, Da
         middle.controlinfo(ftime1_flagchange.apply(middle.controlinfo()));
         middle.cfailed("QC2d-2", CFAILED_STRING);
     }
-    DBG("after corr=" << middle.data() << " mod=" << middle.isModified());
+    DBG("after corr=" << middle.data() << " mod=" << middle.needsWrite());
 }

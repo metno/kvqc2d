@@ -40,6 +40,13 @@ void SingleLinearTest::SetUp()
 {
     algo = new SingleLinearAlgorithm();
     AlgorithmTestBase::SetUp();
+
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(180, 61.294, 12.272, 360.0, 0.0, 'TRYSIL VEGSTASJON', 1397, 180, NULL, NULL, NULL, 8, 't', '1993-11-10 00:00:00');"
+        << "INSERT INTO station VALUES(87120, 69.241, 16.003, 436.0, 0.0, 'ANDØYA - TROLLTINDEN', 1018, 87120, NULL, NULL, NULL, 14, 't', '2007-08-01 00:00:00');"
+        << "INSERT INTO station VALUES(93000, 70.607, 22.443, 438.0, 0.0, 'HASVIK - SLUSKFJELLET', 1042, 93000, NULL, NULL, NULL, 8, 't', '2008-07-03 00:00:00');";
+
+    ASSERT_NO_THROW(db->exec(sql.str()));
 }
 
 TEST_F(SingleLinearTest, test1)
@@ -225,7 +232,7 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_EQ("05120041000000A0", series.begin()->controlinfo().flagstring());
     ASSERT_EQ("QC1-1-211:1,QC1-3a-211:1,QC1-9-211:1,QC2d-2,QC2d-2", series.begin()->cfailed());
 
-    ASSERT_NO_THROW(series = db->findDataOrderObstime(871200, pid, TimeRange(t1, t1)));
+    ASSERT_NO_THROW(series = db->findDataOrderObstime(87120, pid, TimeRange(t1, t1)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(7.3, series.begin()->corrected());
     ASSERT_EQ("0100001100000000", series.begin()->controlinfo().flagstring());

@@ -133,7 +133,6 @@ TEST_F(GapInterpolationTest, test1)
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
-    logs->dump();
 
     ASSERT_RUN(algo, bc, 0);
 }
