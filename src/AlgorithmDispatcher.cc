@@ -29,11 +29,12 @@
 
 #include "AlgorithmDispatcher.h"
 
-#include "algorithms/SingleLinearAlgorithm.h"
-#include "algorithms/RedistributionAlgorithm.h"
 #include "algorithms/DipTestAlgorithm.h"
 #include "algorithms/GapInterpolationAlgorithm.h"
 #include "algorithms/PlumaticAlgorithm.h"
+#include "algorithms/RedistributionAlgorithm.h"
+#include "algorithms/SingleLinearAlgorithm.h"
+#include "algorithms/StatisticalMean.h"
 
 #include "AlgorithmConfig.h"
 #include "DBInterface.h"
@@ -50,6 +51,7 @@ AlgorithmDispatcher::AlgorithmDispatcher()
         new RedistributionAlgorithm(),
         new DipTestAlgorithm(),
 //        new GapInterpolationAlgorithm(),
+//        new StatisticalMean(),
         new PlumaticAlgorithm()
     };
     const int N = sizeof(algorithms)/sizeof(algorithms[0]);
