@@ -1,7 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2007-2011 met.no
+  Copyright (C) 2007-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -108,7 +108,7 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
         lastEnd = now;
         if( app.isShuttingDown() )
             break;
-        // check config files every minute 
+        // check config files every minute
         for( int i=0; i<60 && !app.isShuttingDown(); ++i )
             sleep(1);
     }

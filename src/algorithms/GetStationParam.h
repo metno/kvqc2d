@@ -7,7 +7,7 @@
 #include <list>
 #include <map>
 
-class GetStationParam 
+class GetStationParam
 {
 public:
     GetStationParam(const std::list<kvalobs::kvStationParam>& splist);
@@ -15,8 +15,8 @@ public:
     std::string ValueOf(const std::string& name);
 
 private:
-    std::map<std::string,std::string> spMap; 
+    std::map<std::string,std::string> spMap;
 };
 
 
-#endif 
+#endif

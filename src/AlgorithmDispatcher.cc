@@ -1,9 +1,7 @@
 /*
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  $Id$
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2007-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute

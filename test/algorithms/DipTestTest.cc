@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011 met.no
+  Copyright (C) 2011-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -500,7 +500,7 @@ TEST_F(DipTestTest, FaerderFyrNoDip)
 {
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES(27500, 59.027, 10.524, 6.0, 0.0, 'F�RDER FYR', 1482, 27500, NULL, NULL, NULL, 8, 't', '1885-01-01 00:00:00');";
-    ASSERT_NO_THROW(db->exec(sql.str()));    
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     DataList data(27500, 211, 302);
     data.add("2012-02-28 23:00:00",   -36,    -36, "0511000000100020", "QC1-1-211,QC1-9-211")
@@ -541,7 +541,7 @@ TEST_F(DipTestTest, BadFlagsBeforeAfter)
 {
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES(27500, 59.027, 10.524, 6.0, 0.0, 'F�RDER FYR', 1482, 27500, NULL, NULL, NULL, 8, 't', '1885-01-01 00:00:00');";
-    ASSERT_NO_THROW(db->exec(sql.str()));    
+    ASSERT_NO_THROW(db->exec(sql.str()));
 
     DataList data(27500, 211, 302);
     data.add("2012-02-28 23:00:00", -36, "0111000000000000", "")

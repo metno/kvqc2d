@@ -17,7 +17,7 @@ class Broadcaster;
 /**
  * Interface to be implemented by the different QC2 algorithms.
  */
-class Qc2Algorithm  
+class Qc2Algorithm
 {
 public:
     Qc2Algorithm(const std::string& name);

@@ -13,7 +13,7 @@
 class Qc2App: public KvApp
 {
 public:
-    Qc2App(int argc, char **argv, 
+    Qc2App(int argc, char **argv,
            const std::string &driver,
            const std::string &connect_,
            const char *options[][2]=0);

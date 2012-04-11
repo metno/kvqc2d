@@ -42,7 +42,7 @@ public:
         std::string text;
         Record(Message::Level l, const std::string& t)
             : level(l), text(t) { }
-    };        
+    };
 
     int find(const std::string& needle, int level=-1, int start=0) const;
 

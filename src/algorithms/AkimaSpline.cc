@@ -1,9 +1,7 @@
 /*
-  Kvalobs - Free Quality Control Software for Meteorological Observations 
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  $Id$                                                       
-
-  Copyright (C) 2007 met.no
+  Copyright (C) 2007-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -15,8 +13,8 @@
   This file is part of KVALOBS
 
   KVALOBS is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as 
-  published by the Free Software Foundation; either version 2 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
   
   KVALOBS is distributed in the hope that it will be useful,
@@ -24,8 +22,8 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
   
-  You should have received a copy of the GNU General Public License along 
-  with KVALOBS; if not, write to the Free Software Foundation Inc., 
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
@@ -65,12 +63,12 @@ double AkimaSpline::AkimaPoint(double xp) const
 
 // int AkimaSpline::AkimaPoints()
 // {
-//     long nmax=npoints*10;  
-// 
+//     long nmax=npoints*10;
+//
 //     for (int i = 0; i < nmax +1; i++)  {
-//         xi = tt[0] + (tt[npoints-1] - tt[0])*i/nmax; 
+//         xi = tt[0] + (tt[npoints-1] - tt[0])*i/nmax;
 //         yi = AkimaPoint(xi);
 //     }
-// 
+//
 //     return 0;
 // }

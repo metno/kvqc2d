@@ -13,7 +13,7 @@ namespace CorrelatedNeighbors {
 struct NeighborData {
     int neighborid;
     double offset, slope, sigma;
-    NeighborData(int xid, double xoffset, double xslope, double xsigma) 
+    NeighborData(int xid, double xoffset, double xslope, double xsigma)
         : neighborid(xid), offset(xoffset), slope(xslope), sigma(xsigma) { }
 };
 

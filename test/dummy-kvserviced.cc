@@ -29,10 +29,10 @@ CORBA::Boolean DataReadyInput_i::dataReady(const CKvalObs::StationInfoList& info
     return true;
 }
 
-void update(CORBA::Object_ptr obj) 
+void update(CORBA::Object_ptr obj)
 {
     CKvalObs::CService::DataReadyInput_var d = CKvalObs::CService::DataReadyInput::_narrow(obj);
-    if (CORBA::is_nil(d)) { 
+    if (CORBA::is_nil(d)) {
         std::cerr << "cannot invoke on a nil object reference." << std::endl;
         return;
     }
