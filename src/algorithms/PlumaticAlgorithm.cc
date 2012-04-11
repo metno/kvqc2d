@@ -76,7 +76,6 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
     params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
-    params.getFlagChange(aggregation_flagchange,     "aggregation_flagchange",     "fr=9");
 
     mNeighbors->configure(params);
 

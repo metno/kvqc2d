@@ -126,7 +126,6 @@ void PlumaticTest::Configure(AlgorithmConfig& params, int bm, int bd, int bh, in
         "highstart_flagchange       = fs=A,fmis=2\n"
         "highsingle_flagchange      = fs=B,fmis=2\n"
         "interruptedrain_flagchange = fs=C,fmis=2\n"
-        "aggregation_flagchange     = fr=9,fmis=2\n"
         "discarded_cflags           = fr=9|fs=[ABC]|fmis=)0(|fhqc=)0(\n"
         "stations = 0.1:27270;0.2:30270\n"
         "sliding_alarms = 2<8.4;3<10.2\n"

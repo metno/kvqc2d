@@ -107,7 +107,7 @@ private:
     int pid;
     float mThresholdDry, mThresholdWet;
     FlagSetCU discarded_flags, neighbor_flags;
-    FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange, aggregation_flagchange;
+    FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;
     std::vector<ResolutionStations> mStationlist;
     std::vector<SlidingAlarm> mSlidingAlarms;
     miutil::miTime UT0extended;
