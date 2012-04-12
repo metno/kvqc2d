@@ -33,34 +33,8 @@
 #include "DBInterface.h"
 #include "foreach.h"
 
-#include <kvalobs/kvDataOperations.h>
-
 #define NDEBUG 1
 #include "debug.h"
-
-// ########################################################################
-
-namespace {
-
-struct lt_Instrument : public kvalobs::compare::kvDataCompare
-{
-    bool operator()( const kvalobs::kvData& a, const kvalobs::kvData& b ) const;
-};
-
-bool lt_Instrument::operator()(const kvalobs::kvData& a, const kvalobs::kvData& b ) const
-{
-    if ( a.stationID() != b.stationID() )
-        return a.stationID() < b.stationID();
-    if ( a.typeID() != b.typeID() )
-        return a.typeID() < b.typeID();
-    if ( a.level() != b.level() )
-        return a.level() < b.level();
-    if ( not kvalobs::compare::eq_sensor( a.sensor(), b.sensor() ) )
-        return kvalobs::compare::lt_sensor( a.sensor(), b.sensor() );
-    return a.paramID() < b.paramID();
-}
-
-} // anonymous namespace
 
 // ########################################################################
 
@@ -73,6 +47,8 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
     const DBInterface::DataList obs
         = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type,
                                             instrument.sensor, instrument.level, t, neighbor_flags);
+    DBGV(t.t0);
+    DBGV(t.t1);
     DBGV(obs.size());
 
     std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
@@ -80,6 +56,7 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
         const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
         series[hour] = d.original();
     }
+    DBGV(series.size());
     return series;
 }
 
@@ -87,18 +64,24 @@ const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& inst
 {
     const DBInterface::ModelDataList modelData
         = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
+    DBGV(modelData.size());
 
     std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
     foreach(const kvalobs::kvModelData& d, modelData) {
         const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
         series[hour] = d.original();
     }
+    DBGV(series.size());
     return series;
 }
 
 const CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
-    return mDB->findNeighborData(instrument.stationid, instrument.paramid);
+    DBGV(instrument.stationid);
+    DBGV(instrument.paramid);
+    CorrelatedNeighbors::neighbors_t n = mDB->findNeighborData(instrument.stationid, instrument.paramid);
+    DBGV(n.size());
+    return n;
 }
 
 // ========================================================================
@@ -122,6 +105,8 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[1234]&fhqc=0", "");
     params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
     params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
+
+    mInterpolator->configure(params);
 }
 
 // ------------------------------------------------------------------------
@@ -129,14 +114,13 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 void GapInterpolationAlgorithm::run()
 {
     mDataAccess->setDatabase(database());
-    DBInterface::StationList StationList;
     DBInterface::StationIDList StationIds;
-    fillStationLists(StationList, StationIds);
+    fillStationIDList(StationIds);
     DBGV(StationIds.size());
 
     typedef std::vector<kvalobs::kvData> MissingRange;
     typedef std::vector<MissingRange> MissingRanges;
-    typedef std::map<kvalobs::kvData, MissingRanges, lt_Instrument> InstrumentMissingRanges;
+    typedef std::map<Instrument, MissingRanges, lt_Instrument> InstrumentMissingRanges;
     InstrumentMissingRanges instrumentMissingRanges;
 
     const DBInterface::DataList missingData
@@ -144,25 +128,26 @@ void GapInterpolationAlgorithm::run()
     DBGV(missingData.size());
 
     foreach(const kvalobs::kvData& d, missingData) {
-        MissingRanges& mr = instrumentMissingRanges[d];
+        const Instrument i(d);
+        MissingRanges& mr = instrumentMissingRanges[i];
         if( mr.empty() || miutil::miTime::hourDiff(d.obstime(), mr.back().back().obstime()) > 1 ) {
             mr.push_back(MissingRange(1, d));
+            DBG("new time range at " << d);
         } else {
             mr.back().push_back(d);
+            DBG("extending time range with " << d);
         }
     }
 
     DataList_t updates;
     foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
-        const kvalobs::kvData& d = imr.first;
-        DBGV(d);
+        const Instrument& d = imr.first;
         foreach(MissingRange& mr, imr.second) {
 
             const TimeRange missingTime(Helpers::plusHour(mr.front().obstime(), -1), Helpers::plusHour(mr.back().obstime(), 1));
             DBGV(missingTime.t0);
             DBGV(missingTime.t1);
             const Instrument instrument(d);
-            DBGV(instrument.stationid);
             const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(instrument, missingTime);
             DBGV(interpolated.size());
 

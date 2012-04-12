@@ -30,8 +30,13 @@ struct Instrument {
     int level;
     Instrument(int st, int pa, int se, int ty, int le)
         : stationid(st), paramid(pa), sensor(se), type(ty), level(le) { }
-    Instrument(const kvalobs::kvData& d)
+    explicit Instrument(const kvalobs::kvData& d)
         : stationid(d.stationID()), paramid(d.paramID()), sensor(d.sensor()), type(d.typeID()), level(d.level()) { }
+};
+
+struct lt_Instrument : public std::binary_function<Instrument, Instrument, bool>
+{
+    bool operator()(const Instrument& a, const Instrument& b) const;
 };
 
 // ========================================================================

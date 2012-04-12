@@ -20,7 +20,7 @@ struct NeighborData {
 typedef std::vector<NeighborData> neighbors_t;
 
 // ========================================================================
-    
+
 class DataAccess {
 public:
     virtual ~DataAccess();
@@ -40,11 +40,11 @@ public:
     void configure(const AlgorithmConfig& config);
 
 private:
-    typedef std::map<int, neighbors_t> neighbor_map_t;
+    typedef std::map<Instrument, neighbors_t, lt_Instrument> neighbor_map_t;
 
 private:
     std::vector<float> interpolate_simple(const Instrument& instrument, const TimeRange& t);
-    
+
     void calculate_delta(const double data0, const double dataN1, const double i0, const double iN1, int N,
                          double& slope, double& offset);
 

@@ -37,10 +37,10 @@ public:
 };
 
 namespace {
-void INSERT_NEIGHBOR(std::ostream& sql, int stationid, int neighborid, int paramid, float offset, float slope, float sigma)
+void INSERT_NEIGHBOR(std::ostream& sql, int stationid, int paramid, int neighborid, float offset, float slope, float sigma)
 {
     sql << "INSERT INTO interpolation_best_neighbors VALUES ("
-        << stationid << ',' << neighborid << ',' << paramid << ',' << offset << ',' << slope << ',' << sigma << ");";
+        << stationid << ',' << neighborid << ',' << paramid << ',' << offset << ',' << slope << ',' << sigma << ");\n";
 }
 }
 
@@ -50,8 +50,8 @@ void GapInterpolationTest::SetUp()
     AlgorithmTestBase::SetUp();
 
     std::ostringstream sql;
-    sql << "INSERT INTO station VALUES(69150, 63.488200, 10.879500, 40, 0, 'KVITHAMAR', 69150, NULL, NULL, NULL, NULL, 2, 't', '1987-05-12 00:00:00');"
-        << "INSERT INTO station VALUES(18700, 59.942, 10.720, 94.0, 0.0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');";
+    sql << "INSERT INTO station VALUES(69150, 63.488200, 10.879500, 40, 0, 'KVITHAMAR', 69150, NULL, NULL, NULL, NULL, 2, 't', '1987-05-12 00:00:00');\n"
+        << "INSERT INTO station VALUES(18700, 59.942, 10.720, 94.0, 0.0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');\n";
 
     INSERT_NEIGHBOR(sql, 18700, 211, 18210,  0.359377,  0.936164, 0.837205);
     INSERT_NEIGHBOR(sql, 18700, 211, 18230,  0.432384,  0.946009, 0.890819);
@@ -249,7 +249,7 @@ TEST_F(GapInterpolationTest, GapInMultiplePar)
         .add("2012-03-25 21:00:00",  -32767.0,  -32767.0, "0000003000000000", "") // fake
         .add("2012-03-25 22:00:00",  -32767.0,  -32767.0, "0000003000000000", "") // not fake
         .add("2012-03-25 23:00:00",       5.3,       5.3, "0110000000100010", "")
-        .add("2012-03-26 00:00:00",       4.6,       4.6, "0111000000100010", "")
+        .add("2012-03-26 00:00:00",  -32767.0,  -32767.0, "0000003000000000", "") // fake
         .add("2012-03-26 01:00:00",       4.0,       4.0, "0111000000100010", "");
     data.setStation(20301).setType(330)
         .add("2012-03-25 18:00:00",      11.7,      11.7, "0111000000100010", "")
@@ -280,6 +280,9 @@ TEST_F(GapInterpolationTest, GapInMultiplePar)
         .add("2012-03-26 01:00:00",       1.4,       1.4, "0111000000100010", "");
     ASSERT_NO_THROW(data.insert(db));
 
+    ASSERT_LE(1, db->findNeighborData(18700, 211).size());
+    ASSERT_LE(1, db->findNeighborData(18700, 178).size());
+
     std::stringstream config;
     config << "Start_YYYY = 2012\n"
            << "Start_MM   =   03\n"
@@ -296,7 +299,7 @@ TEST_F(GapInterpolationTest, GapInMultiplePar)
     params.Parse(config);
 
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 4);
+    ASSERT_RUN(algo, bc, 5);
 
     ASSERT_RUN(algo, bc, 0);
 }

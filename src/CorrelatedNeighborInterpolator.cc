@@ -42,8 +42,6 @@
 
 namespace CorrelatedNeighbors {
 
-static const float INVALID = -32767.0f;
-
 DataAccess::~DataAccess()
 {
 }
@@ -100,7 +98,7 @@ Interpolator::Interpolator(DataAccess* dax)
     }
     const bool haveAkima = ( nBefore >= NA && nAfter >= NA );
 #endif
-    
+
     const double data0 = observations[NA-1], dataN1 = observations[gapLength+NA];
     double model_slope, model_offset, inter_slope, inter_offset;
     calculate_delta(data0, dataN1,
@@ -109,14 +107,14 @@ Interpolator::Interpolator(DataAccess* dax)
     calculate_delta(data0, dataN1,
                     interpolations[NA-1], interpolations[gapLength+NA],
                     gapLength, inter_slope, inter_offset);
-    
+
     for(int i=0; i<gapLength; ++i) {
         const double modelI = modelvalues[NA+i];
         const double interI = interpolations[NA+i];
         DBG("i=" << i << " inter=" << interI);
-        
+
         double combiValue = 0, combiWeights = 0;
-        
+
         const bool canUseAkima = haveAkima && (i == 0 || i == gapLength-1);
         const bool akimaFirst = false;
         if( akimaFirst && canUseAkima ) {
@@ -162,6 +160,7 @@ Interpolator::Interpolator(DataAccess* dax)
 
 void Interpolator::configure(const AlgorithmConfig& config)
 {
+    neighbor_map.clear();
 }
 
 // ------------------------------------------------------------------------
@@ -232,12 +231,12 @@ void Interpolator::calculate_delta(const double data0, const double dataN1, cons
 
 const neighbors_t& Interpolator::find_neighbors(const Instrument& instrument, double maxsigma)
 {
-    neighbor_map_t::iterator it = neighbor_map.find(instrument.stationid);
+    neighbor_map_t::iterator it = neighbor_map.find(instrument);
     if( it != neighbor_map.end() )
         return it->second;
-    
-    neighbor_map[instrument.stationid] = mDax->findNeighbors(instrument, maxsigma);
-    return neighbor_map[instrument.stationid];
+
+    neighbor_map[instrument] = mDax->findNeighbors(instrument, maxsigma);
+    return neighbor_map[instrument];
 }
 
 } // namespace CorrelatedNeigbors
