@@ -43,25 +43,15 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
     neighbor_flags.setU(FlagPatterns("U0=[37]&U2=0", FlagPattern::USEINFO));
 
     const DBInterface::DataList obs
-        = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type, instrument.sensor, instrument.level, t, neighbor_flags);
+        = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type,
+                                            instrument.sensor, instrument.level, t, neighbor_flags);
     DBGV(obs.size());
-    
-    miutil::miTime tt = t.t0;
-    std::vector<float> series;
+
+    std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
     foreach(const kvalobs::kvData& d, obs) {
-        while( tt < d.obstime() && tt <= t.t1 ) {
-            series.push_back(-32767.0f);
-            tt.addHour(1);
-        }
-        DBG("obstime = " << d.obstime() << " tt=" << tt);
-        if( d.obstime() == tt ) {
-            DBG("station=" << d.stationID() << " t=" << tt << " orig=" << d.original());
-            series.push_back(d.original());
-            tt.addHour(1);
-        }
+        const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
+        series[hour] = d.original();
     }
-    for( ; tt < t.t1; tt.addHour(1) )
-        series.push_back(-32767.0f);
     return series;
 }
 
@@ -70,22 +60,11 @@ const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& inst
     const DBInterface::ModelDataList modelData
         = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
 
-    miutil::miTime tt = t.t0;
-    std::vector<float> series;
+    std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
     foreach(const kvalobs::kvModelData& d, modelData) {
-        while( tt < d.obstime() && tt <= t.t1 ) {
-            series.push_back(-32767.0f);
-            tt.addHour(1);
-        }
-        DBG("obstime = " << d.obstime() << " tt=" << tt);
-        if( d.obstime() == tt ) {
-            DBG("station=" << d.stationID() << " t=" << tt << " orig=" << d.original());
-            series.push_back(d.original());
-            tt.addHour(1);
-        }
+        const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
+        series[hour] = d.original();
     }
-    for( ; tt < t.t1; tt.addHour(1) )
-        series.push_back(-32767.0f);
     return series;
 }
 
@@ -128,8 +107,12 @@ void GapInterpolationAlgorithm::run()
     DBGV(StationIds.size());
 
     foreach(const kvalobs::kvStation& station, StationList) {
+        // FIXME this does not work as expected if there are several
+        // parameter ids; the data will be ordered by obstime, so
+        // parameters will be mixed
         const DBInterface::DataList missingData
-            = database()->findDataOrderObstime(station.stationID(), pids, tids, 0, 0, TimeRange(UT0, UT1), missing_flags);
+            = database()->findDataOrderObstime(station.stationID(), pids, tids, DBInterface::INVALID_ID,
+                                               DBInterface::INVALID_ID, TimeRange(UT0, UT1), missing_flags);
         DBGV(missingData.size());
 
         if( missingData.empty() )
@@ -154,7 +137,7 @@ void GapInterpolationAlgorithm::run()
             const TimeRange missingTime(Helpers::plusHour(start->obstime(), -1), Helpers::plusHour(end->obstime(), 1));
             DBGV(missingTime.t0);
             DBGV(missingTime.t1);
-            const Instrument instrument(start->stationID(), start->paramID(), start->sensor(), start->typeID(), start->level());
+            const Instrument instrument(*start);
             DBGV(instrument.stationid);
             const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(instrument, missingTime);
             DBGV(interpolated.size());

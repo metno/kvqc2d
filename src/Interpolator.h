@@ -3,16 +3,14 @@
 #ifndef INTERPOLATOR_H
 #define INTERPOLATOR_H 1
 
+#include <kvalobs/kvData.h>
 #include <puTools/miTime.h>
 #include <vector>
 
-namespace kvalobs {
-class kvData;
-}
 class AlgorithmConfig;
 
 // ========================================================================
-    
+
 struct TimeRange {
     miutil::miTime t0;
     miutil::miTime t1;
@@ -32,12 +30,16 @@ struct Instrument {
     int level;
     Instrument(int st, int pa, int se, int ty, int le)
         : stationid(st), paramid(pa), sensor(se), type(ty), level(le) { }
+    Instrument(const kvalobs::kvData& d)
+        : stationid(d.stationID()), paramid(d.paramID()), sensor(d.sensor()), type(d.typeID()), level(d.level()) { }
 };
-    
+
 // ========================================================================
 
 class Interpolator {
 public:
+    enum { INVALID = -32767 };
+
     virtual ~Interpolator();
 
     struct ValueWithQuality {
