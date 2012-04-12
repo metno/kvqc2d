@@ -42,7 +42,7 @@
 
 namespace gcc_foreach_helpers {
 
-template<typename T, bool>
+template<typename T, bool Const>
 struct iterator_helper;
 
 template<typename T>
@@ -57,19 +57,19 @@ struct iterator_helper<T, true> {
     typedef typename T::const_reverse_iterator ireverse;
 };
 
-template<typename T, bool R, bool C>
+template<typename T, bool Const, bool Reverse>
 struct reverse_helper;
 
-template<typename T, bool C>
-struct reverse_helper<T, C, false> {
-    typedef typename iterator_helper<T,C>::iforward iterator;
+template<typename T, bool Const>
+struct reverse_helper<T, Const, false> {
+    typedef typename iterator_helper<T,Const>::iforward iterator;
     static iterator begin(T& t) { return t.begin(); }
     static iterator end  (T& t) { return t.end(); }
 };
 
-template<typename T, bool C>
-struct reverse_helper<T, C, true> {
-    typedef typename iterator_helper<T,C>::ireverse iterator;
+template<typename T, bool Const>
+struct reverse_helper<T, Const, true> {
+    typedef typename iterator_helper<T,Const>::ireverse iterator;
     static iterator begin(T& t) { return t.rbegin(); }
     static iterator end  (T& t) { return t.rend(); }
 };
@@ -87,49 +87,46 @@ struct is_const {
     static const bool value = (sizeof(is_const_or_not(t)) != 1);
 };
 
-template<class T, bool R>
+template<class Container, bool Reverse>
 struct looping {
-    static const bool T_is_const = is_const<T>::value;
-    typedef reverse_helper<T, T_is_const, R> helper;
-    typedef typename T::value_type value_type;
-    typedef typename helper::iterator iterator;
-    typedef typename iterator::reference reference;
+    typedef reverse_helper<Container, is_const<Container>::value, Reverse> Helper;
+    typedef typename Container::value_type Value;
+    typedef typename Helper::iterator Iterator;
+    typedef typename Iterator::reference Reference;
 
-    looping(T& t)
-        : iter(helper::begin(t))
-        , end(helper::end(t))
+    looping(Container& c)
+        : container(c)
+        , iterator(Helper::begin(container))
         , go_on(true)
         { }
 
-    void advance()
-        { //std::cout << "advance: go=" << go_on << std::endl;
-            go_on = !go_on; ++iter; }
+    void toggle_go()
+        { toggle(); ++iterator; }
 
-    bool at_end() const
-        { //std::cout << "at_end: go=" << go_on << " (iter!=end)=" << (iter != end) << std::endl;
-            return go_on && iter != end; }
+    bool more() const
+        { return go_on && iterator != Helper::end(container); }
 
     void toggle()
-        { //std::cout << "toggle: go=" << go_on << std::endl;
-            go_on = !go_on; }
+        { go_on = !go_on; }
 
-    bool keep_going() const
-        { //std::cout << "keep_going: go=" << go_on << std::endl;
-            return go_on; }
+    bool once() const
+        { return go_on; }
 
-    reference operator*() const
-        { return *iter; }
+    Reference operator*() const
+        { return *iterator; }
 
 private:
-    iterator iter, end;
+    Container& container;
+    Iterator iterator;
     bool go_on;
 };
 
 } // namespace gcc_foreach_helpers
 
+#define GCC_FOREACH_L loop ## __LINE__
 #define GCC_FOREACH_BASE(variable, container, reverse)                  \
-    for(gcc_foreach_helpers::looping<__typeof__(container), reverse> loop(container); loop.at_end(); loop.advance()) \
-        for(variable = *loop; loop.keep_going(); loop.toggle())
+    for(gcc_foreach_helpers::looping<__typeof__(container), reverse> GCC_FOREACH_L(container); GCC_FOREACH_L.more(); GCC_FOREACH_L.toggle_go()) \
+        for(variable = *GCC_FOREACH_L; GCC_FOREACH_L.once(); GCC_FOREACH_L.toggle())
 #define foreach(a, b)   GCC_FOREACH_BASE(a, b, false)
 #define foreach_r(a, b) GCC_FOREACH_BASE(a, b, true)
 
