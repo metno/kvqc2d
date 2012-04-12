@@ -33,8 +33,36 @@
 #include "DBInterface.h"
 #include "foreach.h"
 
+#include <kvalobs/kvDataOperations.h>
+
 #define NDEBUG 1
 #include "debug.h"
+
+// ########################################################################
+
+namespace {
+
+struct lt_Instrument : public kvalobs::compare::kvDataCompare
+{
+    bool operator()( const kvalobs::kvData& a, const kvalobs::kvData& b ) const;
+};
+
+bool lt_Instrument::operator()(const kvalobs::kvData& a, const kvalobs::kvData& b ) const
+{
+    if ( a.stationID() != b.stationID() )
+        return a.stationID() < b.stationID();
+    if ( a.typeID() != b.typeID() )
+        return a.typeID() < b.typeID();
+    if ( a.level() != b.level() )
+        return a.level() < b.level();
+    if ( not kvalobs::compare::eq_sensor( a.sensor(), b.sensor() ) )
+        return kvalobs::compare::lt_sensor( a.sensor(), b.sensor() );
+    return a.paramID() < b.paramID();
+}
+
+} // anonymous namespace
+
+// ########################################################################
 
 const std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
 {
@@ -106,44 +134,41 @@ void GapInterpolationAlgorithm::run()
     fillStationLists(StationList, StationIds);
     DBGV(StationIds.size());
 
-    foreach(const kvalobs::kvStation& station, StationList) {
-        // FIXME this does not work as expected if there are several
-        // parameter ids; the data will be ordered by obstime, so
-        // parameters will be mixed
-        const DBInterface::DataList missingData
-            = database()->findDataOrderObstime(station.stationID(), pids, tids, DBInterface::INVALID_ID,
-                                               DBInterface::INVALID_ID, TimeRange(UT0, UT1), missing_flags);
-        DBGV(missingData.size());
+    typedef std::vector<kvalobs::kvData> MissingRange;
+    typedef std::vector<MissingRange> MissingRanges;
+    typedef std::map<kvalobs::kvData, MissingRanges, lt_Instrument> InstrumentMissingRanges;
+    InstrumentMissingRanges instrumentMissingRanges;
 
-        if( missingData.empty() )
-            continue;
+    const DBInterface::DataList missingData
+        = database()->findDataOrderStationObstime(StationIds, pids, tids, TimeRange(UT0, UT1), missing_flags);
+    DBGV(missingData.size());
 
-        DataList_t updates;
-        for(DataList_cit mark = missingData.begin(); mark != missingData.end(); /* */ ) {
+    foreach(const kvalobs::kvData& d, missingData) {
+        MissingRanges& mr = instrumentMissingRanges[d];
+        if( mr.empty() || miutil::miTime::hourDiff(d.obstime(), mr.back().back().obstime()) > 1 ) {
+            mr.push_back(MissingRange(1, d));
+        } else {
+            mr.back().push_back(d);
+        }
+    }
 
-            // find a series of continuous hours with missing data
-            DataList_cit start = mark;
-            DBGV(*start);
-            miutil::miTime t = start->obstime();
-            do {
-                t.addHour(1);
-                ++mark;
-                DBGV(t);
-            } while( mark != missingData.end() && mark->obstime() == t );
-            DataList_cit end = mark;
-            --end;
-            DBGV(*end);
+    DataList_t updates;
+    foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
+        const kvalobs::kvData& d = imr.first;
+        DBGV(d);
+        foreach(MissingRange& mr, imr.second) {
 
-            const TimeRange missingTime(Helpers::plusHour(start->obstime(), -1), Helpers::plusHour(end->obstime(), 1));
+            const TimeRange missingTime(Helpers::plusHour(mr.front().obstime(), -1), Helpers::plusHour(mr.back().obstime(), 1));
             DBGV(missingTime.t0);
             DBGV(missingTime.t1);
-            const Instrument instrument(*start);
+            const Instrument instrument(d);
             DBGV(instrument.stationid);
             const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(instrument, missingTime);
             DBGV(interpolated.size());
 
+            MissingRange::const_iterator dit = mr.begin();
             foreach(const ::Interpolator::ValueWithQuality vq, interpolated) {
-                kvalobs::kvData dwrite(*start++);
+                kvalobs::kvData dwrite(*dit++);
                 DBGV(dwrite);
                 DBGV(vq.value);
                 if( Helpers::equal(dwrite.corrected(), vq.value) )
@@ -155,7 +180,7 @@ void GapInterpolationAlgorithm::run()
                 updates.push_back(dwrite);
             }
         }
-        if( !updates.empty() )
-            storeData(updates);
     }
+    if( !updates.empty() )
+        storeData(updates);
 }
