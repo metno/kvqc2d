@@ -78,6 +78,8 @@ libkvqc2d_a_SOURCES = \
 	KvServicedBroadcaster.h \
 	LogfileNotifier.cc \
 	LogfileNotifier.h \
+	MinMaxInterpolator.cc \
+	MinMaxInterpolator.h \
 	Notifier.cc \
 	Notifier.h \
 	SQLDataAccess.cc \

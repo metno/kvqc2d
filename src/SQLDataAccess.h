@@ -51,7 +51,7 @@ public:
     virtual DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
 
     virtual reference_value_map_t findStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) throw (DBException);
-    virtual CorrelatedNeighbors::neighbors_t findNeighborData(int stationid, int paramid) throw (DBException);
+    virtual CorrelatedNeighbors::neighbors_t findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException);
 
     virtual ModelDataList findModelData(int stationID, int paramID, int level, const TimeRange& time) throw (DBException);
 

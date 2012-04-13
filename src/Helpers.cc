@@ -179,4 +179,17 @@ int normalisedDayOfYear(const miutil::miDate& date)
     return daysFromPreviousMonths[month-1] + day;
 }
 
+// ------------------------------------------------------------------------
+
+double randNormal()
+{
+    // very simple and approximate implementation, see https://en.wikipedia.org/wiki/Normal_distribution#Generating_values_from_normal_distribution
+    int N = 12;
+    double r = 0;
+    for(int i=0; i<N; ++i)
+        r += drand48();
+    r -= N/2;
+    return r;
+}
+
 } // namespace Helpers

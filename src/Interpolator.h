@@ -47,6 +47,8 @@ public:
 
     virtual ~Interpolator();
 
+    enum { QUALITY_OBS, QUALITY_INTER_GOOD, QUALITY_INTER_BAD, QUALITY_INTER_FAILED };
+
     struct ValueWithQuality {
         float value;
         int quality;

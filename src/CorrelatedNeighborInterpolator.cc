@@ -99,60 +99,87 @@ Interpolator::Interpolator(DataAccess* dax)
     const bool haveAkima = ( nBefore >= NA && nAfter >= NA );
 #endif
 
-    const double data0 = observations[NA-1], dataN1 = observations[gapLength+NA];
-    double model_slope, model_offset, inter_slope, inter_offset;
-    calculate_delta(data0, dataN1,
-                    modelvalues[NA-1], modelvalues[gapLength+NA],
-                    gapLength, model_slope, model_offset);
-    calculate_delta(data0, dataN1,
-                    interpolations[NA-1], interpolations[gapLength+NA],
-                    gapLength, inter_slope, inter_offset);
+    int start = NA-1; // assume this is an observed value
+    while( start < NA+gapLength ) {
+        int stop = start+1;
+        while( stop <= NA+gapLength && observations[stop] == INVALID )
+            ++stop;
+        DBGV(start);
+        DBGV(stop);
+        if( stop != start + 1 ) {
+            const int gapLen = stop - start - 1;
+            const double data0 = observations[start], dataN1 = observations[stop];
+            double model_slope, model_offset, inter_slope, inter_offset;
+            calculate_delta(data0, dataN1,
+                            modelvalues[start], modelvalues[stop],
+                            gapLen, model_slope, model_offset);
+            calculate_delta(data0, dataN1,
+                            interpolations[start], interpolations[stop],
+                            gapLen, inter_slope, inter_offset);
 
-    for(int i=0; i<gapLength; ++i) {
-        const double modelI = modelvalues[NA+i];
-        const double interI = interpolations[NA+i];
-        DBG("i=" << i << " inter=" << interI);
+            DBG("start=" << start << " stop=" << stop << " len=" << gapLen);
+            for(int i=0; i<gapLen; ++i) {
+                const float modelI = modelvalues[start+1+i];
+                const float interI = interpolations[start+1+i];
+                DBG("i=" << i << " inter=" << interI);
 
-        double combiValue = 0, combiWeights = 0;
+                int quality = QUALITY_INTER_BAD;
+                double combiValue = 0, combiWeights = 0;
 
-        const bool canUseAkima = haveAkima && (i == 0 || i == gapLength-1);
-        const bool akimaFirst = false;
-        if( akimaFirst && canUseAkima ) {
-            const double akimaWeight = 2;
-            combiValue += akimaWeight * akima.interpolate(i);
-            combiWeights += akimaWeight;
-        }
-        if( combiWeights == 0 && interI > INVALID ) {
-            const double delta = inter_offset + i * inter_slope;
-            if( fabs(delta) < maxdelta ) {
-                combiValue += interI - delta;
-                combiWeights += 1;
+                const bool canUseAkima = haveAkima && (i == 0 || i == gapLen-1);
+                const bool akimaFirst = false;
+                if( akimaFirst && canUseAkima ) {
+                    const double akimaWeight = 2, akimaValue = akima.interpolate(i);
+                    if( akimaValue != Akima::INVALID ) {
+                        combiValue += akimaWeight * akimaValue;
+                        combiWeights += akimaWeight;
+                    }
+                }
+                if( combiWeights == 0 && interI > INVALID ) {
+                    const double delta = inter_offset + i * inter_slope;
+                    if( fabs(delta) < maxdelta ) {
+                        combiValue += interI - delta;
+                        combiWeights += 1;
+                    }
+                }
+                if( !akimaFirst && combiWeights == 0 && canUseAkima ) {
+                    const double akimaWeight = 2, akimaValue = akima.interpolate(i);
+                    if( akimaValue != Akima::INVALID ) {
+                        combiValue += akimaWeight * akimaValue;
+                        combiWeights += akimaWeight;
+                    }
+                }
+                if( combiWeights == 0 && modelI > -1000 ) {
+                    const double delta = model_offset + i * model_slope;
+                    if( interI <= -1000 && fabs(delta) < maxdelta ) {
+                        combiValue += modelI - delta;
+                        combiWeights += 1;
+                    }
+                }
+                double combi;
+                if( combiWeights > 0 ) {
+                    quality = (i==0 || i==gapLen-1) ? QUALITY_INTER_GOOD : QUALITY_INTER_BAD;
+                    combi = combiValue / combiWeights;
+                    if( combi < limit_low )
+                        combi = limit_low;
+                    else if( combi > limit_high )
+                        combi = limit_high;
+                } else {
+                    combi = INVALID;
+                    quality = QUALITY_INTER_FAILED;
+                }
+                interpolated.push_back(ValueWithQuality(combi, quality));
             }
         }
-        if( !akimaFirst && combiWeights == 0 && canUseAkima ) {
-            const double akimaWeight = 2;
-            combiValue += akimaWeight * akima.interpolate(i);
-            combiWeights += akimaWeight;
+        if( stop < NA+gapLength ) {
+            DBG("adding original at stop=" << stop);
+            interpolated.push_back(ValueWithQuality(observations[stop], QUALITY_OBS));
         }
-        if( combiWeights == 0 && modelI > -1000 ) {
-            const double delta = model_offset + i * model_slope;
-            if( interI <= -1000 && fabs(delta) < maxdelta ) {
-                combiValue += modelI - delta;
-                combiWeights += 1;
-            }
-        }
-        double combi;
-        if( combiWeights > 0 ) {
-            combi = combiValue / combiWeights;
-            if( combi < limit_low )
-                combi = limit_low;
-            else if( combi > limit_high )
-                combi = limit_high;
-        } else {
-            combi = INVALID;
-        }
-        interpolated.push_back(ValueWithQuality(combi, 0));
+        start = stop;
     }
+    DBGV(interpolated.size());
+    DBGV(gapLength);
+    assert((int)interpolated.size() == gapLength);
     return interpolated;
 }
 
@@ -161,6 +188,7 @@ Interpolator::Interpolator(DataAccess* dax)
 void Interpolator::configure(const AlgorithmConfig& config)
 {
     neighbor_map.clear();
+    mMaxSigma = 2.7;
 }
 
 // ------------------------------------------------------------------------
@@ -170,7 +198,7 @@ std::vector<float> Interpolator::interpolate_simple(const Instrument& ctr, const
     const int length = tExtended.hours() + 1;
     std::vector<float> interpolated(length, INVALID);
 
-    const neighbors_t& neighbors = find_neighbors(ctr, 2.7);
+    const neighbors_t& neighbors = find_neighbors(ctr, mMaxSigma);
     DBGV(neighbors.size());
     if( neighbors.empty() )
         return interpolated;

@@ -85,6 +85,16 @@ void quartiles(RandAccessIter begin, RandAccessIter end, double& q1, double& q2,
     q3 = median(end, e);
 }
 
+double randNormal();
+
+template<typename T>
+void maximize(T& value, const T& by)
+{ if( by > value ) value = by; }
+
+template<typename T>
+void minimize(T& value, const T& by)
+{ if( by < value ) value = by; }
+
 };
 
 #endif

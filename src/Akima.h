@@ -18,6 +18,8 @@ public:
 
     double interpolate(double x) const;
 
+    static const double INVALID;
+
 private:
     std::vector<double> mX, mY;
 };

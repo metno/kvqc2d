@@ -34,9 +34,25 @@ public:
     virtual void run();
 
 private:
-    typedef std::list<kvalobs::kvData> DataList_t;
-    typedef DataList_t::iterator       DataList_it;
-    typedef DataList_t::const_iterator DataList_cit;
+    struct ParamGroupMissingRange {
+        TimeRange range;
+        typedef std::vector<kvalobs::kvData> MissingRange;
+        typedef std::map<int, MissingRange> ParamMissingRanges;
+        ParamMissingRanges paramMissingRanges;
+
+        bool tryExtend(const kvalobs::kvData& missing);
+        ParamGroupMissingRange(const kvalobs::kvData& missing);
+    };
+
+private:
+    Instrument getMasterInstrument(const kvalobs::kvData& data);
+    void makeUpdates(const ParamGroupMissingRange::MissingRange& mr, const Interpolator::ValuesWithQualities_t& interpolated,
+                     const TimeRange& range, DBInterface::DataList& updates);
+
+private:
+    typedef DBInterface::DataList    DataList;
+    typedef DataList::iterator       DataList_it;
+    typedef DataList::const_iterator DataList_cit;
 
 private:
     GapDataAccess* mDataAccess;

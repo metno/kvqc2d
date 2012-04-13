@@ -52,6 +52,7 @@ private:
 
 private:
     DataAccess* mDax;
+    float mMaxSigma;
 
     neighbor_map_t neighbor_map;
 };

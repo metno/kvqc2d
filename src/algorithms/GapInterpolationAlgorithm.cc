@@ -31,6 +31,7 @@
 
 #include "AlgorithmHelpers.h"
 #include "DBInterface.h"
+#include "MinMaxInterpolator.h"
 #include "foreach.h"
 
 #define NDEBUG 1
@@ -47,16 +48,12 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
     const DBInterface::DataList obs
         = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type,
                                             instrument.sensor, instrument.level, t, neighbor_flags);
-    DBGV(t.t0);
-    DBGV(t.t1);
-    DBGV(obs.size());
 
     std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
     foreach(const kvalobs::kvData& d, obs) {
         const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
         series[hour] = d.original();
     }
-    DBGV(series.size());
     return series;
 }
 
@@ -64,24 +61,18 @@ const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& inst
 {
     const DBInterface::ModelDataList modelData
         = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
-    DBGV(modelData.size());
 
     std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
     foreach(const kvalobs::kvModelData& d, modelData) {
         const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
         series[hour] = d.original();
     }
-    DBGV(series.size());
     return series;
 }
 
 const CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
-    DBGV(instrument.stationid);
-    DBGV(instrument.paramid);
-    CorrelatedNeighbors::neighbors_t n = mDB->findNeighborData(instrument.stationid, instrument.paramid);
-    DBGV(n.size());
-    return n;
+    return mDB->findNeighborData(instrument.stationid, instrument.paramid, maxsigma);
 }
 
 // ========================================================================
@@ -109,63 +100,104 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     mInterpolator->configure(params);
 }
 
+bool GapInterpolationAlgorithm::ParamGroupMissingRange::tryExtend(const kvalobs::kvData& missing)
+{
+    const miutil::miTime obstime = missing.obstime();
+    const int hd = miutil::miTime::hourDiff(obstime, range.t1);
+    assert(hd>=0);
+    if( hd > 3 )
+        return false;
+    range.t1 = obstime;
+    paramMissingRanges[missing.paramID()].push_back(missing);
+    return true;
+}
+
+GapInterpolationAlgorithm::ParamGroupMissingRange::ParamGroupMissingRange(const kvalobs::kvData& missing)
+    : range(missing.obstime(), missing.obstime())
+{
+    paramMissingRanges[missing.paramID()].push_back(missing);
+}
+
 // ------------------------------------------------------------------------
+
+void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::MissingRange& mr, const Interpolator::ValuesWithQualities_t& interpolated,
+                                            const TimeRange& range, DBInterface::DataList& updates)
+{
+    ParamGroupMissingRange::MissingRange::const_iterator dit = mr.begin();
+    int h = 0;
+    foreach(const ::Interpolator::ValueWithQuality& vq, interpolated) {
+        if( dit == mr.end() )
+            break;
+        if( dit->obstime() != Helpers::plusHour(range.t0, h++) )
+            continue;
+        kvalobs::kvData dwrite(*dit++);
+        if( Helpers::equal(dwrite.corrected(), vq.value) )
+            continue;
+        dwrite.corrected(vq.value);
+        dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
+        Helpers::updateCfailed(dwrite, "QC2d-2-I", "");//CFAILED_STRING);
+        Helpers::updateUseInfo(dwrite);
+        DBG("update=" << dwrite << " quality=" << vq.quality);
+        updates.push_back(dwrite);
+    }
+}
 
 void GapInterpolationAlgorithm::run()
 {
     mDataAccess->setDatabase(database());
     DBInterface::StationIDList StationIds;
     fillStationIDList(StationIds);
-    DBGV(StationIds.size());
 
-    typedef std::vector<kvalobs::kvData> MissingRange;
-    typedef std::vector<MissingRange> MissingRanges;
+    typedef std::vector<ParamGroupMissingRange> MissingRanges;
     typedef std::map<Instrument, MissingRanges, lt_Instrument> InstrumentMissingRanges;
     InstrumentMissingRanges instrumentMissingRanges;
 
     const DBInterface::DataList missingData
         = database()->findDataOrderStationObstime(StationIds, pids, tids, TimeRange(UT0, UT1), missing_flags);
-    DBGV(missingData.size());
 
     foreach(const kvalobs::kvData& d, missingData) {
-        const Instrument i(d);
+        const Instrument i = getMasterInstrument(d);
         MissingRanges& mr = instrumentMissingRanges[i];
-        if( mr.empty() || miutil::miTime::hourDiff(d.obstime(), mr.back().back().obstime()) > 1 ) {
-            mr.push_back(MissingRange(1, d));
-            DBG("new time range at " << d);
-        } else {
-            mr.back().push_back(d);
-            DBG("extending time range with " << d);
-        }
+        if( mr.empty() || !mr.back().tryExtend(d) )
+            mr.push_back(ParamGroupMissingRange(d));
     }
 
-    DataList_t updates;
+    DataList updates;
     foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
-        const Instrument& d = imr.first;
-        foreach(MissingRange& mr, imr.second) {
+        const Instrument& instrument = imr.first;
+        DBGV(instrument.paramid);
+        foreach(ParamGroupMissingRange& pgmr, imr.second) {
 
-            const TimeRange missingTime(Helpers::plusHour(mr.front().obstime(), -1), Helpers::plusHour(mr.back().obstime(), 1));
-            DBGV(missingTime.t0);
-            DBGV(missingTime.t1);
-            const Instrument instrument(d);
-            const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(instrument, missingTime);
-            DBGV(interpolated.size());
+            // TODO need to split the time range again such that
+            // events like missing
+            // master-master-master-slave-master-master use three
+            // interpolations (3*master, 1*slave, 2*master)
 
-            MissingRange::const_iterator dit = mr.begin();
-            foreach(const ::Interpolator::ValueWithQuality vq, interpolated) {
-                kvalobs::kvData dwrite(*dit++);
-                DBGV(dwrite);
-                DBGV(vq.value);
-                if( Helpers::equal(dwrite.corrected(), vq.value) )
-                    continue;
-                dwrite.corrected(vq.value);
-                dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
-                Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
-                Helpers::updateUseInfo(dwrite);
-                updates.push_back(dwrite);
+            const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -1), Helpers::plusHour(pgmr.range.t1, 1));
+            if( instrument.paramid == 211 ) {
+                MinMaxValuesWithQualities_t mmwq = MinMaxInterpolate(mInterpolator, mDataAccess, instrument, 213, 215, 0.5, missingTime);
+
+                makeUpdates(pgmr.paramMissingRanges[211], mmwq.par, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[213], mmwq.min, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[215], mmwq.max, pgmr.range, updates);
+            } else {
+                foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
+                    const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(Instrument(pr.second.front()), missingTime);
+                    makeUpdates(pr.second, interpolated, pgmr.range, updates);
+                }
             }
         }
     }
     if( !updates.empty() )
         storeData(updates);
+}
+
+// ------------------------------------------------------------------------
+
+Instrument GapInterpolationAlgorithm::getMasterInstrument(const kvalobs::kvData& data)
+{
+    Instrument master(data);
+    if( master.paramid == 213 || master.paramid == 215 )
+        master.paramid = 211;
+    return master;
 }

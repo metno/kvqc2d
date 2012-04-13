@@ -92,7 +92,7 @@ public:
 
     // ----------------------------------------
 
-    virtual CorrelatedNeighbors::neighbors_t findNeighborData(int stationid, int paramid) throw (DBException) = 0;
+    virtual CorrelatedNeighbors::neighbors_t findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException) = 0;
 
     // ----------------------------------------
 
