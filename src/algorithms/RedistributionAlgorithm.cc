@@ -79,7 +79,7 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);
     }
-    
+
     return mNeighbors->findNeighbors(stationID);
 }
 
@@ -331,7 +331,7 @@ void RedistributionAlgorithm::run()
     const DBInterface::StationIDList stations = database()->findNorwegianFixedStationIDs();
     const DBInterface::DataList edata
         = database()->findDataOrderStationObstime(stations, pids, tids, TimeRange(UT0, UT1), endpoint_flags);
-    
+
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
@@ -395,7 +395,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     // [miss 2]   n1_1 n1_2 n1_4
     // where nT_S has time T and stationid S
     // forward iterating through ndata yields n3_1 n3_2 n3_3 n2_1 n2_2 n1_1 n1_2 n1_4 (backwards in time)
-    
+
     float weightedNeighborsAccumulated = 0;
     dataList_t::const_iterator itN = ndata.begin();
     foreach(RedisUpdate& b, before) {
@@ -454,7 +454,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         const float weightedNeighbors = (sumWeights > 0.0f)
             ? sumWeightedValues/sumWeights : 0.0f;
         weightedNeighborsAccumulated += weightedNeighbors;
-    
+
         cfailed << ",QC2-redist";
         b.corrected(weightedNeighbors)
             .cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
