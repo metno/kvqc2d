@@ -3,8 +3,10 @@
 #ifndef GapInterpolationAlgorithm_H
 #define GapInterpolationAlgorithm_H 1
 
-#include "Qc2Algorithm.h"
 #include "CorrelatedNeighborInterpolator.h"
+#include "Qc2Algorithm.h"
+#include "MinMaxInterpolator.h"
+
 #include <memory>
 
 class Interpolator;
@@ -56,7 +58,8 @@ private:
 
 private:
     GapDataAccess* mDataAccess;
-    ::Interpolator* mInterpolator;
+    CorrelatedNeighbors::Interpolator* mInterpolator;
+    InterpolatorUU* mInterpolatorUU;
 
     std::vector<int> pids;
     std::vector<int> tids;

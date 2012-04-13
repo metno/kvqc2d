@@ -54,6 +54,8 @@ public:
         int quality;
         ValueWithQuality(float v, int q)
             : value(v), quality(q) { }
+        bool valid() const
+            { return quality != QUALITY_INTER_FAILED && value != INVALID; }
     };
 
     typedef std::vector<ValueWithQuality> ValuesWithQualities_t;

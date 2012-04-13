@@ -33,6 +33,7 @@ kvqc2dTest_SOURCES= \
 	FlagPatternsTest.cc \
 	FlagPatternTest.cc \
 	FlagUpdateTest.cc \
+	FormulaUUTest.cc \
 	HelpersTest.cc \
         test_main.cc
 

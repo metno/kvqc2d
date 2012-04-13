@@ -81,6 +81,7 @@ GapInterpolationAlgorithm::GapInterpolationAlgorithm()
     : Qc2Algorithm("GapInterpolate")
     , mDataAccess(new GapDataAccess(0))
     , mInterpolator(new CorrelatedNeighbors::Interpolator(mDataAccess))
+    , mInterpolatorUU(new InterpolatorUU(mInterpolator))
 {
 }
 
@@ -166,6 +167,22 @@ void GapInterpolationAlgorithm::run()
     foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
         const Instrument& instrument = imr.first;
         DBGV(instrument.paramid);
+        Interpolator* interpolator = mInterpolator;
+
+        const int par = instrument.paramid;
+        int minPar, maxPar;
+        bool minmax = false;
+        if( par == 211 ) {
+            minmax = true;
+            minPar = 213;
+            maxPar = 215;
+        } else if( par == 262 ) {
+            minmax = true;
+            minPar = 264;
+            maxPar = 265;
+            interpolator = mInterpolatorUU;
+        }
+
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
 
             // TODO need to split the time range again such that
@@ -174,12 +191,12 @@ void GapInterpolationAlgorithm::run()
             // interpolations (3*master, 1*slave, 2*master)
 
             const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -1), Helpers::plusHour(pgmr.range.t1, 1));
-            if( instrument.paramid == 211 ) {
-                MinMaxValuesWithQualities_t mmwq = MinMaxInterpolate(mInterpolator, mDataAccess, instrument, 213, 215, 0.5, missingTime);
+            if( minmax ) {
+                MinMaxValuesWithQualities_t mmwq = MinMaxInterpolate(interpolator, mDataAccess, instrument, minPar, maxPar, 0.5, missingTime);
 
-                makeUpdates(pgmr.paramMissingRanges[211], mmwq.par, pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[213], mmwq.min, pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[215], mmwq.max, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[par   ], mmwq.par, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[minPar], mmwq.min, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[maxPar], mmwq.max, pgmr.range, updates);
             } else {
                 foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
                     const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(Instrument(pr.second.front()), missingTime);
@@ -199,5 +216,7 @@ Instrument GapInterpolationAlgorithm::getMasterInstrument(const kvalobs::kvData&
     Instrument master(data);
     if( master.paramid == 213 || master.paramid == 215 )
         master.paramid = 211;
+    else if( master.paramid == 264 || master.paramid == 265 )
+        master.paramid = 262;
     return master;
 }

@@ -39,6 +39,12 @@ public:
 
     void configure(const AlgorithmConfig& config);
 
+    DataAccess* getDataAccess() const
+        { return mDax; }
+
+    void setDataAccess(DataAccess* dax)
+        { mDax = dax; }
+
 private:
     typedef std::map<Instrument, neighbors_t, lt_Instrument> neighbor_map_t;
 

@@ -63,6 +63,8 @@ libkvqc2d_a_SOURCES = \
 	FlagUpdate.cc \
 	FlagUpdate.h \
 	foreach.h \
+	FormulaUU.cc \
+	FormulaUU.h \
 	Helpers.cc \
 	Helpers.h \
 	InitLogger.cc \
