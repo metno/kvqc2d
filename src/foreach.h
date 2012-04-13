@@ -123,10 +123,9 @@ private:
 
 } // namespace gcc_foreach_helpers
 
-#define GCC_FOREACH_L loop ## __LINE__
 #define GCC_FOREACH_BASE(variable, container, reverse)                  \
-    for(gcc_foreach_helpers::looping<__typeof__(container), reverse> GCC_FOREACH_L(container); GCC_FOREACH_L.more(); GCC_FOREACH_L.toggle_go()) \
-        for(variable = *GCC_FOREACH_L; GCC_FOREACH_L.once(); GCC_FOREACH_L.toggle())
+    for(gcc_foreach_helpers::looping<__typeof__(container), reverse> gcc_foreach_loop(container); gcc_foreach_loop.more(); gcc_foreach_loop.toggle_go()) \
+        for(variable = *gcc_foreach_loop; gcc_foreach_loop.once(); gcc_foreach_loop.toggle())
 #define foreach(a, b)   GCC_FOREACH_BASE(a, b, false)
 #define foreach_r(a, b) GCC_FOREACH_BASE(a, b, true)
 
