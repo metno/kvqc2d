@@ -83,21 +83,21 @@ void MinMaxInterpolator::configure(const AlgorithmConfig& config)
 namespace {
 bool mmwq_helper(Interpolator::ValuesWithQualities_t& vq, float obs)
 {
-    bool obsValid = (obs != Interpolator::INVALID);
-    if( obsValid )
-        vq.push_back(Interpolator::ValueWithQuality(obs, Interpolator::QUALITY_OBS));
-    else
-        vq.push_back(Interpolator::ValueWithQuality(Interpolator::INVALID, Interpolator::QUALITY_INTER_FAILED));
+    const bool obsValid = (obs != Interpolator::INVALID);
+    const int quality = obsValid ? Interpolator::QUALITY_OBS : Interpolator::QUALITY_INTER_FAILED;
+    vq.push_back(Interpolator::ValueWithQuality(obs, quality));
     return obsValid;
 }
 }
 
+// ------------------------------------------------------------------------
+
 MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNeighbors::DataAccess* dax, const Instrument& instrument,
-                                              int minPar, int maxPar, float noiseLevel, const TimeRange& t)
+                                               const ParameterInfo& parameterInfo, const TimeRange& t)
 {
     Instrument instMin = instrument, instMax = instrument;
-    instMin.paramid = minPar;
-    instMax.paramid = maxPar;
+    instMin.paramid = parameterInfo.minParameter;
+    instMax.paramid = parameterInfo.maxParameter;
 
     const std::vector<float> observationsPar = dax->fetchObservations(instrument, t);
     const std::vector<float> observationsMin = dax->fetchObservations(instMin, t);
@@ -120,11 +120,17 @@ MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNe
     ::Interpolator::ValuesWithQualities_t interpolatedPar;
     if( !completePar ) {
         if( completeMin and completeMax ) {
+            // reconstruct parameter from complete min and max
             for(unsigned int i=1; i<observationsPar.size()-1; ++i) {
                 if( observationsPar[i] == Interpolator::INVALID ) {
                     const float maxi = std::min(observationsMax[i], observationsMax[i+1]);
                     const float mini = std::max(observationsMin[i], observationsMin[i+1]);
+
                     const float value = (maxi + mini)/2;
+                    // if observations for min and max are inside the
+                    // allowed parameter min and max value, value
+                    // cannot be outside either
+
                     DBG("reconstruction from ..N/::X i=" << i << " value=" << value);
                     mmwq.par[i] = Interpolator::ValueWithQuality(value, Interpolator::QUALITY_INTER_BAD);
                 }
@@ -132,6 +138,8 @@ MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNe
             return mmwq;
         }
 
+        // parameter and min and max incomplete => interpolate
+        // parameter with other interpolator
         mmwq.par.clear();
         mmwq_helper(mmwq.par, observationsPar[0]);
         Interpolator::ValuesWithQualities_t interpol = inter->interpolate(instrument, t);
@@ -140,10 +148,13 @@ MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNe
 
         bool newCompletePar = true;
         for(unsigned int i=1; i<mmwq.par.size()-1; ++i) {
-            if( mmwq.par[i].valid() && mmwq.min[i].quality == Interpolator::QUALITY_OBS && mmwq.par[i].value < mmwq.min[i].value )
-                mmwq.par[i] = Interpolator::ValueWithQuality(mmwq.min[i].value, Interpolator::QUALITY_INTER_BAD);
-            if( mmwq.par[i].valid() && mmwq.max[i].quality == Interpolator::QUALITY_OBS && mmwq.par[i].value > mmwq.max[i].value )
-                mmwq.par[i] = Interpolator::ValueWithQuality(mmwq.max[i].value, Interpolator::QUALITY_INTER_BAD);
+            const bool parValid = mmwq.par[i].valid();
+            if( parValid ) {
+                if( mmwq.min[i].quality == Interpolator::QUALITY_OBS && mmwq.par[i].value < mmwq.min[i].value )
+                    mmwq.par[i] = Interpolator::ValueWithQuality(mmwq.min[i].value, Interpolator::QUALITY_INTER_BAD);
+                if( mmwq.max[i].quality == Interpolator::QUALITY_OBS && mmwq.par[i].value > mmwq.max[i].value )
+                    mmwq.par[i] = Interpolator::ValueWithQuality(mmwq.max[i].value, Interpolator::QUALITY_INTER_BAD);
+            }
             newCompletePar &= mmwq.par[i].valid();
         }
         DBGV(newCompletePar);
@@ -158,16 +169,15 @@ MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNe
         for(unsigned int i=0; i<mmwq.par.size(); ++i)
             akima.add(i, mmwq.par[i].value);
         for(unsigned int i=1; i<mmwq.par.size()-1; ++i) {
-            float mini = std::min(mmwq.par[i-1].value, mmwq.par[i].value);
-            float maxi = std::max(mmwq.par[i-1].value, mmwq.par[i].value);
+            float mini = parameterInfo.constrained(std::min(mmwq.par[i-1].value, mmwq.par[i].value));
+            float maxi = parameterInfo.constrained(std::max(mmwq.par[i-1].value, mmwq.par[i].value));
             int N = 30;
             for(int j=0; j<N; ++j) {
-                const float noise = noiseLevel * Helpers::randNormal();
-                const float value = akima.interpolate(i + j/float(N)) + noise;
+                const float noise = parameterInfo.fluctuationLevel * Helpers::randNormal();
+                const float value = parameterInfo.constrained(akima.interpolate(i + j/float(N)) + noise);
                 Helpers::minimize(mini, value);
                 Helpers::maximize(maxi, value);
             }
-            // TODO apply absolute limits (e.g., 0..100 for UU/UX/UN)
             if( observationsMin[i] == Interpolator::INVALID )
                 mmwq.min[i] = Interpolator::ValueWithQuality(mini, Interpolator::QUALITY_INTER_BAD);
             if( observationsMax[i] == Interpolator::INVALID )
@@ -180,9 +190,9 @@ MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNe
 // ------------------------------------------------------------------------
 
 MinMaxValuesWithQualities_t MinMaxInterpolate(Interpolator* inter, CorrelatedNeighbors::DataAccess* dax, const Instrument& instrument,
-                                              int minPar, int maxPar, float noiseLevel, const TimeRange& t)
+                                              const ParameterInfo& parameterInfo, const TimeRange& t)
 {
-    MinMaxValuesWithQualities_t mmwq = MinMaxInterpolateI(inter, dax, instrument, minPar, maxPar, noiseLevel, t);
+    MinMaxValuesWithQualities_t mmwq = MinMaxInterpolateI(inter, dax, instrument, parameterInfo, t);
     DBGV(mmwq.par.size());
     DBGV(mmwq.min.size());
     DBGV(mmwq.max.size());
@@ -194,7 +204,7 @@ MinMaxValuesWithQualities_t MinMaxInterpolate(Interpolator* inter, CorrelatedNei
 
 // ########################################################################
 
-const std::vector<float> DataAccessUU::fetchObservations(const Instrument& instrumentUU, const TimeRange& t)
+std::vector<float> DataAccessUU::fetchObservations(const Instrument& instrumentUU, const TimeRange& t)
 {
     Instrument instrumentTA = instrumentUU;
     instrumentTA.paramid = 211;
@@ -213,14 +223,14 @@ const std::vector<float> DataAccessUU::fetchObservations(const Instrument& instr
 
 // ------------------------------------------------------------------------
 
-const std::vector<float> DataAccessUU::fetchModelValues (const Instrument&, const TimeRange& t)
+std::vector<float> DataAccessUU::fetchModelValues (const Instrument&, const TimeRange& t)
 {
     return std::vector<float>(t.hours()+1, ::Interpolator::INVALID);
 }
 
 // ------------------------------------------------------------------------
 
-const CorrelatedNeighbors::neighbors_t DataAccessUU::findNeighbors(const Instrument& instrument, double maxsigma)
+CorrelatedNeighbors::neighbors_t DataAccessUU::findNeighbors(const Instrument& instrument, double maxsigma)
 {
     return mDax->findNeighbors(instrument, maxsigma);
 }

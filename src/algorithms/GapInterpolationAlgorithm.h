@@ -16,9 +16,9 @@ public:
     GapDataAccess(DBInterface* db)
         : mDB(db) { }
 
-    const std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t);
-    const std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t);
-    const CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
+    std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t);
+    std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t);
+    CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
 
     void setDatabase(DBInterface* db)
         { mDB = db; }
@@ -61,7 +61,10 @@ private:
     CorrelatedNeighbors::Interpolator* mInterpolator;
     InterpolatorUU* mInterpolatorUU;
 
-    std::vector<int> pids;
+    typedef std::vector<ParameterInfo> ParameterInfos;
+    typedef ParameterInfos::const_iterator ParameterInfos_it;
+    ParameterInfos mParameterInfos;
+
     std::vector<int> tids;
 
     FlagSetCU missing_flags, neighbor_flags;

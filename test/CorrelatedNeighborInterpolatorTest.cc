@@ -1,6 +1,7 @@
 
 #include <gtest/gtest.h>
 
+#include "AlgorithmConfig.h"
 #include "AlgorithmHelpers.h"
 #include "CorrelatedNeighborInterpolator.h"
 #include "foreach.h"
@@ -21,9 +22,9 @@ public:
 private:
     class TestDataAccess : public CorrelatedNeighbors::DataAccess {
     public:
-        const series_t fetchObservations(const Instrument& instrument, const TimeRange& t);
-        const series_t fetchModelValues (const Instrument& instrument, const TimeRange& t);
-        const CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
+        series_t fetchObservations(const Instrument& instrument, const TimeRange& t);
+        series_t fetchModelValues (const Instrument& instrument, const TimeRange& t);
+        CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
 
         void setCenter(int stationid, const series_t& observations, const series_t& modelvalues);
         void addNeighbor(int stationid, const series_t& observations);
@@ -46,6 +47,16 @@ void CorrelatedNeighborInterpolatorTest::SetUp()
 {
     mDax = new TestDataAccess();
     mCNI = new CorrelatedNeighbors::Interpolator(mDax);
+
+    std::stringstream config;
+    config << "Parameter  =  par=178,minVal=800,maxVal=1200,offsetCorrectionLimit=5,fluctuationLevel=0.5\n"
+           << "Parameter  =  par=211,minPar=213,maxPar=215,minVal=-80,maxVal=100,offsetCorrectionLimit=15,fluctuationLevel=0.5\n"
+           << "Parameter  =  par=217,minPar=219,maxPar=220,minVal=-80,maxVal=100,offsetCorrectionLimit=15,fluctuationLevel=0.5\n"
+           << "Parameter  =  par=262,minPar=264,maxPar=265,minVal=0,maxVal=100,offsetCorrectionLimit=5,fluctuationLevel=2\n";
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_NO_THROW(mCNI->configure(params));
 }
 
 // ------------------------------------------------------------------------
@@ -58,14 +69,14 @@ void CorrelatedNeighborInterpolatorTest::TearDown()
 
 // ------------------------------------------------------------------------
 
-const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
+series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
 {
     if( t.hours() != (int)mCenterObservations.size()-1 )
         throw std::runtime_error("bad series length");
 
     if( instrument.stationid == mCenterStationId )
         return mCenterObservations;
-    
+
     mNeighborObservations_t::const_iterator it = mNeighborObservations.find(instrument.stationid);
     if( it != mNeighborObservations.end() )
         return it->second;
@@ -75,20 +86,20 @@ const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchObservat
 
 // ------------------------------------------------------------------------
 
-const series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchModelValues(const Instrument& instrument, const TimeRange& t)
+series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchModelValues(const Instrument& instrument, const TimeRange& t)
 {
     if( t.hours() != (int)mCenterObservations.size()-1 )
         throw std::runtime_error("bad series length");
 
     if( instrument.stationid == mCenterStationId )
         return mCenterModelvalues;
-    
+
     throw std::runtime_error("bad station id for model data");
 }
 
 // ------------------------------------------------------------------------
 
-const CorrelatedNeighbors::neighbors_t CorrelatedNeighborInterpolatorTest::TestDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
+CorrelatedNeighbors::neighbors_t CorrelatedNeighborInterpolatorTest::TestDataAccess::findNeighbors(const Instrument& instrument, double)
 {
     if( instrument.stationid != mCenterStationId )
         throw std::runtime_error("bad station id for neighbor list");

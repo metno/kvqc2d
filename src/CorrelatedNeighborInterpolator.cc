@@ -30,6 +30,7 @@
 #include "CorrelatedNeighborInterpolator.h"
 
 #include "Akima.h"
+#include "AlgorithmConfig.h"
 #include "AlgorithmHelpers.h"
 #include "DBInterface.h"
 #include "foreach.h"
@@ -59,15 +60,12 @@ Interpolator::Interpolator(DataAccess* dax)
 {
     ValuesWithQualities_t interpolated;
 
-    float maxdelta, limit_low, limit_high;
-    switch(instrument.paramid) {
-    case 178: maxdelta =  5; limit_low = 800; limit_high = 1200; break;
-    case 211: maxdelta = 15; limit_low = -80; limit_high =  100; break;
-    case 217: maxdelta = 15; limit_low = -80; limit_high =  100; break;
-    case 262: maxdelta =  5; limit_low =   0; limit_high =  100; break;
-    default:
+    const ParamInfos_cit pi = mParamInfos.find(instrument.paramid);
+    if( pi == mParamInfos.end() )
         return interpolated;
-    }
+
+    const float maxdelta = pi->second.offsetCorrectionLimit;
+    DBGV(maxdelta);
 
     const int gapLength = t.hours() - 1;
     if( gapLength < 1 )
@@ -108,8 +106,8 @@ Interpolator::Interpolator(DataAccess* dax)
         DBGV(stop);
         if( stop != start + 1 ) {
             const int gapLen = stop - start - 1;
-            const double data0 = observations[start], dataN1 = observations[stop];
-            double model_slope, model_offset, inter_slope, inter_offset;
+            const float data0 = observations[start], dataN1 = observations[stop];
+            float model_slope, model_offset, inter_slope, inter_offset;
             calculate_delta(data0, dataN1,
                             modelvalues[start], modelvalues[stop],
                             gapLen, model_slope, model_offset);
@@ -124,46 +122,42 @@ Interpolator::Interpolator(DataAccess* dax)
                 DBG("i=" << i << " inter=" << interI);
 
                 int quality = QUALITY_INTER_BAD;
-                double combiValue = 0, combiWeights = 0;
+                float combiValue = 0, combiWeights = 0;
 
                 const bool canUseAkima = haveAkima && (i == 0 || i == gapLen-1);
                 const bool akimaFirst = false;
                 if( akimaFirst && canUseAkima ) {
-                    const double akimaWeight = 2, akimaValue = akima.interpolate(i);
+                    const float akimaWeight = 2, akimaValue = akima.interpolate(i);
                     if( akimaValue != Akima::INVALID ) {
                         combiValue += akimaWeight * akimaValue;
                         combiWeights += akimaWeight;
                     }
                 }
                 if( combiWeights == 0 && interI > INVALID ) {
-                    const double delta = inter_offset + i * inter_slope;
+                    const float delta = inter_offset + i * inter_slope;
                     if( fabs(delta) < maxdelta ) {
                         combiValue += interI - delta;
                         combiWeights += 1;
                     }
                 }
                 if( !akimaFirst && combiWeights == 0 && canUseAkima ) {
-                    const double akimaWeight = 2, akimaValue = akima.interpolate(i);
+                    const float akimaWeight = 2, akimaValue = akima.interpolate(i);
                     if( akimaValue != Akima::INVALID ) {
                         combiValue += akimaWeight * akimaValue;
                         combiWeights += akimaWeight;
                     }
                 }
                 if( combiWeights == 0 && modelI > -1000 ) {
-                    const double delta = model_offset + i * model_slope;
+                    const float delta = model_offset + i * model_slope;
                     if( interI <= -1000 && fabs(delta) < maxdelta ) {
                         combiValue += modelI - delta;
                         combiWeights += 1;
                     }
                 }
-                double combi;
+                float combi;
                 if( combiWeights > 0 ) {
                     quality = (i==0 || i==gapLen-1) ? QUALITY_INTER_GOOD : QUALITY_INTER_BAD;
-                    combi = combiValue / combiWeights;
-                    if( combi < limit_low )
-                        combi = limit_low;
-                    else if( combi > limit_high )
-                        combi = limit_high;
+                    combi = pi->second.constrained(combiValue / combiWeights);
                 } else {
                     combi = INVALID;
                     quality = QUALITY_INTER_FAILED;
@@ -187,8 +181,31 @@ Interpolator::Interpolator(DataAccess* dax)
 
 void Interpolator::configure(const AlgorithmConfig& config)
 {
+    mMaxSigma = config.getParameter<float>("maxSigma", 2.7);
+
+    mParamInfos.clear();
+    const std::vector<std::string> parameters = config.getMultiParameter<std::string>("Parameter");
+    foreach(const std::string& p, parameters) {
+        ParamInfo pi(p);
+        mParamInfos.insert(ParamInfos::value_type(pi.parameter, pi));
+    }
+
     neighbor_map.clear();
-    mMaxSigma = 2.7;
+}
+
+// ------------------------------------------------------------------------
+
+ParamInfo::ParamInfo(const std::string& pi)
+    : BasicParameterInfo(pi)
+    , offsetCorrectionLimit(1000)
+{
+    const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
+    foreach(const std::string& item, items) {
+        Helpers::split2_t kv = Helpers::split2(item, "=");
+        if( kv.first == "offsetCorrectionLimit" ) {
+            offsetCorrectionLimit = std::atof(kv.second.c_str());
+        }
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -210,17 +227,17 @@ std::vector<float> Interpolator::interpolate_simple(const Instrument& ctr, const
         neighbor_observations[n++] = mDax->fetchObservations(nbr, tExtended);
     }
     for(int t=0; t<length; ++t) {
-        double sn = 0, sw = 0;
+        float sn = 0, sw = 0;
         int count = 0;
         n = 0;
         foreach(const NeighborData& nd, neighbors) {
-            const double nObs = neighbor_observations[n++][t];
+            const float nObs = neighbor_observations[n++][t];
             if( nObs <= INVALID )
                 continue;
-            const double nInter = nd.offset + nObs * nd.slope;
+            const float nInter = nd.offset + nObs * nd.slope;
             if( nInter < -100 )
                 continue;
-            const double weight = 1/(nd.sigma*nd.sigma*nd.sigma);
+            const float weight = 1/(nd.sigma*nd.sigma*nd.sigma);
             sw += weight;
             sn += nInter*weight;
             count += 1;
@@ -235,11 +252,11 @@ std::vector<float> Interpolator::interpolate_simple(const Instrument& ctr, const
 
 // ------------------------------------------------------------------------
 
-void Interpolator::calculate_delta(const double data0, const double dataN1, const double i0, const double iN1, int N,
-                                                     double& slope, double& offset)
+void Interpolator::calculate_delta(const float data0, const float dataN1, const float i0, const float iN1, int N,
+                                   float& slope, float& offset)
 {
     const bool have0 = (i0 > INVALID && data0 > INVALID), haveN1 = (iN1 > INVALID && dataN1 > INVALID);
-    const double delta0 = i0 - data0, deltaN1 = iN1 - dataN1;
+    const float delta0 = i0 - data0, deltaN1 = iN1 - dataN1;
     if( have0 && haveN1 ) {
         slope = (deltaN1 - delta0)/(N+1);
         offset = delta0 + slope;
@@ -257,7 +274,7 @@ void Interpolator::calculate_delta(const double data0, const double dataN1, cons
 
 // ------------------------------------------------------------------------
 
-const neighbors_t& Interpolator::find_neighbors(const Instrument& instrument, double maxsigma)
+const neighbors_t& Interpolator::find_neighbors(const Instrument& instrument, float maxsigma)
 {
     neighbor_map_t::iterator it = neighbor_map.find(instrument);
     if( it != neighbor_map.end() )

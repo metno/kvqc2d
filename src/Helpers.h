@@ -95,6 +95,14 @@ template<typename T>
 void minimize(T& value, const T& by)
 { if( by < value ) value = by; }
 
-};
+template<typename T>
+T limited_value(const T& value, const T& mini, const T& maxi)
+{ if( value > maxi ) return maxi; else if( value < mini ) return mini; else return value; }
+
+template<typename T>
+void limit_value(T& value, const T& mini, const T& maxi)
+{ value = limited_value(value); }
+
+} // namespace Helpers
 
 #endif

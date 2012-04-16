@@ -24,9 +24,21 @@ typedef std::vector<NeighborData> neighbors_t;
 class DataAccess {
 public:
     virtual ~DataAccess();
-    virtual const std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t) = 0;
-    virtual const std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t) = 0;
-    virtual const neighbors_t findNeighbors(const Instrument& instrument, double maxsigma) = 0;
+    virtual std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t) = 0;
+    virtual std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t) = 0;
+    virtual neighbors_t findNeighbors(const Instrument& instrument, double maxsigma) = 0;
+};
+
+// ========================================================================
+
+struct ParamInfo : public BasicParameterInfo {
+
+    /** maximum difference between interpolated and observed value
+     * before / after a gap which is permitted to apply offset
+     * correction */
+    float offsetCorrectionLimit;
+
+    ParamInfo(const std::string& info);
 };
 
 // ========================================================================
@@ -51,14 +63,18 @@ private:
 private:
     std::vector<float> interpolate_simple(const Instrument& instrument, const TimeRange& t);
 
-    void calculate_delta(const double data0, const double dataN1, const double i0, const double iN1, int N,
-                         double& slope, double& offset);
+    void calculate_delta(const float data0, const float dataN1, const float i0, const float iN1, int N,
+                         float& slope, float& offset);
 
-    const neighbors_t& find_neighbors(const Instrument& instrument, double maxsigma);
+    const neighbors_t& find_neighbors(const Instrument& instrument, float maxsigma);
 
 private:
     DataAccess* mDax;
     float mMaxSigma;
+
+    typedef std::map<int,ParamInfo> ParamInfos;
+    typedef ParamInfos::const_iterator ParamInfos_cit;
+    ParamInfos mParamInfos;
 
     neighbor_map_t neighbor_map;
 };

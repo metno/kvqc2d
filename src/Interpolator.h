@@ -41,6 +41,42 @@ struct lt_Instrument : public std::binary_function<Instrument, Instrument, bool>
 
 // ========================================================================
 
+struct BasicParameterInfo {
+    /** observed parameter id */
+    int parameter;
+
+    /** minimum physical value */
+    float minValue;
+
+    /** maximum physical value */
+    float maxValue;
+
+    /** force value is inside physical value range */
+    void constrain(float& value) const;
+
+    /** return value forced inside physical value range */
+    float constrained(float value) const
+        { constrain(value); return value; }
+
+    BasicParameterInfo(const std::string& info);
+};
+
+struct ParameterInfo : public BasicParameterInfo {
+    /** parameter id for minimum of 'parameter' between observations */
+    int minParameter;
+
+    /** parameter id for maximum of 'parameter' between observations */
+    int maxParameter;
+
+    /** approximate fluctuation of the parameter while measuring min
+     * and max between two observations */
+    float fluctuationLevel;
+
+    ParameterInfo(const std::string& info);
+};
+
+// ========================================================================
+
 class Interpolator {
 public:
     enum { INVALID = -32767 };

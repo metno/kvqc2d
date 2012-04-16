@@ -39,7 +39,7 @@
 
 // ########################################################################
 
-const std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
+std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
 {
     FlagSetCU neighbor_flags;
     neighbor_flags.setC(FlagPatterns("fmis=0", FlagPattern::CONTROLINFO));
@@ -57,7 +57,7 @@ const std::vector<float> GapDataAccess::fetchObservations(const Instrument& inst
     return series;
 }
 
-const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
+std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
 {
     const DBInterface::ModelDataList modelData
         = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
@@ -70,7 +70,7 @@ const std::vector<float> GapDataAccess::fetchModelValues (const Instrument& inst
     return series;
 }
 
-const CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
+CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
     return mDB->findNeighborData(instrument.stationid, instrument.paramid, maxsigma);
 }
@@ -91,15 +91,20 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 {
     Qc2Algorithm::configure(params);
 
-    pids = params.getMultiParameter<int>("ParamId");
     tids = params.getMultiParameter<int>("TypeId");
 
     params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[1234]&fhqc=0", "");
     params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
     params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
 
+    const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
+    foreach(const std::string& pi, parameters)
+        mParameterInfos.push_back(ParameterInfo(pi));
+
     mInterpolator->configure(params);
 }
+
+// ------------------------------------------------------------------------
 
 bool GapInterpolationAlgorithm::ParamGroupMissingRange::tryExtend(const kvalobs::kvData& missing)
 {
@@ -113,6 +118,8 @@ bool GapInterpolationAlgorithm::ParamGroupMissingRange::tryExtend(const kvalobs:
     return true;
 }
 
+// ------------------------------------------------------------------------
+
 GapInterpolationAlgorithm::ParamGroupMissingRange::ParamGroupMissingRange(const kvalobs::kvData& missing)
     : range(missing.obstime(), missing.obstime())
 {
@@ -121,7 +128,8 @@ GapInterpolationAlgorithm::ParamGroupMissingRange::ParamGroupMissingRange(const 
 
 // ------------------------------------------------------------------------
 
-void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::MissingRange& mr, const Interpolator::ValuesWithQualities_t& interpolated,
+void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::MissingRange& mr,
+                                            const Interpolator::ValuesWithQualities_t& interpolated,
                                             const TimeRange& range, DBInterface::DataList& updates)
 {
     ParamGroupMissingRange::MissingRange::const_iterator dit = mr.begin();
@@ -136,12 +144,24 @@ void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::Missin
             continue;
         dwrite.corrected(vq.value);
         dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
-        Helpers::updateCfailed(dwrite, "QC2d-2-I", "");//CFAILED_STRING);
+        Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
         Helpers::updateUseInfo(dwrite);
         DBG("update=" << dwrite << " quality=" << vq.quality);
         updates.push_back(dwrite);
     }
 }
+
+// ------------------------------------------------------------------------
+
+struct HasParameter : public std::unary_function<bool, ParameterInfo> {
+    bool operator() (const ParameterInfo& pi) const {
+        return pi.parameter == parameter;
+    }
+    int parameter;
+    HasParameter(int p) : parameter(p) { }
+};
+
+// ------------------------------------------------------------------------
 
 void GapInterpolationAlgorithm::run()
 {
@@ -152,6 +172,15 @@ void GapInterpolationAlgorithm::run()
     typedef std::vector<ParamGroupMissingRange> MissingRanges;
     typedef std::map<Instrument, MissingRanges, lt_Instrument> InstrumentMissingRanges;
     InstrumentMissingRanges instrumentMissingRanges;
+
+    std::vector<int> pids;
+    foreach(const ParameterInfo& pi, mParameterInfos) {
+        pids.push_back(pi.parameter);
+        if( pi.minParameter > 0 )
+            pids.push_back(pi.minParameter);
+        if( pi.maxParameter > 0 )
+            pids.push_back(pi.maxParameter);
+    }
 
     const DBInterface::DataList missingData
         = database()->findDataOrderStationObstime(StationIds, pids, tids, TimeRange(UT0, UT1), missing_flags);
@@ -166,37 +195,27 @@ void GapInterpolationAlgorithm::run()
     DataList updates;
     foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
         const Instrument& instrument = imr.first;
-        DBGV(instrument.paramid);
-        Interpolator* interpolator = mInterpolator;
+        const int parameter = instrument.paramid;
 
-        const int par = instrument.paramid;
-        int minPar, maxPar;
-        bool minmax = false;
-        if( par == 211 ) {
-            minmax = true;
-            minPar = 213;
-            maxPar = 215;
-        } else if( par == 262 ) {
-            minmax = true;
-            minPar = 264;
-            maxPar = 265;
+        Interpolator* interpolator = mInterpolator;
+        if( parameter == 262 )
             interpolator = mInterpolatorUU;
+
+        const ParameterInfos_it pi = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(parameter));
+        if( pi == mParameterInfos.end() ) {
+            error() << "parameter '" << instrument.paramid << " not found in parameter list";
+            continue;
         }
+        const bool minmax = (pi->minParameter > 0) && (pi->maxParameter > 0);
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
-
-            // TODO need to split the time range again such that
-            // events like missing
-            // master-master-master-slave-master-master use three
-            // interpolations (3*master, 1*slave, 2*master)
-
             const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -1), Helpers::plusHour(pgmr.range.t1, 1));
             if( minmax ) {
-                MinMaxValuesWithQualities_t mmwq = MinMaxInterpolate(interpolator, mDataAccess, instrument, minPar, maxPar, 0.5, missingTime);
+                MinMaxValuesWithQualities_t mmwq = MinMaxInterpolate(interpolator, mDataAccess, instrument, *pi, missingTime);
 
-                makeUpdates(pgmr.paramMissingRanges[par   ], mmwq.par, pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[minPar], mmwq.min, pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[maxPar], mmwq.max, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[parameter       ], mmwq.par, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmwq.min, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmwq.max, pgmr.range, updates);
             } else {
                 foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
                     const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(Instrument(pr.second.front()), missingTime);
@@ -214,9 +233,9 @@ void GapInterpolationAlgorithm::run()
 Instrument GapInterpolationAlgorithm::getMasterInstrument(const kvalobs::kvData& data)
 {
     Instrument master(data);
-    if( master.paramid == 213 || master.paramid == 215 )
-        master.paramid = 211;
-    else if( master.paramid == 264 || master.paramid == 265 )
-        master.paramid = 262;
+    foreach(const ParameterInfo& pi, mParameterInfos) {
+        if( pi.minParameter == master.paramid || pi.maxParameter == master.paramid )
+            master.paramid = pi.parameter;
+    }
     return master;
 }

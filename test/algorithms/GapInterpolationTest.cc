@@ -153,7 +153,7 @@ TEST_F(GapInterpolationTest, test1)
            << "End_DD     =   26\n"
            << "End_hh     =   01\n"
            << "TypeId     =  330\n"
-           << "ParamId    =  211\n";
+           << "Parameter  =  par=211,minVal=-100,maxVal=100,offsetCorrectionLimit=15\n";
     AlgorithmConfig params;
     params.Parse(config);
 
@@ -258,8 +258,8 @@ TEST_F(GapInterpolationTest, GapInMultiplePar)
            << "End_DD     =   26\n"
            << "End_hh     =   01\n"
            << "TypeId     =  330\n"
-           << "ParamId    =  178\n"
-           << "ParamId    =  211\n";
+           << "Parameter  =  par=211,minPar=213,maxPar=215,offsetCorrectionLimit=15,fluctuationLevel=0.5\n"
+           << "Parameter  =  par=178,minVal=800,maxVal=1200,offsetCorrectionLimit=5\n";
     AlgorithmConfig params;
     params.Parse(config);
 
@@ -397,9 +397,8 @@ TEST_F(GapInterpolationTest, TAGroup)
            << "End_DD     =   26\n"
            << "End_hh     =   01\n"
            << "TypeId     =  330\n"
-           << "ParamId    =  211\n"
-           << "ParamId    =  213\n"
-           << "ParamId    =  215\n";
+           << "Parameter  =  par=211,minPar=213,maxPar=215,offsetCorrectionLimit=15,fluctuationLevel=0.5\n"
+           << "Parameter  =  par=178,minVal=800,maxVal=1200,offsetCorrectionLimit=5\n";
     AlgorithmConfig params;
     params.Parse(config);
 
@@ -414,8 +413,7 @@ TEST_F(GapInterpolationTest, TAGroup)
 TEST_F(GapInterpolationTest, UUGroup)
 {
     DataList data(4200, 211, 342);
-    data
-        .add("2012-03-25 18:00:00",      10.4,      10.4, "0111000000100010", "")
+    data.add("2012-03-25 18:00:00",      10.4,      10.4, "0111000000100010", "")
         .add("2012-03-25 19:00:00",       9.1,       9.1, "0111000000100010", "")
         .add("2012-03-25 20:00:00",       8.6,       8.6, "0111000000100010", "")
         .add("2012-03-25 21:00:00",       4.1,       4.1, "0111000000100010", "")
@@ -500,10 +498,8 @@ TEST_F(GapInterpolationTest, UUGroup)
            << "End_hh     =   01\n"
            << "TypeId     =  330\n"
            << "TypeId     =  342\n"
-           << "ParamId    =  211\n"
-           << "ParamId    =  262\n"
-           << "ParamId    =  264\n"
-           << "ParamId    =  265\n";
+           << "Parameter  =  par=211,minPar=213,maxPar=215,offsetCorrectionLimit=15,fluctuationLevel=0.5\n"
+           << "Parameter  =  par=262,minPar=264,maxPar=265,minVal=0,maxVal=100,offsetCorrectionLimit=5,fluctuationLevel=2\n";
     AlgorithmConfig params;
     params.Parse(config);
 

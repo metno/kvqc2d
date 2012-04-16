@@ -12,7 +12,7 @@ struct MinMaxValuesWithQualities_t {
 };
 
 MinMaxValuesWithQualities_t MinMaxInterpolate(Interpolator* inter, CorrelatedNeighbors::DataAccess* dax, const Instrument& instrument,
-                                              int minPar, int maxPar, float noiseLevel, const TimeRange& t);
+                                              const ParameterInfo& parameterInfo, const TimeRange& t);
 
 // ========================================================================
 
@@ -48,9 +48,9 @@ public:
     DataAccessUU(DataAccess* dax)
         : mDax(dax) { }
 
-    const std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t);
-    const std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t);
-    const CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
+    std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t);
+    std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t);
+    CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
 
     void setDataAccess(DataAccess* dax)
         { mDax = dax; }
