@@ -57,6 +57,8 @@ std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument
     return series;
 }
 
+// ------------------------------------------------------------------------
+
 std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
 {
     const DBInterface::ModelDataList modelData
@@ -70,12 +72,21 @@ std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument
     return series;
 }
 
+// ------------------------------------------------------------------------
+
 CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
     return mDB->findNeighborData(instrument.stationid, instrument.paramid, maxsigma);
 }
 
-// ========================================================================
+// ------------------------------------------------------------------------
+
+void GapDataAccess::configure(const AlgorithmConfig& params)
+{
+    params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
+}
+
+// ########################################################################
 
 GapInterpolationAlgorithm::GapInterpolationAlgorithm()
     : Qc2Algorithm("GapInterpolate")
@@ -94,7 +105,6 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     tids = params.getMultiParameter<int>("TypeId");
 
     params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[1234]&fhqc=0", "");
-    params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
     params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
@@ -102,6 +112,7 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
         mParameterInfos.push_back(ParameterInfo(pi));
 
     mInterpolator->configure(params);
+    mDataAccess->configure(params);
 }
 
 // ------------------------------------------------------------------------

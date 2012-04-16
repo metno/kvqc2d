@@ -22,8 +22,12 @@ public:
 
     void setDatabase(DBInterface* db)
         { mDB = db; }
+
+    void configure(const AlgorithmConfig& params);
+
 private:
     DBInterface* mDB;
+    FlagSetCU neighbor_flags;
 };
 
 // ========================================================================
@@ -67,7 +71,7 @@ private:
 
     std::vector<int> tids;
 
-    FlagSetCU missing_flags, neighbor_flags;
+    FlagSetCU missing_flags;
     FlagChange missing_flagchange;
 };
 
