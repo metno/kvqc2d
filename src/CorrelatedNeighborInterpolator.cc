@@ -83,22 +83,11 @@ Interpolator::Interpolator(DataAccess* dax)
     DBGV(interpolations.size());
 
     Akima akima;
-    int nBefore = 0, nAfter = 0;
-    for(int x=0; x<NA; ++x) {
-        const float yb = observations[x];
-        if( yb > INVALID ) {
-            akima.add(x-NA, yb);
-            nBefore += 1;
-        }
+    for(unsigned int x=0; x<observations.size(); ++x) {
+        const float y = observations[x];
+        if( y > INVALID )
+            akima.add(x, y);
     }
-    for(int x=0; x<NA; ++x) {
-        const float ya = observations[gapLength + NA + x];
-        if( ya > INVALID ) {
-            akima.add(gapLength + x, ya);
-            nAfter += 1;
-        }
-    }
-    const bool haveAkima = ( nBefore >= NA && nAfter >= NA );
 
     int start = NA-1; // assume this is an observed value
     while( start < NA+gapLength ) {
@@ -127,14 +116,13 @@ Interpolator::Interpolator(DataAccess* dax)
                 int quality = QUALITY_INTER_BAD;
                 float combiValue = 0, combiWeights = 0;
 
-                const bool canUseAkima = haveAkima && (i == 0 || i == gapLen-1);
+                const bool canUseAkima = (akima.distance(start+i) < 1.5);
+                DBG(DBG1(akima.distance(start+i)) << DBG1(canUseAkima));
                 const bool akimaFirst = false;
                 if( akimaFirst && canUseAkima ) {
-                    const float akimaWeight = 2, akimaValue = akima.interpolate(i);
-                    if( akimaValue != Akima::INVALID ) {
-                        combiValue += akimaWeight * akimaValue;
-                        combiWeights += akimaWeight;
-                    }
+                    const float akimaWeight = 2, akimaValue = akima.interpolate(start + i);
+                    combiValue += akimaWeight * akimaValue;
+                    combiWeights += akimaWeight;
                 }
                 if( combiWeights == 0 && interI > INVALID ) {
                     const float delta = inter_offset + i * inter_slope;
@@ -144,12 +132,10 @@ Interpolator::Interpolator(DataAccess* dax)
                     }
                 }
                 if( !akimaFirst && combiWeights == 0 && canUseAkima ) {
-                    const float akimaWeight = 2, akimaValue = akima.interpolate(i);
-                    if( akimaValue != Akima::INVALID ) {
-                        DBG("using AKIMA " << DBG1(akimaValue));
-                        combiValue += akimaWeight * akimaValue;
-                        combiWeights += akimaWeight;
-                    }
+                    const float akimaWeight = 2, akimaValue = akima.interpolate(start + i);
+                    DBG("using AKIMA " << DBG1(akimaValue));
+                    combiValue += akimaWeight * akimaValue;
+                    combiWeights += akimaWeight;
                 }
                 if( combiWeights == 0 && modelI > -1000 ) {
                     const float delta = model_offset + i * model_slope;

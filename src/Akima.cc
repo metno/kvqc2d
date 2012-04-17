@@ -2,6 +2,7 @@
 #include "Akima.h"
 
 #include <algorithm>
+#include <limits>
 #include <cmath>
 
 const double Akima::INVALID = -99999999;
@@ -10,20 +11,11 @@ const double Akima::INVALID = -99999999;
 
 double Akima::interpolate(double x) const
 {
-    const int N = (int)mX.size()-1;
-    if( N<4 || x < mX.front() )
+    const int i = findIndex(x);
+    if( i<0  )
         return INVALID;
-    std::vector<double>::const_iterator iX1 = std::lower_bound(mX.begin(), mX.end(), x);
-    if( iX1 == mX.end() )
-        return INVALID;
-    const int i = std::max(0, static_cast<int>(iX1 - mX.begin() - 1));
-    if( i >= N )
-        return INVALID;
-    if( x < mX[i] || x > mX[i+1] ) {
-        //std::cout << "x=" << x << " i=" << i << " x[i]=" << mX[i] << " x[i+1]=" << mX[i+1] << std::endl;
-        return INVALID;
-    }
 
+    const int N = (int)mX.size()-1;
     double mmm[5];
     for(int j=std::max(i-2, 0); j<std::min(i+3, N); ++j)
         mmm[j-i+2] = (mY[j+1]-mY[j])/(mX[j+1]-mX[j]);
@@ -52,4 +44,34 @@ double Akima::interpolate(double x) const
     const double d = (tR0 + tL1 - 2*mmm[2])/(h*h);
     const double x0 = x - mX[i];
     return a + x0*(b + x0*(c + x0*d));
+}
+
+// ------------------------------------------------------------------------
+
+double Akima::distance(double x) const
+{
+    const int i = findIndex(x);
+    if( i<0  )
+        return std::numeric_limits<double>::max();
+    return std::min(x-mX[i], mX[i+1]-1);
+}
+
+// ------------------------------------------------------------------------
+
+int Akima::findIndex(double x) const
+{
+    const int N = (int)mX.size()-1;
+    if( N<4 || x < mX.front() )
+        return -1;
+    std::vector<double>::const_iterator iX1 = std::lower_bound(mX.begin(), mX.end(), x);
+    if( iX1 == mX.end() )
+        return -1;
+    const int i = std::max(0, static_cast<int>(iX1 - mX.begin() - 1));
+    if( i >= N )
+        return -1;
+    if( x < mX[i] || x > mX[i+1] ) {
+        //std::cout << "x=" << x << " i=" << i << " x[i]=" << mX[i] << " x[i+1]=" << mX[i+1] << std::endl;
+        return -1;
+    }
+    return i;
 }

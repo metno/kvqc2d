@@ -18,7 +18,12 @@ public:
 
     double interpolate(double x) const;
 
+    double distance(double x) const;
+
     static const double INVALID;
+
+private:
+    int findIndex(double x) const;
 
 private:
     std::vector<double> mX, mY;
