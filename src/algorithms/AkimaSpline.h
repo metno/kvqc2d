@@ -21,6 +21,10 @@ public:
         { return AkimaPoint(x); }
 
     double AkimaPoint(double x) const;
+
+    double interpolate(double x) const
+        { return AkimaPoint(x); }
+
     //int AkimaPoints();
 
 private:

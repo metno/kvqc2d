@@ -29,9 +29,11 @@
 
 #include "KvalobsDbGate.h"
 
+#include "DBInterface.h"
+
 #include <time.h>
 #include <sstream>
-//#include <kvalobs/DataInsertTransaction.h>
+#include <kvdb/kvdb.h>
 
 #include <memory>
 #include <boost/bind.hpp>
@@ -44,7 +46,7 @@ R retryWhileBusy(int busytimeout, const F& f)
     time_t now;
     time(&now);
     const time_t timeout = now + busytimeout;
-    
+
     do {
         try {
             return f();
@@ -118,14 +120,14 @@ bool KvalobsDbGate::insertImpl(const std::list<kvalobs::kvDbBase*> &elem,
                                InsertOption option)
 {
     DataInsertTransaction::Action action( DataInsertTransaction::INSERTONLY );
-    
+
     if( option == INSERT_OR_REPLACE )
         action = DataInsertTransaction::INSERT_OR_REPLACE;
     else if( option == INSERT_OR_UPDATE )
         action = DataInsertTransaction::INSERT_OR_UPDATE;
-    
+
     DataInsertTransaction transaction( elem, action, tblName );
-    
+
     con->perform( transaction, 3, dnmi::db::Connection::SERIALIZABLE );
 }
 #endif
@@ -164,5 +166,5 @@ void KvalobsDbGate::exec(const std::string& sql)
 void KvalobsDbGate::checkConnection()
 {
     if( !mConnection )
-        throw dnmi::db::SQLNotConnected("no connection");
+        throw DBException("no connection");
 }

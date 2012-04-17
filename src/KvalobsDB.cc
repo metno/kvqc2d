@@ -38,6 +38,8 @@
 #include <iterator>
 #include <memory>
 
+#define UNKNOWN_DBEXCEPTION DBException(std::string("non-std exception in ") + __PRETTY_FUNCTION__)
+
 KvalobsDB::KvalobsDB(Qc2App& app)
     : mApp( app )
 {
@@ -48,17 +50,29 @@ KvalobsDB::KvalobsDB(Qc2App& app)
 
 KvalobsDB::~KvalobsDB()
 {
-    disconnect();
+    try {
+        disconnect();
+    } catch(std::exception& e) {
+        LOGERROR("Exception in ~KvalobsDB:" << e.what());
+    } catch(...) {
+        LOGERROR("Unknown exception in ~KvalobsDB");
+    }
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::StationList KvalobsDB::extractStations(const std::string& sql) throw (DBException)
 {
-    DBInterface::StationList s;
-    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
-    mDbGate.select(extract.get(), sql);
-    return s;
+    try {
+        DBInterface::StationList s;
+        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
+        mDbGate.select(extract.get(), sql);
+        return s;
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -81,29 +95,47 @@ private:
 
 DBInterface::StationIDList KvalobsDB::extractStationIDs(const std::string& sql) throw (DBException)
 {
-    std::auto_ptr<ExtractStationIDs> extract(new ExtractStationIDs());
-    mDbGate.select(extract.get(), sql);
-    return extract->ids();
+    try {
+        std::auto_ptr<ExtractStationIDs> extract(new ExtractStationIDs());
+        mDbGate.select(extract.get(), sql);
+        return extract->ids();
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::StationParamList KvalobsDB::extractStationParams(const std::string& sql) throw (DBException)
 {
-    StationParamList s;
-    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
-    mDbGate.select(extract.get(), sql);
-    return s;
+    try {
+        StationParamList s;
+        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
+        mDbGate.select(extract.get(), sql);
+        return s;
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::DataList KvalobsDB::extractData(const std::string& sql) throw (DBException)
 {
-    DataList d;
-    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
-    mDbGate.select(extract.get(), sql);
-    return d;
+    try {
+        DataList d;
+        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
+        mDbGate.select(extract.get(), sql);
+        return d;
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -137,10 +169,16 @@ void ExtractReferenceValue::extractFromRow(const dnmi::db::DRow& row)
 
 DBInterface::reference_value_map_t KvalobsDB::extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException)
 {
-    DBInterface::reference_value_map_t rvm;
-    std::auto_ptr<KvalobsDbExtract> extract(new ExtractReferenceValue(rvm, missingValue));
-    mDbGate.select(extract.get(), sql);
-    return rvm;
+    try {
+        DBInterface::reference_value_map_t rvm;
+        std::auto_ptr<KvalobsDbExtract> extract(new ExtractReferenceValue(rvm, missingValue));
+        mDbGate.select(extract.get(), sql);
+        return rvm;
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -172,20 +210,32 @@ void ExtractNeighborData::extractFromRow(const dnmi::db::DRow& row)
 
 CorrelatedNeighbors::neighbors_t KvalobsDB::extractNeighborData(const std::string& sql) throw (DBException)
 {
-    CorrelatedNeighbors::neighbors_t neighbors;
-    std::auto_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
-    mDbGate.select(extract.get(), sql);
-    return neighbors;
+    try {
+        CorrelatedNeighbors::neighbors_t neighbors;
+        std::auto_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
+        mDbGate.select(extract.get(), sql);
+        return neighbors;
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
 
 DBInterface::ModelDataList KvalobsDB::extractModelData(const std::string& sql) throw (DBException)
 {
-    ModelDataList modelData;
-    std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvModelData>(std::back_inserter(modelData)));
-    mDbGate.select(extract.get(), sql);
-    return modelData;
+    try {
+        ModelDataList modelData;
+        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvModelData>(std::back_inserter(modelData)));
+        mDbGate.select(extract.get(), sql);
+        return modelData;
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -202,6 +252,11 @@ void KvalobsDB::execSQLUpdate(const std::string& sql) throw (DBException)
             LOGERROR("Rollback failed after problem wit SQL='" + sql + "'; exception=" + ex.what());
         }
         connect();
+        throw DBException(ex.what());
+    } catch(std::exception& e) {
+        throw DBException(e.what());
+    } catch(...) {
+        throw UNKNOWN_DBEXCEPTION;
     }
 }
 

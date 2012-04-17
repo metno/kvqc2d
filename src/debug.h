@@ -12,6 +12,7 @@
 #define DBG(x) do { /* nothing */ } while(false);
 #define INF(x) do { LOGINFO(x); } while(false);
 #endif
-#define DBGV(x) DBG( #x "='" << x << "'" )
+#define DBG1(x) #x "='" << x << "' "
+#define DBGV(x) DBG( DBG1(x) )
 
 #endif /* DEBUG_H */

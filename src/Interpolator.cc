@@ -56,10 +56,10 @@ Interpolator::ValuesWithQualities_t Interpolator::interpolate(const kvalobs::kvD
 
 void BasicParameterInfo::constrain(float& value) const
 {
-    if( minValue != Interpolator::INVALID )
-        Helpers::maximize(value, minValue);
-    if( maxValue != Interpolator::INVALID )
-        Helpers::minimize(value, maxValue);
+    if( minValue != Interpolator::INVALID && value < minValue )
+        value = minValue;
+    if( maxValue != Interpolator::INVALID && value > maxValue )
+        value = maxValue;
 }
 
 // ------------------------------------------------------------------------

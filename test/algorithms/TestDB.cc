@@ -60,10 +60,10 @@ SqliteTestDB::SqliteTestDB()
          "stationid   INTEGER NOT NULL, "
          "neighborid  INTEGER NOT NULL, "
          "paramid     INTEGER NOT NULL, "
-         "offset      FLOAT NOT NULL, "
-         "slope       FLOAT NOT NULL, "
-         "sigma       FLOAT NOT NULL);");
-    
+         "fit_offset  FLOAT NOT NULL, "
+         "fit_slope   FLOAT NOT NULL, "
+         "fit_sigma   FLOAT NOT NULL);");
+
     exec("CREATE TABLE model_data ("
          "stationid INTEGER   NOT NULL, "
          "obstime   TIMESTAMP NOT NULL, "

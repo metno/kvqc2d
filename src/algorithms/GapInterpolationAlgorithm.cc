@@ -89,7 +89,7 @@ void GapDataAccess::configure(const AlgorithmConfig& params)
 // ########################################################################
 
 GapInterpolationAlgorithm::GapInterpolationAlgorithm()
-    : Qc2Algorithm("GapInterpolate")
+    : Qc2Algorithm("GapInterpolation")
     , mDataAccess(new GapDataAccess(0))
     , mInterpolator(new CorrelatedNeighbors::Interpolator(mDataAccess))
     , mInterpolatorUU(new InterpolatorUU(mInterpolator))
@@ -104,8 +104,8 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 
     tids = params.getMultiParameter<int>("TypeId");
 
-    params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[1234]&fhqc=0", "");
-    params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
+    params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[23]&fhqc=0", "");
+    params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
     foreach(const std::string& pi, parameters)
@@ -192,9 +192,11 @@ void GapInterpolationAlgorithm::run()
         if( pi.maxParameter > 0 )
             pids.push_back(pi.maxParameter);
     }
+    DBGV(pids.size());
 
     const DBInterface::DataList missingData
         = database()->findDataOrderStationObstime(StationIds, pids, tids, TimeRange(UT0, UT1), missing_flags);
+    DBGV(missingData.size());
 
     foreach(const kvalobs::kvData& d, missingData) {
         const Instrument i = getMasterInstrument(d);

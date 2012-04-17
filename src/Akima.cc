@@ -12,16 +12,16 @@ double Akima::interpolate(double x) const
 {
     const int N = (int)mX.size()-1;
     if( N<4 || x < mX.front() )
-        return -INVALID;
+        return INVALID;
     std::vector<double>::const_iterator iX1 = std::lower_bound(mX.begin(), mX.end(), x);
     if( iX1 == mX.end() )
-        return -INVALID;
+        return INVALID;
     const int i = std::max(0, static_cast<int>(iX1 - mX.begin() - 1));
     if( i >= N )
-        return -INVALID;
+        return INVALID;
     if( x < mX[i] || x > mX[i+1] ) {
         //std::cout << "x=" << x << " i=" << i << " x[i]=" << mX[i] << " x[i+1]=" << mX[i+1] << std::endl;
-        return -INVALID;
+        return INVALID;
     }
 
     double mmm[5];

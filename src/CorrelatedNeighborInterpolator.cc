@@ -58,6 +58,9 @@ Interpolator::Interpolator(DataAccess* dax)
 
 ::Interpolator::ValuesWithQualities_t Interpolator::interpolate(const Instrument& instrument, const TimeRange& t)
 {
+    DBGV(instrument.stationid);
+    DBGV(instrument.paramid);
+
     ValuesWithQualities_t interpolated;
 
     const ParamInfos_cit pi = mParamInfos.find(instrument.paramid);
@@ -65,7 +68,6 @@ Interpolator::Interpolator(DataAccess* dax)
         return interpolated;
 
     const float maxdelta = pi->second.offsetCorrectionLimit;
-    DBGV(maxdelta);
 
     const int gapLength = t.hours() - 1;
     if( gapLength < 1 )
@@ -74,20 +76,22 @@ Interpolator::Interpolator(DataAccess* dax)
     const int NA = 3;
     const TimeRange tExtended(Helpers::plusHour(t.t0, -(NA-1)), Helpers::plusHour(t.t1, (NA-1)));
     DBGV(tExtended.t0);
+    DBGV(tExtended.t1);
     const std::vector<float> observations = mDax->fetchObservations(instrument, tExtended);
     const std::vector<float> modelvalues  = mDax->fetchModelValues (instrument, tExtended);
     const std::vector<float> interpolations  =  interpolate_simple(instrument, tExtended);
     DBGV(interpolations.size());
 
-#if 1
     Akima akima;
     int nBefore = 0, nAfter = 0;
     for(int x=0; x<NA; ++x) {
-        float yb = observations[x];
+        const float yb = observations[x];
         if( yb > INVALID ) {
             akima.add(x-NA, yb);
             nBefore += 1;
         }
+    }
+    for(int x=0; x<NA; ++x) {
         const float ya = observations[gapLength + NA + x];
         if( ya > INVALID ) {
             akima.add(gapLength + x, ya);
@@ -95,12 +99,11 @@ Interpolator::Interpolator(DataAccess* dax)
         }
     }
     const bool haveAkima = ( nBefore >= NA && nAfter >= NA );
-#endif
 
     int start = NA-1; // assume this is an observed value
     while( start < NA+gapLength ) {
         int stop = start+1;
-        while( stop <= NA+gapLength && observations[stop] == INVALID )
+        while( stop < NA+gapLength && observations[stop] == INVALID )
             ++stop;
         DBGV(start);
         DBGV(stop);
@@ -143,6 +146,7 @@ Interpolator::Interpolator(DataAccess* dax)
                 if( !akimaFirst && combiWeights == 0 && canUseAkima ) {
                     const float akimaWeight = 2, akimaValue = akima.interpolate(i);
                     if( akimaValue != Akima::INVALID ) {
+                        DBG("using AKIMA " << DBG1(akimaValue));
                         combiValue += akimaWeight * akimaValue;
                         combiWeights += akimaWeight;
                     }
@@ -173,7 +177,8 @@ Interpolator::Interpolator(DataAccess* dax)
     }
     DBGV(interpolated.size());
     DBGV(gapLength);
-    assert((int)interpolated.size() == gapLength);
+    if( (int)interpolated.size() != gapLength )
+        throw std::runtime_error("programming error in CorrelatedNeighborInterpolator, gaplength!=interpolation count");
     return interpolated;
 }
 
