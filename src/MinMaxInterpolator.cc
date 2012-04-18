@@ -99,7 +99,7 @@ MinMaxValuesWithQualities_t MinMaxInterpolateI(Interpolator* inter, CorrelatedNe
     Instrument instMin = instrument, instMax = instrument;
     instMin.paramid = parameterInfo.minParameter;
     instMax.paramid = parameterInfo.maxParameter;
-    const int N = 3;
+    const int N = 3; // extra points before and after gap for Akima interpolation
 
     TimeRange tex(Helpers::plusHour(t.t0, -N+1), Helpers::plusHour(t.t1, N-1));
     const std::vector<float> observationsPar = dax->fetchObservations(instrument, tex);

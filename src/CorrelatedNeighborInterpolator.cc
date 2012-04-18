@@ -63,11 +63,12 @@ Interpolator::Interpolator(DataAccess* dax)
 
     ValuesWithQualities_t interpolated;
 
-    const ParamInfos_cit pi = mParamInfos.find(instrument.paramid);
-    if( pi == mParamInfos.end() )
+    const ParamInfos_cit pi_it = mParamInfos.find(instrument.paramid);
+    if( pi_it == mParamInfos.end() )
         return interpolated;
+    const ParamInfo& pi = pi_it->second;
 
-    const float maxdelta = pi->second.offsetCorrectionLimit;
+    const float maxdelta = pi.offsetCorrectionLimit;
 
     const int gapLength = t.hours() - 1;
     if( gapLength < 1 )
@@ -147,7 +148,7 @@ Interpolator::Interpolator(DataAccess* dax)
                 float combi;
                 if( combiWeights > 0 ) {
                     quality = (i==0 || i==gapLen-1) ? QUALITY_INTER_GOOD : QUALITY_INTER_BAD;
-                    combi = pi->second.constrained(combiValue / combiWeights);
+                    combi = pi.constrained(combiValue / combiWeights);
                 } else {
                     combi = INVALID;
                     quality = QUALITY_INTER_FAILED;

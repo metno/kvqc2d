@@ -41,10 +41,6 @@
 
 std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
 {
-    FlagSetCU neighbor_flags;
-    neighbor_flags.setC(FlagPatterns("fmis=0", FlagPattern::CONTROLINFO));
-    neighbor_flags.setU(FlagPatterns("U0=[37]&U2=0", FlagPattern::USEINFO));
-
     const DBInterface::DataList obs
         = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type,
                                             instrument.sensor, instrument.level, t, neighbor_flags);
@@ -59,7 +55,7 @@ std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument
 
 // ------------------------------------------------------------------------
 
-std::vector<float> GapDataAccess::fetchModelValues (const Instrument& instrument, const TimeRange& t)
+std::vector<float> GapDataAccess::fetchModelValues(const Instrument& instrument, const TimeRange& t)
 {
     const DBInterface::ModelDataList modelData
         = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
