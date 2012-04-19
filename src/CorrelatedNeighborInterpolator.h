@@ -5,6 +5,7 @@
 
 #include "Interpolator.h"
 
+#include "NeighborInterpolation.h"
 #include <map>
 #include <vector>
 
@@ -43,6 +44,22 @@ struct ParamInfo : public BasicParameterInfo {
 
 // ========================================================================
 
+class DataFilter {
+public:
+    virtual ~DataFilter();
+    virtual NeighborInterpolation::Data toNumerical(int paramid, float storage) const = 0;
+    virtual float toStorage(int paramid, NeighborInterpolation::Interpolation::Quality q, float numerical) const = 0;
+};
+typedef boost::shared_ptr<DataFilter> DataFilterP;
+
+class KvalobsFilter : public DataFilter {
+public:
+    virtual NeighborInterpolation::Data toNumerical(int paramid, float storage) const;
+    virtual float toStorage(int paramid, NeighborInterpolation::Interpolation::Quality q, float numerical) const;
+};
+
+// ========================================================================
+
 class Interpolator : public ::Interpolator {
 public:
     Interpolator(DataAccess* dax);
@@ -56,6 +73,12 @@ public:
 
     void setDataAccess(DataAccess* dax)
         { mDax = dax; }
+
+    DataFilterP getFilter() const
+        { return mFilter; }
+
+    void setFilter(DataFilterP f)
+        { mFilter = f; }
 
 private:
     typedef std::map<Instrument, neighbors_t, lt_Instrument> neighbor_map_t;
@@ -75,6 +98,8 @@ private:
     typedef std::map<int,ParamInfo> ParamInfos;
     typedef ParamInfos::const_iterator ParamInfos_cit;
     ParamInfos mParamInfos;
+
+    DataFilterP mFilter;
 
     neighbor_map_t neighbor_map;
 };

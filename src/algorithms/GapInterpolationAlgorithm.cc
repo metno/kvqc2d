@@ -147,7 +147,7 @@ void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::Missin
         if( dit->obstime() != Helpers::plusHour(range.t0, h++) )
             continue;
         kvalobs::kvData dwrite(*dit++);
-        if( Helpers::equal(dwrite.corrected(), vq.value) )
+        if( Helpers::equal(dwrite.corrected(), vq.value) || (vq.quality == Interpolator::QUALITY_INTER_FAILED && dwrite.corrected()<-32765) )
             continue;
         dwrite.corrected(vq.value);
         dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));

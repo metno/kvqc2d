@@ -82,6 +82,8 @@ libkvqc2d_a_SOURCES = \
 	LogfileNotifier.h \
 	MinMaxInterpolator.cc \
 	MinMaxInterpolator.h \
+	NeighborInterpolation.cc \
+	NeighborInterpolation.h \
 	Notifier.cc \
 	Notifier.h \
 	SQLDataAccess.cc \

@@ -142,7 +142,7 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Constant)
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
     Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(Instrument(1234, 211, 0, 302, 0),
-                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap+1)));
+                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap-1)));
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         EXPECT_FLOAT_EQ(1.0f, interpolated[i].value);
@@ -165,7 +165,7 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Linear)
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
     Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(Instrument(1234, 211, 0, 302, 0),
-                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap+1)));
+                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap-1)));
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         EXPECT_FLOAT_EQ(i+4, interpolated[i].value);
@@ -188,7 +188,7 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Triangel)
 
     const miutil::miTime t0(2012, 3, 27, 16, 0);
     Interpolator::ValuesWithQualities_t interpolated  = mCNI->interpolate(Instrument(1234, 211, 0, 302, 0),
-                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap+1)));
+                                                                          TimeRange(t0, Helpers::plusHour(t0, Ngap-1)));
     EXPECT_EQ(Ngap, interpolated.size());
     for(unsigned int i=0; i<interpolated.size(); ++i) {
         const float expected = (i==1) ? 4 : 3;
