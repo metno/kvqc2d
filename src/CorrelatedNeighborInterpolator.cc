@@ -124,7 +124,7 @@ struct Kvalobs2Data : public std::unary_function<NeighborInterpolation::Data, fl
         DBG(DBG1(d.usable) << DBG1(d.value));
 #endif
 
-    const neighbors_t& neighbors = find_neighbors(ctr, mMaxSigma);
+    const NeighborDataVector& neighbors = find_neighbors(ctr, mMaxSigma);
     DBGV(neighbors.size());
 
     foreach(const NeighborData& nd, neighbors) {
@@ -184,7 +184,7 @@ ParamInfo::ParamInfo(const std::string& pi)
 
 // ------------------------------------------------------------------------
 
-const neighbors_t& Interpolator::find_neighbors(const Instrument& instrument, float maxsigma)
+const NeighborDataVector& Interpolator::find_neighbors(const Instrument& instrument, float maxsigma)
 {
     neighbor_map_t::iterator it = neighbor_map.find(instrument);
     if( it != neighbor_map.end() )

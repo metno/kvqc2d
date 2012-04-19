@@ -195,7 +195,7 @@ DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues
 
 // ------------------------------------------------------------------------
 
-CorrelatedNeighbors::neighbors_t SQLDataAccess::findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException)
+NeighborDataVector SQLDataAccess::findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException)
 {
     std::ostringstream sql;
     sql << "SELECT neighborid, fit_offset, fit_slope, fit_sigma FROM interpolation_best_neighbors"

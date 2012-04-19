@@ -186,13 +186,13 @@ DBInterface::reference_value_map_t KvalobsDB::extractStatisticalReferenceValues(
 namespace {
 
 struct ExtractNeighborData : public KvalobsDbExtract {
-    ExtractNeighborData(CorrelatedNeighbors::neighbors_t& neighbors)
+    ExtractNeighborData(NeighborDataVector& neighbors)
         : mNeighbors(neighbors) { }
 
     void extractFromRow(const dnmi::db::DRow& row);
 
 private:
-    CorrelatedNeighbors::neighbors_t& mNeighbors;
+    NeighborDataVector& mNeighbors;
 };
 
 void ExtractNeighborData::extractFromRow(const dnmi::db::DRow& row)
@@ -203,15 +203,15 @@ void ExtractNeighborData::extractFromRow(const dnmi::db::DRow& row)
     const float slope    = std::atof((*col++).c_str());
     const float sigma    = std::atof((*col++).c_str());
 
-    mNeighbors.push_back(CorrelatedNeighbors::NeighborData(neighborid, offset, slope, sigma));
+    mNeighbors.push_back(NeighborData(neighborid, offset, slope, sigma));
 }
 
 } // anonymous namespace
 
-CorrelatedNeighbors::neighbors_t KvalobsDB::extractNeighborData(const std::string& sql) throw (DBException)
+NeighborDataVector KvalobsDB::extractNeighborData(const std::string& sql) throw (DBException)
 {
     try {
-        CorrelatedNeighbors::neighbors_t neighbors;
+        NeighborDataVector neighbors;
         std::auto_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
         mDbGate.select(extract.get(), sql);
         return neighbors;

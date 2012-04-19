@@ -45,7 +45,7 @@ public:
     virtual StationParamList extractStationParams(const std::string& sql) throw (DBException);
     virtual DataList extractData(const std::string& sql) throw (DBException);
     virtual reference_value_map_t extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException);
-    virtual CorrelatedNeighbors::neighbors_t extractNeighborData(const std::string& sql) throw (DBException);
+    virtual NeighborDataVector extractNeighborData(const std::string& sql) throw (DBException);
     virtual ModelDataList extractModelData(const std::string& sql) throw (DBException);
     virtual void execSQLUpdate(const std::string& sql) throw (DBException);
 

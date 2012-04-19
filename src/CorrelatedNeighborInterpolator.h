@@ -5,29 +5,19 @@
 
 #include "Interpolator.h"
 
+#include "DBInterface.h"
 #include "NeighborInterpolation.h"
 #include <map>
 #include <vector>
 
 namespace CorrelatedNeighbors {
 
-struct NeighborData {
-    int neighborid;
-    double offset, slope, sigma;
-    NeighborData(int xid, double xoffset, double xslope, double xsigma)
-        : neighborid(xid), offset(xoffset), slope(xslope), sigma(xsigma) { }
-};
-
-typedef std::vector<NeighborData> neighbors_t;
-
-// ========================================================================
-
 class DataAccess {
 public:
     virtual ~DataAccess();
     virtual std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t) = 0;
     virtual std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t) = 0;
-    virtual neighbors_t findNeighbors(const Instrument& instrument, double maxsigma) = 0;
+    virtual NeighborDataVector findNeighbors(const Instrument& instrument, double maxsigma) = 0;
 };
 
 // ========================================================================
@@ -81,7 +71,7 @@ public:
         { mFilter = f; }
 
 private:
-    typedef std::map<Instrument, neighbors_t, lt_Instrument> neighbor_map_t;
+    typedef std::map<Instrument, NeighborDataVector, lt_Instrument> neighbor_map_t;
 
 private:
     std::vector<float> interpolate_simple(const Instrument& instrument, const TimeRange& t);
@@ -89,7 +79,7 @@ private:
     void calculate_delta(const float data0, const float dataN1, const float i0, const float iN1, int N,
                          float& slope, float& offset);
 
-    const neighbors_t& find_neighbors(const Instrument& instrument, float maxsigma);
+    const NeighborDataVector& find_neighbors(const Instrument& instrument, float maxsigma);
 
 private:
     DataAccess* mDax;

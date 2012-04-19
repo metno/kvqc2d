@@ -3,22 +3,12 @@
 #ifndef INTERPOLATOR_H
 #define INTERPOLATOR_H 1
 
+#include "TimeRange.h"
 #include <kvalobs/kvData.h>
 #include <puTools/miTime.h>
 #include <vector>
 
 class AlgorithmConfig;
-
-// ========================================================================
-
-struct TimeRange {
-    miutil::miTime t0;
-    miutil::miTime t1;
-    TimeRange(const miutil::miTime& T0, const miutil::miTime& T1)
-        : t0(T0), t1(T1) { }
-    int days() const;
-    int hours() const;
-};
 
 // ========================================================================
 

@@ -101,7 +101,7 @@ void GapInterpolationTest::SetUp()
 
     ASSERT_NO_THROW(db->exec(sql.str()));
 
-    CorrelatedNeighbors::neighbors_t n;
+    NeighborDataVector n;
     ASSERT_NO_THROW(n = db->findNeighborData(18700, 211, 2.7));
     ASSERT_EQ(10, n.size());
 

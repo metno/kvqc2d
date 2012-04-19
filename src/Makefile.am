@@ -71,6 +71,8 @@ libkvqc2d_a_SOURCES = \
 	InitLogger.h \
 	Interpolator.cc \
 	Interpolator.h \
+	InterpolatorUU.cc \
+	InterpolatorUU.h \
 	KvalobsDB.cc \
 	KvalobsDB.h \
 	KvalobsDbGate.cc \
@@ -88,6 +90,8 @@ libkvqc2d_a_SOURCES = \
 	Notifier.h \
 	SQLDataAccess.cc \
 	SQLDataAccess.h \
+	TimeRange.cc \
+	TimeRange.h \
 	Qc2Algorithm.cc \
 	Qc2Algorithm.h \
 	Qc2App.cc \

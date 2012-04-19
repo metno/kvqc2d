@@ -11,20 +11,6 @@
 #define NDEBUG 1
 #include "debug.h"
 
-int TimeRange::days() const
-{
-    return 24*hours();
-}
-
-// ------------------------------------------------------------------------
-
-int TimeRange::hours() const
-{
-    return miutil::miTime::hourDiff(t1, t0);
-}
-
-// ========================================================================
-
 bool lt_Instrument::operator()(const Instrument& a, const Instrument& b) const
 {
     if ( a.stationid != b.stationid )

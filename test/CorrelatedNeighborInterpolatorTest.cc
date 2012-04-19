@@ -24,7 +24,7 @@ private:
     public:
         series_t fetchObservations(const Instrument& instrument, const TimeRange& t);
         series_t fetchModelValues (const Instrument& instrument, const TimeRange& t);
-        CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
+        NeighborDataVector findNeighbors(const Instrument& instrument, double maxsigma);
 
         void setCenter(int stationid, const series_t& observations, const series_t& modelvalues);
         void addNeighbor(int stationid, const series_t& observations);
@@ -99,14 +99,14 @@ series_t CorrelatedNeighborInterpolatorTest::TestDataAccess::fetchModelValues(co
 
 // ------------------------------------------------------------------------
 
-CorrelatedNeighbors::neighbors_t CorrelatedNeighborInterpolatorTest::TestDataAccess::findNeighbors(const Instrument& instrument, double)
+NeighborDataVector CorrelatedNeighborInterpolatorTest::TestDataAccess::findNeighbors(const Instrument& instrument, double)
 {
     if( instrument.stationid != mCenterStationId )
         throw std::runtime_error("bad station id for neighbor list");
 
-    CorrelatedNeighbors::neighbors_t neighbors;
+    NeighborDataVector neighbors;
     foreach(mNeighborObservations_t::value_type& n, mNeighborObservations)
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(n.first, 0, 1, 2));
+        neighbors.push_back(NeighborData(n.first, 0, 1, 2));
     return neighbors;
 }
 

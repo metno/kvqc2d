@@ -148,10 +148,10 @@ std::vector<Interpolation> interpolate(const InterpolationData& data)
 
     IData idata;
     idata.simpleInterpolations = interpolateSimple(data);
-    for(int t=0; t<duration; ++t) {
-        const Data& d = data.centerObservations[t];
+    int t = 0;
+    foreach(const Data& d, data.centerObservations) {
         if( d.usable )
-            idata.akima.add(t, d.value);
+            idata.akima.add(t++, d.value);
     }
 
     idata.beforeGap = extraData-1; // assume this is an observed value

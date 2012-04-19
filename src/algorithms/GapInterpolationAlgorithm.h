@@ -4,8 +4,9 @@
 #define GapInterpolationAlgorithm_H 1
 
 #include "CorrelatedNeighborInterpolator.h"
-#include "Qc2Algorithm.h"
+#include "InterpolatorUU.h"
 #include "MinMaxInterpolator.h"
+#include "Qc2Algorithm.h"
 
 #include <memory>
 
@@ -18,7 +19,7 @@ public:
 
     std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t);
     std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t);
-    CorrelatedNeighbors::neighbors_t findNeighbors(const Instrument& instrument, double maxsigma);
+    NeighborDataVector findNeighbors(const Instrument& instrument, double maxsigma);
 
     void setDatabase(DBInterface* db)
         { mDB = db; }

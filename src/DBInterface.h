@@ -30,12 +30,11 @@
 #ifndef DBINTERFACE_H_
 #define DBINTERFACE_H_
 
+#include "TimeRange.h"
 #include <kvalobs/kvData.h>
 #include <kvalobs/kvModelData.h>
 #include <kvalobs/kvStation.h>
 #include <kvalobs/kvStationParam.h>
-
-#include "CorrelatedNeighborInterpolator.h"
 
 #include <exception>
 
@@ -46,6 +45,15 @@ public:
 };
 
 class FlagSetCU;
+
+struct NeighborData {
+    int neighborid;
+    double offset, slope, sigma;
+    NeighborData(int xid, double xoffset, double xslope, double xsigma)
+        : neighborid(xid), offset(xoffset), slope(xslope), sigma(xsigma) { }
+};
+
+typedef std::vector<NeighborData> NeighborDataVector;
 
 /**
  * Wrapper for kvalobs database connections.
@@ -92,7 +100,7 @@ public:
 
     // ----------------------------------------
 
-    virtual CorrelatedNeighbors::neighbors_t findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException) = 0;
+    virtual NeighborDataVector findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException) = 0;
 
     // ----------------------------------------
 

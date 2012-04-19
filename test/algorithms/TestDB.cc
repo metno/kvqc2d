@@ -252,9 +252,9 @@ DBInterface::reference_value_map_t SqliteTestDB::extractStatisticalReferenceValu
 
 // ------------------------------------------------------------------------
 
-CorrelatedNeighbors::neighbors_t SqliteTestDB::extractNeighborData(const std::string& sql) throw (DBException)
+NeighborDataVector SqliteTestDB::extractNeighborData(const std::string& sql) throw (DBException)
 {
-    CorrelatedNeighbors::neighbors_t neighbors;
+    NeighborDataVector neighbors;
     sqlite3_stmt *stmt = prepare_statement(sql);
     int step;
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
@@ -263,7 +263,7 @@ CorrelatedNeighbors::neighbors_t SqliteTestDB::extractNeighborData(const std::st
         const float offset   = sqlite3_column_double(stmt, col++);
         const float slope    = sqlite3_column_double(stmt, col++);
         const float sigma    = sqlite3_column_double(stmt, col++);
-        neighbors.push_back(CorrelatedNeighbors::NeighborData(neighborid, offset, slope, sigma));
+        neighbors.push_back(NeighborData(neighborid, offset, slope, sigma));
     }
     finalize_statement(stmt, step);
     return neighbors;

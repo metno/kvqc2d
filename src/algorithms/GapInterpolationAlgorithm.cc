@@ -70,7 +70,7 @@ std::vector<float> GapDataAccess::fetchModelValues(const Instrument& instrument,
 
 // ------------------------------------------------------------------------
 
-CorrelatedNeighbors::neighbors_t GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
+NeighborDataVector GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
 {
     return mDB->findNeighborData(instrument.stationid, instrument.paramid, maxsigma);
 }

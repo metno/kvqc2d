@@ -1,4 +1,4 @@
-/*
+/* -*- c++ -*-
  * NeighborInterpolator.h
  *
  *  Created on: Apr 19, 2012
@@ -15,7 +15,7 @@ namespace NeighborInterpolation {
 struct Data {
     bool usable;
     float value;
-Data() : usable(false), value(-32766.5) { }
+    Data() : usable(false), value(-32766.5) { }
     Data(float v) : usable(true), value(v) { }
 };
 struct Interpolation {
