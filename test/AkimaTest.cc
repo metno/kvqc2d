@@ -41,3 +41,16 @@ TEST(AkimaTest, Series)
 
     ASSERT_NEAR(-7.84475, akima.interpolate(3), 0.0001);
 }
+
+TEST(AkimaTest, Distance)
+{
+    const double xp[6] = { 0, 1, 2, 4, 5, 6 };
+    const double yp[6] = { -10.9, -10.4, -7.8, /* -8.75734, */ -8.0, -7.0, -7.5 };
+    Akima akima;
+    for(int i=0; i<6; ++i)
+        akima.add(xp[i], yp[i]);
+
+    ASSERT_NEAR(1.0, akima.distance(3.0), 0.0001);
+    ASSERT_NEAR(0.5, akima.distance(2.5), 0.0001);
+    ASSERT_NEAR(0.2, akima.distance(3.8), 0.0001);
+}

@@ -53,7 +53,7 @@ double Akima::distance(double x) const
     const int i = findIndex(x);
     if( i<0  )
         return std::numeric_limits<double>::max();
-    return std::min(x-mX[i], mX[i+1]-1);
+    return std::min(x-mX[i], mX[i+1]-x);
 }
 
 // ------------------------------------------------------------------------
