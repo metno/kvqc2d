@@ -37,14 +37,15 @@ struct ParamInfo : public BasicParameterInfo {
 class DataFilter {
 public:
     virtual ~DataFilter();
-    virtual NeighborInterpolation::Data toNumerical(int paramid, float storage) const = 0;
+    virtual NeighborInterpolation::SupportData toNumerical(int paramid, float storage) const = 0;
+    virtual NeighborInterpolation::SeriesData toSeries(int paramid, float storage) const;
     virtual float toStorage(int paramid, NeighborInterpolation::Interpolation::Quality q, float numerical) const = 0;
 };
 typedef boost::shared_ptr<DataFilter> DataFilterP;
 
 class KvalobsFilter : public DataFilter {
 public:
-    virtual NeighborInterpolation::Data toNumerical(int paramid, float storage) const;
+    virtual NeighborInterpolation::SupportData toNumerical(int paramid, float storage) const;
     virtual float toStorage(int paramid, NeighborInterpolation::Interpolation::Quality q, float numerical) const;
 };
 

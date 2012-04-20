@@ -12,11 +12,24 @@
 
 namespace NeighborInterpolation {
 
-struct Data {
-    bool usable, needsInterpolation;
-    float value;
-    Data() : usable(false), needsInterpolation(true), value(-32766.5) { }
-    Data(float v) : usable(true), needsInterpolation(false), value(v) { }
+class SupportData {
+public:
+    SupportData() : mUsable(false), mValue(-32766.5) { }
+    SupportData(float v) : mUsable(true), mValue(v) { }
+    bool usable() const { return mUsable; }
+    float value() const { return mValue; }
+private:
+    bool mUsable;
+    float mValue;
+};
+class SeriesData : public SupportData {
+public:
+    SeriesData() : SupportData(), mNeedsInterpolation(true) { }
+    SeriesData(float v) : SupportData(v), mNeedsInterpolation(false) { }
+    explicit SeriesData(const SupportData& sd) : SupportData(sd), mNeedsInterpolation(!sd.usable()) { }
+    bool needsInterpolation() const { return mNeedsInterpolation; }
+private:
+    bool mNeedsInterpolation;
 };
 struct Interpolation {
     enum Quality { OBSERVATION, GOOD, BAD, FAILED };
@@ -43,44 +56,36 @@ public:
     float maximumOffset()
     { return maxOffset; }
 
-    bool centerObservationNeedsInterpolation(int time)
-    { return centerObservations[time].needsInterpolation; }
+    SeriesData center(int time)
+    { return centerObservations[time]; }
 
-    bool centerObservationUsable(int time)
-    { return centerObservations[time].usable; }
+    SupportData model(int time)
+    { return centerModel[time]; }
 
-    float centerObservationValue(int time)
-    { return centerObservations[time].value; }
+    SupportData neighbor(int n, int time)
+    { return neighborObservations[n][time]; }
 
-    bool centerModelUsable(int time)
-    { return centerModel[time].usable; }
-
-    float centerModelValue(int time)
-    { return centerModel[time].value; }
-
-    bool neighborObservationUsable(int neighbor, int time)
-    { return neighborObservations[neighbor][time].usable; }
-
-    float neighborObservationValue(int neighbor, int time)
-    { return neighborObservations[neighbor][time].value; }
-
-    float neighborTransformedValue(int neighbor, int time)
-    { return neighborCorrelations[neighbor].transformed(neighborObservationValue(neighbor, time)); }
+    SupportData transformedNeighbor(int n, int time)
+    { SupportData sd = neighbor(n, time); if( sd.usable() ) return SupportData(neighborCorrelations[n].transformed(sd.value())); else return sd; }
 
     float neighborWeight(int neighbor)
-    { float s = neighborCorrelations[neighbor].sigma; return (s*s*s); }
+    { float s = neighborCorrelations[neighbor].sigma; return 1/(s*s*s); }
 
-    std::vector<Data>& co() { return centerObservations; }
-    std::vector<Data>& cm() { return centerModel; }
-    std::vector<Correlation>& nc() { return neighborCorrelations; }
-    std::vector<std::vector<Data> >& no() { return neighborObservations; }
+    typedef std::vector<SeriesData> SeriesVector;
+    typedef std::vector<SupportData> SupportVector;
+    typedef std::vector<Correlation> CorrelationVector;
+
+    SeriesVector& co() { return centerObservations; }
+    SupportVector& cm() { return centerModel; }
+    CorrelationVector& nc() { return neighborCorrelations; }
+    std::vector<SupportVector>& no() { return neighborObservations; }
     float& mo() { return maxOffset; }
 
 private:
-    std::vector<Data> centerObservations;
-    std::vector<Data> centerModel;
-    std::vector<Correlation> neighborCorrelations;
-    std::vector<std::vector<Data> > neighborObservations;
+    SeriesVector centerObservations;
+    SupportVector centerModel;
+    CorrelationVector neighborCorrelations;
+    std::vector<SupportVector> neighborObservations;
     float maxOffset;
 };
 

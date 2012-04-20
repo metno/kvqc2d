@@ -18,6 +18,9 @@
 namespace NeighborInterpolation {
 
 const int extraData = 3;
+
+namespace {
+
 const int MAX_NEIGHBORS = 5;
 const float AKIMAWEIGHT = 2;
 const bool akimaFirst = false;
@@ -34,24 +37,23 @@ private:
     int mCount;
 };
 
-namespace {
-
-std::vector<Data> interpolateSimple(InterpolationData& data)
+InterpolationData::SupportVector interpolateSimple(InterpolationData& data)
 {
     const unsigned int duration = data.duration();
-    std::vector<Data> interpolated(duration);
+    InterpolationData::SupportVector interpolated(duration);
 
     for(unsigned int t=0; t<duration; ++t) {
         WeightedMean wm;
         for(int n=0; n<data.neighbors(); ++n) {
-            if( !data.neighborObservationUsable(n, t) )
+            const SupportData nd = data.transformedNeighbor(n, t);
+            if( !nd.usable() )
                 continue;
-            wm.add(data.neighborTransformedValue(n, t), data.neighborWeight(n));
+            wm.add(nd.value(), data.neighborWeight(n));
             if( wm.count() >= MAX_NEIGHBORS )
                 break;
         }
         if( wm.valid() )
-            interpolated[t] = Data(wm.mean());
+            interpolated[t] = SupportData(wm.mean());
     }
     return interpolated;
 }
@@ -63,12 +65,11 @@ struct OffsetCorrection {
     OffsetCorrection() : slope(0), offset(0) { }
 };
 
-OffsetCorrection calculateNeighborOffset(InterpolationData& data, const std::vector<Data>& si, int t0, int t1)
+OffsetCorrection calculateOffset(const SupportData &o0, const SupportData &o1, const SeriesData &d0, const SeriesData &d1, int t0, int t1)
 {
     OffsetCorrection oc;
-    const Data &si0 = si[t0], &si1 = si[t1];
-    const bool have0 = (data.centerObservationUsable(t0) && si0.usable), have1 = (data.centerObservationUsable(t1) && si1.usable);
-    const float delta0 = si0.value - data.centerObservationValue(t0), delta1 = si1.value - data.centerObservationValue(t1);
+    const bool have0 = (d0.usable() && o0.usable()), have1 = (d1.usable() && o1.usable());
+    const float delta0 = o0.value() - d0.value(), delta1 = o1.value() - d1.value();
     const int N = t1 - t0;
     if( have0 && have1 && N!=0 ) {
         oc.slope = (delta1 - delta0)/N;
@@ -78,32 +79,21 @@ OffsetCorrection calculateNeighborOffset(InterpolationData& data, const std::vec
     } else if( have1 ) {
         oc.offset = delta1;
     }
-
     return oc;
+}
+
+OffsetCorrection calculateNeighborOffset(InterpolationData& data, const std::vector<SupportData>& o, int t0, int t1)
+{
+    return calculateOffset(o[t0], o[t1], data.center(t0), data.center(t1), t0, t1);
 }
 
 OffsetCorrection calculateModelOffset(InterpolationData& data, int t0, int t1)
 {
-    OffsetCorrection oc;
-    const bool have0 = (data.centerObservationUsable(t0) && data.centerModelUsable(t0)),
-            have1 = (data.centerObservationUsable(t1) && data.centerModelUsable(t1));
-    const float delta0 = data.centerModelValue(t0) - data.centerObservationValue(t0),
-            delta1 = data.centerModelValue(t1) - data.centerObservationValue(t1);
-    const int N = t1 - t0;
-    if( have0 && have1 && N!=0 ) {
-        oc.slope = (delta1 - delta0)/N;
-        oc.offset = delta0 + oc.slope*t0;
-    } else if( have0 ) {
-        oc.offset = delta0;
-    } else if( have1 ) {
-        oc.offset = delta1;
-    }
-
-    return oc;
+    return calculateOffset(data.model(t0), data.model(t1), data.center(t0), data.center(t1), t0, t1);
 }
 
 struct IData {
-    std::vector<Data> simpleInterpolations;
+    std::vector<SupportData> simpleInterpolations;
     Akima akima;
     int beforeGap, afterGap;
 };
@@ -117,8 +107,9 @@ void interpolateSingleGap(InterpolationData& data, const IData& idata, std::vect
 
     const int t0 = idata.beforeGap + 1;
     for(int t=t0; t<t0+gap; ++t) {
-        if( !data.centerObservationNeedsInterpolation(t) ) {
-            interpolated[t] = Interpolation(data.centerObservationValue(t), Interpolation::OBSERVATION);
+        const SeriesData obs = data.center(t);
+        if( !obs.needsInterpolation() ) {
+            interpolated[t] = Interpolation(obs.value(), Interpolation::OBSERVATION);
             continue;
         }
 
@@ -128,20 +119,21 @@ void interpolateSingleGap(InterpolationData& data, const IData& idata, std::vect
         if( akimaFirst && canUseAkima )
             combi.add(idata.akima.interpolate(t), AKIMAWEIGHT);
 
-        const Data& inter = idata.simpleInterpolations[t];
-        if( !combi.valid() && inter.usable ) {
+        const SupportData& inter = idata.simpleInterpolations[t];
+        if( !combi.valid() && inter.usable() ) {
             const float delta = ocObservations.at(t);
             if( std::fabs(delta) < data.maximumOffset())
-                combi.add(inter.value - delta, 1);
+                combi.add(inter.value() - delta, 1);
         }
 
         if( !akimaFirst && !combi.valid() && canUseAkima )
             combi.add(idata.akima.interpolate(t), AKIMAWEIGHT);
 
-        if( !combi.valid() && data.centerModelUsable(t) ) {
+        const SupportData& model = data.model(t);
+        if( !combi.valid() && model.usable() ) {
             const float delta = ocModel.at(t);
             if( std::fabs(delta) < data.maximumOffset() )
-                combi.add(data.centerModelValue(t) - delta, 1);
+                combi.add(model.value() - delta, 1);
         }
 
         if( combi.valid() ) {
@@ -161,22 +153,23 @@ std::vector<Interpolation> interpolate(InterpolationData& data)
     IData idata;
     idata.simpleInterpolations = interpolateSimple(data);
     for(int t = 0; t<duration; ++t) {
-        if( data.centerObservationUsable(t) )
-            idata.akima.add(t, data.centerObservationValue(t));
+        const SupportData obs = data.center(t);
+        if( obs.usable() )
+            idata.akima.add(t, obs.value());
     }
 
     idata.beforeGap = extraData-1; // assume this is an observed value
     const int afterGaps = duration - extraData;
     while( idata.beforeGap < afterGaps ) {
         idata.afterGap = idata.beforeGap+1;
-        while( idata.afterGap < afterGaps && !data.centerObservationUsable(idata.afterGap) )
+        while( idata.afterGap < afterGaps && !data.center(idata.afterGap).usable() )
             ++idata.afterGap;
 
         if( idata.afterGap != idata.beforeGap + 1 )
             interpolateSingleGap(data, idata, interpolated);
         if( idata.afterGap < afterGaps ) {
             DBG("adding original at afterGap=" << idata.afterGap);
-            interpolated[idata.afterGap] = Interpolation(data.centerObservationValue(idata.afterGap), Interpolation::OBSERVATION);
+            interpolated[idata.afterGap] = Interpolation(data.center(idata.afterGap).value(), Interpolation::OBSERVATION);
         }
         idata.beforeGap = idata.afterGap;
     }

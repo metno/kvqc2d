@@ -52,15 +52,20 @@ DataFilter::~DataFilter()
 {
 }
 
+NeighborInterpolation::SeriesData DataFilter::toSeries(int paramid, float storage) const
+{
+    return NeighborInterpolation::SeriesData(toNumerical(paramid, storage));
+}
+
 // ========================================================================
 
-NeighborInterpolation::Data KvalobsFilter::toNumerical(int paramid, float storage) const
+NeighborInterpolation::SupportData KvalobsFilter::toNumerical(int paramid, float storage) const
 {
     if( storage <= -32766 )
-        return NeighborInterpolation::Data();
+        return NeighborInterpolation::SupportData();
     if( paramid == 112 && (storage==-1 || storage==-3) )
         storage = 0;
-    return NeighborInterpolation::Data(storage);
+    return NeighborInterpolation::SupportData(storage);
 }
 
 float KvalobsFilter::toStorage(int paramid, NeighborInterpolation::Interpolation::Quality quality, float numerical) const
@@ -81,13 +86,23 @@ Interpolator::Interpolator(DataAccess* dax)
 {
 }
 
-struct Kvalobs2Data : public std::unary_function<NeighborInterpolation::Data, float> {
-    NeighborInterpolation::Data operator() (float f) const {
+struct Kvalobs2SupportData : public std::unary_function<NeighborInterpolation::SupportData, float> {
+    NeighborInterpolation::SupportData operator() (float f) const {
         return filter->toNumerical(paramid, f);
     }
     CorrelatedNeighbors::DataFilterP filter;
     int paramid;
-    Kvalobs2Data(const CorrelatedNeighbors::DataFilterP& f, int p )
+    Kvalobs2SupportData(const CorrelatedNeighbors::DataFilterP& f, int p )
+    : filter(f), paramid(p) { }
+};
+
+struct Kvalobs2SeriesData : public std::unary_function<NeighborInterpolation::SeriesData, float> {
+    NeighborInterpolation::SeriesData operator() (float f) const {
+        return filter->toSeries(paramid, f);
+    }
+    CorrelatedNeighbors::DataFilterP filter;
+    int paramid;
+    Kvalobs2SeriesData(const CorrelatedNeighbors::DataFilterP& f, int p )
     : filter(f), paramid(p) { }
 };
 
@@ -122,13 +137,13 @@ struct Kvalobs2Data : public std::unary_function<NeighborInterpolation::Data, fl
 #endif
     const std::vector<float> modelvalues  = mDax->fetchModelValues (ctr, tExtended);
 
-    Kvalobs2Data k2d(mFilter, ctr.paramid);
-    std::transform(observations.begin(), observations.end(), std::back_inserter(data.co()), k2d);
-    std::transform(modelvalues .begin(), modelvalues .end(), std::back_inserter(data.cm()),        k2d);
+    Kvalobs2SupportData k2d(mFilter, ctr.paramid);
+    std::transform(observations.begin(), observations.end(), std::back_inserter(data.co()), Kvalobs2SeriesData(mFilter, ctr.paramid));
+    std::transform(modelvalues .begin(), modelvalues .end(), std::back_inserter(data.cm()), k2d);
 #ifndef NDEBUG
     DBG("filtered observations:");
-    foreach(const NeighborInterpolation::Data& d, data.co())
-        DBG(DBG1(d.usable) << DBG1(d.value));
+    foreach(const NeighborInterpolation::SeriesData& d, data.co())
+        DBG(DBG1(d.usable()) << DBG1(d.value()));
 #endif
 
     const NeighborDataVector& neighbors = find_neighbors(ctr, mMaxSigma);
@@ -144,7 +159,7 @@ struct Kvalobs2Data : public std::unary_function<NeighborInterpolation::Data, fl
         const Instrument nbr(nd.neighborid, ctr.paramid, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
         const std::vector<float> nData = mDax->fetchObservations(nbr, tExtended);
 
-        data.no().push_back(std::vector<NeighborInterpolation::Data>());
+        data.no().push_back(NeighborInterpolation::InterpolationData::SupportVector());
         std::transform(nData.begin(), nData.end(), std::back_inserter(data.no().back()), k2d);
     }
 
