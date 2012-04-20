@@ -13,10 +13,10 @@
 namespace NeighborInterpolation {
 
 struct Data {
-    bool usable;
+    bool usable, needsInterpolation;
     float value;
-    Data() : usable(false), value(-32766.5) { }
-    Data(float v) : usable(true), value(v) { }
+    Data() : usable(false), needsInterpolation(true), value(-32766.5) { }
+    Data(float v) : usable(true), needsInterpolation(false), value(v) { }
 };
 struct Interpolation {
     enum Quality { OBSERVATION, GOOD, BAD, FAILED };

@@ -64,8 +64,8 @@ OffsetCorrection calculateOffset(const std::vector<Data>& centerObs, const std::
     const Data &c0 = centerObs[i0], &c1 = centerObs[i1], &o0 = otherObs[i0], &o1 = otherObs[i1];
     const bool have0 = (c0.usable && o0.usable), have1 = (c1.usable && o1.usable);
     const float delta0 = o0.value - c0.value, delta1 = o1.value - c1.value;
-    if( have0 && have1 ) {
-        const int N = i1 - i0;
+    const int N = i1 - i0;
+    if( have0 && have1 && N!=0 ) {
         oc.slope = (delta1 - delta0)/N;
         oc.offset = delta0 + oc.slope;
     } else if( have0 ) {
@@ -95,6 +95,10 @@ void interpolateSingleGap(const InterpolationData& data, const IData& idata, std
     const int t0 = idata.beforeGap + 1;
     DBG(DBG1(idata.beforeGap) << DBG1(idata.afterGap) << DBG1(gap) << DBG1(idata.simpleInterpolations.size()) << DBG1(t0));
     for(int t=0; t<gap; ++t) {
+        if( !data.centerObservations[t0+t].needsInterpolation ) {
+            interpolated[t0+t] = Interpolation(data.centerObservations[t0+t].value, Interpolation::OBSERVATION);
+            continue;
+        }
         const Data& model = data.centerModel[t0+t];
         const Data& inter = idata.simpleInterpolations[t0+t];
         DBG("t=" << t << " inter=" << inter.value << "/" << inter.usable);
