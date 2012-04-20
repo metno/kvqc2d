@@ -62,8 +62,8 @@ NeighborsDistance2::stationIDs_t NeighborsDistance2::findNeighbors(int aroundID)
 void NeighborsDistance2::configure(const AlgorithmConfig& params)
 {
     mStationsByID.clear();
-    mInterpolationLimit = params.getParameter("InterpolationDistance", 100);
-    mWarnClosest = params.getParameter("warning_distance_closest_neighbor", 50);
+    mInterpolationLimit = params.getParameter("InterpolationDistance", 100.0f);
+    mWarnClosest = params.getParameter("warning_distance_closest_neighbor", 50.0f);
 }
 
 // ------------------------------------------------------------------------

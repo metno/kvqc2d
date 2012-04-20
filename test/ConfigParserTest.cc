@@ -43,7 +43,11 @@ TEST(ConfigParserTest, testConvertFail)
     ASSERT_TRUE( c.has("key1") );
     ASSERT_EQ( 1, c.get("key1").count() );
     ASSERT_EQ( "onetwothree", c.get("key1").convert<std::string>(0) );
-    ASSERT_EQ( -1, c.get("key1").convert<int>(0, -1) );
+    try {
+        c.get("key1").convert<int>(0, -1);
+        FAIL() << "no exception when parsing 'onetwothree' as integer";
+    } catch(ConvertException &e) {
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -89,7 +93,11 @@ TEST(ConfigParserTest, testConvertError)
     ASSERT_EQ( 1, c.get("float").count() );
     ASSERT_EQ( "123.4", c.get("float").convert<std::string>(0) );
     ASSERT_FLOAT_EQ( 123.4, c.get("float").convert<float>(0, -1) );
-    ASSERT_EQ( -1, c.get("float").convert<int>(0, -1) );
+    try {
+        c.get("float").convert<int>(0, -1);
+        FAIL() << "no exception when parsing '123.4' as integer";
+    } catch(ConvertException &e) {
+    }
 
     ASSERT_TRUE( c.has("int") );
     ASSERT_EQ( 1, c.get("int").count() );
@@ -100,7 +108,11 @@ TEST(ConfigParserTest, testConvertError)
     ASSERT_TRUE( c.has("chars") );
     ASSERT_EQ( 1, c.get("chars").count() );
     ASSERT_EQ( "ab", c.get("chars").convert<std::string>(0) );
-    ASSERT_EQ( '?', c.get("chars").convert<char>(0, '?') );
+    try {
+        c.get("chars").convert<char>(0, '?');
+        FAIL() << "no exception when parsing 'ab' as char";
+    } catch(ConvertException &e) {
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -136,8 +148,11 @@ TEST(ConfigParserTest, testConvertListFail)
     ASSERT_TRUE( c.load(io) );
 
     ASSERT_TRUE( c.has("int") );
-    std::vector<int> v = c.get("int").convert<int>();
-    ASSERT_TRUE( v.empty() );
+    try {
+        std::vector<int> v = c.get("int").convert<int>();
+        FAIL() << "no exception when parsing integer values";
+    } catch(ConvertException &e) {
+    }
 }
 
 // ------------------------------------------------------------------------
