@@ -160,6 +160,15 @@ void AlgorithmConfig::Parse(std::istream& input)
 
 void AlgorithmConfig::ParseStream(std::istream& input)
 {
+    try {
+        ParseStreamThrow(input);
+    } catch( ConvertException& e ) {
+        throw ConfigException(std::string("problem with parsing configuration: ") + e.what());
+    }
+}
+
+void AlgorithmConfig::ParseStreamThrow(std::istream& input)
+{
     if( !c.load(input) )
         throw ConfigException("Problems parsing kvqc2d algorithm configuration: " + c.errors().format("; ") + " -- giving up!");
 
@@ -186,11 +195,11 @@ void AlgorithmConfig::ParseStream(std::istream& input)
         extractTime(c, "End",   UT1);
     }
 
-    Algorithm          = c.get("Algorithm")            .convert<std::string>(0, "NotSet"); // Algorithm Name
-    CFAILED_STRING     = c.get("CfailedString")        .convert<std::string>(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
+    Algorithm          = c.get("Algorithm")    .convert<std::string>(0, "NotSet"); // Algorithm Name
+    CFAILED_STRING     = c.get("CfailedString").convert<std::string>(0, ""); // Value to add to CFAILED if the algorithm runs and writes data back to the database
 
-    missing            = c.get("MissingValue")         .convert<float>(0, -32767.0); // Original Missing Data Value
-    rejected           = c.get("RejectedValue")        .convert<float>(0, -32766.0); // Original Rejected Data Value
+    missing            = c.get("MissingValue") .convert<float>(0, -32767.0); // Original Missing Data Value
+    rejected           = c.get("RejectedValue").convert<float>(0, -32766.0); // Original Rejected Data Value
 }
 
 void AlgorithmConfig::getFlagSet(FlagPatterns& flags, const std::string& name, FlagPattern::FlagType type) const

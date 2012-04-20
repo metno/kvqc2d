@@ -4,10 +4,17 @@
 #define ConfigParser_H 1
 
 #include <boost/shared_ptr.hpp>
+#include <stdexcept>
 #include <map>
 #include <string>
 #include <sstream>
 #include <vector>
+
+class ConvertException : public std::runtime_error {
+public:
+    ConvertException(const std::string& what)
+        : std::runtime_error(what) { }
+};
 
 class ErrorList {
 public:
@@ -126,8 +133,11 @@ T ConfigParser::Item::convert(unsigned int idx) const
 {
     mRequested += 1;
     T t;
-    std::istringstream i(mValues[idx]);
+    const std::string& v = mValues[idx];
+    std::istringstream i(v);
     i >> t;
+    if( i.fail() || (int)i.tellg() != (int)v.size() )
+        throw ConvertException("could not convert '" + v + "'");
     return t;
 }
 
@@ -140,8 +150,9 @@ T ConfigParser::Item::convert(unsigned int idx, const T& dflt) const
         const std::string v = mValues[idx];
         std::istringstream i(v);
         i >> t;
-        if( !i.fail() && (int)i.tellg() == (int)v.size() )
-            return t;
+        if( i.fail() || (int)i.tellg() != (int)v.size() )
+            throw ConvertException("could not convert '" + v + "'");
+        return t;
     }
     return dflt;
 }
@@ -153,11 +164,11 @@ std::vector<T> ConfigParser::Item::convert() const
     std::vector<T> out;
     for(unsigned int i=0; i<mValues.size(); ++i ) {
         T t;
-        const std::string v = mValues[i];
+        const std::string& v = mValues[i];
         std::istringstream iv(v);
         iv >> t;
         if( iv.fail() || (int)iv.tellg() != (int)v.size() )
-            return std::vector<T>();
+            throw ConvertException("could not convert '" + v + "'");
         out.push_back(t);
     }
     return out;

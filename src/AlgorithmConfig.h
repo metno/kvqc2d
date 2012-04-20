@@ -71,6 +71,7 @@ public:
 private:
     void getFlagSet(FlagPatterns& f, const std::string& name, FlagPattern::FlagType type) const;
     void ParseStream(std::istream& input);
+    void ParseStreamThrow(std::istream& input);
 
 public:
     static const std::string CFG_EXT;
@@ -91,7 +92,11 @@ T AlgorithmConfig::getParameter(const std::string& name, const T& dflt) const
     const ConfigParser::Item& item = c.get(name);
     if( item.count() != 1 )
         throw ConfigException("setting '" + name + "' has != 1 value");
-    return item.convert<T>(0);
+    try {
+        return item.convert<T>(0);
+    } catch( ConvertException& e ) {
+        throw ConfigException("problem converting value for '" + name + "': " + e.what());
+    }
 }
 
 template<typename T>
@@ -102,7 +107,11 @@ T AlgorithmConfig::getParameter(const std::string& name) const
     const ConfigParser::Item& item = c.get(name);
     if( item.count() != 1 )
         throw ConfigException("setting '" + name + "' has != 1 value");
-    return item.convert<T>(0);
+    try {
+        return item.convert<T>(0);
+    } catch( ConvertException& e ) {
+        throw ConfigException("problem converting value for '" + name + "': " + e.what());
+    }
 }
 
 template<typename T>
@@ -110,7 +119,11 @@ std::vector<T> AlgorithmConfig::getMultiParameter(const std::string& name) const
 {
     if( !c.has(name) )
         throw ConfigException("no such setting: '" + name + "'");
-    return c.get(name).convert<T>();
+    try {
+        return c.get(name).convert<T>();
+    } catch( ConvertException& e ) {
+        throw ConfigException("problem converting value for '" + name + "': " + e.what());
+    }
 }
 
 #endif

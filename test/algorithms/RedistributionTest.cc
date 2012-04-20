@@ -107,7 +107,7 @@ void RedistributionTest::Configure(AlgorithmConfig& params, int startDay, int en
            << "TypeIds=302"  << std::endl
            << "TypeIds=402"  << std::endl
            << "InterpolationDistance=50.0"  << std::endl;
-    params.Parse(config);
+    ASSERT_PARSE_CONFIG(params, config);
 }
 
 // ------------------------------------------------------------------------
@@ -1025,7 +1025,7 @@ TEST_F(RedistributionTest, Bugzilla1325Comment4)
     const int N = 6;
     const float values[N]   = { 0.07, 0.17, 0.17, 0.17, 0.17, 0.07 };
     const float expected[N] = { 0.0,  0.1,  0.2,  0.2,  0.2,  0.1 };
-    
+
     RoundingTest(values, expected, N);
 }
 
@@ -1216,10 +1216,10 @@ TEST_F(RedistributionTest, BoneDryNoNeighbors)
         .add("2011-10-13 06:00:00", -32767, "0000003000002000", "QC1-7-110")
         .add("2011-10-14 06:00:00",     -1, "0140000000002000", "QC1-2-72.b12,QC1-7-110");
     ASSERT_NO_THROW(data.insert(db));
-    
+
     AlgorithmConfig params;
     Configure(params, 11, 18);
-    
+
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 2);
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
@@ -1315,7 +1315,7 @@ TEST_F(RedistributionTest, NoReallyGoodNeighbors)
     ASSERT_RUN(algo, bc, 3);
     ASSERT_EQ(4, logs->count(Message::INFO));
     EXPECT_EQ(0, logs->find("no really good neighbors at obstime=2011-10-30 06:00:00", Message::INFO));
-    
+
 
     // run again without modifications and same message
     ASSERT_RUN(algo, bc, 0);

@@ -62,6 +62,15 @@ class Qc2Algorithm;
 #define EXPECT_STATION_OBS_CONTROL_CORR(es, eo, eci, eco, a) EXPECT_PRED_FORMAT5(AssertStationObsControlCorrected, es, eo, eci, eco, a)
 #define ASSERT_STATION_OBS_CONTROL_CORR(es, eo, eci, eco, a) ASSERT_PRED_FORMAT5(AssertStationObsControlCorrected, es, eo, eci, eco, a)
 
+#define ASSERT_PARSE_CONFIG(params, config)                                     \
+    try {                                                                       \
+        params.Parse(config);                                                   \
+    } catch(ConfigException& e) {                                               \
+        FAIL() << "Parse threw ConfigException: " << e.what();                  \
+    } catch(ConvertException& e) {                                              \
+        FAIL() << "Parse threw ConvertException: " << e.what(); \
+    }
+
 #define ASSERT_CONFIGURE(algo, params)                  \
     try {                                               \
         algo->configure(params);                        \
