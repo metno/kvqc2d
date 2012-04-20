@@ -58,7 +58,7 @@ NeighborInterpolation::Data KvalobsFilter::toNumerical(int paramid, float storag
 {
     if( storage <= -32766 )
         return NeighborInterpolation::Data();
-    if( paramid == 262 && (storage==-1 || storage==-3) )
+    if( paramid == 112 && (storage==-1 || storage==-3) )
         storage = 0;
     return NeighborInterpolation::Data(storage);
 }
@@ -67,8 +67,8 @@ float KvalobsFilter::toStorage(int paramid, NeighborInterpolation::Interpolation
 {
     if( quality == NeighborInterpolation::Interpolation::FAILED )
         return -32766;
-    if( paramid == 262 && numerical < 0.5 )
-        return 0;
+    if( paramid == 112 && numerical < 0.5 )
+        return -1;
     return numerical;
 }
 
@@ -77,6 +77,7 @@ float KvalobsFilter::toStorage(int paramid, NeighborInterpolation::Interpolation
 Interpolator::Interpolator(DataAccess* dax)
     : mDax(dax)
     , mFilter(boost::make_shared<KvalobsFilter>())
+    , mMaxSigma(3)
 {
 }
 

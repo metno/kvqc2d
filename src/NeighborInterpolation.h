@@ -20,11 +20,11 @@ struct Data {
 };
 struct Interpolation {
     enum Quality { OBSERVATION, GOOD, BAD, FAILED };
-    float value;
     Quality quality;
+    float value;
 
-    Interpolation() : quality(FAILED) { }
-    Interpolation(float v, Quality q) : value(v), quality(q) { }
+    Interpolation() : quality(FAILED), value(-32767) { }
+    Interpolation(float v, Quality q) : quality(q), value(v) { }
 };
 struct Correlation {
     float slope, offset, sigma;

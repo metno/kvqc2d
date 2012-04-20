@@ -16,12 +16,12 @@
   modify it under the terms of the GNU General Public License as
   published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License along
   with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -51,6 +51,7 @@ void GapInterpolationTest::SetUp()
 
     std::ostringstream sql;
     sql << "INSERT INTO station VALUES(1380, 59.376, 11.303, 130.0, 0.0, 'GAUTESTAD', NULL, 1380, NULL, NULL, NULL, 0, 't', '2010-01-21 00:00:00');"
+        << "INSERT INTO station VALUES(4460, 60.117, 10.829, 170.0, 0.0, 'HAKADAL JERNBANESTASJON', 1488, 4460, NULL, NULL, NULL, 8, 't', '2007-01-08 00:00:00');"
         << "INSERT INTO station VALUES(18700, 59.942, 10.720, 94.0, 0.0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');\n"
         << "INSERT INTO station VALUES(69150, 63.488200, 10.879500, 40, 0, 'KVITHAMAR', 69150, NULL, NULL, NULL, NULL, 2, 't', '1987-05-12 00:00:00');\n"
         << "INSERT INTO station VALUES(99754, 77.000, 15.500, 10.0, 0.0, 'HORNSUND', 1003, 99754, NULL, NULL, NULL, 8, 't', '1985-06-01 00:00:00');";
@@ -595,4 +596,55 @@ TEST_F(GapInterpolationTest, DoNotSetMaxTo100)
     EXPECT_NEAR( -7.9, bc->update(0).corrected(), 0.1);
     EXPECT_NEAR(-10,   bc->update(1).corrected(), 2);
     EXPECT_NEAR( -6,   bc->update(2).corrected(), 2);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(GapInterpolationTest, VeryLittleSnow)
+{
+    DataList data(4460, 112, 342); // corrected values are mostly fake
+    data.add("2012-04-15 00:00:00",      1.2,      1.2, "0111000000100010", "")
+        .add("2012-04-15 01:00:00",      1.3,      1.3, "0111000000100010", "")
+        .add("2012-04-15 02:00:00",      1.5,      1.5, "0111000000100010", "")
+        .add("2012-04-15 03:00:00",      1.6,      1.6, "0111000000100010", "")
+        .add("2012-04-15 04:00:00",     -1,       -1,   "0111000000100010", "")
+        .add("2012-04-15 05:00:00",     -1,       -1,   "0111000000100010", "")
+        .add("2012-04-15 06:00:00",     -1,       -1,   "0111000000100010", "")
+        .add("2012-04-15 07:00:00", -32767,   -32767,   "0000003000000000", "")
+        .add("2012-04-15 08:00:00", -32767,   -32767,   "0000003000000000", "")
+        .add("2012-04-15 09:00:00",     -1,       -1,   "0111000000100010", "")
+        .add("2012-04-15 10:00:00",     -1,       -1,   "0111000000100010", "")
+        .add("2012-04-15 11:00:00",     -1,       -1,   "0111000000100010", "")
+        .add("2012-04-15 12:00:00",      1.2,      1.2, "0111000000100010", "")
+        .add("2012-04-15 13:00:00",      1.5,      1.5, "0111000000100010", "")
+        .add("2012-04-15 14:00:00",      1.4,      1.4, "0111000000100010", "")
+        .add("2012-04-15 15:00:00",      1.3,      1.3, "0111000000100010", "")
+        .add("2012-04-15 16:00:00",      1.4,      1.4, "0111000000100010", "")
+        .add("2012-04-15 17:00:00",      1.2,      1.2, "0111000000100010", "")
+        .add("2012-04-15 18:00:00",      1.3,      1.3, "0111000000100010", "")
+        .add("2012-04-15 19:00:00",      1.2,      1.2, "0111000000100010", "")
+        .add("2012-04-15 20:00:00",      1.1,      1.1, "0111000000100010", "")
+        .add("2012-04-15 21:00:00",      1.2,      1.2, "0111000000100010", "")
+        .add("2012-04-15 22:00:00",      1.2,      1.2, "0111000000100010", "")
+        .add("2012-04-15 23:00:00",      1.2,      1.2, "0111000000100010", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   04\n"
+           << "Start_DD   =   15\n"
+           << "Start_hh   =    0\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   04\n"
+           << "End_DD     =   16\n"
+           << "End_hh     =    0\n"
+           << "TypeId     =  342\n"
+           << "Parameter = par=112,minVal=0,offsetCorrectionLimit=15\n";
+    AlgorithmConfig params;
+    ASSERT_PARSE_CONFIG(params, config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
+
+    for(int i=0; i<bc->count(); ++i)
+        EXPECT_EQ( -1, bc->update(i).corrected());
 }

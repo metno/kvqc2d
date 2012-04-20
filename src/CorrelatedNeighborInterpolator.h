@@ -83,13 +83,13 @@ private:
 
 private:
     DataAccess* mDax;
-    float mMaxSigma;
 
     typedef std::map<int,ParamInfo> ParamInfos;
     typedef ParamInfos::const_iterator ParamInfos_cit;
     ParamInfos mParamInfos;
 
     DataFilterP mFilter;
+    float mMaxSigma;
 
     neighbor_map_t neighbor_map;
 };
