@@ -110,18 +110,24 @@ struct Kvalobs2Data : public std::unary_function<NeighborInterpolation::Data, fl
     const ParamInfo& pi = pi_it->second;
 
     NeighborInterpolation::InterpolationData data;
-    data.maxOffset = pi.offsetCorrectionLimit;
+    data.mo() = pi.offsetCorrectionLimit;
 
     const int NA = NeighborInterpolation::extraData;
     const TimeRange tExtended(Helpers::plusHour(t.t0, -NA), Helpers::plusHour(t.t1, NA));
     const std::vector<float> observations = mDax->fetchObservations(ctr, tExtended);
+#ifndef NDEBUG
+    DBG("raw observations:");
+    foreach(float obs, observations)
+        DBG(DBG1(obs));
+#endif
     const std::vector<float> modelvalues  = mDax->fetchModelValues (ctr, tExtended);
 
     Kvalobs2Data k2d(mFilter, ctr.paramid);
-    std::transform(observations.begin(), observations.end(), std::back_inserter(data.centerObservations), k2d);
-    std::transform(modelvalues .begin(), modelvalues .end(), std::back_inserter(data.centerModel),        k2d);
+    std::transform(observations.begin(), observations.end(), std::back_inserter(data.co()), k2d);
+    std::transform(modelvalues .begin(), modelvalues .end(), std::back_inserter(data.cm()),        k2d);
 #ifndef NDEBUG
-    foreach(const NeighborInterpolation::Data& d, data.centerObservations)
+    DBG("filtered observations:");
+    foreach(const NeighborInterpolation::Data& d, data.co())
         DBG(DBG1(d.usable) << DBG1(d.value));
 #endif
 
@@ -133,13 +139,13 @@ struct Kvalobs2Data : public std::unary_function<NeighborInterpolation::Data, fl
         nc.sigma  = nd.sigma;
         nc.slope  = nd.slope;
         nc.offset = nd.offset;
-        data.neighborCorrelations.push_back(nc);
+        data.nc().push_back(nc);
 
         const Instrument nbr(nd.neighborid, ctr.paramid, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
         const std::vector<float> nData = mDax->fetchObservations(nbr, tExtended);
 
-        data.neighborObservations.push_back(std::vector<NeighborInterpolation::Data>());
-        std::transform(nData.begin(), nData.end(), std::back_inserter(data.neighborObservations.back()), k2d);
+        data.no().push_back(std::vector<NeighborInterpolation::Data>());
+        std::transform(nData.begin(), nData.end(), std::back_inserter(data.no().back()), k2d);
     }
 
     const std::vector<NeighborInterpolation::Interpolation> inter = NeighborInterpolation::interpolate(data);
