@@ -43,7 +43,7 @@ public:
         { reset(); }
 
     FlagPattern(const std::string& flagstring, FlagType type)
-        { parse(flagstring, type); }
+        { reset(); parse(flagstring, type); }
 
     FlagPattern& permit(int flag, int value)
         { mPermitted[flag] |= (1<<value); return *this; }
@@ -89,7 +89,7 @@ private:
     bool parsePattern(const std::string& flagstring);
     bool parsePermittedValues(int flag, const std::string& flagstring, unsigned int& pos);
     bool parseNames(const std::string& flagstring, const char* flagnames[]);
-    
+
     unsigned int mPermitted[N_FLAGS];
     unsigned int mForbidden[N_FLAGS];
 };

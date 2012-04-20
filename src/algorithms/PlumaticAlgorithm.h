@@ -104,6 +104,8 @@ private:
     Shower findShowerForward(const kvUpdateList_it& begin, const kvUpdateList_it& end);
 
 private:
+    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
+
     int pid;
     float mThresholdDry, mThresholdWet;
     FlagSetCU discarded_flags, neighbor_flags;
@@ -111,8 +113,6 @@ private:
     std::vector<ResolutionStations> mStationlist;
     std::vector<SlidingAlarm> mSlidingAlarms;
     miutil::miTime UT0extended;
-
-    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
 };
 
 // ########################################################################

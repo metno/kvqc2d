@@ -16,12 +16,12 @@
   modify it under the terms of the GNU General Public License as
   published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License along
   with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -58,6 +58,8 @@ const float numericSafety = 1e-4;
 PlumaticAlgorithm::PlumaticAlgorithm()
     : Qc2Algorithm("Plumatic")
     , mNeighbors(new NeighborsDistance2())
+    , mThresholdDry(0.5)
+    , mThresholdWet(3.0)
 {
 }
 
@@ -117,7 +119,7 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
                 lookback = length;
         }
     }
-    
+
     UT0extended = params.UT0;
     UT0extended.addMin(-lookback);
 }
@@ -263,7 +265,7 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
         // advance m2 to the next non-discarded value
         while( m2 != data.end() && discarded_flags.matches(m2->data()) )
             ++m2;
-        
+
         const miutil::miTime &t1 = m1->obstime(), &t2 = (m2 != data.end()) ? m2->obstime() : UT1;
         const int minDiff = miutil::miTime::minDiff(t2, t1);
 
@@ -278,7 +280,7 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
         if( tEnd.min() != 0 )
             tEnd.addMin(-t2.min());
         tEnd.addMin(-1);
-        
+
         if( tBegin >= tEnd )
             continue;
 
@@ -305,7 +307,7 @@ void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdate
     info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
            << " between " << beginTime << " and "
            << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
-    
+
     begin->setNotOperationalStart();
     if( begin == end ) {
         begin->setNotOperationalEnd();
@@ -388,7 +390,7 @@ bool PlumaticAlgorithm::checkHighSingle(const Shower& shower, const float mmpv)
 {
     if( shower.duration != 1 )
         return false;
-    
+
     if( isBadData(*shower.first) )
         return false;
 
@@ -564,7 +566,7 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
                 sum = Helpers::round(sum + mark->original(), 1000);
             }
         }
-        
+
         if( !discarded && operational )
             compareWithNeighborStations(stationid, nextXX06, sum);
     }
@@ -586,7 +588,7 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);
     }
-    
+
     std::list<int> neighbors = mNeighbors->findNeighbors(stationid);
     std::vector<int> neighborsSorted;
     foreach(int n, neighbors) {
@@ -603,7 +605,7 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
         info() << "no neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
         return;
     }
-    
+
     typedef std::map<int, kvalobs::kvData> neighborDataByID_t;
     neighborDataByID_t neighborDataByID;
     foreach(const kvalobs::kvData& n, ndata) {

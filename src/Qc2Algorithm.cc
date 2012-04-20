@@ -9,7 +9,9 @@
 #include <milog/milog.h>
 
 Qc2Algorithm::Qc2Algorithm(const std::string& name)
-    : mDatabase(0)
+    : missing(-32767)
+    , rejected(-32766)
+    , mDatabase(0)
     , mBroadcaster(0)
     , mNotifier(0)
     , mName(name)
