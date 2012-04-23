@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,34 +27,21 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ALGORITHMHELPERS_H_
-#define ALGORITHMHELPERS_H_
+#ifndef HELPERS_STRINGUTIL_H_
+#define HELPERS_STRINGUTIL_H_
 
-#include "Helpers.h"
-#include <kvalobs/kvData.h>
-#include <kvalobs/kvStation.h>
-#include <list>
+#include <string>
+#include <utility>
 #include <vector>
-
-class DBInterface;
 
 namespace Helpers {
 
-/**
- * Adds add to data's cfailed(), and also extra if extra is not empty.
- */
-void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra);
+typedef std::pair<std::string, std::string> split2_t;
+split2_t split2(const std::string& toSplit, const std::string& delimiter, bool trim=false);
 
-/**
- * Updates data's useinfo.
- */
-void updateUseInfo(kvalobs::kvData& data);
-
-/**
- * AFAIK this does not work well for points near the poles.
- */
-double distance(double lon1, double lat1, double lon2, double lat2);
+typedef std::vector<std::string> splitN_t;
+splitN_t splitN(const std::string& toSplit, const std::string& delimiter, bool trim=false);
 
 } // namespace Helpers
 
-#endif /* ALGORITHMHELPERS_H_ */
+#endif /* HELPERS_STRINGUTIL_H_ */

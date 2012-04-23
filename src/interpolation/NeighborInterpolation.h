@@ -22,6 +22,7 @@ private:
     bool mUsable;
     float mValue;
 };
+
 class SeriesData : public SupportData {
 public:
     SeriesData() : SupportData(), mNeedsInterpolation(true) { }
@@ -31,68 +32,34 @@ public:
 private:
     bool mNeedsInterpolation;
 };
-struct Interpolation {
-    enum Quality { OBSERVATION, GOOD, BAD, FAILED };
-    Quality quality;
-    float value;
 
-    Interpolation() : quality(FAILED), value(-32767) { }
-    Interpolation(float v, Quality q) : quality(q), value(v) { }
-};
-struct Correlation {
-    float slope, offset, sigma;
+enum Quality { GOOD, BAD, FAILED };
 
-    float transformed(float value) const
-    { return offset + value*slope; }
-};
-class InterpolationData {
+class Data {
 public:
-    int duration()
-    { return centerObservations.size(); }
+    virtual ~Data();
 
-    int neighbors()
-    { return neighborCorrelations.size(); }
+    virtual int duration() const = 0;
 
-    float maximumOffset()
-    { return maxOffset; }
+    virtual int neighbors() const = 0;
 
-    SeriesData center(int time)
-    { return centerObservations[time]; }
+    virtual float maximumOffset() const = 0;
 
-    SupportData model(int time)
-    { return centerModel[time]; }
+    virtual SeriesData center(int time) = 0;
 
-    SupportData neighbor(int n, int time)
-    { return neighborObservations[n][time]; }
+    virtual SupportData model(int time) = 0;
 
-    SupportData transformedNeighbor(int n, int time)
-    { SupportData sd = neighbor(n, time); if( sd.usable() ) return SupportData(neighborCorrelations[n].transformed(sd.value())); else return sd; }
+    virtual SupportData transformedNeighbor(int n, int time) = 0;
 
-    float neighborWeight(int neighbor)
-    { float s = neighborCorrelations[neighbor].sigma; return 1/(s*s*s); }
+    virtual float neighborWeight(int neighbor) = 0;
 
-    typedef std::vector<SeriesData> SeriesVector;
-    typedef std::vector<SupportData> SupportVector;
-    typedef std::vector<Correlation> CorrelationVector;
-
-    SeriesVector& co() { return centerObservations; }
-    SupportVector& cm() { return centerModel; }
-    CorrelationVector& nc() { return neighborCorrelations; }
-    std::vector<SupportVector>& no() { return neighborObservations; }
-    float& mo() { return maxOffset; }
-
-private:
-    SeriesVector centerObservations;
-    SupportVector centerModel;
-    CorrelationVector neighborCorrelations;
-    std::vector<SupportVector> neighborObservations;
-    float maxOffset;
+    virtual void setInterpolated(int time, Quality q, float value) = 0;
 };
 
 /** amount of extra data required before and after the gap for Akima interpolation. */
 extern const int extraData;
 
-std::vector<Interpolation> interpolate(InterpolationData& data);
+void interpolate(Data& data);
 
 } // namespace NeighborInterpolator
 

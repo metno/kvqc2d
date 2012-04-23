@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,34 +27,23 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ALGORITHMHELPERS_H_
-#define ALGORITHMHELPERS_H_
+#ifndef HELPERS_TIME_H_
+#define HELPERS_TIME_H_
 
-#include "Helpers.h"
-#include <kvalobs/kvData.h>
-#include <kvalobs/kvStation.h>
-#include <list>
-#include <vector>
-
-class DBInterface;
+#include <puTools/miTime.h>
 
 namespace Helpers {
 
 /**
- * Adds add to data's cfailed(), and also extra if extra is not empty.
+ * Returns the normalised day of the year, that is 28.2. = 29.2. = day
+ * 59, 1.3. = 60, ...
  */
-void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra);
+int normalisedDayOfYear(const miutil::miDate& date);
 
-/**
- * Updates data's useinfo.
- */
-void updateUseInfo(kvalobs::kvData& data);
-
-/**
- * AFAIK this does not work well for points near the poles.
- */
-double distance(double lon1, double lat1, double lon2, double lat2);
+miutil::miTime plusDay(const miutil::miTime& t, int nDays);
+miutil::miTime plusHour(const miutil::miTime& t, int nHours);
+miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes);
 
 } // namespace Helpers
 
-#endif /* ALGORITHMHELPERS_H_ */
+#endif /* HELPERS_TIME_H_ */

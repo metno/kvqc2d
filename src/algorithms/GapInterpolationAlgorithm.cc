@@ -30,6 +30,8 @@
 #include "GapInterpolationAlgorithm.h"
 
 #include "helpers/AlgorithmHelpers.h"
+#include "helpers/mathutil.h"
+#include "helpers/timeutil.h"
 #include "DBInterface.h"
 #include "interpolation/MinMaxInterpolator.h"
 #include "foreach.h"

@@ -3,14 +3,17 @@
 #ifndef MINMAXINTERPOLATOR_H
 #define MINMAXINTERPOLATOR_H 1
 
-#include "CorrelatedNeighborInterpolator.h"
+#include "NeighborInterpolation.h"
 
-struct MinMaxValuesWithQualities_t {
-    Interpolator::ValuesWithQualities_t par, min, max;
+class MinMaxData : public NeighborInterpolation::Data {
+public:
+    virtual NeighborInterpolation::SeriesData minimum(int t) = 0;
+    virtual NeighborInterpolation::SeriesData maximum(int t) = 0;
+    virtual void setMinimum(int time, NeighborInterpolation::Quality q, float value) = 0;
+    virtual void setMaximum(int time, NeighborInterpolation::Quality q, float value) = 0;
+    virtual float fluctuationLevel() const = 0;
 };
 
-MinMaxValuesWithQualities_t MinMaxInterpolate(Interpolator* inter, CorrelatedNeighbors::DataAccess* dax, const Instrument& instrument,
-                                              const ParameterInfo& parameterInfo, const TimeRange& t);
-
+void MinMaxInterpolate(MinMaxData& data);
 
 #endif /* MINMAXINTERPOLATOR_H */

@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,34 +27,41 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ALGORITHMHELPERS_H_
-#define ALGORITHMHELPERS_H_
-
-#include "Helpers.h"
-#include <kvalobs/kvData.h>
-#include <kvalobs/kvStation.h>
-#include <list>
-#include <vector>
-
-class DBInterface;
+#include "timeutil.h"
 
 namespace Helpers {
 
-/**
- * Adds add to data's cfailed(), and also extra if extra is not empty.
- */
-void updateCfailed(kvalobs::kvData& data, const std::string& add, const std::string& extra);
+int normalisedDayOfYear(const miutil::miDate& date)
+{
+    // February 29 is the same as February 28
+    const int daysFromPreviousMonths[12] = {
+        0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
+    };
+    int day = date.day(), month = date.month();
+    if( month == 2 && day == 29 )
+        day = 28;
+    return daysFromPreviousMonths[month-1] + day;
+}
 
-/**
- * Updates data's useinfo.
- */
-void updateUseInfo(kvalobs::kvData& data);
+miutil::miTime plusDay(const miutil::miTime& t, int nDays)
+{
+    miutil::miTime p(t);
+    p.addDay(nDays);
+    return p;
+}
 
-/**
- * AFAIK this does not work well for points near the poles.
- */
-double distance(double lon1, double lat1, double lon2, double lat2);
+miutil::miTime plusHour(const miutil::miTime& t, int nHours)
+{
+    miutil::miTime p(t);
+    p.addHour(nHours);
+    return p;
+}
+
+miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes)
+{
+    miutil::miTime p(t);
+    p.addMin(nMinutes);
+    return p;
+}
 
 } // namespace Helpers
-
-#endif /* ALGORITHMHELPERS_H_ */

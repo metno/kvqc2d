@@ -29,7 +29,7 @@
 
 #include "GetStationParam.h"
 
-#include "helpers/Helpers.h"
+#include "helpers/stringutil.h"
 
 #include "foreach.h"
 

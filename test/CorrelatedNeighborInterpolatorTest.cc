@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "AlgorithmConfig.h"
-#include "helpers/AlgorithmHelpers.h"
+#include "helpers/timeutil.h"
 #include "interpolation/CorrelatedNeighborInterpolator.h"
 #include "foreach.h"
 
@@ -134,7 +134,7 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Constant)
     const float centerObs[N] = { 1, 1, 1, -32767, -32767, -32767, -32767, 1, 1, 1 };
     const float centerMdl[N] = { 1, 1, 1,      1,      1,      1,      1, 1, 1, 1 };
     mDax->setCenter(1234, series_t(centerObs, centerObs+N), series_t(centerMdl, centerMdl+N));
-    
+
     const float nbr1Obs[N]   = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
     const float nbr2Obs[N]   = { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
     mDax->addNeighbor(1, series_t(nbr1Obs, nbr1Obs+N));
@@ -157,7 +157,7 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Linear)
     const float centerObs[N] = { 0, 1, 2, -32767, -32767, -32767, -32767, 7, 8,  9 };
     const float centerMdl[N] = { 1, 2, 3,      4,      5,      6,      7, 8, 9, 10 };
     mDax->setCenter(1234, series_t(centerObs, centerObs+N), series_t(centerMdl, centerMdl+N));
-    
+
     const float nbr1Obs[N]   = { 1, 1, 1, 2, 2, 2, 2, 1, 1, 1 };
     const float nbr2Obs[N]   = { 3, 3, 3, 4, 4, 4, 4, 3, 3, 3 };
     mDax->addNeighbor(1, series_t(nbr1Obs, nbr1Obs+N));
@@ -180,7 +180,7 @@ TEST_F(CorrelatedNeighborInterpolatorTest, Triangel)
     const float centerObs[N] = { 0, 1, 2, -32767, -32767, -32767, 2, 1,  0 };
     const float centerMdl[N] = { 1, 2, 3,      4,      6,      7, 8, 9, 10 };
     mDax->setCenter(1234, series_t(centerObs, centerObs+N), series_t(centerMdl, centerMdl+N));
-    
+
     const float nbr1Obs[N]   = { 1, 1, 1, 2, 3, 2, 1, 1, 1 };
     const float nbr2Obs[N]   = { 0, 1, 2, 3, 4, 3, 2, 1, 0 };
     mDax->addNeighbor(1, series_t(nbr1Obs, nbr1Obs+N));

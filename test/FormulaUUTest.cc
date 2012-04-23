@@ -3,10 +3,10 @@
 #include "helpers/FormulaUU.h"
 
 #define EXPECT_UU(TA, UU)                                       \
-    EXPECT_FLOAT_EQ(UU, formulaUU(TA, formulaTD(TA, UU)))
+    EXPECT_FLOAT_EQ(UU, Helpers::formulaUU(TA, Helpers::formulaTD(TA, UU)))
 
 #define EXPECT_TD(TA, TD)                                       \
-    EXPECT_FLOAT_EQ(TD, formulaTD(TA, formulaUU(TA, TD)))
+    EXPECT_FLOAT_EQ(TD, Helpers::formulaTD(TA, Helpers::formulaUU(TA, TD)))
 
 TEST(FormulaUUTest, TestUU)
 {

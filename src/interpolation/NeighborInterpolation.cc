@@ -7,6 +7,7 @@
 
 #include "NeighborInterpolation.h"
 
+#include "SimpleData.h"
 #include "helpers/Akima.h"
 #include "foreach.h"
 #include "helpers/WeightedMean.h"
@@ -33,9 +34,9 @@ struct OffsetCorrection {
     OffsetCorrection() : slope(0), offset(0) { }
 };
 
-class IData {
+class InterpolationAlgorithm {
 public:
-    IData(InterpolationData& data);
+    InterpolationAlgorithm(Data& data);
     std::vector<Interpolation> interpolate();
 
 private:
@@ -49,8 +50,7 @@ private:
     void calculateOffsets(int t0, int t1);
 
 private:
-    InterpolationData& data;
-    std::vector<Interpolation> interpolated;
+    Data& data;
 
     std::vector<SupportData> simpleInterpolations;
     Akima akima;
@@ -60,24 +60,23 @@ private:
     OffsetCorrection ocObservations;
 };
 
-IData::IData(InterpolationData& d)
+InterpolationAlgorithm::InterpolationAlgorithm(Data& d)
 : data(d)
 {
 }
 
-std::vector<Interpolation> IData::interpolate()
+std::vector<Interpolation> InterpolationAlgorithm::interpolate()
 {
-    interpolated = std::vector<Interpolation>(data.duration());
     interpolateSimple();
     setupAkima();
     interpolateGaps();
     return interpolated;
 }
 
-void IData::interpolateSimple()
+void InterpolationAlgorithm::interpolateSimple()
 {
     const unsigned int duration = data.duration();
-    simpleInterpolations = InterpolationData::SupportVector(duration);
+    simpleInterpolations = SimpleData::SupportVector(duration);
 
     for(unsigned int t=0; t<duration; ++t) {
         Helpers::WeightedMean wm;
@@ -91,7 +90,7 @@ void IData::interpolateSimple()
     }
 }
 
-void IData::setupAkima()
+void InterpolationAlgorithm::setupAkima()
 {
     for(int t = 0; t<data.duration(); ++t) {
         const SupportData obs = data.center(t);
@@ -100,7 +99,7 @@ void IData::setupAkima()
     }
 }
 
-void IData::interpolateGaps()
+void InterpolationAlgorithm::interpolateGaps()
 {
     const int duration = data.duration();
 
@@ -117,15 +116,11 @@ void IData::interpolateGaps()
 
         if( afterGap != beforeGap + 1 )
             interpolateSingleGap();
-        if( afterGap < afterGaps ) {
-            DBG("adding original at afterGap=" << afterGap);
-            interpolated[afterGap] = Interpolation(data.center(afterGap).value(), Interpolation::OBSERVATION);
-        }
         beforeGap = afterGap;
     }
 }
 
-void IData::interpolateSingleGap()
+void InterpolationAlgorithm::interpolateSingleGap()
 {
     const int gap = afterGap - beforeGap - 1;
 
@@ -134,15 +129,12 @@ void IData::interpolateSingleGap()
     const int t0 = beforeGap + 1;
     for(int t=t0; t<t0+gap; ++t) {
         const SeriesData obs = data.center(t);
-        if( !obs.needsInterpolation() ) {
-            interpolated[t] = Interpolation(obs.value(), Interpolation::OBSERVATION);
-        } else {
+        if( obs.needsInterpolation() )
             interpolateSinglePoint(t);
-        }
     }
 }
 
-OffsetCorrection IData::calculateOffset(const SupportData &o0, const SupportData &o1, int t0, int t1)
+OffsetCorrection InterpolationAlgorithm::calculateOffset(const SupportData &o0, const SupportData &o1, int t0, int t1)
 {
     OffsetCorrection oc;
     const SeriesData &d0 = data.center(t0), &d1 = data.center(t1);
@@ -160,13 +152,13 @@ OffsetCorrection IData::calculateOffset(const SupportData &o0, const SupportData
     return oc;
 }
 
-void IData::calculateOffsets(int t0, int t1)
+void InterpolationAlgorithm::calculateOffsets(int t0, int t1)
 {
     ocObservations = calculateOffset(simpleInterpolations[t0], simpleInterpolations[t1], t0, t1);
     ocModel = calculateOffset(data.model(t0), data.model(t1), t0, t1);
 }
 
-void IData::interpolateSinglePoint(int t)
+void InterpolationAlgorithm::interpolateSinglePoint(int t)
 {
     Helpers::WeightedMean combi;
 
@@ -192,16 +184,22 @@ void IData::interpolateSinglePoint(int t)
     }
 
     if( combi.valid() ) {
-        bool good = (t==beforeGap+1 || t==afterGap-1);
-        interpolated[t] = Interpolation(combi.mean(), good ? Interpolation::GOOD : Interpolation::BAD);
+        const bool good (t==beforeGap+1 || t==afterGap-1);
+        data.setInterpolated(t, good ? GOOD : BAD, combi.mean());
+    } else {
+        data.setInterpolated(t, Data::FAILED, 0);
     }
 }
 
 } // anonymous namespace
 
-std::vector<Interpolation> interpolate(InterpolationData& data)
+Data::~Data()
 {
-    IData i(data);
+}
+
+Interpolations interpolate(Data& data)
+{
+    InterpolationAlgorithm i(data);
     return i.interpolate();
 }
 

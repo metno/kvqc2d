@@ -29,7 +29,10 @@
 
 #include "PlumaticAlgorithm.h"
 
-#include "helpers/AlgorithmHelpers.h"
+//#include "helpers/AlgorithmHelpers.h"
+#include "helpers/mathutil.h"
+#include "helpers/stringutil.h"
+#include "helpers/timeutil.h"
 #include "DBInterface.h"
 #include "NeighborsDistance2.h"
 #include "foreach.h"

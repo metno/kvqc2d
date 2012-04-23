@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+namespace Helpers {
+
 // see email Gabriel Kielland, 2012-02-24 10:57
 namespace {
 
@@ -39,3 +41,5 @@ float formulaUU(float TA, float TD)
         return UU_INVALID;
     return 100*std::exp( (C20*TD)/(C30+TD) - (C20*TA)/(C30+TA) );
 }
+
+} // namespace Helpers

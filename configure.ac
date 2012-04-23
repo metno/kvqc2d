@@ -1,7 +1,7 @@
 AC_PREREQ([2.61])
 AC_INIT([kvqc2d], [1.3.16pre1], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE([1.10 foreign])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+#m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_MACRO_DIR([m4])
 

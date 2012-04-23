@@ -8,11 +8,16 @@ libinterpolation_a_SOURCES = \
 	Interpolator.h \
 	InterpolatorUU.cc \
 	InterpolatorUU.h \
-	Makefile.am \
+	KvalobsData.cc \
+	KvalobsData.h \
+	KvalobsDataUU.cc \
+	KvalobsDataUU.h \
 	MinMaxInterpolator.cc \
 	MinMaxInterpolator.h \
 	NeighborInterpolation.cc \
-	NeighborInterpolation.h
+	NeighborInterpolation.h \
+	SimpleData.cc \
+	SimpleData.h
 
 AM_CXXFLAGS = -Wall -W \
 	$(PROG_DEPS_CFLAGS) \

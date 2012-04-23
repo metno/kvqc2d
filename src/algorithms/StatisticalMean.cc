@@ -33,6 +33,8 @@
 #include "StatisticalMean.h"
 
 #include "helpers/AlgorithmHelpers.h"
+#include "helpers/mathutil.h"
+#include "helpers/timeutil.h"
 #include "algorithms/NeighborsDistance2.h"
 #include "DBInterface.h"
 #include "foreach.h"
@@ -60,7 +62,7 @@ public:
         { return mMean; }
 
     int normalisedDayOfYear(const miutil::miDate& day0) const;
-    
+
 private:
     int mDay;
     float mMean;
@@ -93,7 +95,7 @@ std::list<int> StatisticalMean::findNeighbors(int stationID)
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);
     }
-    
+
     return mNeighbors->findNeighbors(stationID);
 }
 
@@ -533,7 +535,7 @@ void StatisticalMean::run()
             date.addDay(day);
             if( date < UT0.date() )
                 continue;
-            
+
             if( checker->newCenter(center, Helpers::normalisedDayOfYear(date), dm.second) )
                 continue;
 

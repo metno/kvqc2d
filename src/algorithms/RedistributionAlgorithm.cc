@@ -30,6 +30,9 @@
 #include "RedistributionAlgorithm.h"
 
 #include "helpers/AlgorithmHelpers.h"
+#include "helpers/mathutil.h"
+#include "helpers/stringutil.h"
+#include "helpers/timeutil.h"
 #include "algorithms/NeighborsDistance2.h"
 #include "DBInterface.h"
 #include "foreach.h"

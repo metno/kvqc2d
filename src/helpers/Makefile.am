@@ -15,7 +15,13 @@ libhelpers_a_SOURCES = \
 	Helpers.cc \
 	Helpers.h \
 	WeightedMean.cc \
-	WeightedMean.h
+	WeightedMean.h \
+	mathutil.cc \
+	mathutil.h \
+	stringutil.cc \
+	stringutil.h \
+	timeutil.cc \
+	timeutil.h
 
 AM_CXXFLAGS = -Wall -W \
 	$(PROG_DEPS_CFLAGS) \

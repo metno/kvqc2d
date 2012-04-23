@@ -37,6 +37,9 @@
 #define NDEBUG 1
 #include "debug.h"
 
+using Helpers::formulaTD;
+using Helpers::formulaUU;
+
 // ########################################################################
 
 std::vector<float> DataAccessUU::fetchObservations(const Instrument& instrumentUU, const TimeRange& t)

@@ -31,6 +31,7 @@
 
 #include "helpers/AkimaSpline.h"
 #include "helpers/AlgorithmHelpers.h"
+#include "helpers/mathutil.h"
 #include "DBInterface.h"
 #include "foreach.h"
 #include "GetStationParam.h"
@@ -135,12 +136,12 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     }
     if( before.original() <= missing || after.original() <= missing )
         return;
-    
+
 #if 0
     // FIXME which delta -- DeltaCheck or delta?
     const float deltaCheck = fetchDelta(miutil::miTime::nowTime(), candidate.paramID());
 #endif
-    
+
     //            x
     //      x           x     -> time
     //     A(0)  A(1)  A(2)
@@ -206,7 +207,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
         LOGDEBUG("akima < mini for candidate " << Helpers::datatext(candidate));
         return false;
     }
-    
+
     interpolated = AkimaInterpolated;
     return true;
 }
@@ -218,12 +219,12 @@ void DipTestAlgorithm::writeChanges(const kvalobs::kvData& dip, const kvalobs::k
     wdip.controlinfo(dip_flagchange.apply(wdip.controlinfo()));
     Helpers::updateCfailed(wdip, haveAkima ? "QC2d-1-A" : "QC2d-1-L", CFAILED_STRING);
     Helpers::updateUseInfo(wdip);
-    
+
     kvalobs::kvData wafter(after);
     wafter.controlinfo(afterdip_flagchange.apply(wafter.controlinfo()));
     Helpers::updateCfailed(wafter, "QC2d-1", CFAILED_STRING);
     Helpers::updateUseInfo(wafter);
-    
+
     std::list<kvalobs::kvData> write;
     write.push_back(wdip);
     write.push_back(wafter);

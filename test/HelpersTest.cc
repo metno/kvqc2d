@@ -1,6 +1,9 @@
 
 #include <gtest/gtest.h>
 #include "helpers/Helpers.h"
+#include "helpers/mathutil.h"
+#include "helpers/stringutil.h"
+#include "helpers/timeutil.h"
 
 TEST(HelpersTest, testMapFromList)
 {
@@ -79,7 +82,7 @@ TEST(HelpersTest, NormalisedDayOfYear)
     EXPECT_EQ(59, Helpers::normalisedDayOfYear("2012-02-28"));
     EXPECT_EQ(59, Helpers::normalisedDayOfYear("2012-02-29"));
 
-    
+
     EXPECT_EQ(60, Helpers::normalisedDayOfYear("1900-03-01"));
     EXPECT_EQ(60, Helpers::normalisedDayOfYear("2000-03-01"));
     EXPECT_EQ(60, Helpers::normalisedDayOfYear("2011-03-01"));

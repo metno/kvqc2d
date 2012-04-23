@@ -30,9 +30,10 @@
 #include "CorrelatedNeighborInterpolator.h"
 
 #include "AlgorithmConfig.h"
-#include "helpers/AlgorithmHelpers.h"
+#include "helpers/stringutil.h"
+#include "helpers/timeutil.h"
 #include "DBInterface.h"
-#include "NeighborInterpolation.h"
+#include "SimpleData.h"
 #include "foreach.h"
 
 #include <kvalobs/kvData.h>
@@ -124,7 +125,7 @@ struct Kvalobs2SeriesData : public std::unary_function<NeighborInterpolation::Se
         return interpolated;
     const ParamInfo& pi = pi_it->second;
 
-    NeighborInterpolation::InterpolationData data;
+    NeighborInterpolation::SimpleData data;
     data.mo() = pi.offsetCorrectionLimit;
 
     const int NA = NeighborInterpolation::extraData;
@@ -159,7 +160,7 @@ struct Kvalobs2SeriesData : public std::unary_function<NeighborInterpolation::Se
         const Instrument nbr(nd.neighborid, ctr.paramid, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
         const std::vector<float> nData = mDax->fetchObservations(nbr, tExtended);
 
-        data.no().push_back(NeighborInterpolation::InterpolationData::SupportVector());
+        data.no().push_back(NeighborInterpolation::SimpleData::SupportVector());
         std::transform(nData.begin(), nData.end(), std::back_inserter(data.no().back()), k2d);
     }
 

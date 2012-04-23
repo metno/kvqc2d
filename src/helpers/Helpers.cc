@@ -1,38 +1,13 @@
 
 #include "Helpers.h"
 
+#include "mathutil.h"
 #include <kvalobs/kvDataOperations.h>
-#include <boost/algorithm/string/trim.hpp>
 
 #define NDEBUG 1
 #include "debug.h"
 
 namespace Helpers {
-
-float round1(float f)
-{
-    const float factor = 10;
-    f *= factor;
-    if( f < 0.0f )
-        f -= 0.5;
-    else
-        f += 0.5;
-    float ff = 0;
-    modff(f, &ff);
-    return ff / factor;
-}
-
-float round(float f, float factor)
-{
-    f *= factor;
-    if( f < 0.0f )
-        f -= 0.5;
-    else
-        f += 0.5;
-    float ff = 0;
-    modff(f, &ff);
-    return ff / factor;
-}
 
 int hexCharToInt(char n)
 {
@@ -120,76 +95,6 @@ std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start)
         << " controlinfo="  << data.controlinfo().flagstring()
         << " cfailed='"     << data.cfailed() << "']";
     return out.str();
-}
-
-// ------------------------------------------------------------------------
-
-Helpers::split2_t split2(const std::string& toSplit, const std::string& delimiter, bool trim)
-{
-    if( delimiter.empty() )
-        throw std::runtime_error("empty delimiter");
-    std::size_t pos = toSplit.find(delimiter);
-    if( pos == std::string::npos )
-        throw std::runtime_error("delimiter '" + delimiter + "' not found in '" + toSplit + "'");
-    split2_t split(toSplit.substr(0, pos), toSplit.substr(pos+delimiter.size()));
-    if( trim ) {
-        boost::trim(split.first);
-        boost::trim(split.second);
-    }
-    return split;
-}
-
-// ------------------------------------------------------------------------
-
-Helpers::splitN_t splitN(const std::string& toSplit, const std::string& delimiter, bool trim)
-{
-    if( delimiter.empty() )
-        throw std::runtime_error("empty delimiter");
-    splitN_t split;
-    std::size_t begin = 0;
-    while( begin < toSplit.size() ) {
-        DBGV(begin);
-        std::size_t end = toSplit.find(delimiter, begin);
-        DBGV(end);
-        if( end == std::string::npos )
-            end = toSplit.size();
-        std::string part = toSplit.substr(begin, end-begin);
-        DBGV(part)
-        if( trim )
-            boost::trim(part);
-        split.push_back(part);
-        begin = end+delimiter.size();
-    }
-    if( begin == toSplit.size() )
-        split.push_back("");
-    return split;
-}
-
-// ------------------------------------------------------------------------
-
-int normalisedDayOfYear(const miutil::miDate& date)
-{
-    // February 29 is the same as February 28
-    const int daysFromPreviousMonths[12] = {
-        0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
-    };
-    int day = date.day(), month = date.month();
-    if( month == 2 && day == 29 )
-        day = 28;
-    return daysFromPreviousMonths[month-1] + day;
-}
-
-// ------------------------------------------------------------------------
-
-double randNormal()
-{
-    // very simple and approximate implementation, see https://en.wikipedia.org/wiki/Normal_distribution#Generating_values_from_normal_distribution
-    int N = 12;
-    double r = 0;
-    for(int i=0; i<N; ++i)
-        r += drand48();
-    r -= N/2;
-    return r;
 }
 
 } // namespace Helpers

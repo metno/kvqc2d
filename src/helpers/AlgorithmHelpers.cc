@@ -63,25 +63,4 @@ double distance(double lon1, double lat1, double lon2, double lat2)
     return EARTH_RADIUS*c;
 }
 
-miutil::miTime plusDay(const miutil::miTime& t, int nDays)
-{
-    miutil::miTime p(t);
-    p.addDay(nDays);
-    return p;
-}
-
-miutil::miTime plusHour(const miutil::miTime& t, int nHours)
-{
-    miutil::miTime p(t);
-    p.addHour(nHours);
-    return p;
-}
-
-miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes)
-{
-    miutil::miTime p(t);
-    p.addMin(nMinutes);
-    return p;
-}
-
 } // namespace Helpers
