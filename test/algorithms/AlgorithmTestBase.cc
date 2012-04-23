@@ -29,7 +29,7 @@
 
 #include "AlgorithmTestBase.h"
 
-#include "Helpers.h"
+#include "helpers/Helpers.h"
 #include "Qc2Algorithm.h"
 
 // ########################################################################

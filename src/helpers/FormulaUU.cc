@@ -1,7 +1,7 @@
 
 #include "FormulaUU.h"
 
-#include "Interpolator.h"
+#include <cmath>
 
 // see email Gabriel Kielland, 2012-02-24 10:57
 namespace {
@@ -10,11 +10,13 @@ const float C20 = 17.5043, C30 = 241.2;
 
 }
 
+const int UU_INVALID = -32767;
+
 /** Calculate dew point from temperature TA and relative humidity UU. */
 float formulaTD(float TA, float UU)
 {
-    if( UU <= 0 || UU >= 100 || TA == ::Interpolator::INVALID )
-        return ::Interpolator::INVALID;
+    if( UU <= 0 || UU >= 100 || TA == UU_INVALID )
+        return UU_INVALID;
     float C2, C3;
     if( TA >= 0 ) {
         C2 = C20;
@@ -33,7 +35,7 @@ float formulaTD(float TA, float UU)
 /** Calculate relative humidity from temperature TA and dew point TD. */
 float formulaUU(float TA, float TD)
 {
-    if( TD == ::Interpolator::INVALID || TA == ::Interpolator::INVALID )
-        return ::Interpolator::INVALID;
+    if( TD == UU_INVALID || TA == UU_INVALID )
+        return UU_INVALID;
     return 100*std::exp( (C20*TD)/(C30+TD) - (C20*TA)/(C30+TA) );
 }

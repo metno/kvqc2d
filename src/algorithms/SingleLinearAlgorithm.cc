@@ -29,7 +29,7 @@
 
 #include "SingleLinearAlgorithm.h"
 
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "DBInterface.h"
 #include "foreach.h"
 

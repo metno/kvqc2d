@@ -1,6 +1,6 @@
 
 #include <gtest/gtest.h>
-#include "Akima.h"
+#include "helpers/Akima.h"
 
 TEST(AkimaTest, Linear)
 {

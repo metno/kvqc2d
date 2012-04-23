@@ -29,7 +29,7 @@
 
 #include "NeighborsDistance2.h"
 
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "AlgorithmConfig.h"
 #include "foreach.h"
 

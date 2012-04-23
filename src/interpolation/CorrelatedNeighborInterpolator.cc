@@ -30,7 +30,7 @@
 #include "CorrelatedNeighborInterpolator.h"
 
 #include "AlgorithmConfig.h"
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "DBInterface.h"
 #include "NeighborInterpolation.h"
 #include "foreach.h"

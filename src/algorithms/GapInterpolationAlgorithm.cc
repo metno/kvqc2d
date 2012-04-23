@@ -29,9 +29,9 @@
 
 #include "GapInterpolationAlgorithm.h"
 
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "DBInterface.h"
-#include "MinMaxInterpolator.h"
+#include "interpolation/MinMaxInterpolator.h"
 #include "foreach.h"
 
 #define NDEBUG 1

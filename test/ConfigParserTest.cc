@@ -1,5 +1,5 @@
 
-#include "ConfigParser.h"
+#include "helpers/ConfigParser.h"
 #include <sstream>
 #include <gtest/gtest.h>
 

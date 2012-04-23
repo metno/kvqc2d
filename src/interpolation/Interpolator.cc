@@ -2,7 +2,7 @@
 #include "Interpolator.h"
 
 #include "AlgorithmConfig.h"
-#include "Helpers.h"
+#include "helpers/Helpers.h"
 #include "foreach.h"
 
 #include <kvalobs/kvData.h>

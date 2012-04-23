@@ -29,7 +29,7 @@
 
 #include "AlgorithmConfig.h"
 
-#include "Helpers.h"
+#include "helpers/Helpers.h"
 
 #include <kvalobs/kvPath.h>
 #include <milog/milog.h>

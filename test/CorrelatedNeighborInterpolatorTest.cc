@@ -2,8 +2,8 @@
 #include <gtest/gtest.h>
 
 #include "AlgorithmConfig.h"
-#include "AlgorithmHelpers.h"
-#include "CorrelatedNeighborInterpolator.h"
+#include "helpers/AlgorithmHelpers.h"
+#include "interpolation/CorrelatedNeighborInterpolator.h"
 #include "foreach.h"
 
 #include <puTools/miTime.h>

@@ -29,7 +29,7 @@
 
 #include "RedistributionAlgorithm.h"
 
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "algorithms/NeighborsDistance2.h"
 #include "DBInterface.h"
 #include "foreach.h"

@@ -3,7 +3,7 @@
 #ifndef __ReadProgramOptions_h__
 #define __ReadProgramOptions_h__
 
-#include "ConfigParser.h"
+#include "helpers/ConfigParser.h"
 #include "FlagChange.h"
 #include "FlagPatterns.h"
 #include <puTools/miTime.h>

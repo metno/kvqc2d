@@ -28,7 +28,7 @@
 */
 
 #include "AlgorithmTestBase.h"
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "algorithms/SingleLinearAlgorithm.h"
 
 class SingleLinearTest : public AlgorithmTestBase {

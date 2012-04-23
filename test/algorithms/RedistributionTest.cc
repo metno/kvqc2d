@@ -29,7 +29,7 @@
 
 #include "AlgorithmTestBase.h"
 #include "algorithms/RedistributionAlgorithm.h"
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "foreach.h"
 
 #include <boost/algorithm/string/predicate.hpp>

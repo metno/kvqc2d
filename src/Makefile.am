@@ -12,19 +12,13 @@ kvqc2d_SOURCES = Qc2Main.cc
 noinst_LIBRARIES = libkvqc2d.a
 
 libkvqc2d_a_SOURCES = \
-	Akima.cc \
-	Akima.h \
 	AlgorithmConfig.cc \
 	AlgorithmConfig.h \
 	AlgorithmDispatcher.cc \
 	AlgorithmDispatcher.h \
-	AlgorithmHelpers.cc \
-	AlgorithmHelpers.h \
 	AlgorithmRunner.cc \
 	AlgorithmRunner.h \
 	Broadcaster.h \
-	algorithms/AkimaSpline.cc \
-	algorithms/AkimaSpline.h \
 	algorithms/DataUpdate.cc \
 	algorithms/DataUpdate.h \
 	algorithms/DipTestAlgorithm.cc \
@@ -48,10 +42,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/StatisticalMean.cc \
 	algorithms/StatisticalMean.h \
 	config_bottom.h \
-	ConfigParser.cc \
-	ConfigParser.h \
-	CorrelatedNeighborInterpolator.cc \
-	CorrelatedNeighborInterpolator.h \
 	DBInterface.h \
 	debug.h \
 	FlagChange.cc \
@@ -63,16 +53,8 @@ libkvqc2d_a_SOURCES = \
 	FlagUpdate.cc \
 	FlagUpdate.h \
 	foreach.h \
-	FormulaUU.cc \
-	FormulaUU.h \
-	Helpers.cc \
-	Helpers.h \
 	InitLogger.cc \
 	InitLogger.h \
-	Interpolator.cc \
-	Interpolator.h \
-	InterpolatorUU.cc \
-	InterpolatorUU.h \
 	KvalobsDB.cc \
 	KvalobsDB.h \
 	KvalobsDbGate.cc \
@@ -82,10 +64,6 @@ libkvqc2d_a_SOURCES = \
 	KvServicedBroadcaster.h \
 	LogfileNotifier.cc \
 	LogfileNotifier.h \
-	MinMaxInterpolator.cc \
-	MinMaxInterpolator.h \
-	NeighborInterpolation.cc \
-	NeighborInterpolation.h \
 	Notifier.cc \
 	Notifier.h \
 	SQLDataAccess.cc \
@@ -107,7 +85,7 @@ kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 kvqc2d_LDADD = $(PROG_DEPS_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \
-	libkvqc2d.a
+	libkvqc2d.a interpolation/libinterpolation.a helpers/libhelpers.a
 
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs

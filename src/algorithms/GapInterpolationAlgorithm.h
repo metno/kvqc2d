@@ -3,9 +3,9 @@
 #ifndef GapInterpolationAlgorithm_H
 #define GapInterpolationAlgorithm_H 1
 
-#include "CorrelatedNeighborInterpolator.h"
-#include "InterpolatorUU.h"
-#include "MinMaxInterpolator.h"
+#include "interpolation/CorrelatedNeighborInterpolator.h"
+#include "interpolation/InterpolatorUU.h"
+#include "interpolation/MinMaxInterpolator.h"
 #include "Qc2Algorithm.h"
 
 #include <memory>

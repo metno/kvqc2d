@@ -30,7 +30,7 @@
 
 #include "AlgorithmTestBase.h"
 #include "algorithms/DipTestAlgorithm.h"
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 
 #include <boost/algorithm/string/predicate.hpp>
 

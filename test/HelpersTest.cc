@@ -1,6 +1,6 @@
 
 #include <gtest/gtest.h>
-#include "Helpers.h"
+#include "helpers/Helpers.h"
 
 TEST(HelpersTest, testMapFromList)
 {

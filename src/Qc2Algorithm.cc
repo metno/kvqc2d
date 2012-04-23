@@ -1,7 +1,7 @@
 
 #include "Qc2Algorithm.h"
 
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 #include "Broadcaster.h"
 #include "DBInterface.h"
 #include "foreach.h"

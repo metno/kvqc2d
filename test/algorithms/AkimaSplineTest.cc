@@ -1,6 +1,6 @@
 
 #include <gtest/gtest.h>
-#include "algorithms/AkimaSpline.h"
+#include "helpers/AkimaSpline.h"
 
 TEST(AkimaSplineTest, testStraightLine)
 {

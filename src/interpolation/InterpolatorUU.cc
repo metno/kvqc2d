@@ -29,10 +29,10 @@
 
 #include "InterpolatorUU.h"
 
-#include "Akima.h"
-#include "AlgorithmHelpers.h"
-#include "FormulaUU.h"
-#include "Helpers.h"
+#include "helpers/Akima.h"
+#include "helpers/AlgorithmHelpers.h"
+#include "helpers/FormulaUU.h"
+#include "helpers/Helpers.h"
 
 #define NDEBUG 1
 #include "debug.h"

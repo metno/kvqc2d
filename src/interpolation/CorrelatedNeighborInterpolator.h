@@ -75,11 +75,6 @@ private:
     typedef std::map<Instrument, NeighborDataVector, lt_Instrument> neighbor_map_t;
 
 private:
-    std::vector<float> interpolate_simple(const Instrument& instrument, const TimeRange& t);
-
-    void calculate_delta(const float data0, const float dataN1, const float i0, const float iN1, int N,
-                         float& slope, float& offset);
-
     const NeighborDataVector& find_neighbors(const Instrument& instrument, float maxsigma);
 
 private:

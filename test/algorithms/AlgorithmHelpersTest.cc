@@ -28,7 +28,7 @@
 */
 
 #include "AlgorithmTestBase.h"
-#include "AlgorithmHelpers.h"
+#include "helpers/AlgorithmHelpers.h"
 
 class AlgorithmHelpersTest : public AlgorithmTestBase {
 };

@@ -54,7 +54,8 @@ LDADD = \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB)
 
-kvqc2dTest_LDADD = $(LDADD) -lboost_regex ../src/libkvqc2d.a
+kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
+	../src/libkvqc2d.a ../src/interpolation/libinterpolation.a ../src/helpers/libhelpers.a
 
 kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS)
 

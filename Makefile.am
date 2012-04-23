@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src test
+SUBDIRS = src/helpers src/interpolation src test
 
 ebrowse:
 	make -C src ebrowse
