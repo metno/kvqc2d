@@ -29,7 +29,7 @@
 
 #include "AlgorithmTestBase.h"
 #include "helpers/AlgorithmHelpers.h"
-#include "algorithms/GapInterpolationAlgorithm.h"
+#include "interpolation/GapInterpolationAlgorithm.h"
 
 class GapInterpolationTest : public AlgorithmTestBase {
 public:

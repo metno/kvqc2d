@@ -30,7 +30,7 @@
 #include "AlgorithmDispatcher.h"
 
 #include "algorithms/DipTestAlgorithm.h"
-#include "algorithms/GapInterpolationAlgorithm.h"
+#include "interpolation/GapInterpolationAlgorithm.h"
 #include "algorithms/PlumaticAlgorithm.h"
 #include "algorithms/RedistributionAlgorithm.h"
 #include "algorithms/SingleLinearAlgorithm.h"

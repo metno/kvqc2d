@@ -3,35 +3,14 @@
 #ifndef GapInterpolationAlgorithm_H
 #define GapInterpolationAlgorithm_H 1
 
-#include "interpolation/CorrelatedNeighborInterpolator.h"
-#include "interpolation/InterpolatorUU.h"
+#include "interpolation/Instrument.h"
+#include "interpolation/NeighborInterpolator.h"
 #include "interpolation/MinMaxInterpolator.h"
+#include "interpolation/ParameterInfo.h"
+#include "interpolation/SimpleInterpolationResult.h"
 #include "Qc2Algorithm.h"
 
-#include <memory>
-
-class Interpolator;
-
-class GapDataAccess : public CorrelatedNeighbors::DataAccess {
-public:
-    GapDataAccess(DBInterface* db)
-        : mDB(db) { }
-
-    std::vector<float> fetchObservations(const Instrument& instrument, const TimeRange& t);
-    std::vector<float> fetchModelValues (const Instrument& instrument, const TimeRange& t);
-    NeighborDataVector findNeighbors(const Instrument& instrument, double maxsigma);
-
-    void setDatabase(DBInterface* db)
-        { mDB = db; }
-
-    void configure(const AlgorithmConfig& params);
-
-private:
-    DBInterface* mDB;
-    FlagSetCU neighbor_flags;
-};
-
-// ========================================================================
+#include <boost/shared_ptr.hpp>
 
 class GapInterpolationAlgorithm : public Qc2Algorithm {
 public:
@@ -53,7 +32,7 @@ private:
 
 private:
     Instrument getMasterInstrument(const kvalobs::kvData& data);
-    void makeUpdates(const ParamGroupMissingRange::MissingRange& mr, const Interpolator::ValuesWithQualities_t& interpolated,
+    void makeUpdates(const ParamGroupMissingRange::MissingRange& mr, const Interpolation::SimpleResultVector& interpolated,
                      const TimeRange& range, DBInterface::DataList& updates);
 
 private:
@@ -62,9 +41,8 @@ private:
     typedef DataList::const_iterator DataList_cit;
 
 private:
-    GapDataAccess* mDataAccess;
-    CorrelatedNeighbors::Interpolator* mInterpolator;
-    InterpolatorUU* mInterpolatorUU;
+    boost::shared_ptr<Interpolation::NeighborInterpolator> mNeighborInterpolator;
+    boost::shared_ptr<Interpolation::MinMaxInterpolator> mMinMaxInterpolator;
 
     typedef std::vector<ParameterInfo> ParameterInfos;
     typedef ParameterInfos::const_iterator ParameterInfos_it;

@@ -5,39 +5,38 @@
  *      Author: alexanderb
  */
 
-#include "NeighborInterpolation.h"
+#include "NeighborInterpolator.h"
 
-#include "SimpleData.h"
 #include "helpers/Akima.h"
-#include "foreach.h"
 #include "helpers/WeightedMean.h"
+#include "foreach.h"
 
 #include <cmath>
 
 #define NDEBUG 1
 #include "debug.h"
 
-namespace NeighborInterpolation {
-
-const int extraData = 3;
+namespace Interpolation {
 
 namespace {
 
 const int MAX_NEIGHBORS = 5;
 const float AKIMAWEIGHT = 2;
 const bool akimaFirst = false;
+typedef std::vector<SupportData> SupportVector;
 
 struct OffsetCorrection {
     float slope, offset;
     float at(float x) const
-    { return offset + x*slope; }
-    OffsetCorrection() : slope(0), offset(0) { }
+        { return offset + x*slope; }
+    OffsetCorrection()
+        : slope(0), offset(0) { }
 };
 
-class InterpolationAlgorithm {
+class NeighborImplementation {
 public:
-    InterpolationAlgorithm(Data& data);
-    std::vector<Interpolation> interpolate();
+    NeighborImplementation(NeighborInterpolator::Data& data);
+    Interpolation::Summary interpolate();
 
 private:
     void interpolateSimple();
@@ -50,7 +49,7 @@ private:
     void calculateOffsets(int t0, int t1);
 
 private:
-    Data& data;
+    NeighborInterpolator::Data& data;
 
     std::vector<SupportData> simpleInterpolations;
     Akima akima;
@@ -58,25 +57,26 @@ private:
     int beforeGap, afterGap;
     OffsetCorrection ocModel;
     OffsetCorrection ocObservations;
+    Interpolation::Summary result;
 };
 
-InterpolationAlgorithm::InterpolationAlgorithm(Data& d)
+NeighborImplementation::NeighborImplementation(NeighborInterpolator::Data& d)
 : data(d)
 {
 }
 
-std::vector<Interpolation> InterpolationAlgorithm::interpolate()
+Interpolation::Summary NeighborImplementation::interpolate()
 {
     interpolateSimple();
     setupAkima();
     interpolateGaps();
-    return interpolated;
+    return result;
 }
 
-void InterpolationAlgorithm::interpolateSimple()
+void NeighborImplementation::interpolateSimple()
 {
     const unsigned int duration = data.duration();
-    simpleInterpolations = SimpleData::SupportVector(duration);
+    simpleInterpolations = SupportVector(duration);
 
     for(unsigned int t=0; t<duration; ++t) {
         Helpers::WeightedMean wm;
@@ -90,28 +90,28 @@ void InterpolationAlgorithm::interpolateSimple()
     }
 }
 
-void InterpolationAlgorithm::setupAkima()
+void NeighborImplementation::setupAkima()
 {
     for(int t = 0; t<data.duration(); ++t) {
-        const SupportData obs = data.center(t);
+        const SupportData obs = data.parameter(t);
         if( obs.usable() )
             akima.add(t, obs.value());
     }
 }
 
-void InterpolationAlgorithm::interpolateGaps()
+void NeighborImplementation::interpolateGaps()
 {
     const int duration = data.duration();
 
-    beforeGap = extraData-1; // assume this is an observed value
-    const int afterGaps = duration - extraData;
+    beforeGap = NeighborInterpolator::EXTRA_DATA - 1; // assume this is an observed value
+    const int afterGaps = duration - NeighborInterpolator::EXTRA_DATA;
     while( beforeGap < afterGaps ) {
-        if( !data.center(beforeGap).usable() ) {
+        if( !data.parameter(beforeGap).usable() ) {
             beforeGap += 1;
             continue;
         }
         afterGap = beforeGap+1;
-        while( afterGap < afterGaps && !data.center(afterGap).usable() )
+        while( afterGap < afterGaps && !data.parameter(afterGap).usable() )
             ++afterGap;
 
         if( afterGap != beforeGap + 1 )
@@ -120,7 +120,7 @@ void InterpolationAlgorithm::interpolateGaps()
     }
 }
 
-void InterpolationAlgorithm::interpolateSingleGap()
+void NeighborImplementation::interpolateSingleGap()
 {
     const int gap = afterGap - beforeGap - 1;
 
@@ -128,16 +128,16 @@ void InterpolationAlgorithm::interpolateSingleGap()
 
     const int t0 = beforeGap + 1;
     for(int t=t0; t<t0+gap; ++t) {
-        const SeriesData obs = data.center(t);
+        const SeriesData obs = data.parameter(t);
         if( obs.needsInterpolation() )
             interpolateSinglePoint(t);
     }
 }
 
-OffsetCorrection InterpolationAlgorithm::calculateOffset(const SupportData &o0, const SupportData &o1, int t0, int t1)
+OffsetCorrection NeighborImplementation::calculateOffset(const SupportData &o0, const SupportData &o1, int t0, int t1)
 {
     OffsetCorrection oc;
-    const SeriesData &d0 = data.center(t0), &d1 = data.center(t1);
+    const SeriesData &d0 = data.parameter(t0), &d1 = data.parameter(t1);
     const bool have0 = (d0.usable() && o0.usable()), have1 = (d1.usable() && o1.usable());
     const float delta0 = o0.value() - d0.value(), delta1 = o1.value() - d1.value();
     const int N = t1 - t0;
@@ -152,13 +152,13 @@ OffsetCorrection InterpolationAlgorithm::calculateOffset(const SupportData &o0, 
     return oc;
 }
 
-void InterpolationAlgorithm::calculateOffsets(int t0, int t1)
+void NeighborImplementation::calculateOffsets(int t0, int t1)
 {
     ocObservations = calculateOffset(simpleInterpolations[t0], simpleInterpolations[t1], t0, t1);
     ocModel = calculateOffset(data.model(t0), data.model(t1), t0, t1);
 }
 
-void InterpolationAlgorithm::interpolateSinglePoint(int t)
+void NeighborImplementation::interpolateSinglePoint(int t)
 {
     Helpers::WeightedMean combi;
 
@@ -186,21 +186,26 @@ void InterpolationAlgorithm::interpolateSinglePoint(int t)
     if( combi.valid() ) {
         const bool good (t==beforeGap+1 || t==afterGap-1);
         data.setInterpolated(t, good ? GOOD : BAD, combi.mean());
+        result.addOk();
     } else {
-        data.setInterpolated(t, Data::FAILED, 0);
+        data.setInterpolated(t, Interpolation::FAILED, 0);
+        result.addFailed();
     }
 }
 
 } // anonymous namespace
 
-Data::~Data()
+const int NeighborInterpolator::EXTRA_DATA = 3;
+
+Interpolation::Summary NeighborInterpolator::interpolate(SingleParameterInterpolator::Data& data)
 {
+    return doInterpolate(static_cast<Data&>(data));
 }
 
-Interpolations interpolate(Data& data)
+Interpolation::Summary NeighborInterpolator::doInterpolate(NeighborInterpolator::Data& data)
 {
-    InterpolationAlgorithm i(data);
+    NeighborImplementation i(data);
     return i.interpolate();
 }
 
-} // namespace NeighborInterpolation
+} // namespace Interpolation

@@ -1,50 +1,48 @@
+/* -*- c++ -*-
+  Kvalobs - Free Quality Control Software for Meteorological Observations
 
-#include "Interpolator.h"
+  Copyright (C) 2011 met.no
 
-#include "AlgorithmConfig.h"
+  Contact information:
+  Norwegian Meteorological Institute
+  Postboks 43 Blindern
+  N-0313 OSLO
+  NORWAY
+  email: kvalobs-dev@met.no
+
+  This file is part of KVALOBS
+
+  KVALOBS is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
+
+  KVALOBS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License along
+  with KVALOBS; if not, write to the Free Software Foundation Inc.,
+  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include "ParameterInfo.h"
+
 #include "helpers/stringutil.h"
 #include "foreach.h"
 
-#include <kvalobs/kvData.h>
-#include <kvalobs/kvDataOperations.h>
+#include <cstdlib>
 
-#define NDEBUG 1
-#include "debug.h"
-
-bool lt_Instrument::operator()(const Instrument& a, const Instrument& b) const
-{
-    if ( a.stationid != b.stationid )
-        return a.stationid < b.stationid;
-    if ( a.type != b.type )
-        return a.type < b.type;
-    if ( a.level != b.level )
-        return a.level < b.level;
-    if ( not kvalobs::compare::eq_sensor( a.sensor, b.sensor ) )
-        return kvalobs::compare::lt_sensor( a.sensor, b.sensor );
-    return a.paramid < b.paramid;
+namespace {
+const float INVALID = -32767;
 }
-
-// ========================================================================
-
-Interpolator::~Interpolator()
-{
-}
-
-// ------------------------------------------------------------------------
-
-Interpolator::ValuesWithQualities_t Interpolator::interpolate(const kvalobs::kvData& before, const miutil::miTime& after)
-{
-    const Instrument i(before.stationID(), before.paramID(), before.sensor(), before.typeID(), before.level());
-    return interpolate(i, TimeRange(before.obstime(), after));
-}
-
-// ========================================================================
 
 void BasicParameterInfo::constrain(float& value) const
 {
-    if( minValue != Interpolator::INVALID && value < minValue )
+    if( minValue != INVALID && value < minValue )
         value = minValue;
-    if( maxValue != Interpolator::INVALID && value > maxValue )
+    if( maxValue != INVALID && value > maxValue )
         value = maxValue;
 }
 
@@ -52,8 +50,8 @@ void BasicParameterInfo::constrain(float& value) const
 
 BasicParameterInfo::BasicParameterInfo(const std::string& pi)
   : parameter(-1)
-  , minValue(Interpolator::INVALID)
-  , maxValue(Interpolator::INVALID)
+  , minValue(INVALID)
+  , maxValue(INVALID)
 {
     const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
     foreach(const std::string& item, items) {

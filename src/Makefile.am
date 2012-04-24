@@ -23,8 +23,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/DataUpdate.h \
 	algorithms/DipTestAlgorithm.cc \
 	algorithms/DipTestAlgorithm.h \
-	algorithms/GapInterpolationAlgorithm.cc \
-	algorithms/GapInterpolationAlgorithm.h \
 	algorithms/GetStationParam.cc \
 	algorithms/GetStationParam.h \
 	algorithms/NeighborsDistance2.cc \

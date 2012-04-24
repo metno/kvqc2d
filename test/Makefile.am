@@ -28,7 +28,6 @@ kvqc2dTest_SOURCES= \
 	algorithms/TestNotifier.h \
 	algorithms/StatisticalMeanTest.cc \
 	ConfigParserTest.cc \
-	CorrelatedNeighborInterpolatorTest.cc \
 	FlagChangeTest.cc \
 	FlagPatternsTest.cc \
 	FlagPatternTest.cc \
@@ -55,7 +54,7 @@ LDADD = \
 	$(BOOST_FILESYSTEM_LIB)
 
 kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
-	../src/libkvqc2d.a ../src/interpolation/libinterpolation.a ../src/helpers/libhelpers.a
+	../src/libkvqc2d.a ../src/interpolation/libinterpolation.a ../src/TimeRange.o ../src/helpers/libhelpers.a
 
 kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS)
 

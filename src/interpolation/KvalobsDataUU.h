@@ -30,45 +30,44 @@
 #ifndef KVALOBSDATAUU_H_
 #define KVALOBSDATAUU_H_
 
-#include "KvalobsData.h"
-#include "SimpleData.h"
+#include "KvalobsMinMaxData.h"
 
-class KvalobsDataUU : public KvalobsData {
+//class KvalobsDataUU : public KvalobsMinMaxData {
+//public:
+//    KvalobsDataUU(DBInterface* db, const Instrument& i, const TimeRange& t);
+//
+//    virtual Interpolation::SeriesData center(int time);
+//
+//    virtual Interpolation::SupportData model(int time);
+//
+//    virtual Interpolation::SupportData neighbor(int n, int time);
+//
+//    virtual void setInterpolated(int time, NeighborInterpolation::Quality q, float value)
+//    { interpolations.push_back(NeighborInterpolation::Result(time, q, value)); }
+//
+//private:
+//    DBInterface::DataList centerObservationsTA;
+//    std::vector<DBInterface::DataList> neighborObservationsTA;
+//    Interpolation::SimpleResultVector interpolations;
+//};
+
+class KvalobsDataUU2 : public Interpolation::MinMaxInterpolator::Data {
 public:
-    KvalobsDataUU(DBInterface* db, const Instrument& i, const TimeRange& t);
+    KvalobsDataUU2(KvalobsMinMaxData& dUU, KvalobsMinMaxData& dTA);
 
-    virtual NeighborInterpolation::SeriesData center(int time);
+    virtual Interpolation::SeriesData parameter(int time);
 
-    virtual NeighborInterpolation::SupportData model(int time);
+    virtual Interpolation::SupportData model(int time);
 
-    virtual NeighborInterpolation::SupportData neighbor(int n, int time);
+    virtual Interpolation::SupportData transformedNeighbor(int n, int time);
 
-    virtual void setInterpolated(int time, NeighborInterpolation::Quality q, float value)
-    { interpolations.push_back(NeighborInterpolation::Result(time, q, value)); }
+    virtual void setInterpolated(int time, Interpolation::Quality q, float value)
+    { interpolations.push_back(Interpolation::SimpleResult(time, q, value)); }
 
 private:
-    DBInterface::DataList centerObservationsTA;
-    std::vector<DBInterface::DataList> neighborObservationsTA;
-    NeighborInterpolation::SimpleData::InterpolationVector interpolations;
-};
-
-class KvalobsDataUU2 : public NeighborInterpolation::Data {
-public:
-    KvalobsDataUU2(KvalobsData& dUU, KvalobsData& dTA);
-
-    virtual NeighborInterpolation::SeriesData center(int time);
-
-    virtual NeighborInterpolation::SupportData model(int time);
-
-    virtual NeighborInterpolation::SupportData transformedNeighbor(int n, int time);
-
-    virtual void setInterpolated(int time, NeighborInterpolation::Quality q, float value)
-    { interpolations.push_back(NeighborInterpolation::Result(time, q, value)); }
-
-private:
-    KvalobsData& dataUU;
-    KvalobsData& dataTA;
-    NeighborInterpolation::SimpleData::InterpolationVector interpolations;
+    KvalobsMinMaxData& dataUU;
+    KvalobsMinMaxData& dataTA;
+    Interpolation::SimpleResultVector interpolations;
 };
 
 #endif /* KVALOBSDATAUU_H_ */

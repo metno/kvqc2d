@@ -32,65 +32,17 @@
 #include "helpers/AlgorithmHelpers.h"
 #include "helpers/mathutil.h"
 #include "helpers/timeutil.h"
-#include "DBInterface.h"
-#include "interpolation/MinMaxInterpolator.h"
+#include "interpolation/KvalobsDataUU.h"
+#include "interpolation/KvalobsMinMaxData.h"
 #include "foreach.h"
 
 #define NDEBUG 1
 #include "debug.h"
 
-// ########################################################################
-
-std::vector<float> GapDataAccess::fetchObservations(const Instrument& instrument, const TimeRange& t)
-{
-    const DBInterface::DataList obs
-        = mDB->findDataMaybeTSLOrderObstime(instrument.stationid, instrument.paramid, instrument.type,
-                                            instrument.sensor, instrument.level, t, neighbor_flags);
-
-    std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
-    foreach(const kvalobs::kvData& d, obs) {
-        const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
-        series[hour] = d.original();
-    }
-    return series;
-}
-
-// ------------------------------------------------------------------------
-
-std::vector<float> GapDataAccess::fetchModelValues(const Instrument& instrument, const TimeRange& t)
-{
-    const DBInterface::ModelDataList modelData
-        = mDB->findModelData(instrument.stationid, instrument.paramid, instrument.level, t);
-
-    std::vector<float> series(t.hours()+1, ::Interpolator::INVALID);
-    foreach(const kvalobs::kvModelData& d, modelData) {
-        const int hour = miutil::miTime::hourDiff(d.obstime(), t.t0);
-        series[hour] = d.original();
-    }
-    return series;
-}
-
-// ------------------------------------------------------------------------
-
-NeighborDataVector GapDataAccess::findNeighbors(const Instrument& instrument, double maxsigma)
-{
-    return mDB->findNeighborData(instrument.stationid, instrument.paramid, maxsigma);
-}
-
-// ------------------------------------------------------------------------
-
-void GapDataAccess::configure(const AlgorithmConfig& params)
-{
-    params.getFlagSetCU(neighbor_flags, "neighbor", "fmis=0", "U0=[37]&U2=0");
-}
-
-// ########################################################################
-
 GapInterpolationAlgorithm::GapInterpolationAlgorithm()
     : Qc2Algorithm("GapInterpolation")
-    , mDataAccess(new GapDataAccess(0))
-    , mInterpolator(new CorrelatedNeighbors::Interpolator(mDataAccess))
-    , mInterpolatorUU(new InterpolatorUU(mInterpolator))
+    , mNeighborInterpolator(new Interpolation::NeighborInterpolator())
+    , mMinMaxInterpolator(new Interpolation::MinMaxInterpolator())
 {
 }
 
@@ -108,9 +60,6 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
     foreach(const std::string& pi, parameters)
         mParameterInfos.push_back(ParameterInfo(pi));
-
-    mInterpolator->configure(params);
-    mDataAccess->configure(params);
 }
 
 // ------------------------------------------------------------------------
@@ -138,24 +87,24 @@ GapInterpolationAlgorithm::ParamGroupMissingRange::ParamGroupMissingRange(const 
 // ------------------------------------------------------------------------
 
 void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::MissingRange& mr,
-                                            const Interpolator::ValuesWithQualities_t& interpolated,
+                                            const Interpolation::SimpleResultVector& interpolated,
                                             const TimeRange& range, DBInterface::DataList& updates)
 {
     ParamGroupMissingRange::MissingRange::const_iterator dit = mr.begin();
     int h = 0;
-    foreach(const ::Interpolator::ValueWithQuality& vq, interpolated) {
+    foreach(const Interpolation::SimpleResult& sr, interpolated) {
         if( dit == mr.end() )
             break;
         if( dit->obstime() != Helpers::plusHour(range.t0, h++) )
             continue;
         kvalobs::kvData dwrite(*dit++);
-        if( Helpers::equal(dwrite.corrected(), vq.value) || (vq.quality == Interpolator::QUALITY_INTER_FAILED && dwrite.corrected()<-32765) )
+        if( Helpers::equal(dwrite.corrected(), sr.value) || (sr.quality == Interpolation::FAILED && dwrite.corrected()<-32765) )
             continue;
-        dwrite.corrected(vq.value);
+        dwrite.corrected(sr.value);
         dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
         Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
         Helpers::updateUseInfo(dwrite);
-        DBG("update=" << dwrite << " quality=" << vq.quality);
+        DBG("update=" << dwrite << " quality=" << sr.quality);
         updates.push_back(dwrite);
     }
 }
@@ -174,7 +123,6 @@ struct HasParameter : public std::unary_function<bool, ParameterInfo> {
 
 void GapInterpolationAlgorithm::run()
 {
-    mDataAccess->setDatabase(database());
     DBInterface::StationIDList StationIds;
     fillStationIDList(StationIds);
 
@@ -208,10 +156,6 @@ void GapInterpolationAlgorithm::run()
         const Instrument& instrument = imr.first;
         const int parameter = instrument.paramid;
 
-        Interpolator* interpolator = mInterpolator;
-        if( parameter == 262 )
-            interpolator = mInterpolatorUU;
-
         const ParameterInfos_it pi = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(parameter));
         if( pi == mParameterInfos.end() ) {
             error() << "parameter '" << instrument.paramid << " not found in parameter list";
@@ -221,16 +165,18 @@ void GapInterpolationAlgorithm::run()
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
             const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -1), Helpers::plusHour(pgmr.range.t1, 1));
+            KvalobsNeighborData knd(database(), instrument, missingTime);
             if( minmax ) {
-                MinMaxValuesWithQualities_t mmwq = MinMaxInterpolate(interpolator, mDataAccess, instrument, *pi, missingTime);
+                KvalobsMinMaxData mmd(knd);
+                const Interpolation::Summary s = mMinMaxInterpolator->interpolate(mmd, *mNeighborInterpolator);
 
-                makeUpdates(pgmr.paramMissingRanges[parameter       ], mmwq.par, pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmwq.min, pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmwq.max, pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[parameter       ], knd.getInterpolated(),    pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmd.getInterpolatedMax(), pgmr.range, updates);
             } else {
                 foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
-                    const Interpolator::ValuesWithQualities_t interpolated  = mInterpolator->interpolate(Instrument(pr.second.front()), missingTime);
-                    makeUpdates(pr.second, interpolated, pgmr.range, updates);
+                    const Interpolation::Summary s  = mNeighborInterpolator->interpolate(knd);
+                    makeUpdates(pr.second, knd.getInterpolated(), pgmr.range, updates);
                 }
             }
         }
