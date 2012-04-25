@@ -36,75 +36,12 @@
 using Interpolation::SeriesData;
 using Interpolation::SupportData;
 
-//KvalobsDataUU::KvalobsDataUU(DBInterface* db, const Instrument& i, const TimeRange& t)
-//: KvalobsMinMaxData(db, i, t)
-//{
-//}
-//
-//SeriesData KvalobsDataUU::center(int time)
-//{
-//    SeriesData sd = KvalobsMinMaxData::center(time);
-//    if( !sd.usable() )
-//        return sd;
-//
-//    if( centerObservationsTA.empty() ) {
-//        FlagSetCU all;
-//        centerObservationsTA = mDB->findDataMaybeTSLOrderObstime(mInstrument.stationid,
-//                211, DBInterface::INVALID_ID, DBInterface::INVALID_ID,
-//                DBInterface::INVALID_ID, mTimeRangeExtended, all);
-//    }
-//
-//    const miutil::miTime t = timeAtOffset(time);
-//    foreach(const kvalobs::kvData& ta, centerObservationsTA) {
-//        if( ta.obstime() == t && !Helpers::isMissingOrRejected(ta)) {
-//            return SeriesData(Helpers::formulaTD(ta.original(), sd.value()));
-//        }
-//    }
-//    return SeriesData();
-//}
-//
-//SupportData KvalobsDataUU::model(int)
-//{
-//    return SupportData();
-//}
-//
-//SupportData KvalobsDataUU::neighbor(int n, int time)
-//{
-//    const SupportData sd = KvalobsMinMaxData::neighbor(n, time);
-//    if (!sd.usable())
-//        return sd;
-//
-//    if (neighborObservationsTA.empty())
-//        neighborObservationsTA = std::vector<DBInterface::DataList>(neighbors());
-//
-//    const DBInterface::DataList& noTA = neighborObservationsTA[n];
-//    if( noTA.empty() ) {
-//        const NeighborData& nd = neighborCorrelations[n];
-//        FlagSetCU all;
-//        neighborObservationsTA[n] =
-//                mDB->findDataMaybeTSLOrderObstime(nd.neighborid, 211,
-//                        DBInterface::INVALID_ID, DBInterface::INVALID_ID,
-//                        DBInterface::INVALID_ID, mTimeRangeExtended, all);
-//    }
-//
-//    const miutil::miTime t = timeAtOffset(time);
-//    foreach(const kvalobs::kvData& ta, neighborObservationsTA[n]) {
-//        if( ta.obstime() == t ) {
-//            if( mNeighborFlags.matches(ta) )
-//                return SupportData(Helpers::formulaTD(ta.original(), sd.value()));
-//            else
-//                return SupportData();
-//        }
-//    }
-//    return SupportData();
-//}
-
-KvalobsDataUU2::KvalobsDataUU2(KvalobsMinMaxData& dUU, KvalobsMinMaxData& dTA)
-        : Interpolation::MinMaxInterpolator::Data(dUU.centerData()), dataUU(dUU), dataTA(dTA)
+KvalobsUUNeighborData::KvalobsUUNeighborData(KvalobsNeighborData& dUU, KvalobsNeighborData& dTA)
+        : dataUU(dUU), dataTA(dTA)
 {
 }
 
-SeriesData KvalobsDataUU2::parameter(int time)
+SeriesData KvalobsUUNeighborData::parameter(int time)
 {
     const SeriesData sdUU = dataUU.parameter(time), sdTA = dataTA.parameter(time);
     if( !sdUU.usable() || !sdTA.usable() )
@@ -113,22 +50,61 @@ SeriesData KvalobsDataUU2::parameter(int time)
     return SeriesData(Helpers::formulaTD(sdTA.value(), sdUU.value()));
 }
 
-SupportData KvalobsDataUU2::model(int)
+SupportData KvalobsUUNeighborData::transformedNeighbor(int n, int time)
 {
-    return SupportData();
-}
-
-SupportData KvalobsDataUU2::transformedNeighbor(int n, int time)
-{
-    KvalobsNeighborData& nUU = static_cast<KvalobsNeighborData&>(dataUU.centerData());
-    KvalobsNeighborData& nTA = static_cast<KvalobsNeighborData&>(dataTA.centerData());
-
-    const SupportData sdUU = nUU.neighbor(n, time), sdTA = nTA.neighbor(n, time);
+    const SupportData sdUU = dataUU.neighbor(n, time), sdTA = dataTA.neighbor(n, time);
     if( !sdUU.usable() || !sdTA.usable() )
         return sdUU;
 
-    const NeighborData& nd = nUU.getNeighborData(n);
+    const NeighborData& nd = dataUU.getNeighborData(n);
     const float value = nd.offset +
             (nd.slope * Helpers::formulaTD(sdTA.value(), sdUU.value()));
     return SupportData(value);
 }
+
+void KvalobsUUNeighborData::setInterpolated(int time, Interpolation::Quality q, float value)
+{
+    const SupportData sdTA = dataTA.parameter(time);
+    value = Helpers::formulaUU(sdTA.value(), value);
+    dataUU.setInterpolated(time, q, value);
+}
+
+
+
+KvalobsUUMinMaxData::KvalobsUUMinMaxData(KvalobsUUNeighborData& ndata, KvalobsMinMaxData& dUU, KvalobsMinMaxData& dTA)
+        : Interpolation::MinMaxInterpolator::Data(ndata), dataUU(dUU), dataTA(dTA)
+{
+}
+
+SeriesData KvalobsUUMinMaxData::minimum(int time)
+{
+    const SeriesData sdUU = dataUU.minimum(time), sdTA = dataTA.minimum(time);
+    if( !sdUU.usable() || !sdTA.usable() )
+        return sdUU;
+
+    return SeriesData(Helpers::formulaTD(sdTA.value(), sdUU.value()));
+}
+
+SeriesData KvalobsUUMinMaxData::maximum(int time)
+{
+    const SeriesData sdUU = dataUU.maximum(time), sdTA = dataTA.maximum(time);
+    if( !sdUU.usable() || !sdTA.usable() )
+        return sdUU;
+
+    return SeriesData(Helpers::formulaTD(sdTA.value(), sdUU.value()));
+}
+
+void KvalobsUUMinMaxData::setMinimum(int time, Interpolation::Quality q, float value)
+{
+    const SupportData sdTA = dataTA.parameter(time);
+    value = Helpers::formulaUU(sdTA.value(), value);
+    dataUU.setMinimum(time, q, value);
+}
+
+void KvalobsUUMinMaxData::setMaximum(int time, Interpolation::Quality q, float value)
+{
+    const SupportData sdTA = dataTA.parameter(time);
+    value = Helpers::formulaUU(sdTA.value(), value);
+    dataUU.setMaximum(time, q, value);
+}
+

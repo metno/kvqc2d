@@ -168,12 +168,25 @@ void GapInterpolationAlgorithm::run()
         }
         const bool minmax = (pi->minParameter > 0) && (pi->maxParameter > 0);
 
+        const Instrument instrumentTA(instrument.stationid, 211, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
+        const ParameterInfos_it piTA = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(211));
+
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
             const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -3), Helpers::plusHour(pgmr.range.t1, 3));
             KvalobsNeighborData knd(database(), instrument, missingTime, *pi);
             if( minmax ) {
                 KvalobsMinMaxData mmd(knd);
-                const Interpolation::Summary s = mMinMaxInterpolator->interpolate(mmd, *mNeighborInterpolator);
+                if( parameter == 262 && piTA != mParameterInfos.end() ) {
+                    KvalobsNeighborData kndTA(database(), instrumentTA, missingTime, *piTA);
+                    KvalobsUUNeighborData kndUU(knd, kndTA);
+
+                    KvalobsMinMaxData mmdTA(kndTA);
+                    KvalobsUUMinMaxData mmdUU(kndUU, mmd, mmdTA);
+
+                    const Interpolation::Summary s = mMinMaxInterpolator->interpolate(mmdUU, *mNeighborInterpolator);
+                } else {
+                    const Interpolation::Summary s = mMinMaxInterpolator->interpolate(mmd, *mNeighborInterpolator);
+                }
 
                 makeUpdates(pgmr.paramMissingRanges[parameter       ], knd.getInterpolated(),    missingTime, updates);
                 makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), missingTime, updates);

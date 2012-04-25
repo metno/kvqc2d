@@ -514,6 +514,7 @@ TEST_F(GapInterpolationTest, UUGroup)
     ASSERT_RUN(algo, bc, 1);
 
     ASSERT_RUN(algo, bc, 0);
+    EXPECT_NEAR(77, bc->update(0).corrected(), 1);
 }
 
 // ------------------------------------------------------------------------

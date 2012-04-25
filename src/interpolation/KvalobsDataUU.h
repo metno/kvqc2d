@@ -32,42 +32,58 @@
 
 #include "KvalobsMinMaxData.h"
 
-//class KvalobsDataUU : public KvalobsMinMaxData {
-//public:
-//    KvalobsDataUU(DBInterface* db, const Instrument& i, const TimeRange& t);
-//
-//    virtual Interpolation::SeriesData center(int time);
-//
-//    virtual Interpolation::SupportData model(int time);
-//
-//    virtual Interpolation::SupportData neighbor(int n, int time);
-//
-//    virtual void setInterpolated(int time, NeighborInterpolation::Quality q, float value)
-//    { interpolations.push_back(NeighborInterpolation::Result(time, q, value)); }
-//
-//private:
-//    DBInterface::DataList centerObservationsTA;
-//    std::vector<DBInterface::DataList> neighborObservationsTA;
-//    Interpolation::SimpleResultVector interpolations;
-//};
-
-class KvalobsDataUU2 : public Interpolation::MinMaxInterpolator::Data {
+class KvalobsUUNeighborData : public Interpolation::NeighborInterpolator::Data {
 public:
-    KvalobsDataUU2(KvalobsMinMaxData& dUU, KvalobsMinMaxData& dTA);
+    KvalobsUUNeighborData(KvalobsNeighborData& dUU, KvalobsNeighborData& dTA);
+
+    virtual int duration() const
+        { return dataUU.duration(); }
 
     virtual Interpolation::SeriesData parameter(int time);
 
-    virtual Interpolation::SupportData model(int time);
-
     virtual Interpolation::SupportData transformedNeighbor(int n, int time);
 
-    virtual void setInterpolated(int time, Interpolation::Quality q, float value)
-    { interpolations.push_back(Interpolation::SimpleResult(time, q, value)); }
+    virtual Interpolation::SupportData model(int)
+        { return Interpolation::SupportData(); }
+
+    virtual int neighbors() const
+        { return dataUU.neighbors(); }
+
+    virtual float maximumOffset() const
+        { return dataUU.neighbors(); }
+
+    virtual float neighborWeight(int neighbor)
+        { return dataUU.neighborWeight(neighbor); }
+
+    virtual void setInterpolated(int time, Interpolation::Quality q, float value);
+
+    virtual Interpolation::SimpleResult getInterpolated(int time)
+        { return dataUU.getInterpolated(time); }
+
+private:
+    KvalobsNeighborData& dataUU;
+    KvalobsNeighborData& dataTA;
+};
+
+
+
+class KvalobsUUMinMaxData : public Interpolation::MinMaxInterpolator::Data {
+public:
+    KvalobsUUMinMaxData(KvalobsUUNeighborData& ndata, KvalobsMinMaxData& dUU, KvalobsMinMaxData& dTA);
+
+    virtual Interpolation::SeriesData minimum(int t);
+    virtual Interpolation::SeriesData maximum(int t);
+
+    virtual void setMinimum(int time, Interpolation::Quality q, float value);
+
+    virtual void setMaximum(int time, Interpolation::Quality q, float value);
+
+    virtual float fluctuationLevel() const
+        { return dataUU.fluctuationLevel(); }
 
 private:
     KvalobsMinMaxData& dataUU;
     KvalobsMinMaxData& dataTA;
-    Interpolation::SimpleResultVector interpolations;
 };
 
 #endif /* KVALOBSDATAUU_H_ */
