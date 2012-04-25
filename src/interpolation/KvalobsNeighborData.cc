@@ -35,6 +35,9 @@
 #include "FlagPatterns.h"
 #include "foreach.h"
 
+#define NDEBUG 1
+#include "debug.h"
+
 using Interpolation::SeriesData;
 using Interpolation::SupportData;
 
@@ -44,13 +47,14 @@ const float MAX_SIGMA = 3;
 
 } // anonymous namespace
 
-KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t)
-        : mDB(db), mTimeRange(t), mInstrument(instrument)
+KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
+        : mDB(db), mTimeRange(t), mInstrument(instrument), mParameterInfo(pi)
 {
 }
 
 int KvalobsNeighborData::duration() const
 {
+    DBG("calc duration = " << mTimeRange.hours() + 1 << DBG1(mTimeRange.t0) << DBG1(mTimeRange.t1));
     return mTimeRange.hours() + 1;
 }
 
@@ -65,7 +69,7 @@ Interpolation::SeriesData KvalobsNeighborData::parameter(int time)
     const miutil::miTime t = timeAtOffset(time);
     foreach(const kvalobs::kvData& d, centerObservations) {
         if( d.obstime() == t && !Helpers::isMissingOrRejected(d)) {
-            return SeriesData(d.original());
+            return SeriesData(mParameterInfo.toNumerical(d.original()));
         }
     }
     return SeriesData();
@@ -73,7 +77,23 @@ Interpolation::SeriesData KvalobsNeighborData::parameter(int time)
 
 void KvalobsNeighborData::setInterpolated(int time, Interpolation::Quality q, float value)
 {
-    interpolations.push_back(Interpolation::SimpleResult(time, q, value));
+    DBG(DBG1(time) << DBG1(q) << DBG1(value));
+    Interpolation::SimpleResult sr(time, q, mParameterInfo.toStorage(value));
+    for(unsigned int i=0; i<interpolations.size(); ++i)
+        if( interpolations[i].time == time ) {
+            interpolations[i] = sr;
+            return;
+        }
+    interpolations.push_back(sr);
+}
+
+Interpolation::SimpleResult KvalobsNeighborData::getInterpolated(int time)
+{
+    for(unsigned int i=0; i<interpolations.size(); ++i)
+        if( interpolations[i].time == time )
+            return interpolations[i];
+    const SeriesData sd = parameter(time);
+    return Interpolation::SimpleResult(time, Interpolation::OBSERVATION ,sd.value());
 }
 
 SupportData KvalobsNeighborData::model(int time)
@@ -84,7 +104,7 @@ SupportData KvalobsNeighborData::model(int time)
     const miutil::miTime t = timeAtOffset(time);
     foreach(const kvalobs::kvModelData& m, centerModel) {
         if( m.obstime() == t ) {
-            return SupportData(m.original());
+            return SupportData(mParameterInfo.toNumerical(m.original()));
         }
     }
     return SupportData();
@@ -114,7 +134,7 @@ SupportData KvalobsNeighborData::neighbor(int n, int time)
     foreach(const kvalobs::kvData& d, neighborObservations[n]) {
         if( d.obstime() == t ) {
             if( mNeighborFlags.matches(d) )
-                return SupportData(d.original());
+                return SupportData(mParameterInfo.toNumerical(d.original()));
             else
                 return SupportData();
         }

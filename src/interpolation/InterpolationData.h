@@ -32,7 +32,7 @@
 
 namespace Interpolation {
 
-enum Quality { GOOD=1, BAD=2, FAILED=3 };
+enum Quality { OBSERVATION=0, GOOD=1, BAD=2, FAILED=3 };
 
 class SupportData {
 public:

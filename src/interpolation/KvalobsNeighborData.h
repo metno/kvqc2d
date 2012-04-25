@@ -34,14 +34,13 @@
 #include "FlagPatterns.h"
 #include "Instrument.h"
 #include "NeighborInterpolator.h"
+#include "ParameterInfo.h"
 #include "SimpleInterpolationResult.h"
 #include "TimeRange.h"
 
-class AlgorithmConfig;
-
 class KvalobsNeighborData : public Interpolation::NeighborInterpolator::Data {
 public:
-    KvalobsNeighborData(DBInterface* db, const Instrument& i, const TimeRange& t);
+    KvalobsNeighborData(DBInterface* db, const Instrument& i, const TimeRange& t, const ParameterInfo& pi);
 
     virtual int duration() const;
 
@@ -77,10 +76,17 @@ public:
     const Interpolation::SimpleResultVector& getInterpolated()
         { return interpolations; }
 
+    Interpolation::SimpleResult getInterpolated(int time);
+
+    const ParameterInfo& getParameterInfo() const
+        { return mParameterInfo; }
+
 protected:
     DBInterface* mDB;
     const TimeRange& mTimeRange;
     const Instrument& mInstrument;
+    const ParameterInfo& mParameterInfo;
+
     DBInterface::DataList centerObservations;
     float mMaxOffset;
     DBInterface::ModelDataList centerModel;

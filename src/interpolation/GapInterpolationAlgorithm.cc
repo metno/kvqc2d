@@ -90,22 +90,27 @@ void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::Missin
                                             const Interpolation::SimpleResultVector& interpolated,
                                             const TimeRange& range, DBInterface::DataList& updates)
 {
+    DBGL;
     ParamGroupMissingRange::MissingRange::const_iterator dit = mr.begin();
-    int h = 0;
     foreach(const Interpolation::SimpleResult& sr, interpolated) {
-        if( dit == mr.end() )
+        if( dit == mr.end() ) {
+            DBGL;
             break;
-        if( dit->obstime() != Helpers::plusHour(range.t0, h++) )
-            continue;
-        kvalobs::kvData dwrite(*dit++);
-        if( Helpers::equal(dwrite.corrected(), sr.value) || (sr.quality == Interpolation::FAILED && dwrite.corrected()<-32765) )
-            continue;
-        dwrite.corrected(sr.value);
-        dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
-        Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
-        Helpers::updateUseInfo(dwrite);
-        DBG("update=" << dwrite << " quality=" << sr.quality);
-        updates.push_back(dwrite);
+        }
+        const int t = miutil::miTime::hourDiff(dit->obstime(), range.t0);
+        const float c = dit->corrected();
+        DBG(DBG1(sr.time) << DBG1(sr.quality) << DBG1(sr.value) << DBG1(dit->obstime()) << DBG1(t));
+        if( t == sr.time && !( Helpers::equal(c, sr.value) || (sr.quality == Interpolation::FAILED && c < -32765) ) ) {
+            DBGL;
+            kvalobs::kvData dwrite(*dit);
+            dwrite.corrected(sr.value);
+            dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
+            Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
+            Helpers::updateUseInfo(dwrite);
+            DBG("update=" << dwrite << " quality=" << sr.quality);
+            updates.push_back(dwrite);
+        }
+        ++dit;
     }
 }
 
@@ -164,19 +169,19 @@ void GapInterpolationAlgorithm::run()
         const bool minmax = (pi->minParameter > 0) && (pi->maxParameter > 0);
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
-            const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -1), Helpers::plusHour(pgmr.range.t1, 1));
-            KvalobsNeighborData knd(database(), instrument, missingTime);
+            const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -3), Helpers::plusHour(pgmr.range.t1, 3));
+            KvalobsNeighborData knd(database(), instrument, missingTime, *pi);
             if( minmax ) {
                 KvalobsMinMaxData mmd(knd);
                 const Interpolation::Summary s = mMinMaxInterpolator->interpolate(mmd, *mNeighborInterpolator);
 
-                makeUpdates(pgmr.paramMissingRanges[parameter       ], knd.getInterpolated(),    pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), pgmr.range, updates);
-                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmd.getInterpolatedMax(), pgmr.range, updates);
+                makeUpdates(pgmr.paramMissingRanges[parameter       ], knd.getInterpolated(),    missingTime, updates);
+                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), missingTime, updates);
+                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmd.getInterpolatedMax(), missingTime, updates);
             } else {
                 foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
                     const Interpolation::Summary s  = mNeighborInterpolator->interpolate(knd);
-                    makeUpdates(pr.second, knd.getInterpolated(), pgmr.range, updates);
+                    makeUpdates(pr.second, knd.getInterpolated(), missingTime, updates);
                 }
             }
         }

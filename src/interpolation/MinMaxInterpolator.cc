@@ -45,79 +45,6 @@ void mmwq_helper(const SeriesData& sd, bool& usable, bool& needsInterpolation)
     needsInterpolation |= sd.needsInterpolation();
 }
 
-class CatchUpdate : public MinMaxInterpolator::Data {
-public:
-    CatchUpdate(MinMaxInterpolator::Data& w);
-
-    virtual int duration() const
-    { return wrapped().duration(); }
-
-    virtual SeriesData parameter(int time)
-    { return wrapped().parameter(time); }
-
-    virtual void setInterpolated(int time, Quality q, float value);
-
-    virtual SeriesData minimum(int t)
-    { return wrapped().minimum(t); }
-
-    virtual SeriesData maximum(int t)
-    { return wrapped().maximum(t); }
-
-    virtual void setMinimum(int time, Quality q, float value)
-    { wrapped().setMinimum(time, q, value); }
-
-    virtual void setMaximum(int time, Quality q, float value)
-    { wrapped().setMaximum(time, q, value); }
-
-    virtual float fluctuationLevel() const
-    { return wrapped().fluctuationLevel(); }
-
-    struct Update {
-        int quality;
-        float value;
-        Update() : quality(FAILED) { }
-    };
-
-    const Update& getUpdate(int time) const
-        { return interpolatedCenter[time]; }
-
-    MinMaxInterpolator::Data& wrapped()
-        { return mWrapped; }
-
-    const MinMaxInterpolator::Data& wrapped() const
-        { return mWrapped; }
-
-private:
-    MinMaxInterpolator::Data& mWrapped;
-    std::vector<Update> interpolatedCenter;
-};
-
-CatchUpdate::CatchUpdate(MinMaxInterpolator::Data& w)
-        : MinMaxInterpolator::Data(w.centerData()), mWrapped(w), interpolatedCenter(w.duration())
-{
-    for(int t=0; t<duration(); ++t) {
-        const SeriesData sd = parameter(t);
-        if( sd.usable() ) {
-            interpolatedCenter[t].value = sd.value();
-            interpolatedCenter[t].quality = -1;
-        }
-    }
-}
-
-void CatchUpdate::setInterpolated(int time, Quality q, float value)
-{
-    SeriesData mini = minimum(time);
-    if( mini.usable() && value < mini.value() )
-        value = mini.value();
-    SeriesData maxi = maximum(time);
-    if( maxi.usable() && value > maxi.value() )
-        value = maxi.value();
-
-    interpolatedCenter[time].value = value;
-    interpolatedCenter[time].quality = q;
-    wrapped().setInterpolated(time, q, value);
-}
-
 class MinMaxImplementation {
 public:
     MinMaxImplementation(MinMaxInterpolator::Data& d, SingleParameterInterpolator& spi)
@@ -129,7 +56,7 @@ public:
     Summary interpolate();
 
 private:
-    CatchUpdate data;
+    MinMaxInterpolator::Data& data;
     SingleParameterInterpolator& mSingleParInterpolator;
     Summary results;
 };
@@ -137,7 +64,9 @@ private:
 // reconstruct parameter from complete min and max
 void MinMaxImplementation::interpolateFromMinMax()
 {
+    DBGL;
     const int duration = data.duration();
+    DBGV(duration);
     for(int t=0; t<duration-1; ++t) {
         if( data.parameter(t).needsInterpolation() ) {
             const float maxi = std::min(data.maximum(t).value(), data.maximum(t+1).value());
@@ -158,6 +87,7 @@ void MinMaxImplementation::interpolateFromMinMax()
 
 void MinMaxImplementation::failMinMaxIfNeeded(int time)
 {
+    DBGV(time);
     if(data.minimum(time).needsInterpolation()) {
         data.setMinimum(time, FAILED, 0);
         results.addFailed();
@@ -171,36 +101,48 @@ void MinMaxImplementation::failMinMaxIfNeeded(int time)
 void MinMaxImplementation::reconstructMinMax()
 {
     const int duration = data.duration();
+    SingleParameterInterpolator::Data& cd = data.centerData();
 
     DBG("reconstruction ..N/..X");
     Akima akima;
     for(int t=0; t<duration; ++t)
-        akima.add(t, data.getUpdate(t).value);
+        akima.add(t, cd.getInterpolated(t).value);
 
     failMinMaxIfNeeded(0);
     for(int t=1; t<duration; ++t) {
-        float mini = std::min(data.getUpdate(t-1).value, data.getUpdate(t).value);
-        float maxi = std::max(data.getUpdate(t-1).value, data.getUpdate(t).value);
-        if( akima.interpolate(t+0.5) != Akima::INVALID ) {
-            const int Nbetween = 20;
-            for(int j=1; j<Nbetween; ++j) {
-                const float x = t + j/float(Nbetween);
-                const float noise = data.fluctuationLevel() * Helpers::randNormal();
-                const float akimaValue = akima.interpolate(x);
-                const float value = akimaValue + noise;
-                Helpers::minimize(mini, value);
-                Helpers::maximize(maxi, value);
-            }
-            if( data.minimum(t).needsInterpolation() ) {
-                data.setMinimum(t, BAD, mini);
-                results.addOk();
-            }
-            if( data.maximum(t).needsInterpolation() ) {
-                data.setMaximum(t, BAD, maxi);
-                results.addOk();
-            }
-        } else {
+        const bool minNeeded = data.minimum(t).needsInterpolation();
+        const bool maxNeeded = data.maximum(t).needsInterpolation();
+        DBG(DBG1(t) << DBG1(minNeeded) << DBG1(maxNeeded));
+        if( !minNeeded && !maxNeeded )
+            continue;
+
+        const SimpleResult i0 = cd.getInterpolated(t-1), i1 = cd.getInterpolated(t);
+        const bool canUseAkima = ( akima.interpolate(t+0.5) != Akima::INVALID );
+        DBG(DBG1(i0.quality) << DBG1(i1.quality) << DBG1(canUseAkima ));
+        if( i0.quality == FAILED || i1.quality == FAILED || !canUseAkima ) {
             failMinMaxIfNeeded(t);
+            continue;
+        }
+
+        float mini = std::min(i0.value, i1.value);
+        float maxi = std::max(i0.value, i1.value);
+        const int Nbetween = 20;
+        for(int j=1; j<Nbetween; ++j) {
+            const float x = t + j/float(Nbetween);
+            const float noise = data.fluctuationLevel() * Helpers::randNormal();
+            const float akimaValue = akima.interpolate(x);
+            const float value = akimaValue + noise;
+            Helpers::minimize(mini, value);
+            Helpers::maximize(maxi, value);
+        }
+        DBG(DBG1(mini) << DBG1(maxi));
+        if( minNeeded ) {
+            data.setMinimum(t, BAD, mini);
+            results.addOk();
+        }
+        if( maxNeeded ) {
+            data.setMaximum(t, BAD, maxi);
+            results.addOk();
         }
     }
 }
@@ -211,6 +153,7 @@ void MinMaxImplementation::reconstructMinMax()
 
 Summary MinMaxImplementation::interpolate()
 {
+    DBGL;
     const int duration = data.duration();
 
     bool needsPar = false, needsMin = false, needsMax = false;
@@ -236,13 +179,16 @@ Summary MinMaxImplementation::interpolate()
         // parameter and min and max incomplete => interpolate
         // parameter with other interpolator
 
-        mSingleParInterpolator.interpolate(data.centerData());
+        SingleParameterInterpolator::Data& cd = data.centerData();
+        mSingleParInterpolator.interpolate(cd);
 
-        bool newCompletePar = false;
+        bool newCompletePar = true;
         for(int t=0; t<duration; ++t) {
-            const CatchUpdate::Update& u = data.getUpdate(t);
-            newCompletePar &= ( u.quality != FAILED );
+            const SimpleResult sr = cd.getInterpolated(t);
+            DBG(DBG1(t) << DBG1(sr.quality));
+            newCompletePar &= ( sr.quality != FAILED );
         }
+        DBGV(newCompletePar);
         if( !newCompletePar ) {
             for(int t=0; t<duration; ++t)
                 failMinMaxIfNeeded(t);
@@ -258,6 +204,7 @@ Summary MinMaxImplementation::interpolate()
 
 Summary MinMaxInterpolator::interpolate(Data& data, SingleParameterInterpolator& spi)
 {
+    DBGL;
     MinMaxImplementation mm(data, spi);
     return mm.interpolate();
 }

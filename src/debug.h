@@ -8,11 +8,13 @@
 #define DBGINF(x) std::cout << __FILE__ << ":" << __LINE__ << "[" << __FUNCTION__ << "]\n    " << x << std::endl
 #define DBG(x) do { LOGDEBUG(x); DBGINF(x); } while(false);
 #define INF(x) do { LOGINFO(x);  DBGINF(x); } while(false);
+#define DBGL std::cout << __FILE__ << ":" << __LINE__ << "[" << __FUNCTION__ << "]" << std::endl
 #else
 #define DBG(x) do { /* nothing */ } while(false);
 #define INF(x) do { LOGINFO(x); } while(false);
+#define DBGL DBG("");
 #endif
-#define DBG1(x) #x "='" << x << "' "
+#define DBG1(x) " " #x "='" << x << "'"
 #define DBGV(x) DBG( DBG1(x) )
 
 #endif /* DEBUG_H */

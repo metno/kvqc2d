@@ -58,7 +58,8 @@ SeriesData KvalobsMinMaxData::minimum(int time)
     if (minimumData.empty()) {
         FlagSetCU all;
         const Instrument& i = neighborData().getInstrument();
-        minimumData = database()->findDataMaybeTSLOrderObstime(i.stationid, i.paramid, i.type, i.sensor,
+        const int paramid = neighborData().getParameterInfo().minParameter;
+        minimumData = database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
                                                                i.level, neighborData().getTimeRange(), all);
     }
 
@@ -76,7 +77,8 @@ SeriesData KvalobsMinMaxData::maximum(int time)
     if (maximumData.empty()) {
         FlagSetCU all;
         const Instrument& i = neighborData().getInstrument();
-        minimumData = database()->findDataMaybeTSLOrderObstime(i.stationid, i.paramid, i.type, i.sensor,
+        const int paramid = neighborData().getParameterInfo().maxParameter;
+        maximumData = database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
                                                                i.level, neighborData().getTimeRange(), all);
     }
 

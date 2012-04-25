@@ -27,14 +27,14 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ATTIC_H_
-#define ATTIC_H_
+#ifndef KVALOBSPARAMETERINFO_H_
+#define KVALOBSPARAMETERINFO_H_
 
 #include <string>
 
-class AlgorithmConfig;
+struct ParameterInfo {
+    ParameterInfo(const std::string& info);
 
-struct BasicParameterInfo {
     /** observed parameter id */
     int parameter;
 
@@ -44,17 +44,16 @@ struct BasicParameterInfo {
     /** maximum physical value */
     float maxValue;
 
-    /** force value is inside physical value range */
-    void constrain(float& value) const;
-
     /** return value forced inside physical value range */
     float constrained(float value) const
         { constrain(value); return value; }
 
-    BasicParameterInfo(const std::string& info);
-};
+    void constrain(float& value) const;
 
-struct ParameterInfo : public BasicParameterInfo {
+    float toNumerical(float value) const;
+
+    float toStorage(float value) const;
+
     /** parameter id for minimum of 'parameter' between observations */
     int minParameter;
 
@@ -64,8 +63,6 @@ struct ParameterInfo : public BasicParameterInfo {
     /** approximate fluctuation of the parameter while measuring min
      * and max between two observations */
     float fluctuationLevel;
-
-    ParameterInfo(const std::string& info);
 };
 
-#endif /* ATTIC_H_ */
+#endif /* KVALOBSPARAMETERINFO_H_ */

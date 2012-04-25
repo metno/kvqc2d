@@ -32,26 +32,23 @@
 #include "helpers/stringutil.h"
 #include "foreach.h"
 
+#include <limits>
 #include <cstdlib>
 
-namespace {
-const float INVALID = -32767;
-}
-
-void BasicParameterInfo::constrain(float& value) const
+void ParameterInfo::constrain(float& value) const
 {
-    if( minValue != INVALID && value < minValue )
+    if( value < minValue )
         value = minValue;
-    if( maxValue != INVALID && value > maxValue )
+    if( value > maxValue )
         value = maxValue;
 }
 
-// ------------------------------------------------------------------------
-
-BasicParameterInfo::BasicParameterInfo(const std::string& pi)
+ParameterInfo::ParameterInfo(const std::string& pi)
   : parameter(-1)
-  , minValue(INVALID)
-  , maxValue(INVALID)
+  , minValue(std::numeric_limits<float>::min())
+  , maxValue(std::numeric_limits<float>::max())
+  , minParameter(-1)
+  , maxParameter(-1)
 {
     const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
     foreach(const std::string& item, items) {
@@ -62,21 +59,7 @@ BasicParameterInfo::BasicParameterInfo(const std::string& pi)
             minValue = std::atof(kv.second.c_str());
         } else if( kv.first == "maxVal" ) {
             maxValue = std::atof(kv.second.c_str());
-        }
-    }
-}
-
-// ------------------------------------------------------------------------
-
-ParameterInfo::ParameterInfo(const std::string& pi)
-    : BasicParameterInfo(pi)
-    , minParameter(-1)
-    , maxParameter(-1)
-{
-    const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
-    foreach(const std::string& item, items) {
-        Helpers::split2_t kv = Helpers::split2(item, "=");
-        if( kv.first == "minPar" ) {
+        } else if( kv.first == "minPar" ) {
             minParameter = std::atoi(kv.second.c_str());
         } else if( kv.first == "maxPar" ) {
             maxParameter = std::atoi(kv.second.c_str());
@@ -84,4 +67,18 @@ ParameterInfo::ParameterInfo(const std::string& pi)
             fluctuationLevel = std::atof(kv.second.c_str());
         }
     }
+}
+
+float ParameterInfo::toNumerical(float v) const
+{
+    if( parameter == 112 && v >= -3 && v <= 0 )
+        return 0;
+    return v;
+}
+
+float ParameterInfo::toStorage(float v) const
+{
+    if( parameter == 112 && v >= -1000 && v <= 0.5 )
+        return -1;
+    return v;
 }
