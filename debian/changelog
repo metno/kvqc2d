@@ -1,3 +1,9 @@
+kvqc2d (1.3.16pre2-1) unstable; urgency=low
+
+  * improved gap interpolation
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 26 Apr 2012 13:20:55 +0200
+
 kvqc2d (1.3.16pre1-1) unstable; urgency=low
 
   * QC2d-4
@@ -13,7 +19,7 @@ kvqc2d (1.3.15-1) unstable; urgency=low
 
 kvqc2d (1.3.14-1) unstable; urgency=low
 
-  * Plumatic: WARN in neighbor check 
+  * Plumatic: WARN in neighbor check
 
  -- Alexander Bürger <alexander.buerger@met.no>  Thu, 29 Mar 2012 08:42:13 +0200
 
