@@ -34,7 +34,7 @@ libinterpolation_a_SOURCES = \
 #	SimpleData.cc \
 #	SimpleData.h
 
-AM_CXXFLAGS = -Wall -W \
+AM_CXXFLAGS = -Wall -W -I$(top_srcdir)/src \
 	$(PROG_DEPS_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniORB4_CFLAGS)
