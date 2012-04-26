@@ -105,10 +105,15 @@ void MinMaxImplementation::reconstructMinMax()
 
     DBG("reconstruction ..N/..X");
     Akima akima;
-    for(int t=0; t<duration; ++t)
-        akima.add(t, cd.getInterpolated(t).value);
+    for(int t=0; t<duration; ++t) {
+        const SimpleResult i = cd.getInterpolated(t);
+        if( i.quality != FAILED )
+            akima.add(t, i.value);
+    }
 
+    // we do not have data for t=-1, so first point always fails if it needs interpolation
     failMinMaxIfNeeded(0);
+
     for(int t=1; t<duration; ++t) {
         const bool minNeeded = data.minimum(t).needsInterpolation();
         const bool maxNeeded = data.maximum(t).needsInterpolation();
@@ -117,9 +122,10 @@ void MinMaxImplementation::reconstructMinMax()
             continue;
 
         const SimpleResult i0 = cd.getInterpolated(t-1), i1 = cd.getInterpolated(t);
-        const bool canUseAkima = ( akima.interpolate(t+0.5) != Akima::INVALID );
+        const bool canUseAkima = (akima.distance(t+0.5) < 1.5);
         DBG(DBG1(i0.quality) << DBG1(i1.quality) << DBG1(canUseAkima ));
         if( i0.quality == FAILED || i1.quality == FAILED || !canUseAkima ) {
+            DBGL;
             failMinMaxIfNeeded(t);
             continue;
         }
@@ -180,22 +186,8 @@ Summary MinMaxImplementation::interpolate()
         // parameter with other interpolator
 
         SingleParameterInterpolator::Data& cd = data.centerData();
-        mSingleParInterpolator.interpolate(cd);
-
-        bool newCompletePar = true;
-        for(int t=0; t<duration; ++t) {
-            const SimpleResult sr = cd.getInterpolated(t);
-            DBG(DBG1(t) << DBG1(sr.quality));
-            newCompletePar &= ( sr.quality != FAILED );
-        }
-        DBGV(newCompletePar);
-        if( !newCompletePar ) {
-            for(int t=0; t<duration; ++t)
-                failMinMaxIfNeeded(t);
-            return results;
-        }
+        results = mSingleParInterpolator.interpolate(cd);
     }
-    // here, mmwq.par is complete, although maybe not so good quality
 
     if( needsMin || needsMax )
         reconstructMinMax();

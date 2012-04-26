@@ -22,7 +22,7 @@ public:
         const SingleParameterInterpolator::Data& centerData() const
             { return mCenterData; }
 
-        virtual int duration() const
+        virtual int duration()
             { return mCenterData.duration(); }
 
         virtual Interpolation::SeriesData parameter(int time)
@@ -35,7 +35,7 @@ public:
         virtual SeriesData maximum(int t) = 0;
         virtual void setMinimum(int time, Quality q, float value) = 0;
         virtual void setMaximum(int time, Quality q, float value) = 0;
-        virtual float fluctuationLevel() const = 0;
+        virtual float fluctuationLevel() = 0;
 
     private:
         SingleParameterInterpolator::Data& mCenterData;

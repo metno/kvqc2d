@@ -42,16 +42,15 @@ class KvalobsNeighborData : public Interpolation::NeighborInterpolator::Data {
 public:
     KvalobsNeighborData(DBInterface* db, const Instrument& i, const TimeRange& t, const ParameterInfo& pi);
 
-    virtual int duration() const;
+    virtual int duration();
 
     virtual Interpolation::SeriesData parameter(int time);
 
     virtual void setInterpolated(int time, Interpolation::Quality q, float value);
 
-    virtual int neighbors() const
-        { return neighborCorrelations.size(); }
+    virtual int neighbors();
 
-    virtual float maximumOffset() const
+    virtual float maximumOffset()
         { return mMaxOffset; }
 
     virtual Interpolation::SupportData neighbor(int n, int time);

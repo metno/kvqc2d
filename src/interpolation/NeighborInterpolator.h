@@ -16,9 +16,9 @@ class NeighborInterpolator : public SingleParameterInterpolator {
 public:
     class Data: public SingleParameterInterpolator::Data {
     public:
-        virtual int neighbors() const = 0;
+        virtual int neighbors() = 0;
 
-        virtual float maximumOffset() const = 0;
+        virtual float maximumOffset() = 0;
 
         virtual SupportData model(int time) = 0;
 

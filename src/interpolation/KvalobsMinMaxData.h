@@ -15,7 +15,7 @@ public:
     virtual Interpolation::SeriesData maximum(int time);
     virtual void setMinimum(int time, Interpolation::Quality q, float value);
     virtual void setMaximum(int time, Interpolation::Quality q, float value);
-    virtual float fluctuationLevel() const;
+    virtual float fluctuationLevel();
 
     const Interpolation::SimpleResultVector& getInterpolatedMin()
         { return interpolationsMin; }

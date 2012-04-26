@@ -36,7 +36,7 @@ class KvalobsUUNeighborData : public Interpolation::NeighborInterpolator::Data {
 public:
     KvalobsUUNeighborData(KvalobsNeighborData& dUU, KvalobsNeighborData& dTA);
 
-    virtual int duration() const
+    virtual int duration()
         { return dataUU.duration(); }
 
     virtual Interpolation::SeriesData parameter(int time);
@@ -46,10 +46,10 @@ public:
     virtual Interpolation::SupportData model(int)
         { return Interpolation::SupportData(); }
 
-    virtual int neighbors() const
+    virtual int neighbors()
         { return dataUU.neighbors(); }
 
-    virtual float maximumOffset() const
+    virtual float maximumOffset()
         { return dataUU.neighbors(); }
 
     virtual float neighborWeight(int neighbor)
@@ -78,7 +78,7 @@ public:
 
     virtual void setMaximum(int time, Interpolation::Quality q, float value);
 
-    virtual float fluctuationLevel() const
+    virtual float fluctuationLevel()
         { return dataUU.fluctuationLevel(); }
 
 private:

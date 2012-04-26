@@ -14,7 +14,7 @@ public:
     public:
         virtual ~Data();
 
-        virtual int duration() const = 0;
+        virtual int duration() = 0;
 
         virtual SeriesData parameter(int time) = 0;
 

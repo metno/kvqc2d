@@ -76,19 +76,14 @@ Interpolation::Summary NeighborImplementation::interpolate()
 
 void NeighborImplementation::interpolateSimple()
 {
-    DBGL;
     const unsigned int duration = data.duration();
-    DBGL;
     simpleInterpolations = SupportVector(duration);
-    DBGL;
 
     const int nc = data.neighbors();
-    DBG(DBG1(duration) << DBG1(nc));
 
     for(unsigned int t=0; t<duration; ++t) {
         Helpers::WeightedMean wm;
         for(int n=0; n<nc && wm.count() < MAX_NEIGHBORS; ++n) {
-            DBG(DBG1(t) << DBG1(n));
             const SupportData nd = data.transformedNeighbor(n, t);
             if( nd.usable() )
                 wm.add(nd.value(), data.neighborWeight(n));
@@ -150,7 +145,7 @@ void NeighborImplementation::interpolateSingleGap()
     const int t0 = beforeGap + 1;
     for(int t=t0; t<t0+gap; ++t) {
         const SeriesData obs = data.parameter(t);
-        DBG(DBG1(t) << DBG1(obs.value() << DBG1(obs.needsInterpolation())));
+        DBG(DBG1(t) << DBG1(obs.value()) << DBG1(obs.needsInterpolation()));
         if( obs.needsInterpolation() )
             interpolateSinglePoint(t);
     }
@@ -178,6 +173,7 @@ void NeighborImplementation::calculateOffsets(int t0, int t1)
 {
     ocObservations = calculateOffset(simpleInterpolations[t0], simpleInterpolations[t1], t0, t1);
     ocModel = calculateOffset(data.model(t0), data.model(t1), t0, t1);
+    DBG(DBG1(ocObservations.at(t0)) << DBG1(ocObservations.at(t1)));
 }
 
 void NeighborImplementation::interpolateSinglePoint(int t)
@@ -186,24 +182,35 @@ void NeighborImplementation::interpolateSinglePoint(int t)
     Helpers::WeightedMean combi;
 
     const bool canUseAkima = (akima.distance(t) < 1.5);
-    if( akimaFirst && canUseAkima )
+    DBGV(canUseAkima);
+    if( akimaFirst && canUseAkima ) {
         combi.add(akima.interpolate(t), AKIMAWEIGHT);
-
-    const SupportData& inter = simpleInterpolations[t];
-    if( !combi.valid() && inter.usable() ) {
-        const float delta = ocObservations.at(t);
-        if( std::fabs(delta) < data.maximumOffset())
-            combi.add(inter.value() - delta, 1);
+        DBG("akima first");
     }
 
-    if( !akimaFirst && !combi.valid() && canUseAkima )
+    const SupportData& inter = simpleInterpolations[t];
+    DBGV(inter.usable());
+    if( !combi.valid() && inter.usable() ) {
+        const float delta = ocObservations.at(t);
+        DBG(DBG1(delta) << DBG1(data.maximumOffset()));
+        if( std::fabs(delta) < data.maximumOffset()) {
+            combi.add(inter.value() - delta, 1);
+            DBG("combi" << DBG1(inter.value()));
+        }
+    }
+
+    if( !akimaFirst && !combi.valid() && canUseAkima ) {
         combi.add(akima.interpolate(t), AKIMAWEIGHT);
+        DBG("akima not first");
+    }
 
     const SupportData& model = data.model(t);
     if( !combi.valid() && model.usable() ) {
         const float delta = ocModel.at(t);
-        if( std::fabs(delta) < data.maximumOffset() )
+        if( std::fabs(delta) < data.maximumOffset() ) {
             combi.add(model.value() - delta, 1);
+            DBGL;
+        }
     }
 
     if( combi.valid() ) {

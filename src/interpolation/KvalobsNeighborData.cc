@@ -48,11 +48,11 @@ const float MAX_SIGMA = 3;
 } // anonymous namespace
 
 KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
-        : mDB(db), mTimeRange(t), mInstrument(instrument), mParameterInfo(pi)
+        : mDB(db), mTimeRange(t), mInstrument(instrument), mParameterInfo(pi), mMaxOffset(15) // TODO set mMaxOffset per parameter
 {
 }
 
-int KvalobsNeighborData::duration() const
+int KvalobsNeighborData::duration()
 {
     DBG("calc duration = " << mTimeRange.hours() + 1 << DBG1(mTimeRange.t0) << DBG1(mTimeRange.t1));
     return mTimeRange.hours() + 1;
@@ -110,28 +110,33 @@ SupportData KvalobsNeighborData::model(int time)
     return SupportData();
 }
 
-SupportData KvalobsNeighborData::neighbor(int n, int time)
+int KvalobsNeighborData::neighbors()
 {
     if( neighborCorrelations.empty() ) {
         neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, MAX_SIGMA);
-        neighborObservations = std::vector<DBInterface::DataList>(neighbors());
+        neighborObservations = std::vector<DBInterface::DataList>(neighborCorrelations.size());
     }
+    return neighborCorrelations.size();
+}
+
+SupportData KvalobsNeighborData::neighbor(int n, int time)
+{
+    DBG(DBG1(n) << DBG1(neighborCorrelations.size()));
     if (n >= neighbors())
         return SupportData();
 
-    const DBInterface::DataList& no = neighborObservations[n];
+    DBInterface::DataList& no = neighborObservations[n];
     if( no.empty() ) {
         const NeighborData& nd = getNeighborData(n);
         FlagSetCU all;
         const Instrument& i = mInstrument;
-        neighborObservations[n] =
-                mDB->findDataMaybeTSLOrderObstime(nd.neighborid, i.paramid,
-                        DBInterface::INVALID_ID, DBInterface::INVALID_ID,
-                        DBInterface::INVALID_ID, mTimeRange, all);
+        no = mDB->findDataMaybeTSLOrderObstime(nd.neighborid, i.paramid,
+                DBInterface::INVALID_ID, DBInterface::INVALID_ID,
+                DBInterface::INVALID_ID, mTimeRange, all);
     }
 
     const miutil::miTime t = timeAtOffset(time);
-    foreach(const kvalobs::kvData& d, neighborObservations[n]) {
+    foreach(const kvalobs::kvData& d, no) {
         if( d.obstime() == t ) {
             if( mNeighborFlags.matches(d) )
                 return SupportData(mParameterInfo.toNumerical(d.original()));

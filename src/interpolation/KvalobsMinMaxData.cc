@@ -91,7 +91,7 @@ SeriesData KvalobsMinMaxData::maximum(int time)
     return SeriesData();
 }
 
-float KvalobsMinMaxData::fluctuationLevel() const
+float KvalobsMinMaxData::fluctuationLevel()
 {
     return 0.5; // TODO
 }
