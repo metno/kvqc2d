@@ -1,3 +1,9 @@
+kvqc2d (1.3.16pre3-1) unstable; urgency=low
+
+  * GapInterpolation: no update if same numerical value
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 26 Apr 2012 15:50:08 +0200
+
 kvqc2d (1.3.16pre2-1) unstable; urgency=low
 
   * improved gap interpolation
