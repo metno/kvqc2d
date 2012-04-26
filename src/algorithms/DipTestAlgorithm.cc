@@ -81,8 +81,6 @@ void DipTestAlgorithm::configure(const AlgorithmConfig& params)
     Qc2Algorithm::configure(params);
 
     fillParameterDeltaMap(params, PidValMap);
-    fillStationIDList(mStationIDs);
-    DBGV(mStationIDs.size());
 
     params.getFlagSetCU(akima_flags,          "akima",          "", "U2=0");
     params.getFlagSetCU(candidate_flags,      "candidate",      "fs=2&fhqc=0", "");
@@ -97,10 +95,12 @@ void DipTestAlgorithm::configure(const AlgorithmConfig& params)
 
 void DipTestAlgorithm::run()
 {
+    const DBInterface::StationIDList stationIDs(1, DBInterface::ALL_STATIONS);
+
     for (std::map<int, float>::const_iterator it=PidValMap.begin(); it!=PidValMap.end(); ++it) {
         const int pid = it->first, delta = it->second;
 
-        const DBInterface::DataList candidates = database()->findDataOrderObstime(mStationIDs, pid, TimeRange(UT0, UT1), candidate_flags);
+        const DBInterface::DataList candidates = database()->findDataOrderObstime(stationIDs, pid, TimeRange(UT0, UT1), candidate_flags);
         DBGV(candidates.size());
         foreach(const kvalobs::kvData& c, candidates) {
             if( c.original() > missing )

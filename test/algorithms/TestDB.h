@@ -49,6 +49,8 @@ public:
     virtual ModelDataList extractModelData(const std::string& sql) throw (DBException);
     virtual void execSQLUpdate(const std::string& sql) throw (DBException);
 
+    virtual void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
+
     // test helpers
     void exec(const std::string& statements) throw (DBException)
         { execSQLUpdate(statements); }

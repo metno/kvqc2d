@@ -31,6 +31,7 @@
 #define SQLDataAccess_h
 
 #include "DBInterface.h"
+#include <iosfwd>
 
 class SQLDataAccess : public DBInterface {
 public:
@@ -66,6 +67,8 @@ protected:
     virtual NeighborDataVector extractNeighborData(const std::string& sql) throw (DBException) = 0;
     virtual ModelDataList extractModelData(const std::string& sql) throw (DBException) = 0;
     virtual void execSQLUpdate(const std::string& sql) throw (DBException) = 0;
+
+    virtual void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
 
 private:
     virtual DataList findData(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags, bool orderByStation=false) throw (DBException);

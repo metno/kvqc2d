@@ -331,9 +331,9 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 
 void RedistributionAlgorithm::run()
 {
-    const DBInterface::StationIDList stations = database()->findNorwegianFixedStationIDs();
+    const DBInterface::StationIDList stationIDs(1, DBInterface::ALL_STATIONS);
     const DBInterface::DataList edata
-        = database()->findDataOrderStationObstime(stations, pids, tids, TimeRange(UT0, UT1), endpoint_flags);
+        = database()->findDataOrderStationObstime(stationIDs, pids, tids, TimeRange(UT0, UT1), endpoint_flags);
 
     int lastStationId = -1;
     miutil::miTime lastObstime = UT0;

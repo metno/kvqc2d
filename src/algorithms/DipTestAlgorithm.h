@@ -26,7 +26,6 @@ private:
 
 private:
     std::map<int, float> PidValMap;
-    DBInterface::StationIDList mStationIDs;
     FlagSetCU akima_flags, candidate_flags, dip_before_flags, dip_after_flags, message_before_flags, message_after_flags;
     FlagChange dip_flagchange, afterdip_flagchange;
 };

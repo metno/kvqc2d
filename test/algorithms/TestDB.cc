@@ -302,3 +302,14 @@ void SqliteTestDB::execSQLUpdate(const std::string& sql) throw (DBException)
         throw DBException(what);
     }
 }
+
+// ------------------------------------------------------------------------
+
+void SqliteTestDB::formatStationIDList(std::ostream& sql, const StationIDList& stationIDs)
+{
+    if( stationIDs.size() == 1 and stationIDs.front() == ALL_STATIONS ) {
+        sql << "stationid IN (SELECT stationid FROM station WHERE stationid BETWEEN 60 AND 99999 AND maxspeed = 0)";
+    } else {
+        SQLDataAccess::formatStationIDList(sql, stationIDs);
+    }
+}

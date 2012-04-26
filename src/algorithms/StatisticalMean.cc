@@ -438,8 +438,7 @@ void StatisticalMean::run()
     // this fetches all data with this paramid for all stations at
     // once; this might be a lot, but we need all neighbors for each
     // station anyhow
-    const DBInterface::StationIDList stationIDs = database()->findNorwegianFixedStationIDs();
-    DBGV(stationIDs.size());
+    const DBInterface::StationIDList stationIDs(1, DBInterface::ALL_STATIONS);
     DBInterface::DataList sdata
         = database()->findDataOrderObstime(stationIDs, mParamid, mTypeids, TimeRange(mUT0extended, UT1));
     DBGV(sdata.size());

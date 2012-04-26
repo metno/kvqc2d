@@ -62,7 +62,7 @@ class DBInterface {
 public:
     virtual ~DBInterface() { }
 
-    enum { INVALID_ID = -32767 };
+    enum { INVALID_ID = -32767, ALL_STATIONS = -1 };
 
     // ----------------------------------------
 

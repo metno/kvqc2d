@@ -128,8 +128,7 @@ struct HasParameter : public std::unary_function<bool, ParameterInfo> {
 
 void GapInterpolationAlgorithm::run()
 {
-    DBInterface::StationIDList StationIds;
-    fillStationIDList(StationIds);
+    const DBInterface::StationIDList stationIDs(1, DBInterface::ALL_STATIONS);
 
     typedef std::vector<ParamGroupMissingRange> MissingRanges;
     typedef std::map<Instrument, MissingRanges, lt_Instrument> InstrumentMissingRanges;
@@ -146,7 +145,7 @@ void GapInterpolationAlgorithm::run()
     DBGV(pids.size());
 
     const DBInterface::DataList missingData
-        = database()->findDataOrderStationObstime(StationIds, pids, tids, TimeRange(UT0, UT1), missing_flags);
+        = database()->findDataOrderStationObstime(stationIDs, pids, tids, TimeRange(UT0, UT1), missing_flags);
     DBGV(missingData.size());
 
     foreach(const kvalobs::kvData& d, missingData) {

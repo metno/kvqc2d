@@ -50,10 +50,12 @@ protected:
     virtual ModelDataList extractModelData(const std::string& sql) throw (DBException);
     virtual void execSQLUpdate(const std::string& sql) throw (DBException);
 
+    virtual void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
+
 private:
     void connect();
     void disconnect();
-    
+
 private:
     Qc2App& mApp;
     KvalobsDbGate mDbGate;

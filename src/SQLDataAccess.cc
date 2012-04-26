@@ -165,7 +165,7 @@ DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, c
 {
     std::ostringstream sql;
     sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
-    formatIDList(sql, stationIDs, "stationid");
+    formatStationIDList(sql, stationIDs);
     sql << " AND ";
     formatIDList(sql, pids, "paramid");
     sql << " AND ";
@@ -232,4 +232,16 @@ void SQLDataAccess::storeData(const DataList& toUpdate, const DataList& toInsert
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl;
     execSQLUpdate(sql.str());
+}
+
+// ------------------------------------------------------------------------
+
+void SQLDataAccess::formatStationIDList(std::ostream& sql, const StationIDList& stationIDs)
+{
+    if( stationIDs.size() == 1 and stationIDs.front() == ALL_STATIONS ) {
+        // no constraint on stationid by default
+        sql << " 0=0 ";
+    } else {
+        formatIDList(sql, stationIDs, "stationid");
+    }
 }
