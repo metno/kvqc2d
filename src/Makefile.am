@@ -39,7 +39,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/SingleLinearAlgorithm.h \
 	algorithms/StatisticalMean.cc \
 	algorithms/StatisticalMean.h \
-	config_bottom.h \
 	DBInterface.h \
 	debug.h \
 	FlagChange.cc \
