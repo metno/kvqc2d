@@ -78,7 +78,7 @@ KvalobsUUMinMaxData::KvalobsUUMinMaxData(KvalobsUUNeighborData& ndata, KvalobsMi
 
 SeriesData KvalobsUUMinMaxData::minimum(int time)
 {
-    const SeriesData sdUU = dataUU.minimum(time), sdTA = dataTA.minimum(time);
+    const SeriesData sdUU = dataUU.minimum(time), sdTA = dataTA.parameter(time);
     if( !sdUU.usable() || !sdTA.usable() )
         return sdUU;
 
@@ -87,7 +87,7 @@ SeriesData KvalobsUUMinMaxData::minimum(int time)
 
 SeriesData KvalobsUUMinMaxData::maximum(int time)
 {
-    const SeriesData sdUU = dataUU.maximum(time), sdTA = dataTA.maximum(time);
+    const SeriesData sdUU = dataUU.maximum(time), sdTA = dataTA.parameter(time);
     if( !sdUU.usable() || !sdTA.usable() )
         return sdUU;
 
