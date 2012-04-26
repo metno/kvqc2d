@@ -50,8 +50,7 @@ public:
 
     virtual int neighbors();
 
-    virtual float maximumOffset()
-        { return mMaxOffset; }
+    virtual float maximumOffset();
 
     virtual Interpolation::SupportData neighbor(int n, int time);
     virtual Interpolation::SupportData model(int time);
@@ -87,7 +86,6 @@ protected:
     const ParameterInfo& mParameterInfo;
 
     DBInterface::DataList centerObservations;
-    float mMaxOffset;
     DBInterface::ModelDataList centerModel;
     NeighborDataVector neighborCorrelations;
     std::vector<DBInterface::DataList> neighborObservations;

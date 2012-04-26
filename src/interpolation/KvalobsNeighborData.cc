@@ -48,8 +48,13 @@ const float MAX_SIGMA = 3;
 } // anonymous namespace
 
 KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
-        : mDB(db), mTimeRange(t), mInstrument(instrument), mParameterInfo(pi), mMaxOffset(15) // TODO set mMaxOffset per parameter
+        : mDB(db), mTimeRange(t), mInstrument(instrument), mParameterInfo(pi)
 {
+}
+
+float KvalobsNeighborData::maximumOffset()
+{
+    return mParameterInfo.maxOffset;
 }
 
 int KvalobsNeighborData::duration()

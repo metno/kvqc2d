@@ -47,6 +47,7 @@ ParameterInfo::ParameterInfo(const std::string& pi)
   : parameter(-1)
   , minValue(std::numeric_limits<float>::min())
   , maxValue(std::numeric_limits<float>::max())
+  , maxOffset(15)
   , minParameter(-1)
   , maxParameter(-1)
 {
@@ -65,6 +66,8 @@ ParameterInfo::ParameterInfo(const std::string& pi)
             maxParameter = std::atoi(kv.second.c_str());
         } else if( kv.first == "fluctuationLevel" ) {
             fluctuationLevel = std::atof(kv.second.c_str());
+        } else if( kv.first == "offsetCorrectionLimit" ) {
+            maxOffset = std::atof(kv.second.c_str());
         }
     }
 }
