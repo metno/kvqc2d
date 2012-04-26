@@ -69,6 +69,8 @@ private:
 
     OffsetCorrection calculateOffset(const SupportData &o0, const SupportData &o1, int t0, int t1);
     void calculateOffsets(int t0, int t1);
+    void failure(int time);
+    void success(int time, Interpolation::Quality q, float value);
 
 private:
     NeighborInterpolator::Data& data;
@@ -89,7 +91,6 @@ NeighborImplementation::NeighborImplementation(NeighborInterpolator::Data& d)
 
 Interpolation::Summary NeighborImplementation::interpolate()
 {
-    DBGL;
     interpolateSimple();
     setupAkima();
     interpolateGaps();
@@ -117,39 +118,28 @@ void NeighborImplementation::interpolateSimple()
 
 void NeighborImplementation::setupAkima()
 {
-    DBGL;
     const int d = data.duration();
-    DBGV(d);
     for(int t = 0; t<d; ++t) {
         const SupportData obs = data.parameter(t);
-        if( obs.usable() ) {
-            DBG(DBG1(t) << DBG1(obs.value()));
+        if( obs.usable() )
             akima.add(t, obs.value());
-        }
     }
 }
 
 void NeighborImplementation::interpolateGaps()
 {
-    DBGL;
     const int duration = data.duration();
-    DBGV(duration);
 
     beforeGap = NeighborInterpolator::EXTRA_DATA - 1; // assume this is an observed value
     const int afterGaps = duration - NeighborInterpolator::EXTRA_DATA;
-    DBG(DBG1(duration) << DBG1(beforeGap) << DBG1(afterGaps));
     while( beforeGap < afterGaps ) {
         if( !data.parameter(beforeGap).usable() ) {
             beforeGap += 1;
-            DBGV(beforeGap);
             continue;
         }
         afterGap = beforeGap+1;
-        DBGV(afterGap);
-        while( afterGap < afterGaps && !data.parameter(afterGap).usable() ) {
+        while( afterGap < afterGaps && !data.parameter(afterGap).usable() )
             ++afterGap;
-            DBGV(afterGap);
-        }
 
         if( afterGap != beforeGap + 1 )
             interpolateSingleGap();
@@ -160,14 +150,12 @@ void NeighborImplementation::interpolateGaps()
 void NeighborImplementation::interpolateSingleGap()
 {
     const int gap = afterGap - beforeGap - 1;
-    DBGV(gap);
 
     calculateOffsets(beforeGap, afterGap);
 
     const int t0 = beforeGap + 1;
     for(int t=t0; t<t0+gap; ++t) {
         const SeriesData obs = data.parameter(t);
-        DBG(DBG1(t) << DBG1(obs.value()) << DBG1(obs.needsInterpolation()));
         if( obs.needsInterpolation() )
             interpolateSinglePoint(t);
     }
@@ -195,56 +183,61 @@ void NeighborImplementation::calculateOffsets(int t0, int t1)
 {
     ocObservations = calculateOffset(simpleInterpolations[t0], simpleInterpolations[t1], t0, t1);
     ocModel = calculateOffset(data.model(t0), data.model(t1), t0, t1);
-    DBG(DBG1(ocObservations.at(t0)) << DBG1(ocObservations.at(t1)));
 }
 
 void NeighborImplementation::interpolateSinglePoint(int t)
 {
-    DBGV(t);
+    const bool atStartOrEnd = (t==beforeGap+1 || t==afterGap-1);
+    const int gap = afterGap - beforeGap - 1;
+    const bool longGap = (gap>12);
+    const bool canUseAkima = (akima.distance(t) < 1.5);
+    if( longGap ) {
+        if( atStartOrEnd and canUseAkima )
+            success(t, BAD, akima.interpolate(t));
+        else
+            failure(t);
+        return;
+    }
+
     Helpers::WeightedMean combi;
 
-    const bool canUseAkima = (akima.distance(t) < 1.5);
-    DBGV(canUseAkima);
-    if( akimaFirst && canUseAkima ) {
+    if( akimaFirst && canUseAkima )
         combi.add(akima.interpolate(t), AKIMAWEIGHT);
-        DBG("akima first");
-    }
 
     const SupportData& inter = simpleInterpolations[t];
-    DBGV(inter.usable());
     if( !combi.valid() && inter.usable() ) {
         const float delta = ocObservations.at(t);
-        DBG(DBG1(delta) << DBG1(data.maximumOffset()));
-        if( std::fabs(delta) < data.maximumOffset()) {
+        if( std::fabs(delta) < data.maximumOffset())
             combi.add(inter.value() - delta, 1);
-            DBG("combi" << DBG1(inter.value()));
-        }
     }
 
-    if( !akimaFirst && !combi.valid() && canUseAkima ) {
+    if( !akimaFirst && !combi.valid() && canUseAkima )
         combi.add(akima.interpolate(t), AKIMAWEIGHT);
-        DBG("akima not first");
-    }
 
     const SupportData& model = data.model(t);
     if( !combi.valid() && model.usable() ) {
         const float delta = ocModel.at(t);
-        if( std::fabs(delta) < data.maximumOffset() ) {
+        if( std::fabs(delta) < data.maximumOffset() )
             combi.add(model.value() - delta, 1);
-            DBGL;
-        }
     }
 
     if( combi.valid() ) {
-        DBGV(combi.mean());
-        const bool good = (t==beforeGap+1 || t==afterGap-1);
-        data.setInterpolated(t, good ? GOOD : BAD, combi.mean());
-        result.addOk();
+        success(t, atStartOrEnd ? GOOD : BAD, combi.mean());
     } else {
-        DBGL;
-        data.setInterpolated(t, Interpolation::FAILED, 0);
-        result.addFailed();
+        failure(t);
     }
+}
+
+void NeighborImplementation::failure(int time)
+{
+    data.setInterpolated(time, Interpolation::FAILED, 0);
+    result.addFailed();
+}
+
+void NeighborImplementation::success(int time, Interpolation::Quality q, float value)
+{
+    data.setInterpolated(time, q, value);
+    result.addOk();
 }
 
 } // anonymous namespace
