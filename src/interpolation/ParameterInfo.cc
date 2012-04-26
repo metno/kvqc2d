@@ -37,7 +37,7 @@
 
 void ParameterInfo::constrain(float& value) const
 {
-    if( value < minValue )
+    if( value < minValue && value >= -32765 )
         value = minValue;
     if( value > maxValue )
         value = maxValue;
@@ -76,11 +76,12 @@ float ParameterInfo::toNumerical(float v) const
 {
     if( parameter == 112 && v >= -3 && v <= 0 )
         return 0;
-    return v;
+    return constrained(v);
 }
 
 float ParameterInfo::toStorage(float v) const
 {
+    constrain(v);
     if( parameter == 112 && v >= -1000 && v <= 0.5 )
         return -1;
     return v;

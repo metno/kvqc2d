@@ -59,8 +59,11 @@ private:
 
 private:
     Instrument getMasterInstrument(const kvalobs::kvData& data);
-    void makeUpdates(const ParamGroupMissingRange::MissingRange& mr, const Interpolation::SimpleResultVector& interpolated,
-                     const TimeRange& range, DBInterface::DataList& updates);
+    void makeUpdates(const ParamGroupMissingRange::MissingRange& mr,
+                     const Interpolation::SimpleResultVector& interpolated,
+                     const TimeRange& range,
+                     DBInterface::DataList& updates,
+                     const ParameterInfo& parameterInfo);
 
 private:
     typedef DBInterface::DataList    DataList;

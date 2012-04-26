@@ -177,4 +177,3 @@ miutil::miTime KvalobsNeighborData::timeAtOffset(int time) const
 {
     return Helpers::plusHour(mTimeRange.t0, time);
 }
-

@@ -88,20 +88,22 @@ GapInterpolationAlgorithm::ParamGroupMissingRange::ParamGroupMissingRange(const 
 
 void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::MissingRange& mr,
                                             const Interpolation::SimpleResultVector& interpolated,
-                                            const TimeRange& range, DBInterface::DataList& updates)
+                                            const TimeRange& range, DBInterface::DataList& updates,
+                                            const ParameterInfo& parameterInfo)
 {
-    DBGL;
     ParamGroupMissingRange::MissingRange::const_iterator dit = mr.begin();
     foreach(const Interpolation::SimpleResult& sr, interpolated) {
-        if( dit == mr.end() ) {
-            DBGL;
+        if( dit == mr.end() )
             break;
-        }
+
         const int t = miutil::miTime::hourDiff(dit->obstime(), range.t0);
+
+        // TODO maybe move this to KvalobsNeighborData or so?
         const float c = dit->corrected();
-        DBG(DBG1(sr.time) << DBG1(sr.quality) << DBG1(sr.value) << DBG1(dit->obstime()) << DBG1(t));
-        if( t == sr.time && !( Helpers::equal(c, sr.value) || (sr.quality == Interpolation::FAILED && c < -32765) ) ) {
-            DBGL;
+        const bool sameNumericalValue = Helpers::equal(parameterInfo.toNumerical(c), parameterInfo.toNumerical(sr.value));
+        const bool failedInterpolationForMissingCorrected = (sr.quality == Interpolation::FAILED && c < -32765);
+
+        if( t == sr.time && !( sameNumericalValue || failedInterpolationForMissingCorrected ) ) {
             kvalobs::kvData dwrite(*dit);
             dwrite.corrected(sr.value);
             dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
@@ -142,11 +144,9 @@ void GapInterpolationAlgorithm::run()
         if( pi.maxParameter > 0 )
             pids.push_back(pi.maxParameter);
     }
-    DBGV(pids.size());
 
     const DBInterface::DataList missingData
         = database()->findDataOrderStationObstime(stationIDs, pids, tids, TimeRange(UT0, UT1), missing_flags);
-    DBGV(missingData.size());
 
     foreach(const kvalobs::kvData& d, missingData) {
         const Instrument i = getMasterInstrument(d);
@@ -187,13 +187,13 @@ void GapInterpolationAlgorithm::run()
                     const Interpolation::Summary s = mMinMaxInterpolator->interpolate(mmd, *mNeighborInterpolator);
                 }
 
-                makeUpdates(pgmr.paramMissingRanges[parameter       ], knd.getInterpolated(),    missingTime, updates);
-                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), missingTime, updates);
-                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmd.getInterpolatedMax(), missingTime, updates);
+                makeUpdates(pgmr.paramMissingRanges[parameter       ], knd.getInterpolated(),    missingTime, updates, *pi);
+                makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), missingTime, updates, *pi);
+                makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmd.getInterpolatedMax(), missingTime, updates, *pi);
             } else {
                 foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
                     const Interpolation::Summary s  = mNeighborInterpolator->interpolate(knd);
-                    makeUpdates(pr.second, knd.getInterpolated(), missingTime, updates);
+                    makeUpdates(pr.second, knd.getInterpolated(), missingTime, updates, *pi);
                 }
             }
         }
