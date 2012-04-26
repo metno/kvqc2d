@@ -37,8 +37,6 @@ libkvqc2d_a_SOURCES = \
 	algorithms/RedistributionNeighbors.h \
 	algorithms/SingleLinearAlgorithm.cc \
 	algorithms/SingleLinearAlgorithm.h \
-	algorithms/StatisticalMean.cc \
-	algorithms/StatisticalMean.h \
 	DBInterface.h \
 	debug.h \
 	FlagChange.cc \
@@ -82,7 +80,7 @@ kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 kvqc2d_LDADD = $(PROG_DEPS_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \
-	libkvqc2d.a interpolation/libinterpolation.a helpers/libhelpers.a
+	libkvqc2d.a interpolation/libinterpolation.a statisticalmean/libstatisticalmean.a helpers/libhelpers.a
 
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs

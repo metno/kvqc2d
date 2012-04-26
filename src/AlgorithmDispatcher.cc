@@ -34,7 +34,7 @@
 #include "algorithms/PlumaticAlgorithm.h"
 #include "algorithms/RedistributionAlgorithm.h"
 #include "algorithms/SingleLinearAlgorithm.h"
-#include "algorithms/StatisticalMean.h"
+#include "statisticalmean/StatisticalMean.h"
 
 #include "AlgorithmConfig.h"
 #include "DBInterface.h"

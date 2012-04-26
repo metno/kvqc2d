@@ -54,7 +54,9 @@ LDADD = \
 	$(BOOST_FILESYSTEM_LIB)
 
 kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
-	../src/libkvqc2d.a ../src/interpolation/libinterpolation.a ../src/TimeRange.o ../src/helpers/libhelpers.a
+	../src/libkvqc2d.a ../src/interpolation/libinterpolation.a \
+	../src/statisticalmean/libstatisticalmean.a ../src/TimeRange.o \
+	../src/helpers/libhelpers.a
 
 kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS)
 

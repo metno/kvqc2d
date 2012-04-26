@@ -31,7 +31,7 @@
 #if BOOST_VERSION >= 104000
 
 #include "AlgorithmTestBase.h"
-#include "algorithms/StatisticalMean.h"
+#include "statisticalmean/StatisticalMean.h"
 #include "foreach.h"
 
 #include <boost/algorithm/string/predicate.hpp>
