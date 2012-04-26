@@ -93,5 +93,5 @@ SeriesData KvalobsMinMaxData::maximum(int time)
 
 float KvalobsMinMaxData::fluctuationLevel()
 {
-    return 0.5; // TODO
+    return neighborData().getParameterInfo().fluctuationLevel;
 }
