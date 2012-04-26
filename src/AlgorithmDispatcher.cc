@@ -50,8 +50,8 @@ AlgorithmDispatcher::AlgorithmDispatcher()
         new SingleLinearAlgorithm(),
         new RedistributionAlgorithm(),
         new DipTestAlgorithm(),
-//        new GapInterpolationAlgorithm(),
-//        new StatisticalMean(),
+        new GapInterpolationAlgorithm(),
+        new StatisticalMean(),
         new PlumaticAlgorithm()
     };
     const int N = sizeof(algorithms)/sizeof(algorithms[0]);
