@@ -54,6 +54,7 @@ void GapInterpolationTest::SetUp()
         << "INSERT INTO station VALUES( 4460, 60.117, 10.829, 170, 0, 'HAKADAL JERNBANESTASJON', 1488, 4460, NULL, NULL, NULL, 8, 't', '2007-01-08 00:00:00');"
         << "INSERT INTO station VALUES(18700, 59.942, 10.720,  94, 0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');\n"
         << "INSERT INTO station VALUES(69150, 63.488, 10.880,  40, 0, 'KVITHAMAR', 69150, NULL, NULL, NULL, NULL, 2, 't', '1987-05-12 00:00:00');\n"
+        << "INSERT INTO station VALUES(90720, 69.986, 18.687, 47.0, 0.0, 'MÅSVIK', 1021, 90720, NULL, NULL, NULL, 8, 't', '2003-10-08 00:00:00');"
         << "INSERT INTO station VALUES(99754, 77.000, 15.500,  10, 0, 'HORNSUND', 1003, 99754, NULL, NULL, NULL, 8, 't', '1985-06-01 00:00:00');";
 
     INSERT_NEIGHBOR(sql, 18700, 211, 18210);
@@ -619,4 +620,47 @@ TEST_F(GapInterpolationTest, VeryLittleSnow)
 
     for(int i=0; i<bc->count(); ++i)
         EXPECT_EQ( -1, bc->update(i).corrected());
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(GapInterpolationTest, UUNoJump1)
+{
+    DataList data(90720, 211, 342);
+    data.add("2012-04-26 17:00:00",       8.6,       8.6, "0111000000100010", "")
+        .add("2012-04-26 18:00:00",       8.2,       8.2, "0111000000100010", "")
+        .add("2012-04-26 19:00:00",       9.1,       9.1, "0111000000100010", "")
+        .add("2012-04-26 20:00:00",       8.2,       8.2, "0111000000100010", "")
+        .add("2012-04-26 21:00:00",       8.6,       8.6, "0111000000100010", "")
+        .add("2012-04-26 22:00:00",       7.3,       7.3, "0111000000100010", "")
+        .add("2012-04-26 23:00:00",       7.7,       7.7, "0111000000100010", "");
+    data.setParam(262);
+    data.setStation(90720).setType(342)
+        .add("2012-04-26 17:00:00",      89.0,      89.0, "0101000000000010", "")
+        .add("2012-04-26 18:00:00",      89.8,      89.8, "0101000000000010", "")
+        .add("2012-04-26 19:00:00",      90.2,      90.2, "0101000000000010", "")
+        .add("2012-04-26 20:00:00",  -32767.0,  -32767.0, "0000003000000000", "")
+        .add("2012-04-26 20:00:00",  -32767.0,  -32767.0, "0000003000000000", "")
+        .add("2012-04-26 21:00:00",      92.4,      92.4, "0100000000000010", "")
+        .add("2012-04-26 22:00:00",      93.0,      93.0, "0101000000000010", "")
+        .add("2012-04-26 23:00:00",      93.0,      93.0, "0101000000000010", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   04\n"
+           << "Start_DD   =   25\n"
+           << "Start_hh   =   17\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   04\n"
+           << "End_DD     =   26\n"
+           << "End_hh     =   23\n"
+           << "TypeId     =  342\n"
+           << "Parameter  = par=211,minPar=213,maxPar=215,minVal=-80,maxVal=80,offsetCorrectionLimit=15,fluctuationLevel=0.5\n"
+           << "Parameter  = par=262,minPar=264,maxPar=265,minVal=0,maxVal=100,offsetCorrectionLimit=5,fluctuationLevel=2\n";
+    AlgorithmConfig params;
+    ASSERT_PARSE_CONFIG(params, config);
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 1);
+    EXPECT_NEAR(91.1, bc->update(0).corrected(), 0.3);
 }
