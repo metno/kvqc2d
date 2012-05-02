@@ -53,6 +53,8 @@ struct ParameterInfo {
 
     void constrain(float& value) const;
 
+    bool hasNumerical(float value) const;
+
     float toNumerical(float value) const;
 
     float toStorage(float value) const;

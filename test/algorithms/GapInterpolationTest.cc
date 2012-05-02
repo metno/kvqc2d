@@ -616,10 +616,10 @@ TEST_F(GapInterpolationTest, VeryLittleSnow)
     AlgorithmConfig params;
     ASSERT_PARSE_CONFIG(params, config);
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 2);
 
-    for(int i=0; i<bc->count(); ++i)
-        EXPECT_EQ( -1, bc->update(i).corrected());
+    // cannot interpolate as there are only -1 before and after the gap; there is
+    // no numerical equivalent for -1 (could be "not reported" or "very little")
+    ASSERT_RUN(algo, bc, 0);
 }
 
 // ------------------------------------------------------------------------

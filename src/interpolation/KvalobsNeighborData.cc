@@ -73,8 +73,12 @@ Interpolation::SeriesData KvalobsNeighborData::parameter(int time)
 
     const miutil::miTime t = timeAtOffset(time);
     foreach(const kvalobs::kvData& d, centerObservations) {
-        if( d.obstime() == t && !Helpers::isMissingOrRejected(d)) {
-            return SeriesData(mParameterInfo.toNumerical(d.original()));
+        if( d.obstime() == t ) {
+            const float storage = d.original();
+            if( mParameterInfo.hasNumerical(storage) and !Helpers::isMissingOrRejected(d) )
+                return SeriesData(mParameterInfo.toNumerical(storage));
+            else
+                return SeriesData();
         }
     }
     return SeriesData();
@@ -143,8 +147,9 @@ SupportData KvalobsNeighborData::neighbor(int n, int time)
     const miutil::miTime t = timeAtOffset(time);
     foreach(const kvalobs::kvData& d, no) {
         if( d.obstime() == t ) {
-            if( mNeighborFlags.matches(d) )
-                return SupportData(mParameterInfo.toNumerical(d.original()));
+            const float storage = d.original();
+            if( mParameterInfo.hasNumerical(storage) and mNeighborFlags.matches(d) )
+                return SupportData(mParameterInfo.toNumerical(storage));
             else
                 return SupportData();
         }

@@ -79,6 +79,11 @@ float ParameterInfo::toNumerical(float v) const
     return constrained(v);
 }
 
+bool ParameterInfo::hasNumerical(float v) const
+{
+    return v>=minValue && v<=maxValue;
+}
+
 float ParameterInfo::toStorage(float v) const
 {
     constrain(v);

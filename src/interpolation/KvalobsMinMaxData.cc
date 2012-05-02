@@ -34,6 +34,9 @@
 #include "AlgorithmConfig.h"
 #include "foreach.h"
 
+#define NDEBUG 1
+#include "debug.h"
+
 using Interpolation::SeriesData;
 using Interpolation::SupportData;
 
@@ -65,8 +68,13 @@ SeriesData KvalobsMinMaxData::minimum(int time)
 
     const miutil::miTime t = timeAtOffset(time);
     foreach(const kvalobs::kvData& d, minimumData) {
-        if( d.obstime() == t && !Helpers::isMissingOrRejected(d)) {
-            return SeriesData(d.original());
+        if( d.obstime() == t ) {
+            const float storage = d.original();
+            const ParameterInfo& pi = neighborData().getParameterInfo();
+            if( pi.hasNumerical(storage) and !Helpers::isMissingOrRejected(d) )
+                return SeriesData(pi.toNumerical(storage));
+            else
+                return SeriesData();
         }
     }
     return SeriesData();
@@ -84,8 +92,13 @@ SeriesData KvalobsMinMaxData::maximum(int time)
 
     const miutil::miTime t = timeAtOffset(time);
     foreach(const kvalobs::kvData& d, maximumData) {
-        if( d.obstime() == t && !Helpers::isMissingOrRejected(d)) {
-            return SeriesData(d.original());
+        if( d.obstime() == t ) {
+            const float storage = d.original();
+            const ParameterInfo& pi = neighborData().getParameterInfo();
+            if( pi.hasNumerical(storage) and !Helpers::isMissingOrRejected(d) )
+                return SeriesData(pi.toNumerical(storage));
+            else
+                return SeriesData();
         }
     }
     return SeriesData();
