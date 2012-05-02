@@ -33,6 +33,7 @@
 #include "DBInterface.h"
 #include "FlagPatterns.h"
 #include "Instrument.h"
+#include "KvalobsDataList.h"
 #include "NeighborInterpolator.h"
 #include "ParameterInfo.h"
 #include "SimpleInterpolationResult.h"
@@ -79,16 +80,18 @@ public:
     const ParameterInfo& getParameterInfo() const
         { return mParameterInfo; }
 
-protected:
+private:
     DBInterface* mDB;
     const TimeRange& mTimeRange;
     const Instrument& mInstrument;
     const ParameterInfo& mParameterInfo;
 
-    DBInterface::DataList centerObservations;
-    DBInterface::ModelDataList centerModel;
+    KvalobsSeriesDataList centerObservations;
+    KvalobsSupportModelDataList centerModel;
+    bool mFetchedNeighborCorrelations;
     NeighborDataVector neighborCorrelations;
-    std::vector<DBInterface::DataList> neighborObservations;
+    typedef std::vector<KvalobsSupportDataList> NeighborObservations;
+    NeighborObservations neighborObservations;
     FlagSetCU mNeighborFlags;
 
     Interpolation::SimpleResultVector interpolations;

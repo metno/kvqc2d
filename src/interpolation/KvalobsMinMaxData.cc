@@ -58,50 +58,26 @@ void KvalobsMinMaxData::setMaximum(int time, Interpolation::Quality q, float val
 
 SeriesData KvalobsMinMaxData::minimum(int time)
 {
-    if (minimumData.empty()) {
-        FlagSetCU all;
-        const Instrument& i = neighborData().getInstrument();
-        const int paramid = neighborData().getParameterInfo().minParameter;
-        minimumData = database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
-                                                               i.level, neighborData().getTimeRange(), all);
-    }
-
-    const miutil::miTime t = timeAtOffset(time);
-    foreach(const kvalobs::kvData& d, minimumData) {
-        if( d.obstime() == t ) {
-            const float storage = d.original();
-            const ParameterInfo& pi = neighborData().getParameterInfo();
-            if( pi.hasNumerical(storage) and !Helpers::isMissingOrRejected(d) )
-                return SeriesData(pi.toNumerical(storage));
-            else
-                return SeriesData();
-        }
-    }
-    return SeriesData();
+    return minmax(time, neighborData().getParameterInfo().minParameter, minimumData);
 }
 
 SeriesData KvalobsMinMaxData::maximum(int time)
 {
-    if (maximumData.empty()) {
+    return minmax(time, neighborData().getParameterInfo().maxParameter, maximumData);
+}
+
+Interpolation::SeriesData KvalobsMinMaxData::minmax(int time, int paramid, KvalobsSeriesDataList& data)
+{
+    const ParameterInfo& pi = neighborData().getParameterInfo();
+    if (data.fetchRequired()) {
         FlagSetCU all;
         const Instrument& i = neighborData().getInstrument();
-        const int paramid = neighborData().getParameterInfo().maxParameter;
-        maximumData = database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
-                                                               i.level, neighborData().getTimeRange(), all);
+        data.set(database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
+                                                               i.level, neighborData().getTimeRange(), all));
     }
 
     const miutil::miTime t = timeAtOffset(time);
-    foreach(const kvalobs::kvData& d, maximumData) {
-        if( d.obstime() == t ) {
-            const float storage = d.original();
-            const ParameterInfo& pi = neighborData().getParameterInfo();
-            if( pi.hasNumerical(storage) and !Helpers::isMissingOrRejected(d) )
-                return SeriesData(pi.toNumerical(storage));
-            else
-                return SeriesData();
-        }
-    }
-    return SeriesData();
+    return data.find(t, pi);
 }
 
 float KvalobsMinMaxData::fluctuationLevel()

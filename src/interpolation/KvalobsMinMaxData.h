@@ -63,9 +63,11 @@ private:
     const KvalobsNeighborData& neighborData() const
         { return static_cast<const KvalobsNeighborData&>(centerData()); }
 
-protected:
+    Interpolation::SeriesData minmax(int time, int paramid, KvalobsSeriesDataList& data);
+
+private:
     FlagSetCU mNeighborFlags;
-    DBInterface::DataList minimumData, maximumData;
+    KvalobsSeriesDataList minimumData, maximumData;
     Interpolation::SimpleResultVector interpolationsMin, interpolationsMax;
 };
 

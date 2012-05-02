@@ -48,7 +48,11 @@ const float MAX_SIGMA = 3;
 } // anonymous namespace
 
 KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
-        : mDB(db), mTimeRange(t), mInstrument(instrument), mParameterInfo(pi)
+    : mDB(db)
+    , mTimeRange(t)
+    , mInstrument(instrument)
+    , mParameterInfo(pi)
+    , mFetchedNeighborCorrelations(false)
 {
 }
 
@@ -65,23 +69,14 @@ int KvalobsNeighborData::duration()
 
 Interpolation::SeriesData KvalobsNeighborData::parameter(int time)
 {
-    if (centerObservations.empty()) {
+    if (centerObservations.fetchRequired()) {
         FlagSetCU all;
-        centerObservations = mDB->findDataMaybeTSLOrderObstime(mInstrument.stationid, mInstrument.paramid, mInstrument.type, mInstrument.sensor,
-                mInstrument.level, mTimeRange, all);
+        centerObservations.set(mDB->findDataMaybeTSLOrderObstime(mInstrument.stationid, mInstrument.paramid, mInstrument.type, mInstrument.sensor,
+                mInstrument.level, mTimeRange, all));
     }
 
     const miutil::miTime t = timeAtOffset(time);
-    foreach(const kvalobs::kvData& d, centerObservations) {
-        if( d.obstime() == t ) {
-            const float storage = d.original();
-            if( mParameterInfo.hasNumerical(storage) and !Helpers::isMissingOrRejected(d) )
-                return SeriesData(mParameterInfo.toNumerical(storage));
-            else
-                return SeriesData();
-        }
-    }
-    return SeriesData();
+    return centerObservations.find(t, mParameterInfo);
 }
 
 void KvalobsNeighborData::setInterpolated(int time, Interpolation::Quality q, float value)
@@ -107,23 +102,19 @@ Interpolation::SimpleResult KvalobsNeighborData::getInterpolated(int time)
 
 SupportData KvalobsNeighborData::model(int time)
 {
-    if( centerModel.empty() ) {
-        centerModel = mDB->findModelData(mInstrument.stationid, mInstrument.paramid, mInstrument.level, mTimeRange);
-    }
+    if( centerModel.fetchRequired() )
+        centerModel.set(mDB->findModelData(mInstrument.stationid, mInstrument.paramid, mInstrument.level, mTimeRange));
+
     const miutil::miTime t = timeAtOffset(time);
-    foreach(const kvalobs::kvModelData& m, centerModel) {
-        if( m.obstime() == t ) {
-            return SupportData(mParameterInfo.toNumerical(m.original()));
-        }
-    }
-    return SupportData();
+    return centerModel.find(t, mParameterInfo);
 }
 
 int KvalobsNeighborData::neighbors()
 {
-    if( neighborCorrelations.empty() ) {
+    if( !mFetchedNeighborCorrelations ) {
         neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, MAX_SIGMA);
-        neighborObservations = std::vector<DBInterface::DataList>(neighborCorrelations.size());
+        neighborObservations = NeighborObservations(neighborCorrelations.size());
+        mFetchedNeighborCorrelations = true;
     }
     return neighborCorrelations.size();
 }
@@ -134,27 +125,17 @@ SupportData KvalobsNeighborData::neighbor(int n, int time)
     if (n >= neighbors())
         return SupportData();
 
-    DBInterface::DataList& no = neighborObservations[n];
-    if( no.empty() ) {
+    KvalobsSupportDataList& no = neighborObservations[n];
+    if( no.fetchRequired() ) {
         const NeighborData& nd = getNeighborData(n);
-        FlagSetCU all;
         const Instrument& i = mInstrument;
-        no = mDB->findDataMaybeTSLOrderObstime(nd.neighborid, i.paramid,
+        no.set(mDB->findDataMaybeTSLOrderObstime(nd.neighborid, i.paramid,
                 DBInterface::INVALID_ID, DBInterface::INVALID_ID,
-                DBInterface::INVALID_ID, mTimeRange, all);
+                DBInterface::INVALID_ID, mTimeRange, mNeighborFlags));
     }
 
     const miutil::miTime t = timeAtOffset(time);
-    foreach(const kvalobs::kvData& d, no) {
-        if( d.obstime() == t ) {
-            const float storage = d.original();
-            if( mParameterInfo.hasNumerical(storage) and mNeighborFlags.matches(d) )
-                return SupportData(mParameterInfo.toNumerical(storage));
-            else
-                return SupportData();
-        }
-    }
-    return SupportData();
+    return no.find(t, mParameterInfo);
 }
 
 SupportData KvalobsNeighborData::transformedNeighbor(int n, int time)
