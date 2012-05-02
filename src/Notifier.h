@@ -32,6 +32,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <iosfwd>
+#include <string>
 
 class Notifier;
 
@@ -41,7 +42,7 @@ class Message {
 public:
     enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
     
-    Message(Level level, Notifier* n);
+    Message(Level level, Notifier* n, const std::string& category);
 
     ~Message();
 
@@ -55,6 +56,7 @@ private:
     boost::shared_ptr<std::ostringstream> mStream;
     Level mLevel;
     Notifier* mNotifier;
+    const std::string mCategory;
 };
 
 // #######################################################################

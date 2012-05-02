@@ -39,10 +39,11 @@ const char* levelNames[] = { "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" };
 
 // ========================================================================
 
-Message::Message(Level level, Notifier* n)
+Message::Message(Level level, Notifier* n, const std::string& category)
     : mStream(new std::ostringstream)
     , mLevel(level)
     , mNotifier(n)
+    , mCategory(category)
 {
 }
 
@@ -52,6 +53,7 @@ Message::~Message()
 {
     std::string msg = mStream->str();
     if( !msg.empty() ) {
+        msg = mCategory + ": " + msg;
         if( mNotifier )
             mNotifier->sendText( mLevel, msg );
         else

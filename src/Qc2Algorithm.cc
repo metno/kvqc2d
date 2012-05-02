@@ -94,3 +94,8 @@ void Qc2Algorithm::configure(const AlgorithmConfig& params)
     missing        = params.missing;
     rejected       = params.rejected;
 }
+
+Message Qc2Algorithm::message(Message::Level level)
+{
+    return Message(level, mNotifier, name());
+}

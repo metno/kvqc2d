@@ -229,7 +229,7 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
             continue;
         if( mark->original() == ORIG_START_BAD ) {
             if( start_bad != data.end() ) {
-                warning() << "Plumatic: found duplicate marker for start of non-operational period at "
+                warning() << "found duplicate marker for start of non-operational period at "
                           << *mark << ", previous marker is " << *start_bad;
             } else {
                 start_bad = mark;
@@ -239,7 +239,7 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
                 start_bad = data.begin();
                 for(kvUpdateList_it mark2 = data.begin(); mark2 != mark; ++mark2) {
                     if ( mark->original() >= 0 && !discarded_flags.matches(mark->data()) ) {
-                        warning() << "Plumatic: -6 marker (at " << mark->obstime()
+                        warning() << "-6 marker (at " << mark->obstime()
                                   << ") preceeded by non-discarded data at " << *mark2;
                     }
                 }
@@ -247,7 +247,7 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
             discardNonOperationalTime(data, start_bad, mark);
             start_bad = data.end();
         } else if ( mark->original() >= 0 && start_bad != data.end() && !discarded_flags.matches(mark->data()) ) {
-            warning() << "Plumatic: -5 marker (at " << start_bad->obstime()
+            warning() << "-5 marker (at " << start_bad->obstime()
                       << ") followed by non-discarded data at " << *mark;
         }
     }
@@ -307,7 +307,7 @@ void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdate
 {
     const bool endHasData = (end != data.end());
     const miutil::miTime beginTime = begin->obstime(), endTime = (endHasData ? end->obstime() : UT1);
-    info() << "Plumatic: ignoring non-operational time for station " << begin->data().stationID()
+    info() << "ignoring non-operational time for station " << begin->data().stationID()
            << " between " << beginTime << " and "
            << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
 
@@ -641,11 +641,11 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     DBG("sum=" << sum << " n wet=" << nNeighborsWet << " dry=" << nNeighborsDry);
     if( nNeighbors >= 3 ) {
         if( sum <= mThresholdDry && nNeighborsWet == nNeighbors ) {
-            warning() << "Plumatic: station " << stationid << " is dry (" << sum
+            warning() << "station " << stationid << " is dry (" << sum
                       << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
                       << ") are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
         } else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors ) {
-            warning() << "Plumatic: station " << stationid << " is wet (" << sum
+            warning() << "station " << stationid << " is wet (" << sum
                       << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
                       << ") are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
         }

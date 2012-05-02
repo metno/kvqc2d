@@ -73,16 +73,16 @@ public:
         { mNotifier = n; }
 
     Message debug()
-        { return Message(Message::DEBUG, mNotifier); }
+        { return message(Message::DEBUG); }
 
     Message info()
-        { return Message(Message::INFO, mNotifier); }
+        { return message(Message::INFO); }
 
     Message warning()
-        { return Message(Message::WARNING, mNotifier); }
+        { return message(Message::WARNING); }
 
     Message error()
-        { return Message(Message::ERROR, mNotifier); }
+        { return message(Message::ERROR); }
 
     void fillStationLists(DBInterface::StationList& stations, DBInterface::StationIDList& idList);
     void fillStationIDList(DBInterface::StationIDList& idList);
@@ -90,6 +90,9 @@ public:
 protected:
     void updateSingle(const kvalobs::kvData& update);
     void storeData(const DBInterface::DataList& toUpdate, const DBInterface::DataList& toInsert = DBInterface::DataList());
+
+private:
+    Message message(Message::Level level);
 
 protected:
     miutil::miTime UT0, UT1;
