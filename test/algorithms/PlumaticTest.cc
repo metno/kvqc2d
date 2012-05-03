@@ -990,3 +990,32 @@ TEST_F(PlumaticTest, NeighborsAggregationFlagged)
     ASSERT_EQ(1, logs->count());
     EXPECT_EQ(0, logs->find("aggregation-2 .* BETWEEN '2011-10-01 06:16:00' AND '2011-10-01 06:17:00'"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, HighSingleOneTypeid)
+{
+    DataList data(27270, 105, 4);
+    data.add("2011-10-01 22:00:00", 0,   "0101000000000000", "")
+        // next is high single
+        .add("2011-10-01 22:01:00", 0.5, "0101000000000000", "")
+        .add("2011-10-01 23:00:00", 0,   "0101000000000000", "")
+        .setType(504)
+        .add("2011-10-01 22:00:00", 0,   "0101000000000000", "")
+        // next is not high single
+        .add("2011-10-01 22:01:00", 0.1, "0101000000000000", "")
+        .add("2011-10-01 23:00:00", 0,   "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 10, 1, 22, 10, 1, 23);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 1);
+
+    EXPECT_OBS_CONTROL_CFAILED("2011-10-01 22:01:00", "010B002000000000", "QC2h-1-highsingle", bc->updates()[0]);
+    ASSERT_EQ(1, logs->count());
+    EXPECT_EQ(0, logs->find("'2011-10-01 22:01:00' .* typeid=4 .*highsingle"));
+
+    ASSERT_RUN(algo, bc, 0);
+}
