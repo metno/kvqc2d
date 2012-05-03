@@ -42,7 +42,7 @@
 
 #include <boost/bind.hpp>
 
-#define NDEBUG
+#define NDEBUG 1
 #include "debug.h"
 
 namespace {
@@ -54,7 +54,30 @@ const int maxRainInterrupt      = 4;
 const int minRainBeforeAndAfter = 2;
 const float numericSafety = 1e-4;
 
+const bool aggregationTriggerMakesBadData = false;
+
 }; // anonymous namespace
+
+PlumaticAlgorithm::PlumaticUpdate::PlumaticUpdate()
+    : DataUpdate()
+    , mNotOperationalStart(false)
+    , mNotOperationalEnd(false)
+    , mAggregationFlagged(false)
+{ }
+
+PlumaticAlgorithm::PlumaticUpdate::PlumaticUpdate(const kvalobs::kvData& data)
+    : DataUpdate(data)
+    , mNotOperationalStart(false)
+    , mNotOperationalEnd(false)
+    , mAggregationFlagged(false) { }
+
+PlumaticAlgorithm::PlumaticUpdate::PlumaticUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+                                                  float original, float corrected, const std::string& controlinfo)
+    : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo)
+    , mNotOperationalStart(false)
+    , mNotOperationalEnd(false)
+    , mAggregationFlagged(false)
+{ }
 
 // ========================================================================
 
@@ -215,6 +238,10 @@ void PlumaticAlgorithm::checkSlidingSum(kvUpdateList_t& data, const SlidingAlarm
 void PlumaticAlgorithm::applyAggregationFlags(kvUpdateList_it start, kvUpdateList_it stop, const SlidingAlarm& slal)
 {
     warning() << "QC2h-1-aggregation-" << slal.length << " triggered for " << stop->text(start->obstime());
+    for(; start != stop; ++start)
+        start->setAggregationFlagged(true);
+    if( start == stop )
+        start->setAggregationFlagged(true);
 }
 
 // ------------------------------------------------------------------------
@@ -349,6 +376,7 @@ bool PlumaticAlgorithm::isBadData(const PlumaticUpdate& data)
 {
     return !Helpers::equal(data.original(), data.corrected())
         || data.isNotOperational()
+        || (data.isAggregationFlagged() && aggregationTriggerMakesBadData)
         || discarded_flags.matches(data.data());
 }
 
@@ -562,7 +590,7 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
                 operational = false;
             if( mark->isNotOperationalEnd() )
                 operational = true;
-            if( isBadData(*mark) ) {
+            if( isBadData(*mark) || mark->isAggregationFlagged() ) {
                 discarded = true;
                 // no break here as we have to advance to the next ..:06 observation
             } else if( mark->original() > 0 ) {

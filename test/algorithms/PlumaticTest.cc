@@ -936,3 +936,57 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
     EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
     EXPECT_EQ(1, logs->find("station 44640 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NeighborsAggregationFlagged)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES( 3005, 59.1778, 11.2075,  40, 0, 'INGEDAL',             NULL,   3005, NULL,   NULL, NULL, 0, 't', '2010-01-21 00:00:00');"
+        << "INSERT INTO station VALUES(17000, 59.1513, 10.8288,  10, 0, 'STROMTANGEN FYR',     1495,  17000, NULL,   NULL, NULL, 8, 't', '1994-05-09 00:00:00');"
+        << "INSERT INTO station VALUES(17090, 59.3503,  10.897,  50, 0, 'RADE - KIRKEBO',      1511,  17090, NULL,   NULL, NULL, 0, 't', '2010-01-21 00:00:00');"
+        << "INSERT INTO station VALUES(17150, 59.3786, 10.7752,  40, 0, 'RYGGE',               1494,  17150, 'ENRY', NULL, NULL, 8, 't', '1955-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(17280, 59.4352,  10.578,  14, 0, 'GULLHOLMEN',          1508,  17280, NULL,   NULL, NULL, 8, 't', '2010-07-01 00:00:00');"
+        << "INSERT INTO station VALUES(17400, 59.4765,   10.79,  30, 0, 'KJESEBOTN',           NULL,  17400, NULL,   NULL, NULL, 0, 't', '2010-01-05 00:00:00');"
+        << "INSERT INTO station VALUES(27045, 59.5867, 10.1917,  10, 0, 'SANDE - VALLE',       NULL,  27045, NULL,   NULL, NULL, 8, 't', '2001-02-01 00:00:00');"
+        << "INSERT INTO station VALUES(27450,   59.23, 10.3483,  26, 0, 'MELSOM',              1481,  27450, NULL,   NULL, NULL, 8, 't', '2011-08-12 00:00:00');"
+        << "INSERT INTO station VALUES(27470, 59.1845, 10.2553,  88, 0, 'TORP',                1483,  27470, 'ENTO', NULL, NULL, 8, 't', '1959-09-01 00:00:00');"
+        << "INSERT INTO station VALUES(30420, 59.1833,  9.5667, 136, 0, 'SKIEN - GEITERYGGEN', 1475,  30420, 'ENSN', NULL, NULL, 8, 't', '1962-10-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList dataC(27270, 105, 4);
+    miutil::miTime tC(2011, 10, 1, 6, 0, 0);
+    for(int hour=0; hour<24; ++hour, tC.addHour(1)) {
+        miutil::miTime t(tC);
+        dataC.add(t, 0.0, "0101000000000000", "");
+        if( hour == 0 ) {
+            t.addMin(15);
+            dataC.add(t, 0.1, "0101000000000000", "");
+            t.addMin(1);
+            dataC.add(t, 5.0, "0101000000000000", "");
+            t.addMin(1);
+            dataC.add(t, 5.0, "0101000000000000", "");
+            t.addMin(1);
+            dataC.add(t, 0.1, "0101000000000000", "");
+        }
+    }
+    ASSERT_NO_THROW(dataC.insert(db));
+
+    const int neighborIDs[] = { 27450, 3005, 17000, 17090, 17150, 17280, 17400, 27045, 27470, 30420, -1 };
+    DataList dataN(neighborIDs[0], 110, 302);
+    const miutil::miTime tN(2011, 10, 2, 6, 0, 0);
+    for(int i=0; neighborIDs[i]>0; ++i) {
+        dataN.setStation(neighborIDs[i])
+            .add(tN, 0, "0101000000000000", "");
+    }
+    ASSERT_NO_THROW(dataN.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 10, 1, 0, 10, 2, 0);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    ASSERT_EQ(1, logs->count());
+    EXPECT_EQ(0, logs->find("aggregation-2 .* BETWEEN '2011-10-01 06:16:00' AND '2011-10-01 06:17:00'"));
+}

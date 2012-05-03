@@ -48,15 +48,12 @@ public:
 private:
     class PlumaticUpdate : public DataUpdate {
     public:
-        PlumaticUpdate()
-            : DataUpdate(), mNotOperationalStart(false), mNotOperationalEnd(false) { }
+        PlumaticUpdate();
 
-        PlumaticUpdate(const kvalobs::kvData& data)
-            : DataUpdate(data), mNotOperationalStart(false), mNotOperationalEnd(false) { }
+        PlumaticUpdate(const kvalobs::kvData& data);
 
         PlumaticUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
-                       float original, float corrected, const std::string& controlinfo)
-            : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo), mNotOperationalStart(false), mNotOperationalEnd(false) { }
+                       float original, float corrected, const std::string& controlinfo);
 
         PlumaticUpdate& setNotOperationalStart()
             { mNotOperationalStart = true; return *this; }
@@ -73,8 +70,14 @@ private:
         bool isNotOperationalEnd() const
             { return mNotOperationalEnd; }
 
+        bool isAggregationFlagged() const
+            { return mAggregationFlagged; }
+
+        void setAggregationFlagged(bool af)
+            { mAggregationFlagged = af; }
+
     private:
-        bool mNotOperationalStart, mNotOperationalEnd;
+        bool mNotOperationalStart, mNotOperationalEnd, mAggregationFlagged;
     };
 
     typedef std::list<kvalobs::kvData> kvDataList_t;
