@@ -77,11 +77,11 @@ void Qc2Algorithm::storeData(const DBInterface::DataList& toUpdate, const DBInte
     database()->storeData(toUpdate, toInsert);
     foreach(const kvalobs::kvData& i, toInsert) {
         broadcaster()->queueChanged(i);
-        info() << mName << " NEW ROW: " << Helpers::datatext(i);
+        info() << "NEW ROW " << Helpers::datatext(i);
     }
     foreach(const kvalobs::kvData& u, toUpdate) {
         broadcaster()->queueChanged(u);
-        info() << mName << " UPDATE:  " << Helpers::datatext(u);
+        info() << "UPDATE " << Helpers::datatext(u);
     }
     broadcaster()->sendChanges();
 }
