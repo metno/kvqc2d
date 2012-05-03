@@ -33,6 +33,9 @@
 #include "helpers/FormulaUU.h"
 #include "foreach.h"
 
+#define NDEBUG 1
+#include "debug.h"
+
 using Interpolation::SeriesData;
 using Interpolation::SupportData;
 
@@ -65,8 +68,12 @@ SupportData KvalobsUUNeighborData::transformedNeighbor(int n, int time)
 void KvalobsUUNeighborData::setInterpolated(int time, Interpolation::Quality q, float value)
 {
     const SupportData sdTA = dataTA.parameter(time);
-    value = Helpers::formulaUU(sdTA.value(), value);
-    dataUU.setInterpolated(time, q, value);
+    if( sdTA.usable() ) {
+        value = Helpers::formulaUU(sdTA.value(), value);
+        dataUU.setInterpolated(time, q, value);
+    } else {
+        dataUU.setInterpolated(time, Interpolation::FAILED, 0);
+    }
 }
 
 
@@ -107,4 +114,3 @@ void KvalobsUUMinMaxData::setMaximum(int time, Interpolation::Quality q, float v
     value = Helpers::formulaUU(sdTA.value(), value);
     dataUU.setMaximum(time, q, value);
 }
-
