@@ -41,12 +41,6 @@
 using Interpolation::SeriesData;
 using Interpolation::SupportData;
 
-namespace {
-
-const float MAX_SIGMA = 3;
-
-} // anonymous namespace
-
 KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
     : mDB(db)
     , mTimeRange(t)
@@ -112,7 +106,7 @@ SupportData KvalobsNeighborData::model(int time)
 int KvalobsNeighborData::neighbors()
 {
     if( !mFetchedNeighborCorrelations ) {
-        neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, MAX_SIGMA);
+        neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, mParameterInfo.maxSigma);
         neighborObservations = NeighborObservations(neighborCorrelations.size());
         mFetchedNeighborCorrelations = true;
     }
@@ -153,7 +147,7 @@ float KvalobsNeighborData::neighborWeight(int neighbor)
 {
     if( neighborCorrelations.empty() ) {
         const Instrument& i = mInstrument;
-        neighborCorrelations = mDB->findNeighborData(i.stationid, i.paramid, MAX_SIGMA);
+        neighborCorrelations = mDB->findNeighborData(i.stationid, i.paramid, mParameterInfo.maxSigma);
     }
     const float s = neighborCorrelations[neighbor].sigma;
     return 1 / (s * s * s);

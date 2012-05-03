@@ -48,6 +48,7 @@ ParameterInfo::ParameterInfo(const std::string& pi)
   , minValue(std::numeric_limits<float>::min())
   , maxValue(std::numeric_limits<float>::max())
   , maxOffset(15)
+  , maxSigma(2.7)
   , minParameter(-1)
   , maxParameter(-1)
 {
@@ -68,6 +69,8 @@ ParameterInfo::ParameterInfo(const std::string& pi)
             fluctuationLevel = std::atof(kv.second.c_str());
         } else if( kv.first == "offsetCorrectionLimit" ) {
             maxOffset = std::atof(kv.second.c_str());
+        } else if( kv.first == "maxSigma" ) {
+            maxSigma = std::atof(kv.second.c_str());
         }
     }
 }

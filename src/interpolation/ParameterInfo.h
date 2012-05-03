@@ -47,6 +47,9 @@ struct ParameterInfo {
     /** maximum offset for neighbor correction */
     float maxOffset;
 
+    /** maximum sigma for neighbors in neighbor correction */
+    float maxSigma;
+
     /** return value forced inside physical value range */
     float constrained(float value) const
         { constrain(value); return value; }
