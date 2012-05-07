@@ -171,7 +171,7 @@ void GapInterpolationAlgorithm::run()
         const ParameterInfos_it piTA = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(211));
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
-            const TimeRange missingTime(Helpers::plusHour(pgmr.range.t0, -3), Helpers::plusHour(pgmr.range.t1, 3));
+            const TimeRange missingTime = pgmr.range.extendedByHours(Interpolation::NeighborInterpolator::EXTRA_DATA);
             KvalobsNeighborData knd(database(), instrument, missingTime, *pi);
             if( minmax ) {
                 KvalobsMinMaxData mmd(knd);

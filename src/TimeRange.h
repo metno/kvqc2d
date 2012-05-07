@@ -39,6 +39,9 @@ struct TimeRange {
         : t0(T0), t1(T1) { }
     int days() const;
     int hours() const;
+    TimeRange extendedByHours(int nHours) const
+        { TimeRange t(*this); t.extendByHours(nHours); return t; }
+    void extendByHours(int nHours);
 };
 
 #endif /* TIMERANGE_H */

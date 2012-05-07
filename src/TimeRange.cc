@@ -43,3 +43,11 @@ int TimeRange::hours() const
 {
     return miutil::miTime::hourDiff(t1, t0);
 }
+
+// ------------------------------------------------------------------------
+
+void TimeRange::extendByHours(int nHours)
+{
+    t0.addHour(-nHours);
+    t1.addHour( nHours);
+}
