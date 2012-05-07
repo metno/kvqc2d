@@ -39,6 +39,7 @@
 #include "debug.h"
 
 using Interpolation::SeriesData;
+using Interpolation::SimpleResult;
 using Interpolation::SupportData;
 
 KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
@@ -61,7 +62,7 @@ int KvalobsNeighborData::duration()
     return mTimeRange.hours() + 1;
 }
 
-Interpolation::SeriesData KvalobsNeighborData::parameter(int time)
+SeriesData KvalobsNeighborData::parameter(int time)
 {
     if (centerObservations.fetchRequired()) {
         FlagSetCU all;
@@ -85,13 +86,16 @@ void KvalobsNeighborData::setInterpolated(int time, Interpolation::Quality q, fl
     interpolations.push_back(sr);
 }
 
-Interpolation::SimpleResult KvalobsNeighborData::getInterpolated(int time)
+SimpleResult KvalobsNeighborData::getInterpolated(int time)
 {
     for(unsigned int i=0; i<interpolations.size(); ++i)
         if( interpolations[i].time == time )
             return interpolations[i];
     const SeriesData sd = parameter(time);
-    return Interpolation::SimpleResult(time, Interpolation::OBSERVATION ,sd.value());
+    if( sd.usable() && !sd.needsInterpolation() )
+        return Interpolation::SimpleResult(time, Interpolation::OBSERVATION, sd.value());
+    else
+        return Interpolation::SimpleResult(time, Interpolation::FAILED, 0);
 }
 
 SupportData KvalobsNeighborData::model(int time)
