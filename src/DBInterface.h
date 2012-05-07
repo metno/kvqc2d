@@ -47,7 +47,7 @@ public:
 class FlagSetCU;
 
 struct NeighborData {
-    int neighborid;
+    int neighborid; // TODO maybe include typeid, level, sensor here?
     double offset, slope, sigma;
     NeighborData(int xid, double xoffset, double xslope, double xsigma)
         : neighborid(xid), offset(xoffset), slope(xslope), sigma(xsigma) { }
