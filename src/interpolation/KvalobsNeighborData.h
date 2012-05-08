@@ -81,6 +81,9 @@ public:
         { return mParameterInfo; }
 
 private:
+    void fetchNeighborCorrelations();
+
+private:
     DBInterface* mDB;
     const TimeRange& mTimeRange;
     const Instrument& mInstrument;

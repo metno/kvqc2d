@@ -107,13 +107,17 @@ SupportData KvalobsNeighborData::model(int time)
     return centerModel.find(t, mParameterInfo);
 }
 
+void KvalobsNeighborData::fetchNeighborCorrelations()
+{
+    neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, mParameterInfo.maxSigma);
+    neighborObservations = NeighborObservations(neighborCorrelations.size());
+    mFetchedNeighborCorrelations = true;
+}
+
 int KvalobsNeighborData::neighbors()
 {
-    if( !mFetchedNeighborCorrelations ) {
-        neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, mParameterInfo.maxSigma);
-        neighborObservations = NeighborObservations(neighborCorrelations.size());
-        mFetchedNeighborCorrelations = true;
-    }
+    if( !mFetchedNeighborCorrelations )
+        fetchNeighborCorrelations();
     return neighborCorrelations.size();
 }
 
@@ -149,10 +153,8 @@ SupportData KvalobsNeighborData::transformedNeighbor(int n, int time)
 
 float KvalobsNeighborData::neighborWeight(int neighbor)
 {
-    if( neighborCorrelations.empty() ) {
-        const Instrument& i = mInstrument;
-        neighborCorrelations = mDB->findNeighborData(i.stationid, i.paramid, mParameterInfo.maxSigma);
-    }
+    if( !mFetchedNeighborCorrelations )
+        fetchNeighborCorrelations();
     const float s = neighborCorrelations[neighbor].sigma;
     return 1 / (s * s * s);
 }
