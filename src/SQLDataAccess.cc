@@ -89,6 +89,17 @@ DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, co
                                 + kvQueries::selectStationParam(station, time, qcx));
 }
 
+DBInterface::StationParamList SQLDataAccess::findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException)
+{
+    std::ostringstream sql;
+    sql << kvalobs::kvStationParam().selectAllQuery() + " WHERE ";
+    formatStationIDList(sql, stationIDs);
+    sql << " AND ";
+    formatIDList(sql, pids, "paramid");
+    sql << " AND qcx LIKE '" << qcxPrefix << "%'";
+    return extractStationParams(sql.str());
+}
+
 // ------------------------------------------------------------------------
 
 DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
@@ -185,7 +196,7 @@ DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, c
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findAggregationOutsideRange(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& time, const FlagSetCU& flags, float min, float max) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
     std::ostringstream sql;
     sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
@@ -195,7 +206,6 @@ DBInterface::DataList SQLDataAccess::findAggregationOutsideRange(const StationID
     sql << " AND typeid < 0"
         << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
         << " AND " << flags.sql()
-        << " AND original NOT BETWEEN " << min << " AND " << max
         << " ORDER BY stationid, obstime";
     return extractData(sql.str());
 }

@@ -78,6 +78,7 @@ public:
 
     typedef std::list<kvalobs::kvStationParam> StationParamList;
     virtual StationParamList findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException) = 0;
+    virtual StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException) = 0;
 
     // ----------------------------------------
 
@@ -91,7 +92,7 @@ public:
     virtual DataList findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException) = 0;
     virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) throw (DBException) = 0;
     virtual DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException) = 0;
-    virtual DataList findAggregationOutsideRange(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& t, const FlagSetCU& flags, float min, float max) throw (DBException) = 0;
+    virtual DataList findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& t, const FlagSetCU& flags) throw (DBException) = 0;
 
     // ----------------------------------------
 

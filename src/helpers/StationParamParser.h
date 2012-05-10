@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011 met.no
+  Copyright (C) 2011-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,31 +27,21 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef AGGREGATORLIMITS_H_
-#define AGGREGATORLIMITS_H_
+#ifndef StationParamParser_h
+#define StationParamParser_h
 
-#include "Qc2Algorithm.h"
+#include <kvalobs/kvStationParam.h>
 
-#include <string>
-#include <list>
-
-class AggregatorLimits : public Qc2Algorithm {
+class StationParamParser
+{
 public:
-    AggregatorLimits();
+    StationParamParser(const kvalobs::kvStationParam& sp);
 
-    void configure(const AlgorithmConfig& config);
-    void run();
-
-private:
-    class LimitValues;
-    void addStationLimits(LimitValues& lv, const DBInterface::StationParamList& spl);
+    float floatValue(const std::string& key, float dflt) const;
 
 private:
-    std::vector<int> mParameters;
-    std::string mMinQCX, mMaxQCX;
-    FlagSetCU mFlags;
-    FlagChange mFlagChangeMin, mFlagChangeMax;
+    typedef std::map<std::string, std::string> MetaDataMap;
+    MetaDataMap mMetadata;
 };
 
-
-#endif /* AGGREGATORLIMITS_H_ */
+#endif /* StationParamParser_h */

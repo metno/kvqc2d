@@ -18,6 +18,8 @@ libhelpers_a_SOURCES = \
 	WeightedMean.h \
 	mathutil.cc \
 	mathutil.h \
+	StationParamParser.cc \
+	StationParamParser.h \
 	stringutil.cc \
 	stringutil.h \
 	timeutil.cc \

@@ -40,6 +40,7 @@ public:
     virtual StationIDList findNorwegianFixedStationIDs() throw (DBException);
 
     virtual StationParamList findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
+    virtual StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException);
 
     virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
     virtual DataList findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException);
@@ -50,7 +51,7 @@ public:
     virtual DataList findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
     virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
     virtual DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findAggregationOutsideRange(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& t, const FlagSetCU& flags, float min, float max) throw (DBException);
+    virtual DataList findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
 
     virtual reference_value_map_t findStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) throw (DBException);
     virtual NeighborDataVector findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException);
