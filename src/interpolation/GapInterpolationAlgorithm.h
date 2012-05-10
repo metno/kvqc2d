@@ -79,6 +79,7 @@ private:
     ParameterInfos mParameterInfos;
 
     std::vector<int> tids;
+    float mRAThreshold;
 
     FlagSetCU missing_flags;
     FlagChange missing_flagchange;

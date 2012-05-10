@@ -54,6 +54,8 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 
     tids = params.getMultiParameter<int>("TypeId");
 
+    mRAThreshold = params.getParameter("RA_threshold", 50.0f);
+
     params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[23]&fhqc=0", "");
     params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1");
 
@@ -196,6 +198,20 @@ void GapInterpolationAlgorithm::run()
                 makeUpdates(pgmr.paramMissingRanges[pi->minParameter], mmd.getInterpolatedMin(), missingTime, updates, *pi);
                 makeUpdates(pgmr.paramMissingRanges[pi->maxParameter], mmd.getInterpolatedMax(), missingTime, updates, *pi);
             } else {
+                if( parameter == 104 /*RA*/) {
+                    DBGV( pgmr.paramMissingRanges.size() );
+                    if( pgmr.paramMissingRanges.size() == 1 ) {
+                        const int t0 = Interpolation::NeighborInterpolator::EXTRA_DATA-1, t1 = t0 + 1 + pgmr.range.hours() + 1;
+                        DBG(DBG1(t0) << DBG1(t1));
+                        const Interpolation::SeriesData sd0 = knd.parameter(t0), sd1 = knd.parameter(t1);
+                        DBG(DBG1(sd0.usable()) << DBG1(sd1.usable()) << DBG1(sd0.usable()) << DBG1(sd1.usable()));
+                        if( sd0.usable() && sd1.usable() && (sd1.value() < sd0.value() - mRAThreshold) ) {
+                            info() << "RA decreasing around " << pgmr.range.t0 << " and " << pgmr.range.t1
+                                   << ", no interpolation attempted";
+                            continue;
+                        }
+                    }
+                }
                 foreach(ParamGroupMissingRange::ParamMissingRanges::value_type& pr, pgmr.paramMissingRanges) {
                     const Interpolation::Summary s  = mNeighborInterpolator->interpolate(knd);
                     makeUpdates(pr.second, knd.getInterpolated(), missingTime, updates, *pi);
