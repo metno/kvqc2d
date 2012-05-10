@@ -48,8 +48,8 @@ void AggregatorLimitsTest::SetUp()
     sql << "INSERT INTO station VALUES(18700, 59.942, 10.720,  94, 0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');\n"
 
         << "INSERT INTO station_param VALUES(0,     109, 0, 0, 1, 365, -1, 'QC1-1-109', 'max;highest;high;low;lowest;min\n160;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES(18700, 109, 0, 0, 1, 124, 18, 'QC1-1-109', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
-        << "INSERT INTO station_param VALUES(18700, 109, 0, 0, 1, 125, -1, 'QC1-1-109', 'max;highest;high;low;lowest;min\n140;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(18700, 109, 0, 0, 1, 124, 18, 'QC1-1-109', 'max;highest;high;low;lowest;min\n140;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
+        << "INSERT INTO station_param VALUES(18700, 109, 0, 0, 1, 125, -1, 'QC1-1-109', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0,     110, 0, 0, 1, 365, -1, 'QC1-1-110', 'max;highest;high;low;lowest;min\n120;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 }
@@ -57,10 +57,12 @@ void AggregatorLimitsTest::SetUp()
 TEST_F(AggregatorLimitsTest, FirstTest)
 {
     DataList data(18700, 109, -330);
-    data.add("2012-05-04 18:00:00", 155, "1000000000000000");
-    data.add("2012-05-05 06:00:00", 165, "1000000000000000");
-    data.add("2012-05-05 18:00:00", 145, "1000000000000000");
-    data.add("2012-05-06 06:00:00",   1, "1000000000000000");
+    data.add("2012-05-04 18:00:00", 145, "1000000000000000")
+        .add("2012-05-05 06:00:00",  -2, "1000000000000000")
+        .add("2012-05-05 18:00:00", 155, "1000000000000000")
+        .add("2012-05-06 06:00:00",   1, "1000000000000000")
+        .setType(330)
+        .add("2012-05-05 18:00:00", 145, "1000000000000000");
     ASSERT_NO_THROW(data.insert(db));
 
     std::stringstream config;
@@ -81,7 +83,7 @@ TEST_F(AggregatorLimitsTest, FirstTest)
     ASSERT_RUN(algo, bc, 3);
 
     ASSERT_OBS_CONTROL_CFAILED("2012-05-04 18:00:00", "1600000000000000", "QC2-agglim-max", bc->update(0));
-    ASSERT_OBS_CONTROL_CFAILED("2012-05-05 06:00:00", "1600000000000000", "QC2-agglim-max", bc->update(1));
+    ASSERT_OBS_CONTROL_CFAILED("2012-05-05 06:00:00", "1600000000000000", "QC2-agglim-min", bc->update(1));
     ASSERT_OBS_CONTROL_CFAILED("2012-05-05 18:00:00", "1600000000000000", "QC2-agglim-max", bc->update(2));
 
     ASSERT_RUN(algo, bc, 0);
