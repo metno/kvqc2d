@@ -185,6 +185,23 @@ DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, c
 
 // ------------------------------------------------------------------------
 
+DBInterface::DataList SQLDataAccess::findAggregationOutsideRange(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& time, const FlagSetCU& flags, float min, float max) throw (DBException)
+{
+    std::ostringstream sql;
+    sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
+    formatStationIDList(sql, stationIDs);
+    sql << " AND ";
+    formatIDList(sql, pids, "paramid");
+    sql << " AND typeid < 0"
+        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND " << flags.sql()
+        << " AND original NOT BETWEEN " << min << " AND " << max
+        << " ORDER BY stationid, obstime";
+    return extractData(sql.str());
+}
+
+// ------------------------------------------------------------------------
+
 DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues(int paramID, const std::string& key, float missingValue) throw (DBException)
 {
     std::ostringstream sql;

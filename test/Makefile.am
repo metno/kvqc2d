@@ -8,6 +8,7 @@ corbatest_SOURCES= \
 kvqc2dTest_SOURCES= \
 	AkimaTest.cc \
 	AlgorithmConfigTest.cc \
+	algorithms/AggregatorLimitsTest.cc \
 	algorithms/AkimaSplineTest.cc \
 	algorithms/AlgorithmHelpersTest.cc \
 	algorithms/AlgorithmTestBase.cc \

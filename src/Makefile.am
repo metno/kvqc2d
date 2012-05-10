@@ -19,6 +19,8 @@ libkvqc2d_a_SOURCES = \
 	AlgorithmRunner.cc \
 	AlgorithmRunner.h \
 	Broadcaster.h \
+	algorithms/AggregatorLimits.cc \
+	algorithms/AggregatorLimits.h \
 	algorithms/DataUpdate.cc \
 	algorithms/DataUpdate.h \
 	algorithms/DipTestAlgorithm.cc \
