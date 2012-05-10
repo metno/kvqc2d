@@ -73,7 +73,7 @@ Interpolation::SeriesData KvalobsMinMaxData::minmax(int time, int paramid, Kvalo
         FlagSetCU all;
         const Instrument& i = neighborData().getInstrument();
         data.set(database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
-                                                               i.level, neighborData().getTimeRange(), all));
+                i.level, neighborData().getTimeRange(), all));
     }
 
     const miutil::miTime t = timeAtOffset(time);

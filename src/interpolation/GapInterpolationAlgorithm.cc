@@ -155,6 +155,8 @@ void GapInterpolationAlgorithm::run()
             mr.push_back(ParamGroupMissingRange(d));
     }
 
+    const ParameterInfos_it piTA = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(211));
+
     DataList updates;
     foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
         const Instrument& instrument = imr.first;
@@ -168,14 +170,17 @@ void GapInterpolationAlgorithm::run()
         const bool minmax = (pi->minParameter > 0) && (pi->maxParameter > 0);
 
         const Instrument instrumentTA(instrument.stationid, 211, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
-        const ParameterInfos_it piTA = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(211));
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
             const TimeRange missingTime = pgmr.range.extendedByHours(Interpolation::NeighborInterpolator::EXTRA_DATA);
             KvalobsNeighborData knd(database(), instrument, missingTime, *pi);
             if( minmax ) {
                 KvalobsMinMaxData mmd(knd);
-                if( parameter == 262 && piTA != mParameterInfos.end() ) {
+                if( parameter == 262 ) {
+                    if( piTA == mParameterInfos.end() ) {
+                        error() << "no TA (211) parameter info found while interpolating UU (262); please fix configuration files";
+                        break;
+                    }
                     KvalobsNeighborData kndTA(database(), instrumentTA, missingTime, *piTA);
                     KvalobsUUNeighborData kndUU(knd, kndTA);
 
