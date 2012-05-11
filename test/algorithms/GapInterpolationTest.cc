@@ -40,7 +40,7 @@ namespace {
 void INSERT_NEIGHBOR(std::ostream& sql, int stationid, int paramid, int neighborid, float offset=0, float slope=1, float sigma=1)
 {
     sql << "INSERT INTO interpolation_best_neighbors VALUES ("
-        << stationid << ',' << neighborid << ',' << paramid << ',' << offset << ',' << slope << ',' << sigma << ");\n";
+        << stationid << ',' << neighborid << ',' << paramid << ", 0, " << offset << ',' << slope << ',' << sigma << ");\n";
 }
 }
 

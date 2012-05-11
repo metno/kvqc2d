@@ -92,7 +92,7 @@ DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, co
 DBInterface::StationParamList SQLDataAccess::findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException)
 {
     std::ostringstream sql;
-    sql << kvalobs::kvStationParam().selectAllQuery() + " WHERE ";
+    sql << kvalobs::kvStationParam().selectAllQuery() << " WHERE ";
     formatStationIDList(sql, stationIDs);
     sql << " AND ";
     formatIDList(sql, pids, "paramid");
@@ -226,7 +226,10 @@ NeighborDataVector SQLDataAccess::findNeighborData(int stationid, int paramid, f
 {
     std::ostringstream sql;
     sql << "SELECT neighborid, fit_offset, fit_slope, fit_sigma FROM interpolation_best_neighbors"
-        << " WHERE stationid = " << stationid << " AND paramid = " << paramid << " AND fit_sigma < " << maxsigma;
+        << " WHERE stationid = " << stationid
+        << " AND paramid = " << paramid
+        << " AND interpolation_id = 0"
+        << " AND fit_sigma < " << maxsigma;
     return extractNeighborData(sql.str());
 }
 

@@ -85,12 +85,13 @@ SqliteTestDB::SqliteTestDB()
         "value       FLOAT NOT NULL);");
 
     exec("CREATE TABLE interpolation_best_neighbors ("
-         "stationid   INTEGER NOT NULL, "
-         "neighborid  INTEGER NOT NULL, "
-         "paramid     INTEGER NOT NULL, "
-         "fit_offset  FLOAT NOT NULL, "
-         "fit_slope   FLOAT NOT NULL, "
-         "fit_sigma   FLOAT NOT NULL);");
+         "stationid        INTEGER NOT NULL, "
+         "neighborid       INTEGER NOT NULL, "
+         "paramid          INTEGER NOT NULL, "
+         "interpolation_id INTEGER NOT NULL, "
+         "fit_offset       FLOAT NOT NULL, "
+         "fit_slope        FLOAT NOT NULL, "
+         "fit_sigma        FLOAT NOT NULL);");
 
     exec("CREATE TABLE model_data ("
          "stationid INTEGER   NOT NULL, "
