@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,24 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#ifndef CHECKERQUARTILES_H_
+#define CHECKERQUARTILES_H_
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
+#include "Checker.h"
+#include <vector>
 
-class Notifier;
-
-// #######################################################################
-
-class Message {
+class CheckerQuartiles : public Checker {
 public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
+    CheckerQuartiles(StatisticalMean* sm, int days, const std::vector<float>& tolerances);
+    bool newCenter(int id, int dayOfYear, AccumulatedValueP accumulated);
+    bool checkNeighbor(int nbr, AccumulatedValueP accumulated);
+    bool pass();
 private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
+    bool calculateDiffsToReferences(int station, int dOy, float diffs[3], AccumulatedValueP accumulated);
+private:
+    int mDays, mDayOfYear, mCenter, mCountNeighborsWithError;
+    std::vector<float> mTolerances;
+    float mDiffsQ[3];
 };
 
-// #######################################################################
-
-class Notifier
-{
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
-
-#endif
+#endif /* CHECKERQUARTILES_H_ */

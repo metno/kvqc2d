@@ -33,10 +33,10 @@
 #include <boost/version.hpp>
 #if BOOST_VERSION >= 104000
 
-#include "DBInterface.h"
 #include "Qc2Algorithm.h"
-#include "algorithms/DataUpdate.h"
-#include <boost/shared_ptr.hpp>
+#include <list>
+#include <map>
+#include <vector>
 
 class RedistributionNeighbors;
 

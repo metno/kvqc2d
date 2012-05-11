@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,14 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#include "DayMean.h"
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
+#include "helpers/timeutil.h"
+#include <puTools/miDate.h>
 
-class Notifier;
-
-// #######################################################################
-
-class Message {
-public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
-private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
-};
-
-// #######################################################################
-
-class Notifier
+int DayMean::normalisedDayOfYear(const miutil::miDate& day0) const
 {
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
-
-#endif
+    miutil::miDate date(day0);
+    date.addDay(mDay);
+    return Helpers::normalisedDayOfYear(date);
+}

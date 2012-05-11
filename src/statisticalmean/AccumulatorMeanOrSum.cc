@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,16 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#include "AccumulatorMeanOrSum.h"
+#include "AccumulatedFloat.h"
+#include <boost/make_shared.hpp>
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
-
-class Notifier;
-
-// #######################################################################
-
-class Message {
-public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
-private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
-};
-
-// #######################################################################
-
-class Notifier
+AccumulatedValueP AccumulatorMeanOrSum::value()
 {
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
-
-#endif
+    if( mCountDays<=0 || mCountDays < mDaysRequired )
+        return AccumulatedValueP();
+    if( mCalculateMean )
+        return boost::make_shared<AccumulatedFloat>(mSum / mCountDays);
+    else
+        return boost::make_shared<AccumulatedFloat>(mSum * float(mDays) / float(mCountDays));
+}

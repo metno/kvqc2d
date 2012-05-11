@@ -63,6 +63,7 @@ libkvqc2d_a_SOURCES = \
 	LogfileNotifier.h \
 	Notifier.cc \
 	Notifier.h \
+	Notifier.icc \
 	SQLDataAccess.cc \
 	SQLDataAccess.h \
 	TimeRange.cc \

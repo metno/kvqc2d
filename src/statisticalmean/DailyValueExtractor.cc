@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,37 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#include "DailyValueExtractor.h"
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
-
-class Notifier;
-
-// #######################################################################
-
-class Message {
-public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
-private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
-};
-
-// #######################################################################
-
-class Notifier
+void DailyValueExtractor::newDay()
 {
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
+    mHours = 0;
+    mCountHours = 0;
+    mMean = 0;
+}
 
-#endif
+// ------------------------------------------------------------------------
+
+void DailyValueExtractor::addObservation(const miutil::miTime& obstime, float original)
+{
+    int h = obstime.hour();
+    if( h == 6 || h == 12 || h == 18 ) {
+        mHours |= (1 << h);
+        mCountHours += 1;
+        mMean += original;
+    }
+}
+
+// ------------------------------------------------------------------------
+
+bool DailyValueExtractor::isCompleteDay()
+{
+    return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18));
+}
+
+// ------------------------------------------------------------------------
+
+float DailyValueExtractor::value()
+{
+    return mMean / mCountHours;
+}

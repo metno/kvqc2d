@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,20 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#ifndef ACCUMULATOR_H_
+#define ACCUMULATOR_H_
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
+#include "AccumulatedValue.h"
 
-class Notifier;
-
-// #######################################################################
-
-class Message {
+class Accumulator {
 public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
-private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
+    virtual void newStation() =0;
+    virtual void push(float value) = 0;
+    virtual void pop(float value) = 0;
+    virtual AccumulatedValueP value() = 0;
+    virtual ~Accumulator();
 };
 
-// #######################################################################
+typedef boost::shared_ptr<Accumulator> AccumulatorP;
 
-class Notifier
-{
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
-
-#endif
+#endif /* ACCUMULATOR_H_ */

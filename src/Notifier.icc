@@ -1,0 +1,14 @@
+// -*- c++ -*-
+
+#ifndef NOTIFIER_ICC
+#define NOTIFIER_ICC 1
+
+#include <sstream>
+
+template<class T>
+Message& Message::operator<<(const T& t)
+{
+    *mStream << t; return *this;
+}
+
+#endif /* NOTIFIER_ICC */

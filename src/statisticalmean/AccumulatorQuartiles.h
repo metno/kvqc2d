@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,23 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#ifndef ACCUMULATORQUARTILES_H_
+#define ACCUMULATORQUARTILES_H_
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
+#include "Accumulator.h"
+#include <vector>
 
-class Notifier;
-
-// #######################################################################
-
-class Message {
+class AccumulatorQuartiles : public Accumulator {
 public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
+    AccumulatorQuartiles(int days, int daysRequired)
+        : mDays(days), mDaysRequired(daysRequired) { }
+    void newStation() { mValues.clear(); }
+    void push(float value) { mValues.push_back(value); }
+    void pop(float value);
+    AccumulatedValueP value();
 private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
+    int mDays, mDaysRequired;
+    std::vector<float> mValues;
 };
 
-// #######################################################################
-
-class Notifier
-{
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
-
-#endif
+#endif /* ACCUMULATORQUARTILES_H_ */

@@ -36,6 +36,7 @@
 #include "algorithms/NeighborsDistance2.h"
 #include "DBInterface.h"
 #include "foreach.h"
+#include "Notifier.icc"
 
 #include <kvalobs/kvQCFlagTypes.h>
 #include <milog/milog.h>

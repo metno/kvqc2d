@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011-2012 met.no
+  Copyright (C) 2011 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,46 +27,18 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Notifier_H
-#define Notifier_H
+#ifndef ACCUMULATEDQUARTILES_H_
+#define ACCUMULATEDQUARTILES_H_
 
-#include <boost/shared_ptr.hpp>
-#include <iosfwd>
-#include <string>
+#include "AccumulatedValue.h"
 
-class Notifier;
-
-// #######################################################################
-
-class Message {
-public:
-    enum Level { DEBUG, INFO, WARNING, ERROR, FATAL };
-
-    Message(Level level, Notifier* n, const std::string& category);
-
-    ~Message();
-
-    void reset();
-
-    template<class T>
-    Message& operator<<(const T& t);
-
-    Message& operator<<(const char* t);
-
-private:
-    boost::shared_ptr<std::ostringstream> mStream;
-    Level mLevel;
-    Notifier* mNotifier;
-    const std::string mCategory;
+struct AccumulatedQuartiles : public AccumulatedValue {
+    float q1, q2, q3;
+    float q(int i) const { if(i==0) return q1; else if(i==1) return q2; else if(i==2) return q3; else return -9999; }
+    AccumulatedQuartiles(float qq1, float qq2, float qq3)
+        : q1(qq1), q2(qq2), q3(qq3) { }
 };
 
-// #######################################################################
+typedef boost::shared_ptr<AccumulatedQuartiles> AccumulatedQuartilesP;
 
-class Notifier
-{
-public:
-    virtual ~Notifier() { }
-    virtual void sendText(Message::Level level, const std::string& message) = 0;
-};
-
-#endif
+#endif /* ACCUMULATEDQUARTILES_H_ */

@@ -35,6 +35,7 @@
 #include "helpers/timeutil.h"
 #include "DBInterface.h"
 #include "NeighborsDistance2.h"
+#include "Notifier.icc"
 #include "foreach.h"
 
 #include <milog/milog.h>
