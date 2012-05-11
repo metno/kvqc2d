@@ -1,3 +1,11 @@
+kvqc2d (1.3.16pre4-1) unstable; urgency=low
+
+  * GapInterpolation: no interpolation for RA if bucket is emptied
+  * AggregatorLimits: implemented, but not yet enabled
+  * prefix all log messages with algorithm name for grouping in log email
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 11 May 2012 10:26:21 +0200
+
 kvqc2d (1.3.16pre3-1) unstable; urgency=low
 
   * GapInterpolation: no update if same numerical value
