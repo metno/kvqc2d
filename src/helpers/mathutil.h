@@ -101,7 +101,7 @@ T limited_value(const T& value, const T& mini, const T& maxi)
 
 template<typename T>
 void limit_value(T& value, const T& mini, const T& maxi)
-{ value = limited_value(value); }
+{ value = limited_value(value, mini, maxi); }
 
 } // namespace Helpers
 
