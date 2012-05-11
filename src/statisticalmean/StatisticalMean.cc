@@ -40,6 +40,9 @@
 #include "CheckerMeanOrSum.h"
 #include "CheckerQuartiles.h"
 #include "DailyValueExtractor.h"
+#include "MeanFactory.h"
+#include "QuartilesFactory.h"
+#include "SumFactory.h"
 #include "foreach.h"
 
 #include <boost/make_shared.hpp>
@@ -50,6 +53,9 @@
 StatisticalMean::StatisticalMean()
     : Qc2Algorithm("StatisticalMean")
     , mNeighbors(new NeighborsDistance2())
+    , mMeanFactory(new MeanFactory())
+    , mQuartilesFactory(new QuartilesFactory())
+    , mSumFactory(new SumFactory())
 {
 }
 
@@ -69,22 +75,25 @@ std::list<int> StatisticalMean::findNeighbors(int stationID)
 
 // ------------------------------------------------------------------------
 
-void StatisticalMean::configure(const AlgorithmConfig& params)
+void StatisticalMean::configure(const AlgorithmConfig& config)
 {
-    Qc2Algorithm::configure(params);
+    Qc2Algorithm::configure(config);
 
-    params.getFlagSetCU(ok_flags, "ok", "", "U2=0");
+    config.getFlagSetCU(ok_flags, "ok", "", "U2=0");
 
-    mTolerance = params.getParameter<float>("tolerance", 10.0f);
-    mDays      = params.getParameter<int>("days", 30);
-    mDaysRequired = params.getParameter<int>("days_required", int(0.9*mDays + 0.5));
-    mParamid   = params.getParameter<int>("ParamId");
-    mTypeids   = params.getMultiParameter<int>("TypeIds");
+    mTolerance = config.getParameter<float>("tolerance", 10.0f);
+    mDays      = config.getParameter<int>("days", 30);
+    mDaysRequired = config.getParameter<int>("days_required", int(0.9*mDays + 0.5));
+    mParamid   = config.getParameter<int>("ParamId");
+    mTypeids   = config.getMultiParameter<int>("TypeIds");
 
     mUT0extended = UT0;
     mUT0extended.addDay(-mDays);
 
-    mNeighbors->configure(params);
+    mNeighbors->configure(config);
+    mMeanFactory->configure(this, config);
+    mSumFactory->configure(this, config);
+    mQuartilesFactory->configure(this, config);
 }
 
 // ------------------------------------------------------------------------
@@ -222,21 +231,20 @@ void StatisticalMean::run()
 {
     AccumulatorP accumulator;
     CheckerP checker;
-    if( mParamid == 178 /* PR */ || mParamid == 211 /* TA */ ) {
-        accumulator = boost::make_shared<AccumulatorMeanOrSum>(true, mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
-    } else if( mParamid == 106 /* RR_1 */ || mParamid == 108 /* RR_6 */
-               || mParamid == 109 /* RR_12 */ || mParamid == 110 /* RR_24 */ ) {
-        accumulator = boost::make_shared<AccumulatorMeanOrSum>(false, mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
-    } else if( mParamid == 262 /* UU */ || mParamid == 15 /* NN */ || mParamid == 55 /* HL */
-               || mParamid == 273 /* VV */ || mParamid == 200 /* QO */ ) {
-        accumulator = boost::make_shared<AccumulatorQuartiles>(mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerQuartiles>(this, mDays, std::vector<float>(6, mTolerance));
+
+    boost::shared_ptr<Factory> factory;
+    if( mMeanFactory->appliesTo(mParamid) ) {
+        factory = mMeanFactory;
+    } else if( mSumFactory->appliesTo(mParamid) ) {
+        factory = mSumFactory;
+    } else if( mQuartilesFactory->appliesTo(mParamid) ) {
+        factory = mQuartilesFactory;
     } else {
         warning() << "Illegal paramid " << mParamid << " in StatisticalMean::run";
         return;
     }
+    accumulator = factory->accumulator(mParamid);
+    checker = factory->checker(mParamid);
 
     const sd2_t stationMeansPerDay = findStationMeansPerDay(accumulator);
 

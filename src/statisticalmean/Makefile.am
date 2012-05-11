@@ -22,8 +22,16 @@ libstatisticalmean_a_SOURCES = \
 	DailyValueExtractor.h \
 	DayMean.cc \
 	DayMean.h \
+	Factory.cc \
+	Factory.h \
+	MeanFactory.cc \
+	MeanFactory.h \
+	QuartilesFactory.cc \
+	QuartilesFactory.h \
 	StatisticalMean.cc \
-	StatisticalMean.h
+	StatisticalMean.h \
+	SumFactory.cc \
+	SumFactory.h
 
 AM_CXXFLAGS = -Wall -W -I$(top_srcdir)/src \
 	$(PROG_DEPS_CFLAGS) \

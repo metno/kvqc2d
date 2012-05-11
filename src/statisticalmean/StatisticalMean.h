@@ -41,7 +41,10 @@
 #include <map>
 #include <vector>
 
+class MeanFactory;
+class QuartilesFactory;
 class RedistributionNeighbors;
+class SumFactory;
 
 class StatisticalMean : public Qc2Algorithm {
 public:
@@ -71,6 +74,9 @@ private:
 
 private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;
+    boost::shared_ptr<MeanFactory> mMeanFactory;
+    boost::shared_ptr<QuartilesFactory> mQuartilesFactory;
+    boost::shared_ptr<SumFactory> mSumFactory;
 
     float mTolerance;
     int mDays;
