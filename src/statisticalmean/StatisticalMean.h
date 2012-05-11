@@ -33,6 +33,9 @@
 #include <boost/version.hpp>
 #if BOOST_VERSION >= 104000
 
+#include "Accumulator.h"
+#include "Checker.h"
+#include "DayMean.h"
 #include "Qc2Algorithm.h"
 #include <list>
 #include <map>
@@ -51,6 +54,20 @@ public:
 
 private:
     std::list<int> findNeighbors(int stationID);
+
+    typedef std::vector<kvalobs::kvData> dlist_t;
+    typedef std::map<int, dlist_t > smap_t;
+    smap_t fetchData();
+
+    typedef std::vector<DayMean> dm_t;
+    typedef std::map<int, dm_t> sdm_t;
+    sdm_t findStationDailyMeans();
+
+    typedef std::map<int, AccumulatedValueP> dm2_t;
+    typedef std::map<int, dm2_t> sd2_t;
+    sd2_t findStationMeansPerDay(AccumulatorP accumulator);
+
+    void checkAllMeanValues(CheckerP checker, const sd2_t& smpd);
 
 private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;

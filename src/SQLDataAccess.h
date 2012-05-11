@@ -47,7 +47,6 @@ public:
     virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException);
     virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) throw (DBException);
     virtual DataList findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, const std::vector<int>& tids, const TimeRange& time) throw (DBException);
     virtual DataList findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
     virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
     virtual DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException);

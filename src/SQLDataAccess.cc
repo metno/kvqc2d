@@ -141,14 +141,6 @@ DBInterface::DataList SQLDataAccess::findDataMaybeTSLOrderObstime(int stationID,
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, const std::vector<int>& tids, const TimeRange& time) throw (DBException)
-{
-    const std::vector<int> pids(1, paramID);
-    return findData(stationIDs, pids, tids, INVALID_ID, INVALID_ID, time, FlagSetCU(), false);
-}
-
-// ------------------------------------------------------------------------
-
 DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
 {
     const StationIDList sids(1, stationID);

@@ -34,26 +34,18 @@
 
 #include "algorithms/NeighborsDistance2.h"
 #include "helpers/AlgorithmHelpers.h"
-#include "helpers/mathutil.h"
 #include "helpers/timeutil.h"
 #include "AccumulatorQuartiles.h"
 #include "AccumulatorMeanOrSum.h"
 #include "CheckerMeanOrSum.h"
 #include "CheckerQuartiles.h"
 #include "DailyValueExtractor.h"
-#include "DayMean.h"
-#include "DBInterface.h"
 #include "foreach.h"
 
-#include <milog/milog.h>
-
-#include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
 #define NDEBUG
 #include "debug.h"
-
-using Helpers::equal;
 
 StatisticalMean::StatisticalMean()
     : Qc2Algorithm("StatisticalMean")
@@ -66,8 +58,8 @@ StatisticalMean::StatisticalMean()
 std::list<int> StatisticalMean::findNeighbors(int stationID)
 {
     if( !mNeighbors->hasStationList() ) {
-        std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
-        std::list<int> allStationIDs;
+        DBInterface::StationList   allStations; // actually only stationary norwegian stations
+        DBInterface::StationIDList allStationIDs;
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);
     }
@@ -81,7 +73,7 @@ void StatisticalMean::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(ok_flags,      "ok", "", "U2=0");
+    params.getFlagSetCU(ok_flags, "ok", "", "U2=0");
 
     mTolerance = params.getParameter<float>("tolerance", 10.0f);
     mDays      = params.getParameter<int>("days", 30);
@@ -97,14 +89,15 @@ void StatisticalMean::configure(const AlgorithmConfig& params)
 
 // ------------------------------------------------------------------------
 
-void StatisticalMean::run()
+StatisticalMean::smap_t StatisticalMean::fetchData()
 {
     // this fetches all data with this paramid for all stations at
     // once; this might be a lot, but we need all neighbors for each
     // station anyhow
     const DBInterface::StationIDList stationIDs(1, DBInterface::ALL_STATIONS);
+    const std::vector<int> paramid(1, mParamid);
     DBInterface::DataList sdata
-        = database()->findDataOrderObstime(stationIDs, mParamid, mTypeids, TimeRange(mUT0extended, UT1));
+        = database()->findDataOrderStationObstime(stationIDs, paramid, mTypeids, TimeRange(mUT0extended, UT1), ok_flags);
     DBGV(sdata.size());
 
     // sort by station; as sdata is ordered by time, data for each
@@ -116,16 +109,18 @@ void StatisticalMean::run()
         if( !Helpers::isMissingOrRejected(d) )
             smap[d.stationID()].push_back(d);
     }
+    return smap;
+}
 
-    sdata.clear(); // release memory
+// ------------------------------------------------------------------------
 
-    typedef std::vector<DayMean> dm_t;
-    typedef std::map<int, dm_t> sdm_t;
-    sdm_t stationDailyMeans;
+StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans()
+{
+    const smap_t smap = fetchData();
 
     const miutil::miDate date0 = mUT0extended.date();
     const int day0 = date0.julianDay();
-
+    sdm_t stationDailyMeans;
     DailyValueExtractor dve;
 
     // calculate daily mean values TODO skip for RR_x
@@ -141,29 +136,19 @@ void StatisticalMean::run()
         }
     }
 
-    smap.clear(); // release memory
+    return stationDailyMeans;
+}
 
-    typedef std::map<int, AccumulatedValueP> dm2_t;
-    typedef std::map<int, dm2_t> sd2_t;
+// ------------------------------------------------------------------------
+
+StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(AccumulatorP accumulator)
+{
+    const sdm_t stationDailyMeans = findStationDailyMeans();
+
     sd2_t stationMeansPerDay;
 
-    AccumulatorP accumulator;
-    CheckerP checker;
-    if( mParamid == 178 /* PR */ || mParamid == 211 /* TA */ ) {
-        accumulator = boost::make_shared<AccumulatorMeanOrSum>(true, mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
-    } else if( mParamid == 106 /* RR_1 */ || mParamid == 108 /* RR_6 */
-               || mParamid == 109 /* RR_12 */ || mParamid == 110 /* RR_24 */ ) {
-        accumulator = boost::make_shared<AccumulatorMeanOrSum>(false, mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
-    } else if( mParamid == 262 /* UU */ || mParamid == 15 /* NN */ || mParamid == 55 /* HL */
-               || mParamid == 273 /* VV */ || mParamid == 200 /* QO */ ) {
-        accumulator = boost::make_shared<AccumulatorQuartiles>(mDays, mDaysRequired);
-        checker = boost::make_shared<CheckerQuartiles>(this, mDays, std::vector<float>(6, mTolerance));
-    } else {
-        warning() << "Illegal paramid " << mParamid << " in StatisticalMean::run";
-        return;
-    }
+    const miutil::miDate date0 = mUT0extended.date();
+    const int day0 = date0.julianDay();
 
     foreach(const sdm_t::value_type& sd, stationDailyMeans) {
         accumulator->newStation();
@@ -187,7 +172,14 @@ void StatisticalMean::run()
         }
     }
 
-    stationDailyMeans.clear(); // release memory
+    return stationMeansPerDay;
+}
+
+// ------------------------------------------------------------------------
+
+void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationMeansPerDay)
+{
+    const miutil::miDate date0 = mUT0extended.date();
 
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
         const int center = sd.first;
@@ -222,6 +214,33 @@ void StatisticalMean::run()
             }
         }
     }
+}
+
+// ------------------------------------------------------------------------
+
+void StatisticalMean::run()
+{
+    AccumulatorP accumulator;
+    CheckerP checker;
+    if( mParamid == 178 /* PR */ || mParamid == 211 /* TA */ ) {
+        accumulator = boost::make_shared<AccumulatorMeanOrSum>(true, mDays, mDaysRequired);
+        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
+    } else if( mParamid == 106 /* RR_1 */ || mParamid == 108 /* RR_6 */
+               || mParamid == 109 /* RR_12 */ || mParamid == 110 /* RR_24 */ ) {
+        accumulator = boost::make_shared<AccumulatorMeanOrSum>(false, mDays, mDaysRequired);
+        checker = boost::make_shared<CheckerMeanOrSum>(this, mTolerance);
+    } else if( mParamid == 262 /* UU */ || mParamid == 15 /* NN */ || mParamid == 55 /* HL */
+               || mParamid == 273 /* VV */ || mParamid == 200 /* QO */ ) {
+        accumulator = boost::make_shared<AccumulatorQuartiles>(mDays, mDaysRequired);
+        checker = boost::make_shared<CheckerQuartiles>(this, mDays, std::vector<float>(6, mTolerance));
+    } else {
+        warning() << "Illegal paramid " << mParamid << " in StatisticalMean::run";
+        return;
+    }
+
+    const sd2_t stationMeansPerDay = findStationMeansPerDay(accumulator);
+
+    checkAllMeanValues(checker, stationMeansPerDay);
 
     mReferenceKeys.clear();
 }
