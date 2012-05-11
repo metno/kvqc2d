@@ -60,6 +60,7 @@ double Akima::interpolate(double x) const
             mmm[N+3-i] = 3*m1 - 2*m0;
     }
 
+    // TODO llvm clang static analysis complains about mmm[1] in the next line; why?
     const double a0  = fabs(mmm[1] - mmm[0]), NE0 = a0 + fabs(mmm[3] - mmm[2]);
     const double tR0 = (NE0>0) ? (mmm[1] + a0*(mmm[2] - mmm[1])/NE0) : mmm[2];
     const double a1  = fabs(mmm[2] - mmm[1]), NE1 = a1 + fabs(mmm[4] - mmm[3]);
