@@ -158,6 +158,7 @@ void GapInterpolationAlgorithm::run()
     }
 
     const ParameterInfos_it piTA = std::find_if(mParameterInfos.begin(), mParameterInfos.end(), HasParameter(211));
+    const TimeRange timeIntervalShrinked = TimeRange(UT0, UT1).extendedByHours(-1);
 
     DataList updates;
     foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges) {
@@ -174,6 +175,12 @@ void GapInterpolationAlgorithm::run()
         const Instrument instrumentTA(instrument.stationid, 211, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
+            if( pgmr.range.t0 < timeIntervalShrinked.t0 || pgmr.range.t1 > timeIntervalShrinked.t1 ) {
+                info() << "missing range BETWEEN " << pgmr.range.t0 << " AND " << pgmr.range.t1
+                       << " for station=" << instrument.stationid << " paramid=" << instrument.paramid
+                       << " at start/end of time interval, skipping interpolation attempt";
+                continue;
+            }
             const TimeRange missingTime = pgmr.range.extendedByHours(Interpolation::NeighborInterpolator::EXTRA_DATA);
             KvalobsNeighborData knd(database(), instrument, missingTime, *pi);
             if( minmax ) {
