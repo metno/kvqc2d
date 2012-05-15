@@ -286,7 +286,7 @@ TEST_F(StatisticalMeanTest, FakeDeviation_PR)
     ASSERT_EQ(29, logs->count(Message::WARNING));
 
     for(int day=1; day<=29; ++day) {
-        EXPECT_LE(0, logs->find((boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str(),
+        EXPECT_LE(0, logs->find((boost::format("stationid=%1% .* for series ending at 2012-02-%2$02d") % ctr % day).str(),
                                 Message::WARNING)) << "day=" << day;
     }
 }
@@ -339,7 +339,7 @@ TEST_F(StatisticalMeanTest, FakeDeviation_TA)
     ASSERT_EQ(5, logs->count(Message::WARNING));
 
     for(int day=1; day<=5; ++day) {
-        EXPECT_LE(0, logs->find((boost::format("station %1% for series ending at 2012-02-%2$02d") % ctr % day).str(),
+        EXPECT_LE(0, logs->find((boost::format("stationid=%1% .* for series ending at 2012-02-%2$02d") % ctr % day).str(),
                                 Message::WARNING)) << "day=" << day;
     }
 }
@@ -515,4 +515,3 @@ TEST_F(StatisticalMeanTest, MixedTypeIDs)
 }
 
 #endif /* BOOST_VERSION >= 104000 */
-

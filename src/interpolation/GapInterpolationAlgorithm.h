@@ -30,7 +30,7 @@
 #ifndef GapInterpolationAlgorithm_H
 #define GapInterpolationAlgorithm_H 1
 
-#include "interpolation/Instrument.h"
+#include "Instrument.h"
 #include "interpolation/NeighborInterpolator.h"
 #include "interpolation/MinMaxInterpolator.h"
 #include "interpolation/ParameterInfo.h"

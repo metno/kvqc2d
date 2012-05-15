@@ -27,7 +27,7 @@ src/Makefile.in
 src/algorithms/.dirstamp
 src/algorithms/*.o
 src/kvqc2d
-src/libkvqc2d.a
+src/libkvqc2d_[12].a
 src/*.o
 src/helpers/*.o
 src/helpers/libhelpers.a

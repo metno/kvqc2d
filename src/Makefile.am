@@ -9,9 +9,9 @@ bin_PROGRAMS = kvqc2d
 
 kvqc2d_SOURCES = Qc2Main.cc
 
-noinst_LIBRARIES = libkvqc2d.a
+noinst_LIBRARIES = libkvqc2d_1.a libkvqc2d_2.a
 
-libkvqc2d_a_SOURCES = \
+libkvqc2d_1_a_SOURCES = \
 	AlgorithmConfig.cc \
 	AlgorithmConfig.h \
 	AlgorithmDispatcher.cc \
@@ -61,17 +61,21 @@ libkvqc2d_a_SOURCES = \
 	KvServicedBroadcaster.h \
 	LogfileNotifier.cc \
 	LogfileNotifier.h \
-	Notifier.cc \
-	Notifier.h \
-	Notifier.icc \
 	SQLDataAccess.cc \
 	SQLDataAccess.h \
-	TimeRange.cc \
-	TimeRange.h \
 	Qc2Algorithm.cc \
 	Qc2Algorithm.h \
 	Qc2App.cc \
 	Qc2App.h
+
+libkvqc2d_2_a_SOURCES = \
+	Instrument.cc \
+	Instrument.h \
+	Notifier.cc \
+	Notifier.h \
+	Notifier.icc \
+	TimeRange.cc \
+	TimeRange.h
 
 AM_CXXFLAGS = -Wall -W -I$(top_srcdir)/src \
 	$(PROG_DEPS_CFLAGS) \
@@ -83,7 +87,7 @@ kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 kvqc2d_LDADD = $(PROG_DEPS_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) \
-	libkvqc2d.a interpolation/libinterpolation.a statisticalmean/libstatisticalmean.a TimeRange.o helpers/libhelpers.a
+	libkvqc2d_1.a interpolation/libinterpolation.a statisticalmean/libstatisticalmean.a libkvqc2d_2.a helpers/libhelpers.a
 
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs

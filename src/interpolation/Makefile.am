@@ -18,8 +18,6 @@ libinterpolation_a_SOURCES = \
 	KvalobsMinMaxData.h \
 	KvalobsDataUU.cc \
 	KvalobsDataUU.h \
-	Instrument.cc \
-	Instrument.h \
 	ParameterInfo.cc \
 	ParameterInfo.h \
 	GapInterpolationAlgorithm.cc \

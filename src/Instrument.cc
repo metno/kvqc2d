@@ -54,3 +54,10 @@ bool lt_Instrument::operator()(const Instrument& a, const Instrument& b) const
         return kvalobs::compare::lt_sensor(a.sensor, b.sensor);
     return a.paramid < b.paramid;
 }
+
+std::ostream& operator<<(std::ostream& out, const Instrument& i)
+{
+    out << "[stationid=" << i.stationid << " AND paramid=" << i.paramid
+        << " AND sensor='" << i.sensor << "' AND typeid=" << i.type << " AND level=" << i.level << "]";
+    return out;
+}

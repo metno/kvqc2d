@@ -31,6 +31,7 @@
 #define INSTRUMENT_H_
 
 #include <functional>
+#include <iosfwd>
 
 namespace kvalobs {
 class kvData;
@@ -50,5 +51,7 @@ struct lt_Instrument : public std::binary_function<Instrument, Instrument, bool>
 {
     bool operator()(const Instrument& a, const Instrument& b) const;
 };
+
+std::ostream& operator<<(std::ostream& out, const Instrument& instrument);
 
 #endif /* INSTRUMENT_H_ */

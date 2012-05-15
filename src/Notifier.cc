@@ -72,6 +72,7 @@ void Message::reset()
 
 #include "Notifier.icc"
 
+#include "Instrument.h"
 #include <kvalobs/kvData.h>
 #include <puTools/miTime.h>
 
@@ -83,6 +84,7 @@ template Message& Message::operator<< <double>          (const double& t);
 template Message& Message::operator<< <miutil::miTime>  (const miutil::miTime& t);
 template Message& Message::operator<< <miutil::miDate>  (const miutil::miDate& t);
 template Message& Message::operator<< <kvalobs::kvData> (const kvalobs::kvData& t);
+template Message& Message::operator<< <Instrument>      (const Instrument& t);
 
 Message& Message::operator<<(const char* t)
 {

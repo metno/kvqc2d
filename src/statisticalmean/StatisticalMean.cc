@@ -111,12 +111,10 @@ StatisticalMean::smap_t StatisticalMean::fetchData()
 
     // sort by station; as sdata is ordered by time, data for each
     // station will keep this ordering
-    typedef std::vector<kvalobs::kvData> dlist_t;
-    typedef std::map<int, dlist_t > smap_t;
     smap_t smap;
     foreach(const kvalobs::kvData& d, sdata) {
         if( !Helpers::isMissingOrRejected(d) )
-            smap[d.stationID()].push_back(d);
+            smap[Instrument(d)].push_back(d);
     }
     return smap;
 }
@@ -186,6 +184,16 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
     return stationMeansPerDay;
 }
 
+namespace {
+struct same_station : public std::unary_function<bool, StatisticalMean::sd2_t::value_type> {
+    bool operator() (const StatisticalMean::sd2_t::value_type& i) const {
+        return i.first.stationid == stationid;
+    }
+    int stationid;
+    same_station(int s) : stationid(s) { }
+};
+}
+
 // ------------------------------------------------------------------------
 
 void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationMeansPerDay)
@@ -193,7 +201,7 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
     const miutil::miDate date0 = mUT0extended.date();
 
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
-        const int center = sd.first;
+        const Instrument& center = sd.first;
         foreach(const dm2_t::value_type& dm, sd.second) {
             const int day = dm.first;
 
@@ -202,12 +210,12 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
             if( date < UT0.date() )
                 continue;
 
-            if( checker->newCenter(center, Helpers::normalisedDayOfYear(date), dm.second) )
+            if( checker->newCenter(center.stationid, Helpers::normalisedDayOfYear(date), dm.second) )
                 continue;
 
-            std::list<int> neighbors = findNeighbors(center);
+            const std::list<int> neighbors = findNeighbors(center.stationid);
             foreach(int n, neighbors) {
-                sd2_t::const_iterator itN = stationMeansPerDay.find(n);
+                sd2_t::const_iterator itN = std::find_if(stationMeansPerDay.begin(), stationMeansPerDay.end(), same_station(n));
                 if( itN == stationMeansPerDay.end() )
                     continue;
 
@@ -220,7 +228,7 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
                     break;
             }
             if( !checker->pass() ) {
-                warning() << "statistical test failed for station " << center
+                warning() << "statistical test failed for " << center
                           << " for series ending at " << date;
             }
         }

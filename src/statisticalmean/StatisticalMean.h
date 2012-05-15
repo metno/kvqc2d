@@ -36,6 +36,7 @@
 #include "Accumulator.h"
 #include "Checker.h"
 #include "DayValueExtractor.h"
+#include "Instrument.h"
 #include "Qc2Algorithm.h"
 #include <list>
 #include <map>
@@ -55,19 +56,21 @@ public:
 
     float getReferenceValue(int station, int dayOfYear, const std::string& key, bool& valid);
 
+public:
+    typedef std::vector<kvalobs::kvData> dlist_t;
+    typedef std::map<Instrument, dlist_t, lt_Instrument> smap_t;
+    typedef std::vector<DayValueP> dm_t;
+    typedef std::map<Instrument, dm_t, lt_Instrument> sdm_t;
+    typedef std::map<int, AccumulatedValueP> dm2_t;
+    typedef std::map<Instrument, dm2_t, lt_Instrument> sd2_t;
+
 private:
     std::list<int> findNeighbors(int stationID);
 
-    typedef std::vector<kvalobs::kvData> dlist_t;
-    typedef std::map<int, dlist_t > smap_t;
     smap_t fetchData();
 
-    typedef std::vector<DayValueP> dm_t;
-    typedef std::map<int, dm_t> sdm_t;
     sdm_t findStationDailyMeans(DayValueExtractorP dve);
 
-    typedef std::map<int, AccumulatedValueP> dm2_t;
-    typedef std::map<int, dm2_t> sd2_t;
     sd2_t findStationMeansPerDay(DayValueExtractorP dve, AccumulatorP accumulator);
 
     void checkAllMeanValues(CheckerP checker, const sd2_t& smpd);
