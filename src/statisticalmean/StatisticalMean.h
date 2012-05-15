@@ -35,7 +35,7 @@
 
 #include "Accumulator.h"
 #include "Checker.h"
-#include "DayMean.h"
+#include "DayValueExtractor.h"
 #include "Qc2Algorithm.h"
 #include <list>
 #include <map>
@@ -62,9 +62,9 @@ private:
     typedef std::map<int, dlist_t > smap_t;
     smap_t fetchData();
 
-    typedef std::vector<DayMean> dm_t;
+    typedef std::vector<DayValueP> dm_t;
     typedef std::map<int, dm_t> sdm_t;
-    sdm_t findStationDailyMeans();
+    sdm_t findStationDailyMeans(DayValueExtractorP dve);
 
     typedef std::map<int, AccumulatedValueP> dm2_t;
     typedef std::map<int, dm2_t> sd2_t;

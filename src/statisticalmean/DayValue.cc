@@ -27,24 +27,18 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ACCUMULATORMEANORSUM_H_
-#define ACCUMULATORMEANORSUM_H_
+#include "DayValue.h"
 
-#include "Accumulator.h"
+#include "helpers/timeutil.h"
+#include <puTools/miDate.h>
 
-class AccumulatorMeanOrSum : public Accumulator {
-public:
-    AccumulatorMeanOrSum(bool calculateMean, int days, int daysRequired)
-        : mCalculateMean(calculateMean), mDays(days), mDaysRequired(daysRequired) { }
-    virtual void newStation() { mSum = 0; mCountDays = 0; }
-    virtual void push(DayValueP value);
-    virtual void pop(DayValueP value);
-    virtual AccumulatedValueP value();
-private:
-    bool mCalculateMean;
-    int mDays, mDaysRequired;
-    double mSum;
-    int mCountDays;
-};
+DayValue::~DayValue()
+{
+}
 
-#endif /* ACCUMULATORMEANORSUM_H_ */
+int DayValue::normalisedDayOfYear(const miutil::miDate& day0) const
+{
+    miutil::miDate date(day0);
+    date.addDay(mDay);
+    return Helpers::normalisedDayOfYear(date);
+}

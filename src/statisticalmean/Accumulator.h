@@ -31,12 +31,14 @@
 #define ACCUMULATOR_H_
 
 #include "AccumulatedValue.h"
+class DayValue;
+typedef boost::shared_ptr<DayValue> DayValueP;
 
 class Accumulator {
 public:
-    virtual void newStation() =0;
-    virtual void push(float value) = 0;
-    virtual void pop(float value) = 0;
+    virtual void newStation() = 0;
+    virtual void push(DayValueP value) = 0;
+    virtual void pop(DayValueP value) = 0;
     virtual AccumulatedValueP value() = 0;
     virtual ~Accumulator();
 };

@@ -39,7 +39,7 @@
 #include "AccumulatorMeanOrSum.h"
 #include "CheckerMeanOrSum.h"
 #include "CheckerQuartiles.h"
-#include "DailyValueExtractor.h"
+#include "DayMeanExtractor.h"
 #include "MeanFactory.h"
 #include "QuartilesFactory.h"
 #include "SumFactory.h"
@@ -123,25 +123,27 @@ StatisticalMean::smap_t StatisticalMean::fetchData()
 
 // ------------------------------------------------------------------------
 
-StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans()
+StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP dve)
 {
     const smap_t smap = fetchData();
 
     const miutil::miDate date0 = mUT0extended.date();
     const int day0 = date0.julianDay();
     sdm_t stationDailyMeans;
-    DailyValueExtractor dve;
 
     // calculate daily mean values TODO skip for RR_x
     foreach(const smap_t::value_type& sd, smap) {
         const dlist_t& dl = sd.second;
         for(dlist_t::const_iterator itB = dl.begin(), itE=itB; itB != dl.end(); itB = itE) {
-            dve.newDay();
+            dve->newDay();
             const int day = itB->obstime().date().julianDay() - day0;
             for( ; itE != dl.end() && (itE->obstime().date().julianDay() - day0) == day; itE++ )
-                dve.addObservation(itE->obstime(), itE->original());
-            if( dve.isCompleteDay() )
-                stationDailyMeans[sd.first].push_back(DayMean(day, dve.value()));
+                dve->addObservation(itE->obstime(), itE->original());
+            if( dve->isCompleteDay() ) {
+                DayValueP dv = dve->value();
+                dv->setDay(day);
+                stationDailyMeans[sd.first].push_back(dv);
+            }
         }
     }
 
@@ -152,7 +154,7 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans()
 
 StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(AccumulatorP accumulator)
 {
-    const sdm_t stationDailyMeans = findStationDailyMeans();
+    const sdm_t stationDailyMeans = findStationDailyMeans(boost::make_shared<DayMeanExtractor>());
 
     sd2_t stationMeansPerDay;
 
@@ -167,12 +169,12 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(AccumulatorP accu
         const int d0 = UT0.date().julianDay() - day0, d1 = UT1.date().julianDay() - day0;
         for(int day=d0; day<=d1; ++day) {
             const int dfront = day - mDays;
-            while( head != dml.end() && head->day() <= day ) {
-                accumulator->push(head->mean());
+            while( head != dml.end() && (*head)->day() <= day ) {
+                accumulator->push(*head);
                 head++;
             }
-            while( tail != head && tail->day() <= dfront ) {
-                accumulator->pop(tail->mean());
+            while( tail != head && (*tail)->day() <= dfront ) {
+                accumulator->pop(*tail);
                 tail++;
             }
             AccumulatedValueP value = accumulator->value();
@@ -284,12 +286,12 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
                 for(int i=365-mDays+1; i<365; ++i) {
                     const float vPush = rvpd[i-1];
                     if( vPush != missing )
-                        acc.push(vPush);
+                        acc.push(boost::make_shared<DayMean>(vPush));
                 }
                 for(int i=1; i<=365; ++i) {
                     const float vPush = rvpd[i-1];
                     if( vPush != missing )
-                        acc.push(vPush);
+                        acc.push(boost::make_shared<DayMean>(vPush));
                     AccumulatedValueP v = acc.value();
                     if( v ) {
                         float mean = boost::static_pointer_cast<AccumulatedFloat>(v)->value;
@@ -298,7 +300,7 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
                     const int iPop = (365+i-mDays-1) % 365;
                     const float vPop = rvpd[iPop];
                     if( vPop != missing )
-                        acc.pop(vPop);
+                        acc.pop(boost::make_shared<DayMean>(vPop));
                 }
                 rvps_mean[station] = rvpd_mean;
             }

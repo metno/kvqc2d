@@ -47,12 +47,12 @@ bool MeanFactory::appliesTo(int paramid)
     return ( paramid == 178 /* PR */ || paramid == 211 /* TA */ );
 }
 
-CheckerP MeanFactory::checker(int paramid)
+CheckerP MeanFactory::checker(int /*paramid*/)
 {
     return mChecker;
 }
 
-AccumulatorP MeanFactory::accumulator(int paramid)
+AccumulatorP MeanFactory::accumulator(int /*paramid*/)
 {
     return mAccumulator;
 }

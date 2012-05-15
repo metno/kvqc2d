@@ -27,24 +27,33 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ACCUMULATORMEANORSUM_H_
-#define ACCUMULATORMEANORSUM_H_
+#ifndef DAYVALUE_H_
+#define DAYVALUE_H_
 
-#include "Accumulator.h"
+#include <boost/shared_ptr.hpp>
+namespace miutil { class miDate; }
 
-class AccumulatorMeanOrSum : public Accumulator {
+class DayValue {
 public:
-    AccumulatorMeanOrSum(bool calculateMean, int days, int daysRequired)
-        : mCalculateMean(calculateMean), mDays(days), mDaysRequired(daysRequired) { }
-    virtual void newStation() { mSum = 0; mCountDays = 0; }
-    virtual void push(DayValueP value);
-    virtual void pop(DayValueP value);
-    virtual AccumulatedValueP value();
-private:
-    bool mCalculateMean;
-    int mDays, mDaysRequired;
-    double mSum;
-    int mCountDays;
-};
+    DayValue()
+        : mDay(-1) { }
 
-#endif /* ACCUMULATORMEANORSUM_H_ */
+    DayValue(int day)
+        : mDay(day) { }
+
+    virtual ~DayValue();
+
+    int day() const
+        { return mDay; }
+
+    void setDay(int day)
+        { mDay = day; }
+
+    int normalisedDayOfYear(const miutil::miDate& day0) const;
+
+private:
+    int mDay;
+};
+typedef boost::shared_ptr<DayValue> DayValueP;
+
+#endif /* DAYVALUE_H_ */

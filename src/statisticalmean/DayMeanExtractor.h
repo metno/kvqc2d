@@ -27,20 +27,22 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef DAILYVALUEEXTRACTOR_H_
-#define DAILYVALUEEXTRACTOR_H_
+#ifndef DAYMEANEXTRACTOR_H_
+#define DAYMEANEXTRACTOR_H_
 
-#include <puTools/miTime.h>
+#include "DayMean.h"
+#include "DayValueExtractor.h"
 
-class DailyValueExtractor {
+class DayMeanExtractor : public DayValueExtractor {
 public:
     void newDay();
     void addObservation(const miutil::miTime& obstime, float original);
     bool isCompleteDay();
-    float value();
+    DayValueP value();
 private:
     int mHours, mCountHours;
-    float mMean;
+    float mSum;
 };
+typedef boost::shared_ptr<DayMeanExtractor> DayMeanExtractorP;
 
-#endif /* DAILYVALUEEXTRACTOR_H_ */
+#endif /* DAYMEANEXTRACTOR_H_ */

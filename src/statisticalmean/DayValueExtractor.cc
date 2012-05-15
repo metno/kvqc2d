@@ -27,37 +27,8 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "DailyValueExtractor.h"
+#include "DayValueExtractor.h"
 
-void DailyValueExtractor::newDay()
+DayValueExtractor::~DayValueExtractor()
 {
-    mHours = 0;
-    mCountHours = 0;
-    mMean = 0;
-}
-
-// ------------------------------------------------------------------------
-
-void DailyValueExtractor::addObservation(const miutil::miTime& obstime, float original)
-{
-    int h = obstime.hour();
-    if( h == 6 || h == 12 || h == 18 ) {
-        mHours |= (1 << h);
-        mCountHours += 1;
-        mMean += original;
-    }
-}
-
-// ------------------------------------------------------------------------
-
-bool DailyValueExtractor::isCompleteDay()
-{
-    return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18));
-}
-
-// ------------------------------------------------------------------------
-
-float DailyValueExtractor::value()
-{
-    return mMean / mCountHours;
 }

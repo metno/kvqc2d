@@ -30,21 +30,17 @@
 #ifndef DAYMEAN_H_
 #define DAYMEAN_H_
 
-namespace miutil { class miDate; }
+#include "DayValue.h"
 
-class DayMean {
+class DayMean : public DayValue {
 public:
-    DayMean(int d, float m)
-        : mDay(d), mMean(m) { }
-    int day() const
-        { return mDay; }
+    DayMean(float mean)
+        : mMean(mean) { }
+
     float mean() const
         { return mMean; }
 
-    int normalisedDayOfYear(const miutil::miDate& day0) const;
-
 private:
-    int mDay;
     float mMean;
 };
 

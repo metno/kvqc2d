@@ -28,8 +28,23 @@
 */
 
 #include "AccumulatorMeanOrSum.h"
+
 #include "AccumulatedFloat.h"
+#include "DayMean.h"
+
 #include <boost/make_shared.hpp>
+
+void AccumulatorMeanOrSum::push(DayValueP value)
+{
+    mCountDays += 1;
+    mSum += boost::static_pointer_cast<DayMean>(value)->mean();
+}
+
+void AccumulatorMeanOrSum::pop(DayValueP value)
+{
+    mCountDays -= 1;
+    mSum -= boost::static_pointer_cast<DayMean>(value)->mean();
+}
 
 AccumulatedValueP AccumulatorMeanOrSum::value()
 {

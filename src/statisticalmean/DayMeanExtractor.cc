@@ -27,24 +27,40 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ACCUMULATORMEANORSUM_H_
-#define ACCUMULATORMEANORSUM_H_
+#include "DayMeanExtractor.h"
 
-#include "Accumulator.h"
+#include <puTools/miTime.h>
+#include <boost/make_shared.hpp>
 
-class AccumulatorMeanOrSum : public Accumulator {
-public:
-    AccumulatorMeanOrSum(bool calculateMean, int days, int daysRequired)
-        : mCalculateMean(calculateMean), mDays(days), mDaysRequired(daysRequired) { }
-    virtual void newStation() { mSum = 0; mCountDays = 0; }
-    virtual void push(DayValueP value);
-    virtual void pop(DayValueP value);
-    virtual AccumulatedValueP value();
-private:
-    bool mCalculateMean;
-    int mDays, mDaysRequired;
-    double mSum;
-    int mCountDays;
-};
+void DayMeanExtractor::newDay()
+{
+    mHours = 0;
+    mCountHours = 0;
+    mSum = 0;
+}
 
-#endif /* ACCUMULATORMEANORSUM_H_ */
+// ------------------------------------------------------------------------
+
+void DayMeanExtractor::addObservation(const miutil::miTime& obstime, float original)
+{
+    int h = obstime.hour();
+    if( h == 6 || h == 12 || h == 18 ) {
+        mHours |= (1 << h);
+        mCountHours += 1;
+        mSum += original;
+    }
+}
+
+// ------------------------------------------------------------------------
+
+bool DayMeanExtractor::isCompleteDay()
+{
+    return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18));
+}
+
+// ------------------------------------------------------------------------
+
+DayValueP DayMeanExtractor::value()
+{
+    return boost::make_shared<DayMean>(mSum / mCountHours);
+}

@@ -18,10 +18,13 @@ libstatisticalmean_a_SOURCES = \
 	CheckerMeanOrSum.h \
 	CheckerQuartiles.cc \
 	CheckerQuartiles.h \
-	DailyValueExtractor.cc \
-	DailyValueExtractor.h \
-	DayMean.cc \
 	DayMean.h \
+	DayMeanExtractor.cc \
+	DayMeanExtractor.h \
+	DayValue.cc \
+	DayValue.h \
+	DayValueExtractor.cc \
+	DayValueExtractor.h \
 	Factory.cc \
 	Factory.h \
 	MeanFactory.cc \

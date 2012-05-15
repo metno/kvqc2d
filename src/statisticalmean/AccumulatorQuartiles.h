@@ -37,10 +37,10 @@ class AccumulatorQuartiles : public Accumulator {
 public:
     AccumulatorQuartiles(int days, int daysRequired)
         : mDays(days), mDaysRequired(daysRequired) { }
-    void newStation() { mValues.clear(); }
-    void push(float value) { mValues.push_back(value); }
-    void pop(float value);
-    AccumulatedValueP value();
+    virtual void newStation() { mValues.clear(); }
+    virtual void push(DayValueP value);
+    virtual void pop(DayValueP value);
+    virtual AccumulatedValueP value();
 private:
     int mDays, mDaysRequired;
     std::vector<float> mValues;

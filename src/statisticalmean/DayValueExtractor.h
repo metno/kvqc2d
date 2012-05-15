@@ -27,14 +27,22 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "DayMean.h"
+#ifndef DAYVALUEEXTRACTOR_H_
+#define DAYVALUEEXTRACTOR_H_
 
-#include "helpers/timeutil.h"
-#include <puTools/miDate.h>
+#include "DayValue.h"
+#include <boost/shared_ptr.hpp>
 
-int DayMean::normalisedDayOfYear(const miutil::miDate& day0) const
-{
-    miutil::miDate date(day0);
-    date.addDay(mDay);
-    return Helpers::normalisedDayOfYear(date);
-}
+namespace miutil { class miTime; }
+
+class DayValueExtractor {
+public:
+    virtual ~DayValueExtractor();
+    virtual void newDay() = 0;
+    virtual void addObservation(const miutil::miTime& obstime, float original) = 0;
+    virtual bool isCompleteDay() = 0;
+    virtual DayValueP value() = 0;
+};
+typedef boost::shared_ptr<DayValueExtractor> DayValueExtractorP;
+
+#endif /* DAYVALUEEXTRACTOR_H_ */
