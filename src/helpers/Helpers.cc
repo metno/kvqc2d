@@ -48,6 +48,25 @@ int hexCharToInt(char n)
     return 0;
 }
 
+char int2char(int i)
+{
+    if( i<10 )
+        return ('0' + i);
+    else
+        return ('A' + (i-10));
+}
+
+int count_bits(unsigned int x)
+{
+    // origin: http://bytes.com/topic/c/answers/535049-how-many-bits-1-integer-variable
+    int bits = 0;
+    while( x ) {
+        x &= (x-1);
+        bits += 1;
+    }
+    return bits;
+}
+
 bool fillMapFromList(const std::string& list, std::map<int, float>& map, const char separator)
 {
     map.clear();

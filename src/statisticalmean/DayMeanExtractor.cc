@@ -29,6 +29,8 @@
 
 #include "DayMeanExtractor.h"
 
+#include "helpers/Helpers.h"
+
 #include <puTools/miTime.h>
 #include <boost/make_shared.hpp>
 
@@ -45,14 +47,16 @@ void DayMeanExtractor::newDay()
     mSum = 0;
 }
 
-void DayMeanExtractor::addObservation(const miutil::miTime& obstime, float original)
+bool DayMeanExtractor::addObservation(const miutil::miTime& obstime, float original)
 {
     const int h = obstime.hour(), hBit = (1<<h), hp = hourPattern();
-    if( hp & hBit ) {
-        mHours |= hBit;
-        mCountHours += 1;
-        mSum += original;
-    }
+    if( (hp & hBit) == 0 )
+        return false;
+
+    mHours |= hBit;
+    mCountHours += 1;
+    mSum += original;
+    return true;
 }
 
 int DayMeanExtractor::hourPattern()
@@ -71,7 +75,7 @@ int DayMeanExtractor::hourPattern()
 
 bool DayMeanExtractor::isCompleteDay()
 {
-    return (mHours & hourPattern()) == mHours;
+    return (!mCalculateMean || mCountHours > 0);
 }
 
 DayValueP DayMeanExtractor::value()

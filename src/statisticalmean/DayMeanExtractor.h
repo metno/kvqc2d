@@ -36,10 +36,10 @@
 class DayMeanExtractor : public DayValueExtractor {
 public:
     DayMeanExtractor(bool calculateMean, int paramid);
-    void newDay();
-    void addObservation(const miutil::miTime& obstime, float original);
-    bool isCompleteDay();
-    DayValueP value();
+    virtual void newDay();
+    virtual bool addObservation(const miutil::miTime& obstime, float original);
+    virtual bool isCompleteDay();
+    virtual DayValueP value();
 
 private:
     int hourPattern();

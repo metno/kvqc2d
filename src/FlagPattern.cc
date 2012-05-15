@@ -29,34 +29,16 @@
 
 #include "FlagPattern.h"
 
+#include "helpers/Helpers.h"
+
 #include <sstream>
 #include <iostream>
 
 #include "config.h"
 #include "debug.h"
 
-namespace {
-
-char int2char(int i)
-{
-    if( i<10 )
-        return ('0' + i);
-    else
-        return ('A' + (i-10));
-}
-
-int count_bits(unsigned int x)
-{
-    // origin: http://bytes.com/topic/c/answers/535049-how-many-bits-1-integer-variable
-    int bits = 0;
-    while( x ) {
-        x &= (x-1);
-        bits += 1;
-    }
-    return bits;
-}
-
-} // anonymous namespace
+using Helpers::int2char;
+using Helpers::count_bits;
 
 FlagPattern& FlagPattern::reset()
 {

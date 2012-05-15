@@ -39,7 +39,7 @@ class DayValueExtractor {
 public:
     virtual ~DayValueExtractor();
     virtual void newDay() = 0;
-    virtual void addObservation(const miutil::miTime& obstime, float original) = 0;
+    virtual bool addObservation(const miutil::miTime& obstime, float original) = 0;
     virtual bool isCompleteDay() = 0;
     virtual DayValueP value() = 0;
 };

@@ -85,6 +85,7 @@ private:
     int mDays;
     int mDaysRequired;
     int mParamid;
+    float mMaxBadRatePerDay;
     std::vector<int> mTypeids;
     miutil::miTime mUT0extended;
 

@@ -38,6 +38,9 @@
 namespace Helpers {
 
 int hexCharToInt(char n);
+char int2char(int i);
+
+int count_bits(unsigned int x);
 
 bool fillMapFromList(const std::string& list, std::map<int, float>& map, const char separator = ',');
 

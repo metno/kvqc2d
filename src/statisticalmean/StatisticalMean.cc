@@ -84,6 +84,7 @@ void StatisticalMean::configure(const AlgorithmConfig& config)
     mTolerance = config.getParameter<float>("tolerance", 10.0f);
     mDays      = config.getParameter<int>("days", 30);
     mDaysRequired = config.getParameter<int>("days_required", int(0.9*mDays + 0.5));
+    mMaxBadRatePerDay = config.getParameter<float>("max_bad_rate_per_day", 0.15);
     mParamid   = config.getParameter<int>("ParamId");
     mTypeids   = config.getMultiParameter<int>("TypeIds");
 
@@ -135,9 +136,13 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
         for(dlist_t::const_iterator itB = dl.begin(), itE=itB; itB != dl.end(); itB = itE) {
             dve->newDay();
             const int day = itB->obstime().date().julianDay() - day0;
-            for( ; itE != dl.end() && (itE->obstime().date().julianDay() - day0) == day; itE++ )
-                dve->addObservation(itE->obstime(), itE->original());
-            if( dve->isCompleteDay() ) {
+            int obsCount = 0, badCount = 0;
+            for( ; itE != dl.end() && (itE->obstime().date().julianDay() - day0) == day; itE++ ) {
+                obsCount += 1;
+                if( !ok_flags.matches( *itE ) || !dve->addObservation(itE->obstime(), itE->original()) )
+                    badCount += 1;
+            }
+            if( obsCount>0 && badCount/float(obsCount) < mMaxBadRatePerDay && dve->isCompleteDay() ) {
                 DayValueP dv = dve->value();
                 dv->setDay(day);
                 stationDailyMeans[sd.first].push_back(dv);
@@ -176,8 +181,13 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
                 tail++;
             }
             AccumulatedValueP value = accumulator->value();
-            if( value != 0 )
+            if( value != 0 ) {
                 stationMeansPerDay[sd.first][day] = value;
+            } else {
+                miutil::miDate d = date0;
+                d.addDay(day);
+                info() << "cannot calculate mean/sum/... value for " << sd.first << " on " << d;
+            }
         }
     }
 
