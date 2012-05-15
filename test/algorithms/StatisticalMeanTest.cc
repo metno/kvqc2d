@@ -40,6 +40,7 @@
 class StatisticalMeanTest : public AlgorithmTestBase {
 public:
     void SetUp();
+    void TestRR_N(int paramid, int N_PER_DAY);
 };
 
 // ========================================================================
@@ -232,7 +233,7 @@ TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
     params.Parse(config);
 
     int ndays = (dateEnd.date() - miutil::miDate("2012-01-17")) - int(30*0.9);
-    
+
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(ndays, logs->count(Message::WARNING));
@@ -349,7 +350,7 @@ TEST_F(StatisticalMeanTest, FakeDeviation_VV)
 {
     // sight (synsvidde), completely arbitrary observation and
     // reference values -- made up to test the quartiles method
-    
+
     const float ref_q1 = 100, ref_q2 = 200, ref_q3 = 300;
     const int paramid = 273, idtype = 330, stations[] = { 7010, 46910, 70150, 76450, -1 }, days = 28;
     std::ostringstream sql;
@@ -397,12 +398,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation_VV)
 
 // ------------------------------------------------------------------------
 
-TEST_F(StatisticalMeanTest, FakeDeviation_RR24)
+void StatisticalMeanTest::TestRR_N(int paramid, int N_PER_DAY)
 {
-    // 24h-precipitation, completely arbitrary observation and
-    // reference values -- made up to test the periodic sum method
-    
-    const int paramid = 110, idtype = 330, stations[] = { 7010, 46910, 70150, 76450, -1 };
+    const int idtype = 330, stations[] = { 7010, 46910, 70150, 76450, -1 };
     std::ostringstream sql;
     for(int dOy=0; dOy<=365; ++dOy) {
         for(int s=0; stations[s]>0; ++s)
@@ -413,11 +411,13 @@ TEST_F(StatisticalMeanTest, FakeDeviation_RR24)
 
     DataList data(stations[0], paramid, idtype);
     miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-03-31 06:00:00");
-    for(int day=0; date <= dateEnd; date.addDay(1), day += 1) {
-        for(int s=0; stations[s]>0; ++s) {
-            const float obs = (s == 0) ? 2 : 1;
-            data.setStation(stations[s])
-                .add(date, obs, "0100000000000010");
+    for(int day=0; date <= dateEnd; day += 1) {
+        for(int i=0; i<N_PER_DAY; date.addHour(24/N_PER_DAY), i+=1) {
+            for(int s=0; stations[s]>0; ++s) {
+                const float obs = (s == 0) ? 2 : 1;
+                data.setStation(stations[s])
+                    .add(date, obs/N_PER_DAY, "0100000000000010");
+            }
         }
     }
     ASSERT_NO_THROW(data.insert(db));
@@ -441,6 +441,77 @@ TEST_F(StatisticalMeanTest, FakeDeviation_RR24)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(7, logs->count(Message::WARNING));
+}
+
+TEST_F(StatisticalMeanTest, FakeDeviation_RR24)
+{
+    // 24h-precipitation, completely arbitrary observation and
+    // reference values -- made up to test the periodic sum method
+    TestRR_N(110, 1);
+}
+
+TEST_F(StatisticalMeanTest, FakeDeviation_RR12)
+{
+    TestRR_N(109, 2);
+}
+
+TEST_F(StatisticalMeanTest, FakeDeviation_RR6)
+{
+    TestRR_N(108, 4);
+}
+
+TEST_F(StatisticalMeanTest, FakeDeviation_RR1)
+{
+    TestRR_N(106, 24);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(StatisticalMeanTest, MixedTypeIDs)
+{
+    const int paramid = 109, N_PER_DAY = 2, idtype[] = { 330, 342 }, stations[] = { 7010, 46910, 70150, 76450, -1 };
+    std::ostringstream sql;
+    for(int dOy=0; dOy<=365; ++dOy) {
+        for(int s=0; stations[s]>0; ++s)
+            sql << "INSERT INTO statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_value', 30);";
+    }
+    ASSERT_NO_THROW(db->exec(sql.str()));
+    sql.str("");
+
+    DataList data(stations[0], paramid, idtype[0]);
+    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-03-31 06:00:00");
+    for(int day=0; date <= dateEnd; day += 1) {
+        for(int i=0; i<N_PER_DAY; date.addHour(24/N_PER_DAY), i+=1) {
+            for(int s=0; stations[s]>0; ++s) {
+                const float obs = (s == 0) ? 2 : 1;
+                data.setStation(stations[s])
+                    .setType(idtype[i])
+                    .add(date, obs/N_PER_DAY, "0100000000000010");
+            }
+        }
+    }
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =    2\n"
+           << "Start_DD   =    1\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =    2\n"
+           << "End_DD     =    7\n"
+           << "days       =   30\n"
+           << "tolerance  =    1\n"
+           << "ParamId    =  " << paramid << '\n'
+           << "TypeIds    =  " << idtype[0] << '\n'
+           << "TypeIds    =  " << idtype[1] << '\n'
+           << "InterpolationDistance = 5000.0\n";
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(0, logs->count(Message::WARNING));
 }
 
 #endif /* BOOST_VERSION >= 104000 */

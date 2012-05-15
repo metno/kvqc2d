@@ -32,7 +32,6 @@
 
 #include "AccumulatorQuartiles.h"
 #include "CheckerQuartiles.h"
-#include "DayMeanExtractor.h"
 #include "Factory.h"
 
 class QuartilesFactory : public Factory {
@@ -45,7 +44,6 @@ public:
 private:
     boost::shared_ptr<AccumulatorQuartiles> mAccumulator;
     boost::shared_ptr<CheckerQuartiles> mChecker;
-    boost::shared_ptr<DayMeanExtractor> mDayMeanExtractor;
 };
 
 #endif /* QUARTILESFACTORY_H_ */

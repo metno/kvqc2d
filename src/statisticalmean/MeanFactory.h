@@ -32,7 +32,6 @@
 
 #include "AccumulatorMeanOrSum.h"
 #include "CheckerMeanOrSum.h"
-#include "DayMeanExtractor.h"
 #include "Factory.h"
 
 class MeanFactory : public Factory {
@@ -45,7 +44,6 @@ public:
 private:
     boost::shared_ptr<AccumulatorMeanOrSum> mAccumulator;
     boost::shared_ptr<CheckerMeanOrSum> mChecker;
-    boost::shared_ptr<DayMeanExtractor> mDayMeanExtractor;
 };
 
 #endif /* MEANFACTORY_H_ */

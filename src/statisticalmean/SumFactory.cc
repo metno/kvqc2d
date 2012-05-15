@@ -30,6 +30,7 @@
 #include "SumFactory.h"
 
 #include "AlgorithmConfig.h"
+#include "DayMeanExtractor.h"
 #include <boost/make_shared.hpp>
 
 void SumFactory::configure(StatisticalMean* stm, const AlgorithmConfig& params)
@@ -40,7 +41,6 @@ void SumFactory::configure(StatisticalMean* stm, const AlgorithmConfig& params)
 
     mAccumulator = boost::make_shared<AccumulatorMeanOrSum>(false, days, daysRequired);
     mChecker = boost::make_shared<CheckerMeanOrSum>(stm, tolerance);
-    mDaySumExtractor = boost::make_shared<DayMeanExtractor>(false);
 }
 
 bool SumFactory::appliesTo(int paramid)
@@ -59,7 +59,7 @@ AccumulatorP SumFactory::accumulator(int /*paramid*/)
     return mAccumulator;
 }
 
-DayValueExtractorP SumFactory::dayValueExtractor(int /*paramid*/)
+DayValueExtractorP SumFactory::dayValueExtractor(int paramid)
 {
-    return mDaySumExtractor;
+    return boost::make_shared<DayMeanExtractor>(false, paramid);
 }

@@ -35,13 +35,18 @@
 
 class DayMeanExtractor : public DayValueExtractor {
 public:
-    DayMeanExtractor(bool calculateMean);
+    DayMeanExtractor(bool calculateMean, int paramid);
     void newDay();
     void addObservation(const miutil::miTime& obstime, float original);
     bool isCompleteDay();
     DayValueP value();
+
+private:
+    int hourPattern();
+
 private:
     bool mCalculateMean;
+    int mParamid;
     int mHours, mCountHours;
     float mSum;
 };
