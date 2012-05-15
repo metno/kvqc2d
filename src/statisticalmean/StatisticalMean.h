@@ -68,7 +68,7 @@ private:
 
     typedef std::map<int, AccumulatedValueP> dm2_t;
     typedef std::map<int, dm2_t> sd2_t;
-    sd2_t findStationMeansPerDay(AccumulatorP accumulator);
+    sd2_t findStationMeansPerDay(DayValueExtractorP dve, AccumulatorP accumulator);
 
     void checkAllMeanValues(CheckerP checker, const sd2_t& smpd);
 

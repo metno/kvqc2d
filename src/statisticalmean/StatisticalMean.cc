@@ -152,9 +152,9 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
 
 // ------------------------------------------------------------------------
 
-StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(AccumulatorP accumulator)
+StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractorP dve, AccumulatorP accumulator)
 {
-    const sdm_t stationDailyMeans = findStationDailyMeans(boost::make_shared<DayMeanExtractor>());
+    const sdm_t stationDailyMeans = findStationDailyMeans(dve);
 
     sd2_t stationMeansPerDay;
 
@@ -231,9 +231,6 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
 
 void StatisticalMean::run()
 {
-    AccumulatorP accumulator;
-    CheckerP checker;
-
     boost::shared_ptr<Factory> factory;
     if( mMeanFactory->appliesTo(mParamid) ) {
         factory = mMeanFactory;
@@ -245,10 +242,11 @@ void StatisticalMean::run()
         warning() << "Illegal paramid " << mParamid << " in StatisticalMean::run";
         return;
     }
-    accumulator = factory->accumulator(mParamid);
-    checker = factory->checker(mParamid);
+    AccumulatorP accumulator = factory->accumulator(mParamid);
+    CheckerP checker = factory->checker(mParamid);
+    DayValueExtractorP dayValueExtractor = factory->dayValueExtractor(mParamid);
 
-    const sd2_t stationMeansPerDay = findStationMeansPerDay(accumulator);
+    const sd2_t stationMeansPerDay = findStationMeansPerDay(dayValueExtractor, accumulator);
 
     checkAllMeanValues(checker, stationMeansPerDay);
 

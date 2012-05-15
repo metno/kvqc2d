@@ -32,6 +32,7 @@
 
 #include "Accumulator.h"
 #include "Checker.h"
+#include "DayValueExtractor.h"
 class AlgorithmConfig;
 class StatisticalMean;
 
@@ -42,6 +43,7 @@ public:
     virtual bool appliesTo(int paramid) = 0;
     virtual CheckerP checker(int paramid) = 0;
     virtual AccumulatorP accumulator(int paramid) = 0;
+    virtual DayValueExtractorP dayValueExtractor(int paramid) = 0;
 };
 
 #endif /* FACTORY_H_ */

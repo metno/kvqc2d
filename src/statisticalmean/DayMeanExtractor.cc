@@ -32,14 +32,17 @@
 #include <puTools/miTime.h>
 #include <boost/make_shared.hpp>
 
+DayMeanExtractor::DayMeanExtractor(bool cm)
+    : mCalculateMean(cm)
+{
+}
+
 void DayMeanExtractor::newDay()
 {
     mHours = 0;
     mCountHours = 0;
     mSum = 0;
 }
-
-// ------------------------------------------------------------------------
 
 void DayMeanExtractor::addObservation(const miutil::miTime& obstime, float original)
 {
@@ -51,14 +54,10 @@ void DayMeanExtractor::addObservation(const miutil::miTime& obstime, float origi
     }
 }
 
-// ------------------------------------------------------------------------
-
 bool DayMeanExtractor::isCompleteDay()
 {
     return (mHours == 1<<6 || mHours == (1<<6 | 1<<12 | 1<<18));
 }
-
-// ------------------------------------------------------------------------
 
 DayValueP DayMeanExtractor::value()
 {

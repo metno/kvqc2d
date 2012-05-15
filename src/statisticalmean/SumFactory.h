@@ -32,6 +32,7 @@
 
 #include "AccumulatorMeanOrSum.h"
 #include "CheckerMeanOrSum.h"
+#include "DayMeanExtractor.h"
 #include "Factory.h"
 
 class SumFactory : public Factory {
@@ -40,9 +41,11 @@ public:
     virtual bool appliesTo(int paramid);
     virtual CheckerP checker(int paramid);
     virtual AccumulatorP accumulator(int paramid);
+    virtual DayValueExtractorP dayValueExtractor(int paramid);
 private:
     boost::shared_ptr<AccumulatorMeanOrSum> mAccumulator;
     boost::shared_ptr<CheckerMeanOrSum> mChecker;
+    boost::shared_ptr<DayMeanExtractor> mDaySumExtractor;
 };
 
 #endif /* SUMFACTORY_H_ */
