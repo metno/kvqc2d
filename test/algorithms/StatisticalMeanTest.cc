@@ -187,28 +187,32 @@ TEST_F(StatisticalMeanTest, MiniExample_PR)
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
-    ASSERT_EQ(0, logs->count(Message::WARNING));
+
+    const int stations[] = { 7010, 46910, 70150, 76450, 86500, 93700, 96800, -1 };
+    for(int i=0; stations[i]>=0; ++i) {
+        EXPECT_LE(0, logs->find((boost::format("too few .* days with ok data between 2012-02-26 and 2012-02-28 for .*stationid=%1$d") % stations[i]).str(),
+                                Message::WARNING)) << "station=" << stations[i];
+    }
 }
 
 // ------------------------------------------------------------------------
 
 TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
 {
-    const int ctr = 7010;
+    const int stations[] = { 7010, 46910, 70150, 76450 }, N = sizeof(stations)/sizeof(stations[0]);
+    const int pressure[] = {  970,  1010,  1011,  1010 };
+    const int ctr = stations[0];
+
     DataList data(ctr, 178, 312);
     miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
     for(; date <= dateEnd; date.addDay(1)) {
         const int m=date.month(), d=date.day();
         if( (m==1 && d>=15 && d<=18) )
             continue;
-        data.setStation(ctr)
-            .add(date,  970, "0100000000000010")
-            .setStation(46910)
-            .add(date, 1010, "0100000000000010")
-            .setStation(70150)
-            .add(date, 1011, "0100000000000010")
-            .setStation(76450)
-            .add(date, 1010, "0100000000000010");
+        for(int i=0; i<N; ++i) {
+            data.setStation(stations[i])
+                .add(date, pressure[i], "0100000000000010");
+        }
     }
     ASSERT_NO_THROW(data.insert(db));
 
@@ -236,7 +240,14 @@ TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
-    ASSERT_EQ(ndays, logs->count(Message::WARNING));
+
+    const int NtooFew = 13;
+    ASSERT_EQ(ndays + N*NtooFew, logs->count(Message::WARNING));
+
+    for(int i=0; i<N; ++i)
+        EXPECT_EQ(NtooFew, logs->count((boost::format("too few .* days with ok data .*stationid=%1$d") % stations[i]).str(),
+                                       Message::WARNING)) << "station=" << stations[i];
+    EXPECT_EQ(ndays, logs->count((boost::format("test triggered .*stationid=%1$d") % ctr).str(), Message::WARNING));
 }
 
 // ------------------------------------------------------------------------

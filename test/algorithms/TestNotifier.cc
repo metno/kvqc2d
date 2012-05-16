@@ -16,12 +16,12 @@
   modify it under the terms of the GNU General Public License as
   published by the Free Software Foundation; either version 2
   of the License, or (at your option) any later version.
-  
+
   KVALOBS is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License along
   with KVALOBS; if not, write to the Free Software Foundation Inc.,
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -79,6 +79,19 @@ int TestNotifier::find(const std::string& needle, int level, int start) const
         start += 1;
     }
     return -1;
+}
+
+// ------------------------------------------------------------------------
+
+int TestNotifier::count(const std::string& needle, int level) const
+{
+    int idx = -1, count = 0;
+    do {
+        idx = find(needle, level, idx+1);
+        if( idx >= 0 )
+            count += 1;
+    } while(idx>=0 && count <= (int)mMessages.size());
+    return count;
 }
 
 // ------------------------------------------------------------------------

@@ -146,6 +146,10 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
                 DayValueP dv = dve->value();
                 dv->setDay(day);
                 stationDailyMeans[sd.first].push_back(dv);
+            } else {
+                miutil::miDate d = date0;
+                d.addDay(day);
+                info() << "not enough ok data on " << d << " for statistical checks on " << sd.first;
             }
         }
     }
@@ -170,23 +174,29 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
         dm_t::const_iterator tail = dml.begin(), head = tail;
 
         const int d0 = UT0.date().julianDay() - day0, d1 = UT1.date().julianDay() - day0;
+        int accumulatedDays = 0;
         for(int day=d0; day<=d1; ++day) {
             const int dfront = day - mDays;
             while( head != dml.end() && (*head)->day() <= day ) {
                 accumulator->push(*head);
+                accumulatedDays += 1;
                 head++;
             }
             while( tail != head && (*tail)->day() <= dfront ) {
                 accumulator->pop(*tail);
+                accumulatedDays -= 1;
                 tail++;
             }
             AccumulatedValueP value = accumulator->value();
-            if( value != 0 ) {
+            if( accumulatedDays >= mDaysRequired  && value != 0 ) {
                 stationMeansPerDay[sd.first][day] = value;
             } else {
-                miutil::miDate d = date0;
-                d.addDay(day);
-                info() << "cannot calculate mean/sum/... value for " << sd.first << " on " << d;
+                miutil::miDate d0 = date0, d1 = date0;
+                d0.addDay(dfront);
+                d1.addDay(day);
+                warning() << "too few (" << accumulatedDays << ") days with ok data between "
+                        << d0 << " and " << d1 << " for statistical checks on "
+                        << sd.first;
             }
         }
     }
@@ -238,7 +248,7 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
                     break;
             }
             if( !checker->pass() ) {
-                warning() << "statistical test failed for " << center
+                warning() << "statistical test triggered for " << center
                           << " for series ending at " << date;
             }
         }

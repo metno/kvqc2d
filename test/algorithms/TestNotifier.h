@@ -46,6 +46,8 @@ public:
 
     int find(const std::string& needle, int level=-1, int start=0) const;
 
+    int count(const std::string& needle, int level=-1) const;
+
     int count(int level=-1) const;
 
     int next(Message::Level level, int startIdx=0) const;
