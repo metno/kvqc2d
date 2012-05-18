@@ -367,9 +367,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation_VV)
     std::ostringstream sql;
     for(int dOy=0; dOy<=365; ++dOy) {
         for(int s=0; stations[s]>0; ++s) {
-            sql << "INSERT INTO statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q1',"<<ref_q1<<");"
-                << "INSERT INTO statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q2',"<<ref_q2<<");"
-                << "INSERT INTO statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q3',"<<ref_q3<<");";
+            sql << "INSERT INTO qc2_statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q1',"<<ref_q1<<");"
+                << "INSERT INTO qc2_statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q2',"<<ref_q2<<");"
+                << "INSERT INTO qc2_statistical_reference_values VALUES("<<stations[s]<<','<<paramid<<','<<dOy<<",'ref_q3',"<<ref_q3<<");";
         }
     }
     ASSERT_NO_THROW(db->exec(sql.str()));
@@ -415,7 +415,7 @@ void StatisticalMeanTest::TestRR_N(int paramid, int N_PER_DAY)
     std::ostringstream sql;
     for(int dOy=0; dOy<=365; ++dOy) {
         for(int s=0; stations[s]>0; ++s)
-            sql << "INSERT INTO statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_value', 30);";
+            sql << "INSERT INTO qc2_statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_value', 30);";
     }
     ASSERT_NO_THROW(db->exec(sql.str()));
     sql.str("");
@@ -484,7 +484,7 @@ TEST_F(StatisticalMeanTest, MixedTypeIDs)
     std::ostringstream sql;
     for(int dOy=0; dOy<=365; ++dOy) {
         for(int s=0; stations[s]>0; ++s)
-            sql << "INSERT INTO statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_value', 30);";
+            sql << "INSERT INTO qc2_statistical_reference_values VALUES(" << stations[s] << ',' << paramid << ',' << dOy << ",'ref_value', 30);";
     }
     ASSERT_NO_THROW(db->exec(sql.str()));
     sql.str("");

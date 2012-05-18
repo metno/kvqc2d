@@ -77,14 +77,14 @@ SqliteTestDB::SqliteTestDB()
         "static    BOOLEAN DEFAULT FALSE, "
         "fromtime TIMESTAMP NOT NULL);");
 
-    exec("CREATE TABLE statistical_reference_values ("
+    exec("CREATE TABLE qc2_statistical_reference_values ("
         "stationid   INTEGER NOT NULL, "
         "paramid     INTEGER NOT NULL, "
         "day_of_year INTEGER NOT NULL, "
         "key         TEXT NOT NULL, "
         "value       FLOAT NOT NULL);");
 
-    exec("CREATE TABLE interpolation_best_neighbors ("
+    exec("CREATE TABLE qc2_interpolation_best_neighbors ("
          "stationid        INTEGER NOT NULL, "
          "neighborid       INTEGER NOT NULL, "
          "paramid          INTEGER NOT NULL, "

@@ -207,7 +207,7 @@ DBInterface::DataList SQLDataAccess::findDataAggregations(const StationIDList& s
 DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues(int paramID, const std::string& key, float missingValue) throw (DBException)
 {
     std::ostringstream sql;
-    sql << "SELECT stationid, day_of_year, value FROM statistical_reference_values"
+    sql << "SELECT stationid, day_of_year, value FROM qc2_statistical_reference_values"
         << " WHERE paramid = " << paramID << " AND key = '" << key << "'";
     return extractStatisticalReferenceValues(sql.str(), missingValue);
 }
@@ -217,7 +217,7 @@ DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues
 NeighborDataVector SQLDataAccess::findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException)
 {
     std::ostringstream sql;
-    sql << "SELECT neighborid, fit_offset, fit_slope, fit_sigma FROM interpolation_best_neighbors"
+    sql << "SELECT neighborid, fit_offset, fit_slope, fit_sigma FROM qc2_interpolation_best_neighbors"
         << " WHERE stationid = " << stationid
         << " AND paramid = " << paramid
         << " AND interpolation_id = 0"
