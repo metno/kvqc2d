@@ -28,13 +28,18 @@
 */
 
 #include "helpers/StationParamParser.h"
+#include "helpers/stringutil.h"
 #include "helpers/timeutil.h"
 #include "AggregatorLimits.h"
 #include "DataUpdate.h"
 #include "foreach.h"
 
+#include <boost/make_shared.hpp>
+
 #define NDEBUG 1
 #include "debug.h"
+
+// #define USE_STATION_PARAM 1
 
 namespace {
 
@@ -184,41 +189,73 @@ AggregatorLimits::AggregatorLimits()
 
 void AggregatorLimits::configure(const AlgorithmConfig& config)
 {
+#ifdef USE_STATION_PARAM
     mParameters = config.getMultiParameter<int>("ParamID");
     mMinQCX = config.getParameter<std::string>("minQCX", "min");
     mMaxQCX = config.getParameter<std::string>("maxQCX", "max");
+#endif
     config.getFlagSetCU(mFlags, "aggregation", "fr=)6(", "");
     config.getFlagChange(mFlagChangeMin, "aggregation_flagchange_min", "fr=6");
     config.getFlagChange(mFlagChangeMax, "aggregation_flagchange_max", "fr=6");
 
+    mLimits = boost::make_shared<LimitValues>();
+#ifdef USE_STATION_PARAM
+    DBInterface::StationIDList allStations(1, DBInterface::ALL_STATIONS);
+    addStationLimits(database()->findStationParams(allStations, mParameters, "QC1-1-"));
+    addStationLimits(database()->findStationParams(DBInterface::StationIDList(1, 0), mParameters, "QC1-1-"));
+#else
+    mParameters.clear();
+    // parse 'param_limits'
+    const std::string paramLimits = config.getParameter<std::string>("param_limits");
+    if( !paramLimits.empty() ) {
+        const std::vector<std::string> mpl = Helpers::splitN(paramLimits, ";", true);
+        foreach(const std::string& par_max, mpl) {
+            Helpers::split2_t p_m = Helpers::split2(par_max, "<", true);
+            const int paramid = atoi(p_m.first.c_str());
+            const float maxi = atof(p_m.second.c_str());
+            if( maxi <= 0.0f )
+                throw ConfigException("invalid threshold (<=0?) in 'param_limits'");
+            mParameters.push_back(paramid);
+            mLimits->add(0, paramid, -1, 1, 365, -1, maxi);
+            DBG(DBG1(paramid) << DBG1(maxi));
+        }
+    }
+    DBGV(mParameters.size());
+#endif
+
     Qc2Algorithm::configure(config);
 }
 
-void AggregatorLimits::addStationLimits(LimitValues& lv, const DBInterface::StationParamList& spl)
+void AggregatorLimits::addStationLimits(const DBInterface::StationParamList&
+#ifdef USE_STATION_PARAM
+        spl
+#endif
+        )
 {
+#ifdef USE_STATION_PARAM
     foreach(const kvalobs::kvStationParam& sp, spl) {
         const StationParamParser spp(sp);
         const float min = spp.floatValue(mMinQCX, -32767), max = spp.floatValue(mMaxQCX, 32767);
-        lv.add(sp.stationID(), sp.paramID(), sp.hour(), sp.fromday(), sp.today(), min, max);
+        mLimits->add(sp.stationID(), sp.paramID(), sp.hour(), sp.fromday(), sp.today(), min, max);
     }
+#endif
 }
 
 void AggregatorLimits::run()
 {
     const miutil::miTime now = miutil::miTime::nowTime();
 
-    LimitValues lv;
-    DBInterface::StationIDList allStations(1, DBInterface::ALL_STATIONS);
-    addStationLimits(lv, database()->findStationParams(allStations, mParameters, "QC1-1-"));
-    addStationLimits(lv, database()->findStationParams(DBInterface::StationIDList(1, 0), mParameters, "QC1-1-"));
-
     DBInterface::DataList updates;
 
+    DBInterface::StationIDList allStations(1, DBInterface::ALL_STATIONS);
+    DBGV(mParameters.size());
     const DBInterface::DataList outOfRange = database()->findDataAggregations(allStations, mParameters, TimeRange(UT0, UT1), mFlags);
+    DBGV(outOfRange.size());
     foreach(const kvalobs::kvData& data, outOfRange) {
         DataUpdate du(data);
         DBGV(data);
-        const Limits limits = lv.find(data.stationID(), data.paramID(), data.obstime().hour(), Helpers::normalisedDayOfYear(data.obstime().date()));
+        const Limits limits = mLimits->find(data.stationID(), data.paramID(), data.obstime().hour(), Helpers::normalisedDayOfYear(data.obstime().date()));
+        DBG(DBG1(limits.valid()) << DBG1(limits.max));
         if( !limits.valid() ) {
             error() << "no parameter limits found for " << data;
             continue;

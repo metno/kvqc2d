@@ -34,6 +34,8 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
+// #define USE_STATION_PARAM 1
+
 class AggregatorLimitsTest : public AlgorithmTestBase {
 public:
     void SetUp();
@@ -45,12 +47,14 @@ void AggregatorLimitsTest::SetUp()
     AlgorithmTestBase::SetUp();
 
     std::ostringstream sql;
-    sql << "INSERT INTO station VALUES(18700, 59.942, 10.720,  94, 0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');\n"
+    sql << "INSERT INTO station VALUES(18700, 59.942, 10.720,  94, 0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');\n";
 
-        << "INSERT INTO station_param VALUES(0,     109, 0, 0, 1, 365, -1, 'QC1-1-109', 'max;highest;high;low;lowest;min\n160;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
+#ifdef USE_STATION_PARAM
+    sql << "INSERT INTO station_param VALUES(0,     109, 0, 0, 1, 365, -1, 'QC1-1-109', 'max;highest;high;low;lowest;min\n160;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(18700, 109, 0, 0, 1, 124, 18, 'QC1-1-109', 'max;highest;high;low;lowest;min\n140;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(18700, 109, 0, 0, 1, 125, -1, 'QC1-1-109', 'max;highest;high;low;lowest;min\n150;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');"
         << "INSERT INTO station_param VALUES(0,     110, 0, 0, 1, 365, -1, 'QC1-1-110', 'max;highest;high;low;lowest;min\n120;120.0;100.0;-1.0;-1.0;-1', NULL, '1500-01-01 00:00:00');";
+#endif
     ASSERT_NO_THROW(db->exec(sql.str()));
 }
 
@@ -73,9 +77,13 @@ TEST_F(AggregatorLimitsTest, FirstTest)
            << "End_YYYY   = 2012\n"
            << "End_MM     =   05\n"
            << "End_DD     =   06\n"
-           << "End_hh     =   06\n"
-           << "ParamID = 109\n"
+           << "End_hh     =   06\n";
+#ifdef USE_STATION_PARAM
+    config << "ParamID = 109\n"
            << "ParamID = 110\n";
+#else
+    config << "param_limits = 106<54.9;107<60.8;108<83.3;109<144.1;110<159.7\n";
+#endif
     AlgorithmConfig params;
     params.Parse(config);
 
