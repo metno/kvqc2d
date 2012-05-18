@@ -29,6 +29,7 @@
 
 #include "AlgorithmDispatcher.h"
 
+#include "algorithms/AggregatorLimits.h"
 #include "algorithms/DipTestAlgorithm.h"
 #include "interpolation/GapInterpolationAlgorithm.h"
 #include "algorithms/PlumaticAlgorithm.h"
@@ -47,6 +48,7 @@ AlgorithmDispatcher::AlgorithmDispatcher()
     : mBroadcaster(0), mDatabase(0), mNotifier(0)
 {
     Qc2Algorithm* algorithms[] = {
+        new AggregatorLimits(),
         new SingleLinearAlgorithm(),
         new RedistributionAlgorithm(),
         new DipTestAlgorithm(),
