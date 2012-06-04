@@ -10,27 +10,22 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 KV_POSTGRESQL
-PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0 gsl >= 1.8],, [
-   PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
-])
-PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0 gsl >= 1.8 sqlite3 >= 3.3],, [
-   PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8 sqlite3 >= 3.3])
-])
+PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 libkvcpp2 >= 2.5.2a gsl >= 1.8])
+PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 libkvcpp2 >= 2.5.2a gsl >= 1.8 sqlite3 >= 3.6])
 GTEST_LIB_CHECK
 
-AX_BOOST_BASE([1.33.1])
+AX_BOOST_BASE([1.40.0])
 AX_BOOST_THREAD
 if test -z $BOOST_THREAD_LIB; then AC_MSG_ERROR([Unable to find boost thread library]); fi
 AX_BOOST_FILESYSTEM
 if test -z $BOOST_FILESYSTEM_LIB; then AC_MSG_ERROR([Unable to find boost filesystem library]); fi
 
-AH_BOTTOM([#include "sqlite3.h"
-#if SQLITE_VERSION_NUMBER >= 3006022
-#define HAVE_SQL_WITH_WORKING_SUBSTR_IN 1
-#endif
+AC_CONFIG_FILES([
+        Makefile
+        src/Makefile
+        src/interpolation/Makefile
+        src/statisticalmean/Makefile
+        src/helpers/Makefile
+        test/Makefile
 ])
-
-AC_CONFIG_HEADERS(src/config.h)
-AC_CONFIG_FILES([Makefile src/Makefile src/interpolation/Makefile src/statisticalmean/Makefile src/helpers/Makefile test/Makefile])
-AC_CONFIG_FILES([src/version.h])
 AC_OUTPUT

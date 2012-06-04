@@ -1,9 +1,9 @@
 
 GIT = git
-VERSION_GIT_H  = version_git.h
-VERSION_GIT_STAMP = $(VERSION_GIT_H:%.h=%.stamp)
-BUILT_SOURCES  = $(VERSION_GIT_STAMP)
-MAINTAINERCLEANFILES = $(VERSION_GIT_H)
+VERSION_H  = version.h
+VERSION_STAMP = $(VERSION_H:%.h=%.stamp)
+BUILT_SOURCES  = $(VERSION_STAMP)
+MAINTAINERCLEANFILES = $(VERSION_H)
 
 bin_PROGRAMS = kvqc2d
 
@@ -95,27 +95,12 @@ kvqc2d_LDADD = $(PROG_DEPS_LIBS) \
 ebrowse:
 	ebrowse $(SOURCES)
 
-$(VERSION_GIT_STAMP):
-	@if $(GIT) rev-parse HEAD >/dev/null 2>&1; then \
-	    $(GIT) update-index --refresh > /dev/null; \
-	    GIT_REF="$$($(GIT) rev-parse HEAD)"; \
-	    GIT_DIFF_FILES="$$($(GIT) diff-files)"; \
-	    GIT_DIFF_INDEX="$$($(GIT) diff-index --cached HEAD)"; \
-	    if [ "x$$GIT_DIFF_FILES" = "x" ] && [ "x$$GIT_DIFF_INDEX" = "x" ]; then \
-	        GIT_VERSION=" (git:$$GIT_REF/clean)"; \
-	    else \
-	        GIT_VERSION=" (git:$$GIT_REF/dirty)"; \
-	    fi; \
-	elif grep -q "(git:.*)" "$(VERSION_GIT_H)"; then \
-	    GIT_VERSION="`sed -e 's,^.*(git:\([a-f0-9]\+/[a-z]\+\)\( ?\)\?).*$$, (git:\1 ?),' \"$(VERSION_GIT_H)\"`"; \
+$(VERSION_STAMP):
+	@echo "#define KVQC2D_VERSION_FULL \"`$(top_srcdir)/version.sh`\"" > "$(VERSION_H).tmp"
+	@if cmp -s "$(VERSION_H).tmp" "$(VERSION_H)"; then \
+	    echo "Not updating '$(VERSION_H)'"; \
+	    rm -f "$(VERSION_H).tmp"; \
 	else \
-	    GIT_VERSION=""; \
-	fi; \
-	echo "#define KVQC2D_VERSION_GIT \"$$GIT_VERSION\"" > "$(VERSION_GIT_H).tmp"
-	@if cmp -s "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; then \
-	    echo "Not updating '$(VERSION_GIT_H)'"; \
-	    rm -f "$(VERSION_GIT_H).tmp"; \
-	else \
-	    echo "Updating '$(VERSION_GIT_H)'"; \
-	    mv -f "$(VERSION_GIT_H).tmp" "$(VERSION_GIT_H)"; \
+	    echo "Updating '$(VERSION_H)'"; \
+	    mv -f "$(VERSION_H).tmp" "$(VERSION_H)"; \
 	fi

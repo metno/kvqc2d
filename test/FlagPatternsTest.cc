@@ -27,7 +27,7 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "config.h"
+#define HAVE_SQL_WITH_WORKING_SUBSTR_IN 1
 #include "FlagPatterns.h"
 #include <gtest/gtest.h>
 

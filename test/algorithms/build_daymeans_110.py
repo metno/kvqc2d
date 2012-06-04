@@ -19,7 +19,7 @@ for line in normals_dat:
     if stationid != last_stationid:
         print >> normals_cpp, "ASSERT_NO_THROW(db->exec(sql.str()));\nsql.str("");"
     last_stationid = stationid
-    print >> normals_cpp, "sql << \"INSERT INTO statistical_reference_values VALUES(%5d,110,%3d,'ref_value',%.1f);\";" % (stationid, day, normal)
+    print >> normals_cpp, "sql << \"INSERT INTO qc2_statistical_reference_values VALUES(%5d,110,%3d,'ref_value',%.1f);\";" % (stationid, day, normal)
 
 if stationid != -1:
     print >> normals_cpp, "ASSERT_NO_THROW(db->exec(sql.str()));\nsql.str("");"

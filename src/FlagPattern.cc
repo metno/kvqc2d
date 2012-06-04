@@ -34,7 +34,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "config.h"
+#define HAVE_SQL_WITH_WORKING_SUBSTR_IN 1
 #include "debug.h"
 
 using Helpers::int2char;

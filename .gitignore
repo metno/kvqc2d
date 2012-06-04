@@ -46,14 +46,14 @@ src/BROWSE
 *~
 kvqc2d-*.tar.gz/
 test/corbatest
-
 /build-stamp
 /configure-stamp
 /debian/files
-/debian/kvqc2d.*
 /debian/kvqc2d/
-/debian/kvqc2d-dbg.*
 /debian/kvqc2d-dbg/
+/debian/stamp-*
+/debian/*.debhelper.log
+/debian/*.substvars
 /src/config.h.in
 /src/version_ac.h
 /src/version_git.h
@@ -62,3 +62,6 @@ test/corbatest
 /core
 /test/core
 /src/version.h
+/debian/stamp-makefile-build
+/debian/tmp
+/obj-i486-linux-gnu/
