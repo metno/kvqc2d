@@ -1,0 +1,18 @@
+project(kvqc2d CXX)
+cmake_minimum_required(VERSION 2.8)
+enable_testing()
+
+include(FindPkgConfig)
+pkg_check_modules(PC_KVCPP REQUIRED libkvcpp2>=2.5.2a gsl>=1.8)
+
+include_directories(${PC_KVCPP_INCLUDE_DIRS})
+add_definitions(${PC_KVCPP_CFLAGS_OTHER})
+
+find_package(Boost COMPONENTS thread filesystem REQUIRED)
+
+add_subdirectory(src/helpers)
+add_subdirectory(src/interpolation)
+add_subdirectory(src/statisticalmean)
+add_subdirectory(src)
+
+add_subdirectory(test)

@@ -29,7 +29,7 @@
 
 #include "algorithms/AlgorithmTestBase.h"
 #include "FlagPattern.h"
-#include "config.h"
+#define HAVE_SQL_WITH_WORKING_SUBSTR_IN 1
 
 class FlagPatternTest : public AlgorithmTestBase {
 };

@@ -1,108 +1,41 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-# Sample debian/rules that uses debhelper.
-# This file was originally written by Joey Hess and Craig Small.
-# As a special exception, when this file is copied by dh-make into a
-# dh-make output file, you may use that output file without restriction.
-# This special exception was added by Craig Small in version 0.37 of dh-make.
-
-# Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
-
-CFLAGS = -W -Wall -g
-CXXFLAGS=$(CFLAGS)
-CXX=g++-4.1
-CC=gcc-4.1
-
-configure: configure-stamp
-configure-stamp: version-check
-	dh_testdir
-	autoreconf -i
-	./configure --prefix=/usr  --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info  --localstatedir=/var --sysconfdir=/etc CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
-	touch configure-stamp
-
-build: build-stamp
-
-build-stamp: configure-stamp 
-	dh_testdir
-	$(MAKE)
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp
-	-$(MAKE) clean
-	dh_clean 
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k 
-	dh_installdirs
-	$(MAKE) DESTDIR=$(CURDIR)/debian/kvqc2d install
 
 
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
+include /usr/share/cdbs/1/rules/debhelper.mk
 
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
-	dh_installdocs
-#	dh_install
-#	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_python
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
-	dh_installman kvqc2d.1
-	dh_link
-	dh_strip --dbg-package=kvqc2d-dbg
-	dh_compress
-	dh_fixperms
-#	dh_perl
-#	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+############################## use CMake
+ifeq ($(USE_CMAKE),1)
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+include /usr/share/cdbs/1/class/cmake.mk
+DEB_MAKE_CHECK_TARGET=test
 
-version-check:
+############################## or use autotools
+else
+
+include /usr/share/cdbs/1/class/autotools.mk
+DEB_MAKE_CHECK_TARGET=check
+
+pre-build :: version-deb-autotools
+# check that the version specified in configure.ac is the same as the
+# most recent version in debian/changelog
+version-deb-autotools:
 	@AC_VERSION=$$(grep ^AC_INIT configure.ac | sed -e 's/^AC_INIT(\[[a-zA-Z0-9_.~]\+\], *\[//' -e 's/\], *\[[a-z@.-]\+\])//'); \
 	DEBIAN_PACKAGE=$$(head -n 1 debian/changelog | sed -e 's/^\([a-z_0-9-]\+\) (/\1/'); \
 	DEBIAN_VERSION=$$(head -n 1 debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+\)-[^-)]).*$$/\1/'); \
 	if [ "x$$DEBIAN_VERSION" != "x$$AC_VERSION" ]; then \
 	    echo "Error: debian version '$$DEBIAN_VERSION' != version '$$AC_VERSION' from configure.ac"; \
 	    if [ "x$$KVQC2D_BUILD_VERSION_CHECK" != "xNO" ]; then exit 1; fi \
-	fi; \
-	TAG_NAME="$${DEBIAN_PACKAGE}_$$(echo $$DEBIAN_VERSION | tr '.' '_')"; \
-	GIT_REF="$$(git rev-parse HEAD 2>/dev/null || true)"; \
-	if [ -n "$$GIT_REF" ]; then \
-	    git update-index --refresh > /dev/null; \
-	    GIT_DIFF_FILES="$$(git diff-files)"; \
-	    GIT_DIFF_INDEX="$$(git diff-index --cached HEAD)"; \
-	    if [ "x$$GIT_DIFF_FILES" != "x" ] || [ "x$$GIT_DIFF_INDEX" != "x" ]; then \
-	        WARN_GIT="yes"; \
-	    fi; \
-	elif test -r "src/version_git.h" && grep -q "dirty" src/version_git.h; then \
-	    WARN_GIT="yes"; \
-	else \
-	    echo "No repository check -- git or git repository not available."; \
-	fi; \
-	if [ "x$$WARN_GIT" != "x" ]; then \
+	fi;
+
+############################## end of autotools part
+endif
+
+#DEB_BUILDDIR=$(DEB_SRCDIR)/debian/build
+
+pre-build :: git-is-clean
+git-is-clean:
+	@if ./version.sh | grep -q '\(unknown\|dirty\)'; then \
 	    echo; echo; echo; echo "=================================================="; \
 	    echo "Warning: git working directory might not be clean"; \
 	    echo "=================================================="; echo; echo; echo; \
