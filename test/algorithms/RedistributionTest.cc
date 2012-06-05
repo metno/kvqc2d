@@ -1721,3 +1721,40 @@ TEST_F(RedistributionTest, SuspiciousRowsOnlyIfHQC0)
     ASSERT_EQ(1, logs->count(Message::WARNING));
     ASSERT_LE(0, logs->find("suspicious"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, RowsWithoutCorrectedAndFHCQ)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(41200, 58.318, 7.594, 275.0, 0.0, 'FINSLAND', NULL, 41200, NULL, NULL, NULL, 9, 't', '1971-06-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(41200, 110, 302);
+    data.add("2012-05-26 06:00:00",     -1,     -1, "0110000000001000", "")
+        .add("2012-05-27 06:00:00", -32767, -32767, "0000001000007000", "QC1-7-110,QC2-redist-bonedry")
+        .add("2012-05-28 06:00:00",     -1,     -1, "0110004000002006", "QC1-7-110,QC2-redist-bonedry,hqc")
+        .add("2012-05-29 06:00:00",     -1,     -1, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   05\n"
+           << "Start_DD   =   26\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   05\n"
+           << "End_DD     =   29\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(3, logs->count(Message::WARNING));
+    ASSERT_LE(0, logs->find("different fd flag"));
+    ASSERT_LE(0, logs->find("fmis!=3 while fd=2"));
+    ASSERT_LE(0, logs->find("fhqc!=0 for some rows"));
+}
