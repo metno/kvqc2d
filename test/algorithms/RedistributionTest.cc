@@ -227,6 +227,7 @@ TEST_F(RedistributionTest, Station83880History2011117)
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000",  2.8, bc->update(1));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 28.3, bc->update(2));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000007000",  6.3, bc->update(3));
+    ASSERT_EQ(1, logs->count("QC2-redist-endpoint"));
 
     ASSERT_RUN(algo, bc, 0);
 }
@@ -620,7 +621,8 @@ TEST_F(RedistributionTest, NoGoodNeighborsForOnePoint)
     ASSERT_RUN(algo, bc, 0);
 
     std::ostringstream sql;
-    sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000', useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190) AND obstime = '2011-10-13 06:00:00';";
+    sql << "UPDATE data SET original = 1.0, corrected = 1.0, controlinfo = '0110000000001000',"
+        << " useinfo='7000000000000000', cfailed='' WHERE stationid IN (83520, 84190) AND obstime = '2011-10-13 06:00:00';";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     // two accumulations, one for 83880 and one for 84070
@@ -1224,6 +1226,7 @@ TEST_F(RedistributionTest, BoneDryNoNeighbors)
     ASSERT_RUN(algo, bc, 2);
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-13 06:00:00", "0000001000007000",  -1, bc->update(0));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0140000000007000",  -1, bc->update(1));
+    ASSERT_EQ(1, logs->count("QC2-redist-endpoint"));
 
     // run again without modifications or messages
     ASSERT_RUN(algo, bc, 0);
