@@ -1683,3 +1683,41 @@ TEST_F(RedistributionTest, BadRedistributedSumRounding)
     ASSERT_EQ(2, logs->count(Message::INFO));
     ASSERT_EQ(0, logs->count(Message::WARNING));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, SuspiciousRowsOnlyIfHQC0)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(35340, 58.718, 9.210, 36.0, 0.0, 'RISXR BRANNSTASJON', NULL, 35340, NULL, NULL, NULL, 9, 't', '1968-02-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(35340, 110, 302);
+    data.add("2012-04-28 06:00:00", -32767, -1, "0000001000002006", "QC1-7-110,QC2-redist-bonedry,hqc")
+        .add("2012-04-29 06:00:00", -32767, -1, "0000001000002006", "QC1-7-110,QC2-redist-bonedry,hqc")
+        .add("2012-04-30 06:00:00",     -1, -1, "0110004000002006", "QC1-7-110,QC2-redist-bonedry,hqc");
+    // same again with fhqc=0
+    data.add("2012-05-01 06:00:00", -32767, -1, "0000001000002000", "QC1-7-110,QC2-redist-bonedry")
+        .add("2012-05-02 06:00:00", -32767, -1, "0000001000002000", "QC1-7-110,QC2-redist-bonedry")
+        .add("2012-05-03 06:00:00",     -1, -1, "0110004000002000", "QC1-7-110,QC2-redist-bonedry");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   04\n"
+           << "Start_DD   =   27\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   05\n"
+           << "End_DD     =   03\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(1, logs->count(Message::WARNING));
+    ASSERT_LE(0, logs->find("suspicious"));
+}

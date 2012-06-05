@@ -255,9 +255,12 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         return false;
     }
     if( Helpers::isMissingOrRejected(it->data()) ) {
-        warning() << "suspicious (missing/rejected) row " << *it
-                  << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
-                  << "; giving up";
+        const int fhqc = it->controlinfo().flag(kvQCFlagTypes::f_fhqc);
+        if( fhqc == 0 ) {
+            warning() << "suspicious (missing/rejected) row " << *it
+                      << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
+                      << "; giving up";
+        }
         return false;
     }
     const miutil::miTime beforeTime = it->obstime();
