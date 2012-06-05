@@ -218,8 +218,8 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             << (fix ? "; will try to fix it" : "; will not fix");
         stop = !fix;
     }
-    if( count_fhqc_0 != 0 && count_fhqc_0 != length ) {
-        warning() << "fhqc mess for accumulation from " << acc_start
+    if( count_corrected > 0 && count_corrected != length && count_fhqc_0 < length ) {
+        warning() << "fhqc!=0 for some rows, while others have no corrected value for accumulation from " << acc_start
                   << " to endpoint " << endpoint;
         stop = true;
     }
