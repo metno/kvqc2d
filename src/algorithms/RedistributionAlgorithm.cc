@@ -376,10 +376,14 @@ void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
 {
     DBGV(accumulation.size());
     // accumulated value is -1 => nothing to redistribute, all missing values must be dry (-1), too
+    bool endpoint = true;
     foreach(RedisUpdate& a, accumulation) {
         a.corrected(-1)
             .controlinfo(update_flagchange.apply(a.controlinfo()))
             .cfailed("QC2-redist-bonedry", CFAILED_STRING);
+        if( endpoint )
+            a.cfailed("QC2-redist-endpoint");
+        endpoint = false;
     }
 }
 
@@ -405,6 +409,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     // where nT_S has time T and stationid S
     // forward iterating through ndata yields n3_1 n3_2 n3_3 n2_1 n2_2 n1_1 n1_2 n1_4 (backwards in time)
 
+    bool endpoint = true;
     float weightedNeighborsAccumulated = 0;
     dataList_t::const_iterator itN = ndata.begin();
     foreach(RedisUpdate& b, before) {
@@ -468,6 +473,9 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         b.corrected(weightedNeighbors)
             .cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
             .controlinfo(update_flagchange.apply(b.controlinfo()));
+        if( endpoint )
+            b.cfailed("QC2-redist-endpoint");
+        endpoint = false;
     }
     DBGV(weightedNeighborsAccumulated);
 
