@@ -146,7 +146,9 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     }
     const RedisUpdate& endpoint = mdata.front();
     if( length == 1 ) {
-        warning() << "accumulation without missing rows in " << endpoint;
+        const int m_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
+        if( m_fhqc == 0 )
+            warning() << "accumulation without missing rows in " << endpoint;
         return false;
     }
 

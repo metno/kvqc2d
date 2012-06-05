@@ -1758,3 +1758,39 @@ TEST_F(RedistributionTest, RowsWithoutCorrectedAndFHCQ)
     ASSERT_LE(0, logs->find("fmis!=3 while fd=2"));
     ASSERT_LE(0, logs->find("fhqc!=0 for some rows"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(RedistributionTest, AccumulationWithoutMissingRowsFHCQ)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(41480, 58.616, 7.407, 278.0, 0.0, '�SERAL', NULL, 41480, NULL, NULL, NULL, 9, 't', '1895-07-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(41480, 110, 302);
+    data.add("2012-02-14 06:00:00",   -1,  -1, "0110000000001000", "")
+        .add("2012-02-15 06:00:00",    0,   0, "0110004000002006", "watchRR")
+        .add("2012-02-16 06:00:00",   -1,  -1, "0110000000001000", "")
+        .add("2012-02-17 06:00:00",  0.7, 0.7, "0110004000002000", "")
+        .add("2012-02-18 06:00:00",  9.6, 9.6, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   02\n"
+           << "Start_DD   =   14\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   02\n"
+           << "End_DD     =   18\n"
+           << "End_hh     =   06\n"
+           << "ParamId=110\n"
+           << "TypeIds=302\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(1, logs->count(Message::WARNING));
+    ASSERT_LE(0, logs->find("accumulation without missing rows.*obstime='2012-02-17 06:00:00'"));
+}
