@@ -35,9 +35,7 @@
 #include <milog/milog.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem/exception.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/version.hpp>
 #include <fstream>
 #include <sstream>
@@ -71,6 +69,22 @@ void extractHHMMSS(const ConfigParser& c, const std::string& prefix, miutil::miT
         time.addSec(-time.sec()   + c.get(prefix + "_ss").convert<int>(0));
 }
 
+#if BOOST_FILESYSTEM_VERSION >= 3
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native();
+    }
+    inline std::string to_native_dir(const boost::filesystem::path& path) {
+        return path.native();
+    }
+#else
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native_file_string();
+    }
+    inline std::string to_native_dir(const boost::filesystem::path& path) {
+        return path.native_directory_string();
+    }
+#endif
+
 } // anonymous namespace
 
 const std::string AlgorithmConfig::CFG_EXT = ".cfg2";
@@ -84,7 +98,11 @@ AlgorithmConfig::AlgorithmConfig()
 void AlgorithmConfig::setConfigPath(const fs::path& path)
 {
     // this will throw an exception in some unusual cases on Windows systems
+#if BOOST_FILESYSTEM_VERSION >= 3
+    mConfigPath = boost::filesystem3::complete( path );
+#else
     mConfigPath = fs::complete( path );
+#endif
 }
 
 ///Scans $KVALOBS/Qc2Config and searched for configuration files "*.cfg".
@@ -94,17 +112,10 @@ bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
     // TODO this has little to do with qc2 configuration files, move it elsewhere
     config_files.clear();
     if( !fs::exists( mConfigPath ) || !fs::is_directory( mConfigPath )) {
-#if BOOST_VERSION <= 103500
-        LOGWARN("Not a directory: '" << mConfigPath.native_file_string() << "'");
-#elif !defined(BOOST_VERSION)
-#error "BOOST_VERSION not defined"
-#else
-        LOGWARN("Not a directory: '" << mConfigPath.file_string() << "'");
-#endif
+        LOGWARN("Not a directory: '" << to_native_file(mConfigPath) << "'");
         return false;
     }
 
-    //LOGINFO("Scanning for files in '" << mConfigPath.native_file_string() << "'");
     try {
         const fs::directory_iterator end;
         for( fs::directory_iterator dit( mConfigPath ); dit != end; ++dit ) {
@@ -118,19 +129,13 @@ bool AlgorithmConfig::SelectConfigFiles(std::vector<std::string>& config_files)
                 continue;
             if( fs::is_directory(*dit) )
                 continue;
-            if( boost::algorithm::ends_with(
 #if BOOST_VERSION <= 103500
-                    dit->leaf(),
+            const std::string name = dit->leaf();
 #else
-                    dit->path().filename(),
+            const std::string name = to_native_file(dit->path().filename());
 #endif
-                    CFG_EXT) )
-            {
-#if BOOST_VERSION <= 103500
-                const std::string& n = dit->native_file_string();
-#else
-                const std::string& n = dit->path().file_string();
-#endif
+            if( boost::algorithm::ends_with(name, CFG_EXT) ) {
+                const std::string& n = to_native_file(dit->path());
                 config_files.push_back(n);
                 //LOGINFO("Found configuration file '" << n << "'");
             }

@@ -51,6 +51,21 @@ const char* options[][ 2 ] =
 
 namespace {
 
+#if BOOST_FILESYSTEM_VERSION >= 3
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native();
+    }
+    inline std::string to_native_dir(const boost::filesystem::path& path) {
+        return path.native();
+    }
+#else
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native_file_string();
+    }
+    inline std::string to_native_dir(const boost::filesystem::path& path) {
+        return path.native_directory_string();
+    }
+#endif
 ////////////////////////////////////////////////////////////////////////
 
 bool check_rundir()
@@ -64,23 +79,23 @@ bool check_rundir()
             return false;
         }
     } else if( ! boost::filesystem::is_directory(rundir) ) {
-        LOGFATAL( rundir.native_file_string() << " exists but is not a directory" );
+        LOGFATAL( to_native_file(rundir) << " exists but is not a directory" );
         return false;
     }
 
-    boost::filesystem::path pidfile( dnmi::file::createPidFileName( rundir.native_file_string(), "kvqc2d" ) );
+    boost::filesystem::path pidfile( dnmi::file::createPidFileName( to_native_file(rundir), "kvqc2d" ) );
     bool error = false;
-    if ( dnmi::file::isRunningPidFile( pidfile.native_file_string(), error ) ) {
+    if ( dnmi::file::isRunningPidFile( to_native_file(pidfile), error ) ) {
         if ( error ) {
             LOGFATAL( "An error occured while reading the pidfile:" << std::endl
-                      << pidfile.native_file_string() << " remove the file if it exists and"
+                      << to_native_file(pidfile) << " remove the file if it exists and"
                       << std::endl << "kvqc2d is not running. "
                       << "If it is running and there is problems. Kill kvqc2d and" << std::endl
                       << "restart it." << std::endl << std::endl );
             return false;
         } else {
             LOGFATAL( "Is kvqc2d already running?" << std::endl
-                      << "If not remove the pidfile: " << pidfile.native_file_string() );
+                      << "If not remove the pidfile: " << to_native_file(pidfile) );
             return false;
         }
     }

@@ -37,6 +37,11 @@ kvqc2dTest_SOURCES= \
 	HelpersTest.cc \
         test_main.cc
 
+kvqc2dTest_DEPENDENCIES = algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc \
+	../src/libkvqc2d_1.a ../src/interpolation/libinterpolation.a \
+	../src/statisticalmean/libstatisticalmean.a ../src/libkvqc2d_2.a \
+	../src/helpers/libhelpers.a
+
 AM_CXXFLAGS = -Wall -W \
 	$(TEST_DEPS_CFLAGS) \
 	$(GTEST_CXXFLAGS) \
@@ -50,14 +55,21 @@ INCLUDES = -I$(top_srcdir)/src
 
 LDADD = \
 	$(TEST_DEPS_LIBS) \
+	-lkvalobs2_fileutil \
+	-lkvalobs2_kvalobs \
+	-lkvalobs2_kvdb \
+	-lkvalobs2_miconfparser \
+	-lkvalobs2_milog \
+	-lkvalobs2_kvskel \
 	$(GTEST_LIBS) \
 	$(BOOST_THREAD_LIB) \
-	$(BOOST_FILESYSTEM_LIB)
+	$(BOOST_FILESYSTEM_LIB) -lboost_system
 
-kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
+kvqc2dTest_LDADD = \
 	../src/libkvqc2d_1.a ../src/interpolation/libinterpolation.a \
 	../src/statisticalmean/libstatisticalmean.a ../src/libkvqc2d_2.a \
-	../src/helpers/libhelpers.a
+	../src/helpers/libhelpers.a \
+	$(LDADD) -lboost_regex 
 
 kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS)
 

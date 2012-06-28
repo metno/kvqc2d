@@ -163,6 +163,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
                       << mMeasurementHour << " not found in missing point " << m
                       << " for accumulation ending in " << endpoint.text(m.obstime());
+            DBGL;
             stop = true;
         }
         const bool m_missOrRej = equal(m.corrected(), missing) || equal(m.corrected(), rejected);
@@ -177,28 +178,35 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             if( !equal(m.original(), missing) ) {
                 warning() << "missing point " << m << " has original!=missing for endpoint "
                           << endpoint.text(m.obstime());
+                DBGL;
                 stop = true;
             }
             const int m_fmis = m.controlinfo().flag(kvQCFlagTypes::f_fmis);
             const int m_fd   = m.controlinfo().flag(kvQCFlagTypes::f_fd  );
-            if( m_fd != endpoint_fd ) {
+            if( m_fd != endpoint_fd && endpoint_fd == 2 ) {
                 warning() << "missing point " << m << " has different fd flag than endpoint "
                           << endpoint.text(m.obstime());
+                DBGL;
                 stop = true;
             }
+#if 0
             if( endpoint_fd == 2 && m_fmis != 3 ) {
                 warning() << "missing point " << m << " has fmis!=3 while fd=2 for endpoint "
                           << endpoint.text(m.obstime());
+                DBGL;
                 stop = true;
             } else if( (endpoint_fd == 7||endpoint_fd==6) && m_fmis != 1 ) {
                 warning() << "missing point " << m << " has fmis!=1 while fd=6/7 for endpoint "
                           << endpoint.text(m.obstime());
+                DBGL;
                 stop = true;
             }
+#endif
         }
         if( warn_and_stop_flags.matches(m.data()) ) {
             warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
                       << endpoint.text(m.obstime());
+            DBGL;
             stop = true;
         }
     }
@@ -209,24 +217,28 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         warning() << "found " << count_corrected << ", but expected " << (endpoint_fd == 2 ? 1 : length)
                   << " rows with corrected values for accumulation from "
                   << acc_start << " to endpoint " << endpoint.text(acc_start);
+        DBGL;
         stop = true;
     }
     if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
-        const bool fix = endpoint_fd == 7 && count_fhqc_0 == length;
+        const bool fix = (endpoint_fd == 7 || endpoint_fd == 8 ) && count_fhqc_0 == length;
         (fix ? info() : warning())
             << "redistributed sum " << redistributed_sum
             << " starting " << acc_start
             << " differs from original in endpoint " << endpoint.text(acc_start)
             << (fix ? "; will try to fix it" : "; will not fix");
+        DBGV(fix);
         stop = !fix;
     }
     if( count_corrected > 0 && count_corrected != length && count_fhqc_0 < length ) {
         warning() << "fhqc!=0 for some rows, while others have no corrected value for accumulation from " << acc_start
                   << " to endpoint " << endpoint;
+        DBGL;
         stop = true;
     }
     if( !stop && count_fhqc_0 != length ) {
         info() << "stop because fhqc != 0 somewhere for accumulation ending in " << endpoint.text(acc_start);
+        DBGL;
         stop = true;
     }
     DBGV(stop);
@@ -316,11 +328,12 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
-    params.getFlagSetCU(endpoint_flags,      "endpoint",          "fmis=[04]&fd=[267]", "");
-    params.getFlagSetCU(missingpoint_flags,  "missingpoint",      "fmis=3&fd=2|fmis=1&fd=[67]", "");
-    params.getFlagSetCU(neighbor_flags,      "neighbor",          "fd=1", "U2=0");
-    params.getFlagSetCU(warn_and_stop_flags, "warn_and_stop",     "never", "");
-    params.getFlagChange(update_flagchange,  "update_flagchange", "fd=7;fmis=3->fmis=1");
+    params.getFlagSetCU(endpoint_flags,       "endpoint",            "fmis=[04]&fd=[24678A]", "");
+    params.getFlagSetCU(missingpoint_flags,   "missingpoint",        "fmis=3&fd=2|fmis=1&fd=[679]", "");
+    params.getFlagSetCU(neighbor_flags,       "neighbor",            "fd=1", "U2=0");
+    params.getFlagSetCU(warn_and_stop_flags,  "warn_and_stop",       "never", "");
+    params.getFlagChange(update_flagchange,   "update_flagchange",   "fd=7;fmis=3->fmis=1");
+    params.getFlagChange(endpoint_flagchange, "endpoint_flagchange", "fd=8;fmis=3->fmis=1");
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
     mMaxNeighbors = params.getParameter<int>("max_neighbors", 5);
@@ -378,11 +391,14 @@ void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
     // accumulated value is -1 => nothing to redistribute, all missing values must be dry (-1), too
     bool endpoint = true;
     foreach(RedisUpdate& a, accumulation) {
-        a.corrected(-1)
-            .controlinfo(update_flagchange.apply(a.controlinfo()))
-            .cfailed("QC2-redist-bonedry", CFAILED_STRING);
-        if( endpoint )
+        a.corrected(-1);
+        a.cfailed("QC2-redist-bonedry", CFAILED_STRING);
+        if( endpoint ) {
+            a.controlinfo(endpoint_flagchange.apply(a.controlinfo()));
             a.cfailed("QC2-redist-endpoint");
+        } else {
+            a.controlinfo(update_flagchange.apply(a.controlinfo()));
+        }
         endpoint = false;
     }
 }
@@ -397,7 +413,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 
     dataList_t ndata;
     if( !getNeighborData(before, ndata) && !accumulationIsDry ) {
-        DBG("no nieghbor and not dry");
+        DBG("no neighbor and not dry");
         return false;
     }
     DBGV(ndata.size());
@@ -470,11 +486,14 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         weightedNeighborsAccumulated += weightedNeighbors;
 
         cfailed << ",QC2-redist";
-        b.corrected(weightedNeighbors)
-            .cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING)
-            .controlinfo(update_flagchange.apply(b.controlinfo()));
-        if( endpoint )
+        b.corrected(weightedNeighbors);
+        b.cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING);
+        if( endpoint ) {
+            b.controlinfo(endpoint_flagchange.apply(b.controlinfo()));
             b.cfailed("QC2-redist-endpoint");
+        } else {
+            b.controlinfo(update_flagchange.apply(b.controlinfo()));
+        }
         endpoint = false;
     }
     DBGV(weightedNeighborsAccumulated);
