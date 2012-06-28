@@ -29,13 +29,20 @@
 
 #include "AlgorithmDispatcher.h"
 
+// #define ENABLE_STATISTICALMEAN 1
+// #define ENABLE_AGGREGATORLIMITS 1
+
+#ifdef ENABLE_AGGREGATORLIMITS
 #include "algorithms/AggregatorLimits.h"
+#endif
 #include "algorithms/DipTestAlgorithm.h"
 #include "interpolation/GapInterpolationAlgorithm.h"
 #include "algorithms/PlumaticAlgorithm.h"
 #include "algorithms/RedistributionAlgorithm.h"
 #include "algorithms/SingleLinearAlgorithm.h"
+#ifdef ENABLE_STATISTICALMEAN
 #include "statisticalmean/StatisticalMean.h"
+#endif
 
 #include "AlgorithmConfig.h"
 #include "DBInterface.h"
@@ -48,18 +55,23 @@ AlgorithmDispatcher::AlgorithmDispatcher()
     : mBroadcaster(0), mDatabase(0), mNotifier(0)
 {
     Qc2Algorithm* algorithms[] = {
+#ifdef ENABLE_AGGREGATORLIMITS
         new AggregatorLimits(),
+#endif
         new SingleLinearAlgorithm(),
         new RedistributionAlgorithm(),
         new DipTestAlgorithm(),
         new GapInterpolationAlgorithm(),
+#ifdef ENABLE_STATISTICALMEAN
         new StatisticalMean(),
+#endif
         new PlumaticAlgorithm()
     };
     const int N = sizeof(algorithms)/sizeof(algorithms[0]);
     for(int i=0; i<N; ++i) {
         Qc2Algorithm* a = algorithms[i];
-        mAlgorithms[ a->name() ] = a;
+        if( a != 0 )
+            mAlgorithms[ a->name() ] = a;
     }
 }
 
