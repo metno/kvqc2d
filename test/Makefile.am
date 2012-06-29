@@ -43,8 +43,8 @@ kvqc2dTest_DEPENDENCIES = algorithms/StatisticalMean_n110.icc algorithms/Statist
 	../src/helpers/libhelpers.a
 
 AM_CXXFLAGS = -Wall -W \
-	$(TEST_DEPS_CFLAGS) \
 	$(GTEST_CXXFLAGS) \
+	$(TEST_DEPS_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniORB4_CFLAGS)
 
@@ -65,14 +65,24 @@ LDADD = \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) -lboost_system
 
-kvqc2dTest_LDADD = \
+AM_LDFLAGS = $(GTEST_LDFLAGS)
+
+kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
 	../src/libkvqc2d_1.a ../src/interpolation/libinterpolation.a \
 	../src/statisticalmean/libstatisticalmean.a ../src/libkvqc2d_2.a \
 	../src/helpers/libhelpers.a \
-	$(LDADD) -lboost_regex 
+	$(LDADD)
 
-kvqc2dTest_LDFLAGS = $(GTEST_LDFLAGS)
 
+if HAVE_COMPILED_GTEST
+# nothing
+else
+noinst_LIBRARIES = libgtest_local.a
+libgtest_local_a_SOURCES = $(GTEST_BASE)/src/gtest/src/gtest-all.cc
+libgtest_local_a_CXXFLAGS = -I$(GTEST_BASE)/src/gtest
+
+kvqc2dTest_LDADD += ./libgtest_local.a
+endif
 
 algorithms/StatisticalMeanTest.cc: algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc
 
