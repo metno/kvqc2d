@@ -34,6 +34,7 @@
 
 #include <limits>
 #include <cstdlib>
+#include <stdexcept>
 
 void ParameterInfo::constrain(float& value) const
 {
@@ -51,6 +52,7 @@ ParameterInfo::ParameterInfo(const std::string& pi)
   , maxSigma(2.7)
   , minParameter(-1)
   , maxParameter(-1)
+  , fluctuationLevel(0)
 {
     const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
     foreach(const std::string& item, items) {
@@ -71,6 +73,8 @@ ParameterInfo::ParameterInfo(const std::string& pi)
             maxOffset = std::atof(kv.second.c_str());
         } else if( kv.first == "maxSigma" ) {
             maxSigma = std::atof(kv.second.c_str());
+        } else {
+            throw std::runtime_error("unknown parameter info '" + kv.first + "'");
         }
     }
 }
