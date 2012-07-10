@@ -1,3 +1,9 @@
+kvqc2d (1.4.0~rc3-1) unstable; urgency=low
+
+  * GapInterpolation: rounding of interpolated values
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 10 Jul 2012 17:42:59 +0200
+
 kvqc2d (1.4.0~rc2-1) unstable; urgency=low
 
   * release candidate 2 for 1.4.0

@@ -71,6 +71,9 @@ struct ParameterInfo {
     /** approximate fluctuation of the parameter while measuring min
      * and max between two observations */
     float fluctuationLevel;
+
+    /** rounding factor; default: 10 (one decimal digit) */
+    float roundingFactor;
 };
 
 #endif /* KVALOBSPARAMETERINFO_H_ */

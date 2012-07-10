@@ -107,7 +107,7 @@ void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::Missin
 
         if( t == sr.time && !( sameNumericalValue || failedInterpolationForMissingCorrected ) ) {
             kvalobs::kvData dwrite(*dit);
-            dwrite.corrected(sr.value);
+            dwrite.corrected(Helpers::round(sr.value, parameterInfo.roundingFactor));
             dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
             Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
             Helpers::updateUseInfo(dwrite);
