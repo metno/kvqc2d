@@ -195,7 +195,7 @@ void AggregatorLimits::configure(const AlgorithmConfig& config)
     mMinQCX = config.getParameter<std::string>("minQCX", "min");
     mMaxQCX = config.getParameter<std::string>("maxQCX", "max");
 #endif
-    config.getFlagSetCU(mFlags, "aggregation", "fr=)6(", "");
+    config.getFlagSetCU(mFlags, "aggregation", "fr=)6(&fmis=[014]", "");
     config.getFlagChange(mFlagChangeMin, "aggregation_flagchange_min", "fr=6");
     config.getFlagChange(mFlagChangeMax, "aggregation_flagchange_max", "fr=6");
 
