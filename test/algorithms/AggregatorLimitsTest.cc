@@ -96,3 +96,49 @@ TEST_F(AggregatorLimitsTest, FirstTest)
 
     ASSERT_RUN(algo, bc, 0);
 }
+
+TEST_F(AggregatorLimitsTest, Negative)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(93900, 68.755, 23.539, 382.0, 0.0, 'SIHCCAJAVRI', 1199, 93900, NULL, NULL, NULL, 8, 't', '1912-01-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(93900, 110, -308);
+    data.add("2012-06-20 06:00:00", -32767,   14.4, "5000001000000000", "")
+        .add("2012-06-21 06:00:00", -32767,    7.5, "5000001000000000", "")
+        .add("2012-06-22 06:00:00", -32767,     -1, "5000001000000000", "")
+        .add("2012-06-23 06:00:00", -32767, -32767, "5000001000000000", "")
+        .add("2012-06-24 06:00:00", -32767,     -1, "5000001000000000", "")
+        .add("2012-06-25 06:00:00", -32767,     -1, "5600001000000000", "")
+        .add("2012-06-26 06:00:00", -32767,    3.2, "5600001000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   06\n"
+           << "Start_DD   =   20\n"
+           << "Start_hh   =   06\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   06\n"
+           << "End_DD     =   26\n"
+           << "End_hh     =   06\n";
+
+#ifdef USE_STATION_PARAM
+# error need to update test
+#else
+    config << "param_limits = 106<54.9;107<60.8;108<83.3;109<144.1;110<159.7\n";
+#endif
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    data.add("2012-06-23 06:00:00", -32767, 200, "5000001000000000", "");
+    ASSERT_NO_THROW(data.update(db));
+
+    ASSERT_RUN(algo, bc, 1);
+    ASSERT_OBS_CONTROL_CFAILED("2012-06-23 06:00:00", "5600001000000000", "QC2-agglim-max", bc->update(0));
+
+    ASSERT_RUN(algo, bc, 0);
+}

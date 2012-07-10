@@ -34,6 +34,7 @@
 #include "DataUpdate.h"
 #include "foreach.h"
 
+#include <kvalobs/kvDataOperations.h>
 #include <boost/make_shared.hpp>
 
 #define NDEBUG 1
@@ -243,7 +244,7 @@ void AggregatorLimits::addStationLimits(const DBInterface::StationParamList&
 
 void AggregatorLimits::run()
 {
-    const miutil::miTime now = miutil::miTime::nowTime();
+    // const miutil::miTime now = miutil::miTime::nowTime();
 
     DBInterface::DataList updates;
 
@@ -260,10 +261,14 @@ void AggregatorLimits::run()
             error() << "no parameter limits found for " << data;
             continue;
         }
-        if( du.original() < limits.min ) {
+        if( data.corrected() <= -32765 ) {
+            DBGL;
+            continue;
+        }
+        if( du.corrected() < limits.min ) {
             du.controlinfo(mFlagChangeMin.apply(du.controlinfo()));
             du.cfailed("QC2-agglim-min");
-        } else if( du.original() > limits.max ) {
+        } else if( du.corrected() > limits.max ) {
             du.controlinfo(mFlagChangeMax.apply(du.controlinfo()));
             du.cfailed("QC2-agglim-max");
         } else {
