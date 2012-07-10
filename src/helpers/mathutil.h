@@ -87,6 +87,9 @@ void quartiles(RandAccessIter begin, RandAccessIter end, double& q1, double& q2,
 
 double randNormal();
 
+/** uniform random distribution centered at 0 (interval [-1..1[ */
+double randUniform0();
+
 template<typename T>
 void maximize(T& value, const T& by)
 { if( by > value ) value = by; }

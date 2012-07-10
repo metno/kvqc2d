@@ -77,4 +77,9 @@ double randNormal()
     return r;
 }
 
+double randUniform0()
+{
+    return 2*drand48()-1;
+}
+
 } // namespace Helpers
