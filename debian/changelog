@@ -1,6 +1,14 @@
-kvqc2d (1.4.0-1) unstable; urgency=low
+kvqc2d (1.4.0~rc2-1) unstable; urgency=low
 
-  * release 1.4.0
+  * release candidate 2 for 1.4.0
+  * GapInterpolation: use uniform distribution, set fmis=1
+  * Redistribution: improved WARN messages
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 10 Jul 2012 15:40:32 +0200
+
+kvqc2d (1.4.0~rc1-1) unstable; urgency=low
+
+  * release candidate 1 for 1.4.0
   * disabled AggregatorLimits and StatisticalMean in dispatcher
 
  -- Alexander Bürger <alexander.buerger@met.no>  Thu, 28 Jun 2012 14:55:05 +0200
