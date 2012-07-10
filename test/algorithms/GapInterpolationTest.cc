@@ -757,7 +757,7 @@ TEST_F(GapInterpolationTest, RABucketEmptied)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 1);
 
-    ASSERT_OBS_CONTROL_CFAILED("2012-05-08 12:00:00", "0000003100000000", "QC2d-2-I", bc->update(0));
+    ASSERT_OBS_CONTROL_CFAILED("2012-05-08 12:00:00", "0000001100000000", "QC2d-2-I", bc->update(0));
 }
 
 // ------------------------------------------------------------------------
@@ -870,7 +870,7 @@ TEST_F(GapInterpolationTest, NoInterpolationAtEnd)
     ASSERT_PARSE_CONFIG(params, config);
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 1);
-    ASSERT_OBS_CONTROL_CFAILED("2012-05-14 03:00:00", "0000003100000000", "QC2d-2-I", bc->update(0));
+    ASSERT_OBS_CONTROL_CFAILED("2012-05-14 03:00:00", "0000001100000000", "QC2d-2-I", bc->update(0));
 }
 
 // ------------------------------------------------------------------------
