@@ -36,6 +36,24 @@
 
 namespace fs = boost::filesystem;
 
+namespace {
+#if BOOST_FILESYSTEM_VERSION >= 3
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native();
+    }
+    inline std::string to_native_dir(const boost::filesystem::path& path) {
+        return path.native();
+    }
+#else
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native_file_string();
+    }
+    inline std::string to_native_dir(const boost::filesystem::path& path) {
+        return path.native_directory_string();
+    }
+#endif
+}
+
 TEST(AlgorithmConfigTest, testScanNoDir)
 {
     const char* no_dir = "/tmp/thisisnotaconfigurationfiledirectoryforqc2";
@@ -103,8 +121,8 @@ TEST(AlgorithmConfigTest, testScanMixedDir)
     ASSERT_TRUE( fs::exists(dir) );
     ASSERT_TRUE( po.SelectConfigFiles(files) );
     ASSERT_EQ( 2, files.size() );
-    ASSERT_EQ( (dir / ("00match" + AlgorithmConfig::CFG_EXT)).native_file_string(), files[0] );
-    ASSERT_EQ( (dir / ("01match" + AlgorithmConfig::CFG_EXT)).native_file_string(), files[1] );
+    ASSERT_EQ( to_native_file(dir / ("00match" + AlgorithmConfig::CFG_EXT)), files[0] );
+    ASSERT_EQ( to_native_file(dir / ("01match" + AlgorithmConfig::CFG_EXT)), files[1] );
     
     fs::remove_all( dir );
 }

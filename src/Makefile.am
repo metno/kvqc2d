@@ -84,10 +84,17 @@ AM_CXXFLAGS = -Wall -W -I$(top_srcdir)/src \
 
 kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 
-kvqc2d_LDADD = $(PROG_DEPS_LIBS) \
+kvqc2d_LDADD = \
+	libkvqc2d_1.a interpolation/libinterpolation.a statisticalmean/libstatisticalmean.a libkvqc2d_2.a helpers/libhelpers.a \
+	$(PROG_DEPS_LIBS) \
+	-lkvalobs2_fileutil \
+	-lkvalobs2_kvalobs \
+	-lkvalobs2_kvdb \
+	-lkvalobs2_miconfparser \
+	-lkvalobs2_milog \
+	-lkvalobs2_kvskel \
 	$(BOOST_THREAD_LIB) \
-	$(BOOST_FILESYSTEM_LIB) \
-	libkvqc2d_1.a interpolation/libinterpolation.a statisticalmean/libstatisticalmean.a libkvqc2d_2.a helpers/libhelpers.a
+	$(BOOST_FILESYSTEM_LIB) -lboost_system -lgsl
 
 #libkvqc2d_a_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2d_LDFLAGS += -fprofile-arcs

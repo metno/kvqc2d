@@ -65,3 +65,5 @@ test/corbatest
 /debian/stamp-makefile-build
 /debian/tmp
 /obj-i486-linux-gnu/
+/build
+/test/libgtest_local.a

@@ -62,6 +62,16 @@ namespace{
 	    return milog::NOTSET;
 	}
     }
+
+#if BOOST_FILESYSTEM_VERSION >= 3
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native();
+    }
+#else
+    inline std::string to_native_file(const boost::filesystem::path& path) {
+        return path.native_file_string();
+    }
+#endif
 }
 
 void InitLogger(int argn, char **argv, const std::string &logname)
@@ -74,7 +84,7 @@ void InitLogger(int argn, char **argv, const std::string &logname)
     const fs::path localstate(kvPath("logdir"));
     fs::path filename = localstate;
     filename /= logname + ".log";
-    const std::string logfilename = filename.native_file_string();
+    const std::string logfilename = to_native_file(filename);
     
     for(int i=0; i<argn; i++){
 	if(strcmp("--tracelevel", argv[i])==0){

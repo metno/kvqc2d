@@ -45,7 +45,9 @@ for stationid in sorted(stations.iterkeys()):
     for day0, normal in enumerate(stations[stationid]):
         if normal != MISSING:
             print >> normals_cpp, "sql << \"INSERT INTO qc2_statistical_reference_values VALUES(%5d,211,%3d,'ref_value',%.1f);\";" % (stationid, day0+1, normal)
-    print >> normals_cpp, "ASSERT_NO_THROW(db->exec(sql.str()));\nsql.str(\"\");"
+    print >> normals_cpp, "ASSERT_NO_THROW(db->exec(sql.str()));"
+    # print >> normals_cpp, "try { db->exec(sql.str()); } catch(std::exception& ex) { FAIL() << ex.what(); }"
+    print >> normals_cpp, "sql.str(\"\");"
 print >> normals_cpp, """
 }
 

@@ -4,7 +4,12 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/algorithms)
 
 find_package(Boost COMPONENTS regex REQUIRED)
+
 find_package(GTest REQUIRED)
+set(GTEST_DIR /usr/src/gtest)
+add_subdirectory(${GTEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/gtest EXCLUDE_FROM_ALL)
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/gtest)
+
 find_library(SQLITE3_LIBRARY sqlite3)
 
 ########### next target ###############
@@ -61,10 +66,11 @@ add_executable(kvqc2dTest ${kvqc2dTest_SRCS})
 target_link_libraries(kvqc2dTest kvqc2d_1 interpolation statisticalmean kvqc2d_2 helpers
     ${PC_KVCPP_LIBRARIES}
     ${SQLITE3_LIBRARY}
-    ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY}
+    gtest
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${Boost_REGEX_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
 )
 
 add_test(

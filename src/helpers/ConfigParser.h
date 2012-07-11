@@ -163,7 +163,7 @@ T ConfigParser::Item::convert(unsigned int idx) const
     const std::string& v = mValues[idx];
     std::istringstream i(v);
     i >> t;
-    if( i.fail() || (int)i.tellg() != (int)v.size() )
+    if( i.fail() || !i.eof() )
         throw ConvertException("could not convert '" + v + "'");
     return t;
 }
@@ -177,7 +177,7 @@ T ConfigParser::Item::convert(unsigned int idx, const T& dflt) const
         const std::string v = mValues[idx];
         std::istringstream i(v);
         i >> t;
-        if( i.fail() || (int)i.tellg() != (int)v.size() )
+        if( i.fail() || !i.eof() )
             throw ConvertException("could not convert '" + v + "'");
         return t;
     }
@@ -194,7 +194,7 @@ std::vector<T> ConfigParser::Item::convert() const
         const std::string& v = mValues[i];
         std::istringstream iv(v);
         iv >> t;
-        if( iv.fail() || (int)iv.tellg() != (int)v.size() )
+        if( iv.fail() || !iv.eof() )
             throw ConvertException("could not convert '" + v + "'");
         out.push_back(t);
     }
