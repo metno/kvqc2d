@@ -134,7 +134,7 @@ void MinMaxImplementation::reconstructMinMax()
         float maxi = std::max(i0.value, i1.value);
         const int Nbetween = 20;
         for(int j=1; j<Nbetween; ++j) {
-            const float x = t + j/float(Nbetween);
+            const float x = t-1 + j/float(Nbetween);
             const float noise = data.fluctuationLevel() * Helpers::randUniform0();
             const float akimaValue = akima.interpolate(x);
             const float value = akimaValue + noise;
