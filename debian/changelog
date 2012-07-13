@@ -1,3 +1,9 @@
+kvqc2d (1.4.1~rc1-1) unstable; urgency=low
+
+  * Redistribution: improve data checks for future flaggspec 9.11
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 13 Jul 2012 16:36:12 +0200
+
 kvqc2d (1.4.0~rc4-1) unstable; urgency=low
 
   * GapInterpolation: fixed bug in min/max reconstruction
