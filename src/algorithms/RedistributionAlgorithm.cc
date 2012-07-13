@@ -57,6 +57,8 @@
 
 using Helpers::equal;
 
+namespace {
+
 // ------------------------------------------------------------------------
 
 inline float dry2real(float original)
@@ -66,6 +68,15 @@ inline float dry2real(float original)
 
 inline float real2dry(float real)
 { return Helpers::equal(real, 0.0f) ? -1.0f : real; }
+
+inline bool end_fd_before_redist(int fd)
+{ return (fd == 2 IF_FUTURE(|| fd == 4)); }
+
+inline bool end_fd_after_redist(int fd)
+{ return (fd == 7 IF_FUTURE(|| fd==8 || fd==0xA)); }
+
+
+} // anonymous namespace
 
 // ------------------------------------------------------------------------
 
@@ -114,8 +125,15 @@ bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
         warning() << "fmis=0 and original!=-1 for endpoint " << Helpers::datatext(endpoint);
         return false;
     }
-    if( endpoint.controlinfo().flag(kvQCFlagTypes::f_fd) == 2 && !equal(endpoint.original(), endpoint.corrected()) ) {
-        warning() << "fd=2 and original!=corrected for endpoint " << Helpers::datatext(endpoint);
+    const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
+    if( !end_fd_before_redist(endpoint_fd) && !end_fd_after_redist(endpoint_fd) ) {
+        warning() << "unexpected endpoint fd flags for accumulation ending in " << Helpers::datatext(endpoint);
+        return false;
+    }
+    if( end_fd_before_redist(endpoint_fd)
+        && !equal(endpoint.original(), endpoint.corrected()) )
+    {
+        warning() << "fd=2/4 and original!=corrected for endpoint " << Helpers::datatext(endpoint);
         return false;
     }
     if( warn_and_stop_flags.matches(endpoint) ) {
@@ -165,6 +183,8 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     float redistributed_sum = 0.0f;
     int count_fhqc_0 = 0, count_corrected = 0;
     const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
+    const bool endpoint_before_redist = end_fd_before_redist(endpoint_fd);
+    const bool endpoint_after_redist = end_fd_after_redist(endpoint_fd);
 
     for(updateList_cit it = mdata.begin(); it != mdata.end(); ++it ) {
         const RedisUpdate& m = *it;
@@ -181,7 +201,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             count_corrected += 1;
         }
         const int m_fhqc = m.controlinfo().flag(kvQCFlagTypes::f_fhqc);
-        if( m_fhqc == 0 )
+        if( m_fhqc == 0 IF_FUTURE(|| m_fhqc == 4) )
             count_fhqc_0 += 1;
         if( it != mdata.begin() ) {
             if( !equal(m.original(), missing) ) {
@@ -192,25 +212,23 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             }
             const int m_fmis = m.controlinfo().flag(kvQCFlagTypes::f_fmis);
             const int m_fd   = m.controlinfo().flag(kvQCFlagTypes::f_fd  );
-            if( m_fd != endpoint_fd IF_FUTURE(&& endpoint_fd == 2) ) {
-                warning() << "missing point " << m << " has different fd flag than endpoint "
+            if( m_fd != endpoint_fd && endpoint_fd == 2 ) {
+                warning() << "missing point " << m << " has fd != 2 while endpoint has fd == 2 "
                           << endpoint.text(m.obstime());
                 DBGL;
                 stop = true;
             }
-#ifndef FUTURE
-            if( endpoint_fd == 2 && m_fmis != 3 ) {
-                warning() << "missing point " << m << " has fmis!=3 while fd=2 for endpoint "
+            if( endpoint_before_redist && m_fmis != 3 ) {
+                warning() << "missing point " << m << " has fmis!=3 while fd=2/4 for endpoint "
                           << endpoint.text(m.obstime());
                 DBGL;
                 stop = true;
-            } else if( (endpoint_fd == 7||endpoint_fd==6) && m_fmis != 1 ) {
-                warning() << "missing point " << m << " has fmis!=1 while fd=6/7 for endpoint "
+            } else if( endpoint_after_redist && m_fmis != 1 ) {
+                warning() << "missing point " << m << " has fmis!=1 while fd=7/8/A for endpoint "
                           << endpoint.text(m.obstime());
                 DBGL;
                 stop = true;
             }
-#endif
         }
         if( warn_and_stop_flags.matches(m.data()) ) {
             warning() << "missing point " << m << " matches warn_and_stop_flags for accumulation ending in "
@@ -220,10 +238,8 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         }
     }
     const miutil::miTime acc_start = mdata.back().obstime();
-    if( (endpoint_fd == 2 && count_corrected != 1)
-        || ((endpoint_fd == 7||endpoint_fd==6) && count_corrected != length) )
-    {
-        warning() << "found " << count_corrected << ", but expected " << (endpoint_fd == 2 ? 1 : length)
+    if( (endpoint_before_redist && count_corrected != 1) || (endpoint_after_redist && count_corrected != length) ) {
+        warning() << "found " << count_corrected << ", but expected " << (endpoint_before_redist ? 1 : length)
                   << " rows with corrected values for accumulation from "
                   << acc_start << " to endpoint " << endpoint.text(acc_start);
         DBGL;
