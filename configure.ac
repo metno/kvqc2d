@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([kvqc2d], [1.4.1~rc1], [kvalobs-dev@met.no])
+AC_INIT([kvqc2d], [1.4.1~rc2], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 

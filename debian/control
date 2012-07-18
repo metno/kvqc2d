@@ -3,7 +3,7 @@ Section: science
 Priority: extra
 Maintainer: Met.no Kvalobs Developers <kvalobs-dev@met.no>
 Build-Depends: debhelper (>= 7), cdbs, g++ (>= 4.4),
- cmake (>= 2.8), automake, libsqlite3-dev (>= 3.6), libgsl0-dev (>= 1.8),
+ automake, libsqlite3-dev (>= 3.6), libgsl0-dev (>= 1.8),
  libboost-dev (>= 1.40.0), libboost-thread-dev (>= 1.40.0),
  libboost-filesystem-dev (>= 1.40.0), libomniorb4-dev (>= 4.0.6),
  libkvcpp2-dev (>= 2.5.2a)

@@ -56,8 +56,8 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 
     mRAThreshold = params.getParameter("RA_threshold", 50.0f);
 
-    params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[23]&fhqc=0", "");
-    params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=1");
+    params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[123]&fhqc=0", "");
+    params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
     foreach(const std::string& pi, parameters)
