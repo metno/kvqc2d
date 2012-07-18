@@ -612,3 +612,42 @@ TEST_F(DipTestTest, NoWARNIfDataMissingOutsideTimeRange)
     ASSERT_EQ(0, logs->count(Message::WARNING));
     ASSERT_EQ(0, logs->count(Message::INFO));
 }
+
+TEST_F(DipTestTest, DefaultStationParam)
+{
+    DataList data(93900, 177, 330);
+    data.add("2012-07-16 00:00:00",       0.1,       0.1, "0111000000000010", "")
+        .add("2012-07-16 01:00:00",       0.1,       0.1, "0111000000000010", "")
+        .add("2012-07-16 02:00:00",      12.5,      12.5, "0112000000000010", "QC1-3a-177")
+        .add("2012-07-16 03:00:00",       0.5,       0.5, "0112000000000010", "QC1-3a-177")
+        .add("2012-07-16 04:00:00",       0.5,       0.5, "0111000000000010", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(93900, 68.755, 23.539, 382, 0, 'SIHCCAJAVRI', 1199, 93900, NULL, NULL, NULL, 8, 't', '1912-01-01 00:00:00');";
+    sql << "INSERT INTO station_param VALUES(0, 177, 0, 0, 1, 365, -1, 'QC1-1-177',"
+        " 'max;highest;high;low;lowest;min\n16;16;16;-25;-25;-25', 'DEFAULT MAX-MIN RANGE', '1500-01-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   07\n"
+           << "Start_DD   =   16\n"
+           << "Start_hh   =   00\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   07\n"
+           << "End_DD     =   16\n"
+           << "End_hh     =   04\n"
+           << "ParValFilename = list: 177 12.0\n";
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 2);
+
+    EXPECT_STATION_OBS_CONTROL_CORR(93900, "2012-07-16 02:00:00", "0119000000000010",  0.3, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(93900, "2012-07-16 03:00:00", "0114000000000010",  0.5, bc->update(1));
+
+    ASSERT_EQ(0, logs->count(Message::WARNING));
+    ASSERT_EQ(2, logs->count(Message::INFO));
+}

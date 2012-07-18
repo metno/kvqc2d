@@ -196,11 +196,15 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
 
     std::ostringstream qcx;
     qcx << "QC1-1-" << candidate.paramID();
-    const DBInterface::StationParamList splist
+    DBInterface::StationParamList splist
         = database()->findStationParams(candidate.stationID(), candidate.obstime(), qcx.str());
     if( splist.empty() ) {
-        error() << "no station params for akima MinimumCheck for candidate " << Helpers::datatext(candidate) << ". Assuming no akima interpolation.";
-        return false;
+        splist = database()->findStationParams(0, candidate.obstime(), qcx.str());
+        if( splist.empty() ) {
+            error() << "no station params for akima MinimumCheck for candidate "
+                    << Helpers::datatext(candidate) << ". Assuming no akima interpolation.";
+            return false;
+        }
     }
     const float MinimumCheck = std::atof(GetStationParam(splist).ValueOf("min").c_str());
     if( AkimaInterpolated < MinimumCheck ) {
