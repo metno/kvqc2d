@@ -11,6 +11,10 @@ add_definitions(${PC_KVCPP_CFLAGS_OTHER})
 
 find_package(Boost COMPONENTS thread filesystem system REQUIRED)
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W")
+endif()
+
 add_subdirectory(src/helpers)
 add_subdirectory(src/interpolation)
 add_subdirectory(src/statisticalmean)

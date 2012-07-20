@@ -1,3 +1,9 @@
+kvqc2d (1.4.1~rc4-1) unstable; urgency=low
+
+  * GapInterpolation: do not write corrected value if interpolation failed
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 20 Jul 2012 12:19:25 +0200
+
 kvqc2d (1.4.1~rc3-1) unstable; urgency=low
 
   * DipTest: try stationid if no station_param entry found

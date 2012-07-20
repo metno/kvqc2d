@@ -12,6 +12,7 @@ libinterpolation_a_SOURCES = \
 	MinMaxInterpolator.h \
 	KvalobsDataFilter.cc \
 	KvalobsDataFilter.h \
+	KvalobsDataList.h \
 	KvalobsNeighborData.cc \
 	KvalobsNeighborData.h \
 	KvalobsMinMaxData.cc \

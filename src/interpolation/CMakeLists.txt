@@ -14,6 +14,7 @@ SET(interpolation_STAT_SRCS
    MinMaxInterpolator.h
    KvalobsDataFilter.cc
    KvalobsDataFilter.h
+   KvalobsDataList.h
    KvalobsNeighborData.cc
    KvalobsNeighborData.h
    KvalobsMinMaxData.cc

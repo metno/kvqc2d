@@ -57,7 +57,9 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     mRAThreshold = params.getParameter("RA_threshold", 50.0f);
 
     params.getFlagSetCU(missing_flags,  "missing", "ftime=0&fmis=[123]&fhqc=0", "");
-    params.getFlagChange(missing_flagchange, "missing_flagchange", "ftime=1;fmis=3->fmis=1;fmis=2->fmis=4");
+    params.getFlagChange(missing_flagchange_good, "missing_flagchange_good", "ftime=1");
+    params.getFlagChange(missing_flagchange_bad,  "missing_flagchange_bad" , "ftime=2");
+    params.getFlagChange(missing_flagchange_common, "missing_flagchange_common", "fmis=3->fmis=1;fmis=2->fmis=4");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
     foreach(const std::string& pi, parameters)
@@ -94,27 +96,33 @@ void GapInterpolationAlgorithm::makeUpdates(const ParamGroupMissingRange::Missin
                                             const ParameterInfo& parameterInfo)
 {
     ParamGroupMissingRange::MissingRange::const_iterator dit = mr.begin();
-    foreach(const Interpolation::SimpleResult& sr, interpolated) {
-        if( dit == mr.end() )
-            break;
-
+    Interpolation::SimpleResultVector::const_iterator rit = interpolated.begin();
+    for(; rit != interpolated.end() && dit != mr.end(); ++rit, ++dit) {
+        const Interpolation::SimpleResult& sr = *rit;
         const int t = miutil::miTime::hourDiff(dit->obstime(), range.t0);
+        if( t != sr.time || sr.quality == Interpolation::OBSERVATION || sr.quality == Interpolation::FAILED )
+            continue;
 
         // TODO maybe move this to KvalobsNeighborData or so?
-        const float c = dit->corrected();
-        const bool sameNumericalValue = Helpers::equal(parameterInfo.toNumerical(c), parameterInfo.toNumerical(sr.value));
-        const bool failedInterpolationForMissingCorrected = (sr.quality == Interpolation::FAILED && c < -32765);
+        const float oc = dit->corrected();
+        const float nc = Helpers::round(sr.value, parameterInfo.roundingFactor);
+        const bool sameNumericalValue = Helpers::equal(parameterInfo.toNumerical(oc), parameterInfo.toNumerical(nc));
+        if( sameNumericalValue )
+            continue;
 
-        if( t == sr.time && !( sameNumericalValue || failedInterpolationForMissingCorrected ) ) {
-            kvalobs::kvData dwrite(*dit);
-            dwrite.corrected(Helpers::round(sr.value, parameterInfo.roundingFactor));
-            dwrite.controlinfo(missing_flagchange.apply(dwrite.controlinfo()));
-            Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
-            Helpers::updateUseInfo(dwrite);
-            DBG("update=" << dwrite << " quality=" << sr.quality);
-            updates.push_back(dwrite);
-        }
-        ++dit;
+        kvalobs::kvData dwrite(*dit);
+        DBGV(sr.value);
+        dwrite.corrected(nc);
+        kvalobs::kvControlInfo ci = dwrite.controlinfo();
+        if( sr.quality == Interpolation::GOOD )
+            ci = missing_flagchange_good.apply(ci);
+        else if( sr.quality == Interpolation::BAD )
+            ci = missing_flagchange_good.apply(ci);
+        dwrite.controlinfo(missing_flagchange_common.apply(ci));
+        Helpers::updateCfailed(dwrite, "QC2d-2-I", CFAILED_STRING);
+        Helpers::updateUseInfo(dwrite);
+        DBG("update=" << dwrite << " quality=" << sr.quality);
+        updates.push_back(dwrite);
     }
 }
 

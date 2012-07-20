@@ -82,7 +82,7 @@ private:
     float mRAThreshold;
 
     FlagSetCU missing_flags;
-    FlagChange missing_flagchange;
+    FlagChange missing_flagchange_good, missing_flagchange_bad, missing_flagchange_common;
 };
 
 #endif
