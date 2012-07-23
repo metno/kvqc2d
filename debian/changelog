@@ -1,3 +1,9 @@
+kvqc2d (1.4.1~rc5-1) unstable; urgency=low
+
+  * GapInterpolation: use same typeid for TA and UU
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 23 Jul 2012 15:19:13 +0200
+
 kvqc2d (1.4.1~rc4-1) unstable; urgency=low
 
   * GapInterpolation: do not write corrected value if interpolation failed

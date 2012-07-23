@@ -180,7 +180,7 @@ void GapInterpolationAlgorithm::run()
         }
         const bool minmax = (pi->minParameter > 0) && (pi->maxParameter > 0);
 
-        const Instrument instrumentTA(instrument.stationid, 211, DBInterface::INVALID_ID, DBInterface::INVALID_ID, DBInterface::INVALID_ID);
+        const Instrument instrumentTA(instrument.stationid, 211, DBInterface::INVALID_ID, instrument.type, DBInterface::INVALID_ID);
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
             if( pgmr.range.t0 < timeIntervalShrinked.t0 || pgmr.range.t1 > timeIntervalShrinked.t1 ) {

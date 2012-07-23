@@ -77,7 +77,7 @@ void MinMaxImplementation::interpolateFromMinMax()
             // allowed parameter min and max value, value
             // cannot be outside either
 
-            DBG("reconstruction from ..N/::X t=" << t << " value=" << value);
+            DBG("reconstruction from ..N/..X t=" << t << " value=" << value);
             data.setInterpolated(t, BAD, value);
         }
     }

@@ -34,6 +34,7 @@
 #include "foreach.h"
 
 #include <cmath>
+#include <stdexcept>
 
 #define NDEBUG 1
 #include "debug.h"
@@ -246,7 +247,10 @@ const int NeighborInterpolator::EXTRA_DATA = 3;
 
 Interpolation::Summary NeighborInterpolator::interpolate(SingleParameterInterpolator::Data& data)
 {
-    return doInterpolate(static_cast<Data&>(data));
+    NeighborInterpolator::Data* nd = dynamic_cast<NeighborInterpolator::Data*>(&data);
+    if( !nd )
+        throw std::runtime_error("NeighborInterpolator needs NeighborInterpolator::Data");
+    return doInterpolate(*nd);
 }
 
 Interpolation::Summary NeighborInterpolator::doInterpolate(NeighborInterpolator::Data& data)
