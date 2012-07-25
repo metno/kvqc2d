@@ -5,10 +5,19 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/algorithms)
 
 find_package(Boost COMPONENTS regex REQUIRED)
 
-find_package(GTest REQUIRED)
-set(GTEST_DIR /usr/src/gtest)
-add_subdirectory(${GTEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/gtest EXCLUDE_FROM_ALL)
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/gtest)
+FIND_PACKAGE(GTest QUIET)
+IF(NOT GTEST_FOUND)
+  MESSAGE("apparently no compiled GTest library, trying to build it")
+  FIND_FILE(GTEST_DIR src/gtest-all.cc /usr/src/gtest /usr/local/src/gtest)
+  IF(NOT GTEST_DIR)
+    MESSAGE(FATAL_ERROR "could not find gtest-all.cc")
+  ENDIF()
+  GET_FILENAME_COMPONENT(GTEST_DIR ${GTEST_DIR} PATH)
+  GET_FILENAME_COMPONENT(GTEST_DIR ${GTEST_DIR} PATH)
+  ADD_SUBDIRECTORY(${GTEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/gtest EXCLUDE_FROM_ALL)
+  SET(GTEST_LIBRARY gtest)
+  SET(GTEST_MAIN_LIBRARY gtest_main)
+ENDIF()
 
 find_library(SQLITE3_LIBRARY sqlite3)
 
@@ -66,7 +75,7 @@ add_executable(kvqc2dTest ${kvqc2dTest_SRCS})
 target_link_libraries(kvqc2dTest kvqc2d_1 interpolation statisticalmean kvqc2d_2 helpers
     ${PC_KVCPP_LIBRARIES}
     ${SQLITE3_LIBRARY}
-    gtest
+    ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${Boost_REGEX_LIBRARY}
