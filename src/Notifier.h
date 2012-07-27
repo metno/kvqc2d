@@ -62,6 +62,12 @@ private:
 
 // #######################################################################
 
+/**
+ * \brief Interface for sending user messages from algorithms.
+ *
+ * Messages might be sent to a logfile (in operation, LogfileNotifier) or to
+ * memory (for testing algorithms).
+ */
 class Notifier
 {
 public:

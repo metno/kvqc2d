@@ -33,6 +33,9 @@
 #include <kvalobs/kvDataFlag.h>
 #include <string>
 
+/**
+ * \brief A pattern for matching kvalobs controlinfo flags.
+ */
 class FlagPattern {
 
 public:
@@ -45,9 +48,11 @@ public:
     FlagPattern(const std::string& flagstring, FlagType type)
         { reset(); parse(flagstring, type); }
 
+    /// \brief Match a controlinfo if flag equals value.
     FlagPattern& permit(int flag, int value)
         { mPermitted[flag] |= (1<<value); return *this; }
 
+    /// \brief Do not match a controlinfo if flag equals value.
     FlagPattern& forbid(int flag, int value)
         { mForbidden[flag] |= (1<<value); return *this; }
 
@@ -57,25 +62,71 @@ public:
     bool isForbidden(int flag, int value) const
         { const unsigned int e = mForbidden[flag], bit = 1<<value; return e != 0 && (e & bit) != 0; }
 
+    /**
+     * \brief Check if a controlinfo flag with the specified value should be accepted.
+     *
+     * If some values are specifically permitted for this flag, it will check if
+     * value is amongst them. Otherwise it will check if this value is not
+     * explicitly forbidden.
+     */
     bool isAllowed(int flag, int value) const
         { return (allowedBits(flag) & (1<<value)) != 0; }
 
     FlagPattern& reset();
 
+    /**
+     * \brief Create a SQL constraint for the kvalobs database.
+     *
+     * \param column the column to match in the kvalobs database
+     * \param needSQLText if true, the SQL constraint will not be empty even if
+     *                    the pattern matches all possible flag combinations.
+     */
     std::string sql(const std::string& column, bool needSQLText=false) const;
 
     std::string sql(const char* column) const
         { return sql(std::string(column), false); }
 
+    /// \brief Create a SQL constraint for the controlinfo column.
     std::string sql(bool needSQLText=false) const
         { return sql("controlinfo", needSQLText); }
 
+    /// \brief Match against the specified kvalobs controlinfo or useinfo.
     bool matches(const kvalobs::kvDataFlag& flags) const;
 
+    /// \brief Tries parseNames() for controlinfo first, if that fails parsePattern().
     bool parseControlinfo(const std::string& flagstring)
         { return parseNames(flagstring, CONTROLINFO_NAMES) || parsePattern(flagstring); }
+
+    /// \brief Tries parseNames() for useinfo first, if that fails parsePattern().
     bool parseUseinfo(const std::string& flagstring)
         { return parseNames(flagstring, USEINFO_NAMES) || parsePattern(flagstring); }
+
+    /**
+     * \brief Parse a flag pattern.
+     *
+     * A pattern specification by name is 'all' or 'always' for explicitly
+     * allowing all flag combinations, 'none' or 'never' for explicitly
+     * forbidding all flag combinations, or:
+     *
+     * <pre>
+     *     text_pattern := 'all' | 'always' | 'none' | 'never' | name_pattern
+     *     name_pattern := single_flag ( '&' single_flag )+
+     *     single_flag := flag '=' ( value | ( '[' value + ']' ) | ')' value+ '(' )
+     * </pre>
+     *
+     * where <code>[045]</code> allows any of 0, 4, and 5 and <code>)137(</code>
+     * forbids any of 1, 3, and 7. Each flag name may appear only once, but the
+     * ordering is not important.
+     *
+     * A pattern specification by value is
+     * <pre>
+     *     value_pattern := ( any_value | single_flag ){16}
+     *     any_value := '_' | '.'
+     * </pre>
+     *
+     * \param type whether to parse for useinfo or controlinfo
+     * \return true if either parsing by name or by pattern was successful
+     */
     bool parse(const std::string& flagstring, FlagType type)
         { return type == CONTROLINFO ? parseControlinfo(flagstring) : parseUseinfo(flagstring); }
 

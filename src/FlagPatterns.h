@@ -35,6 +35,9 @@
 #include <string>
 #include <vector>
 
+/**
+ * \brief An 'or' combination of FlagPattern s.
+ */
 class FlagPatterns {
 public:
     FlagPatterns()
@@ -49,6 +52,7 @@ public:
     FlagPatterns& add(const FlagPattern& fm)
         { mMatchers.push_back(fm); return *this; }
 
+    /// \return true if any of the FlagPattern s matched
     bool matches(const kvalobs::kvDataFlag& flags) const;
 
     bool isEmpty() const
@@ -66,6 +70,12 @@ public:
     FlagPatterns& reset()
         { mMatchers.clear(); mError = false; return *this; }
 
+    /**
+     * \brief Parse alternative patterns from text.
+     *
+     * \param flagstring is split at '|' and each part is parsed as a FlagPattern
+     * \return if parsing was successful
+     */
     bool parse(const std::string& flagstring, FlagPattern::FlagType type);
 
     std::string sql(const std::string& column) const;
@@ -76,6 +86,9 @@ private:
     bool mDefaultIfEmpty;
 };
 
+/**
+ * \brief Two FlagPatterns, one for controlinfo and one for useinfo flags.
+ */
 class FlagSetCU {
 public:
     FlagSetCU& setC(const FlagPatterns& controlflags)

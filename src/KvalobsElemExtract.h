@@ -32,12 +32,16 @@
 
 #include "KvalobsDbGate.h"
 
+/**
+ * \brief Template to extract something from a dnmi::db::DRow and insert it into
+ * a container.
+ */
 template<class Elem, class Iterator>
 class KvalobsElemExtract : public KvalobsDbExtract {
 public:
     KvalobsElemExtract(Iterator push)
         : mPush(push) { }
-    
+
     void extractFromRow(const dnmi::db::DRow& row)
         { *mPush++ = Elem(row); }
 

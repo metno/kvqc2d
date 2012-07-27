@@ -37,6 +37,12 @@
 
 // ########################################################################
 
+/**
+ * \brief Wrapper around kvalobs::kvData to remember any changes.
+ *
+ * Also automates updating useinfo after a change in controlinfo before write,
+ * and adding a ',' to cfailed if it was not empty before appending.
+ */
 class DataUpdate {
 private:
     enum eForced { FORCED_NOTHING = 0,
@@ -51,20 +57,33 @@ public:
     DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
                float original, float corrected, const std::string& controlinfo);
 
+    /**
+     * \brief Determine whether writing to database is necessary.
+     *
+     * The return value can be forced to true (with forceWrite()) or false (with
+     * forceNoWrite()).
+     *
+     * Otherwise, this will disregard changes in cfailed and check for
+     * value changes in controlinfo or corrected -- return will be true if
+     * controlinfo or corrected have actually changed.
+     */
     bool needsWrite() const;
 
     bool isNew() const
         { return mNew; }
 
+    /// \return the 'original' data before any modification
     kvalobs::kvData& data()
         { return mData; }
 
+    /// \return the 'original' data before any modification
     const kvalobs::kvData& data() const
         { return mData; }
 
     float original() const
         { return mData.original(); }
 
+    /// \return the possibly modified 'corrected' observation value
     float corrected() const
         { return mData.corrected(); }
 
@@ -74,6 +93,7 @@ public:
     kvalobs::kvControlInfo controlinfo() const
         { return mData.controlinfo(); }
 
+    /// \brief Set a new 'corrected' observation value.
     DataUpdate& corrected(float c)
         { mData.corrected(c); return *this; }
 
@@ -90,7 +110,16 @@ public:
     bool operator<(const DataUpdate& other) const
         { return obstime() < other.obstime(); }
 
+    /**
+     * \brief Format data as text.
+     *
+     * \param hoursBefore if obstime should be returned with BETWEEN
+     * \param modified whether to include modified values
+     * \return text, partly suitable for copy&paste to SQL
+     */
     std::string text(int hoursBefore=0, bool modified=true) const;
+
+    /// \see text(int,bool)
     std::string text(const miutil::miTime& start, bool modified=true) const;
 
 private:

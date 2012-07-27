@@ -184,8 +184,8 @@ void GapInterpolationAlgorithm::run()
 
         foreach(ParamGroupMissingRange& pgmr, imr.second) {
             if( pgmr.range.t0 < timeIntervalShrinked.t0 || pgmr.range.t1 > timeIntervalShrinked.t1 ) {
-                info() << "missing range BETWEEN " << pgmr.range.t0 << " AND " << pgmr.range.t1
-                       << " for station=" << instrument.stationid << " paramid=" << instrument.paramid
+                info() << "missing range obstime BETWEEN '" << pgmr.range.t0 << "' AND '" << pgmr.range.t1
+                       << "' AND station=" << instrument.stationid << " AND paramid=" << instrument.paramid
                        << " at start/end of time interval, skipping interpolation attempt";
                 continue;
             }

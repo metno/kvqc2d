@@ -32,6 +32,9 @@
 
 #include "Notifier.h"
 
+/**
+ * \brief Sends user messages to a kvalobs logfile.
+ */
 class LogfileNotifier : public Notifier
 {
 public:

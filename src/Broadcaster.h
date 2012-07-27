@@ -33,7 +33,7 @@
 #include <kvalobs/kvData.h>
 
 /**
- * Implementations will broadcast changes submitted to the kvalobs database.
+ * \brief Implementations will broadcast changes submitted to the kvalobs database.
  */
 class Broadcaster {
 public:
