@@ -1,3 +1,9 @@
+kvqc2d (1.4.1~rc6-1) unstable; urgency=low
+
+  * Plumatic: add TypeId config and handle each typeid separately
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 01 Aug 2012 13:50:13 +0200
+
 kvqc2d (1.4.1~rc5-1) unstable; urgency=low
 
   * GapInterpolation: use same typeid for TA and UU
