@@ -80,6 +80,8 @@ public:
 public:
     void setConfigPath(const boost::filesystem::path& path);
 
+    bool hasParameter(const std::string& name) const;
+
     template<typename T>
     T getParameter(const std::string& name, const T& dflt) const;
 
@@ -101,11 +103,10 @@ private:
     void ParseStreamThrow(std::istream& input);
 
 public:
-    static const std::string CFG_EXT;
+    static const char CFG_EXT[];
 
 private:
     boost::filesystem::path mConfigPath;
-    const vector_uchar Vfull; // TODO could also be static
 
     ConfigParser c;
     std::string mFilename;
@@ -144,8 +145,6 @@ T AlgorithmConfig::getParameter(const std::string& name) const
 template<typename T>
 std::vector<T> AlgorithmConfig::getMultiParameter(const std::string& name) const
 {
-    if( !c.has(name) )
-        throw ConfigException("no such setting: '" + name + "'");
     try {
         return c.get(name).convert<T>();
     } catch( ConvertException& e ) {

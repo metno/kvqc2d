@@ -137,6 +137,7 @@ private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;
 
     int pid;
+    std::vector<int> mTypeIds;
     float mThresholdDry, mThresholdWet;
     FlagSetCU discarded_flags, neighbor_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;

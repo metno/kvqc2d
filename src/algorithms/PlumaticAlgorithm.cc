@@ -97,6 +97,12 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     Qc2Algorithm::configure(params);
 
     pid = params.getParameter<int>("ParamId");
+    mTypeIds = params.getMultiParameter<int>("TypeId");
+    if( mTypeIds.empty() ) {
+        mTypeIds.push_back(  4);
+        mTypeIds.push_back(504);
+    }
+
     mThresholdDry = params.getParameter<float>("threshold_dry", 0.5);
     mThresholdWet = params.getParameter<float>("threshold_wet", 3.0);
 
@@ -167,17 +173,19 @@ void PlumaticAlgorithm::run()
 
 void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 {
-    DBInterface::DataList data_orig
-        = database()->findDataOrderObstime(stationid, pid, TimeRange(UT0extended, UT1));
-    if( data_orig.empty() )
-        return;
-    kvUpdateList_t data(data_orig.begin(), data_orig.end());
-
-    discardAllNonOperationalTimes(data);
-    checkShowers(data, mmpv);
-    checkSlidingSums(data);
-    checkNeighborStations(stationid, data);
-    storeUpdates(data);
+    foreach(const int typeId, mTypeIds) {
+        DBInterface::DataList data_orig
+            = database()->findDataOrderObstime(stationid, pid, typeId, TimeRange(UT0extended, UT1));
+        if( data_orig.empty() )
+            return;
+        kvUpdateList_t data(data_orig.begin(), data_orig.end());
+        
+        discardAllNonOperationalTimes(data);
+        checkShowers(data, mmpv);
+        checkSlidingSums(data);
+        checkNeighborStations(stationid, data);
+        storeUpdates(data);
+    }
 }
 
 // ------------------------------------------------------------------------

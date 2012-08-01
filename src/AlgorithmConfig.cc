@@ -87,7 +87,7 @@ void extractHHMMSS(const ConfigParser& c, const std::string& prefix, miutil::miT
 
 } // anonymous namespace
 
-const std::string AlgorithmConfig::CFG_EXT = ".cfg2";
+const char AlgorithmConfig::CFG_EXT[] = ".cfg2";
 
 AlgorithmConfig::AlgorithmConfig()
 {
@@ -205,6 +205,11 @@ void AlgorithmConfig::ParseStreamThrow(std::istream& input)
 
     missing            = c.get("MissingValue") .convert<float>(0, -32767.0); // Original Missing Data Value
     rejected           = c.get("RejectedValue").convert<float>(0, -32766.0); // Original Rejected Data Value
+}
+
+bool AlgorithmConfig::hasParameter(const std::string& name) const
+{
+    return c.has(name);
 }
 
 void AlgorithmConfig::getFlagSet(FlagPatterns& flags, const std::string& name, FlagPattern::FlagType type) const

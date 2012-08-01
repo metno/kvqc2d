@@ -106,11 +106,12 @@ TEST(AlgorithmConfigTest, testScanMixedDir)
     fs::remove_all( dir );
     fs::create_directory( dir );
 
-    fs::create_directory( dir / ("directory" + AlgorithmConfig::CFG_EXT) );
+    const std::string CFG_EXT(AlgorithmConfig::CFG_EXT);
+    fs::create_directory( dir / ("directory" + CFG_EXT) );
     fs::create_directory( dir / "another_directory" );
-    fs::ofstream( (dir / ("01match" + AlgorithmConfig::CFG_EXT)) ) << "x=y" << std::endl;
-    fs::ofstream( (dir / ("00match" + AlgorithmConfig::CFG_EXT)) ) << "x=z" << std::endl;
-    fs::ofstream( (dir / ("nomatch" + AlgorithmConfig::CFG_EXT + "no")) ) << "x=a" << std::endl;
+    fs::ofstream( (dir / ("01match" + CFG_EXT)) ) << "x=y" << std::endl;
+    fs::ofstream( (dir / ("00match" + CFG_EXT)) ) << "x=z" << std::endl;
+    fs::ofstream( (dir / ("nomatch" + CFG_EXT + "no")) ) << "x=a" << std::endl;
 
     AlgorithmConfig po;
     po.setConfigPath( dir );
@@ -121,8 +122,8 @@ TEST(AlgorithmConfigTest, testScanMixedDir)
     ASSERT_TRUE( fs::exists(dir) );
     ASSERT_TRUE( po.SelectConfigFiles(files) );
     ASSERT_EQ( 2, files.size() );
-    ASSERT_EQ( to_native_file(dir / ("00match" + AlgorithmConfig::CFG_EXT)), files[0] );
-    ASSERT_EQ( to_native_file(dir / ("01match" + AlgorithmConfig::CFG_EXT)), files[1] );
+    ASSERT_EQ( to_native_file(dir / ("00match" + CFG_EXT)), files[0] );
+    ASSERT_EQ( to_native_file(dir / ("01match" + CFG_EXT)), files[1] );
     
     fs::remove_all( dir );
 }
