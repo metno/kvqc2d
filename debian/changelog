@@ -1,3 +1,9 @@
+kvqc2d (1.4.1~rc7-1) unstable; urgency=low
+
+  * GapInterpolation: try to find min/max fluctuation automatically
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 02 Aug 2012 14:05:22 +0200
+
 kvqc2d (1.4.1~rc6-1) unstable; urgency=low
 
   * Plumatic: add TypeId config and handle each typeid separately

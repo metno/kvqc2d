@@ -32,6 +32,7 @@
 #include "helpers/Akima.h"
 #include "helpers/mathutil.h"
 #include "helpers/timeutil.h"
+#include "helpers/WeightedMean.h"
 
 #define NDEBUG 1
 #include "debug.h"
@@ -121,6 +122,27 @@ void MinMaxImplementation::reconstructMinMax()
         if( !minNeeded && !maxNeeded )
             continue;
 
+        // TODO maybe find a more efficient algorithm
+        Helpers::WeightedMean diffs;
+        for(int t_before = t-1; t_before >= 0; --t_before) {
+            const SeriesData smin = data.minimum(t_before), smax = data.maximum(t_before);
+            if( smin.usable() && smax.usable() ) {
+                DBG(DBG1(smax.value()) << DBG1(smin.value()));
+                diffs.add(smax.value() - smin.value(), 1);
+                break;
+            }
+        }
+        for(int t_after = t+1; t_after < duration; ++t_after) {
+            const SeriesData smin = data.minimum(t_after), smax = data.maximum(t_after);
+            if( smin.usable() && smax.usable() ) {
+                DBG(DBG1(smax.value()) << DBG1(smin.value()));
+                diffs.add(smax.value() - smin.value(), 1);
+                break;
+            }
+        }
+        const double fluc = diffs.valid() ? 0.55*diffs.mean() : data.fluctuationLevel();
+        DBGV(diffs.mean());
+
         const SimpleResult i0 = cd.getInterpolated(t-1), i1 = cd.getInterpolated(t);
         const bool canUseAkima = (akima.distance(t+0.5) < 1.5);
         DBG(DBG1(i0.quality) << DBG1(i1.quality) << DBG1(canUseAkima ));
@@ -135,7 +157,7 @@ void MinMaxImplementation::reconstructMinMax()
         const int Nbetween = 20;
         for(int j=1; j<Nbetween; ++j) {
             const float x = t-1 + j/float(Nbetween);
-            const float noise = data.fluctuationLevel() * Helpers::randUniform0();
+            const float noise = fluc * Helpers::randUniform0();
             const float akimaValue = akima.interpolate(x);
             const float value = akimaValue + noise;
             Helpers::minimize(mini, value);
