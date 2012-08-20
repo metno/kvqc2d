@@ -174,14 +174,14 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     const RedisUpdate& endpoint = mdata.front();
     if( length == 1 ) {
         const int m_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
-        if( m_fhqc == 0 )
+        if( m_fhqc == 0 IF_FUTURE(|| m_fhqc == 4) )
             warning() << "accumulation without missing rows in " << endpoint;
         return false;
     }
 
     bool stop = false;
     float redistributed_sum = 0.0f;
-    int count_fhqc_0 = 0, count_corrected = 0;
+    int count_fhqc_04 = 0, count_corrected = 0;
     const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
     const bool endpoint_before_redist = end_fd_before_redist(endpoint_fd);
     const bool endpoint_after_redist = end_fd_after_redist(endpoint_fd);
@@ -202,7 +202,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         }
         const int m_fhqc = m.controlinfo().flag(kvQCFlagTypes::f_fhqc);
         if( m_fhqc == 0 IF_FUTURE(|| m_fhqc == 4) )
-            count_fhqc_0 += 1;
+            count_fhqc_04 += 1;
         if( it != mdata.begin() ) {
             if( !equal(m.original(), missing) ) {
                 warning() << "missing point " << m << " has original!=missing for endpoint "
@@ -246,7 +246,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         stop = true;
     }
     if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
-        const bool fix = (endpoint_fd == 7 IF_FUTURE(|| endpoint_fd == 8) ) && count_fhqc_0 == length;
+        const bool fix = (endpoint_fd == 7 IF_FUTURE(|| endpoint_fd == 8) ) && count_fhqc_04 == length;
         (fix ? info() : warning())
             << "redistributed sum " << redistributed_sum
             << " starting " << acc_start
@@ -255,13 +255,13 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         DBGV(fix);
         stop = !fix;
     }
-    if( count_corrected > 0 && count_corrected != length && count_fhqc_0 < length ) {
-        warning() << "fhqc!=0 for some rows, while others have no corrected value for accumulation from " << acc_start
+    if( count_corrected > 0 && count_corrected != length && count_fhqc_04 < length ) {
+        warning() << "fhqc!=0/4 for some rows, while others have no corrected value for accumulation from " << acc_start
                   << " to endpoint " << endpoint;
         DBGL;
         stop = true;
     }
-    if( !stop && count_fhqc_0 != length ) {
+    if( !stop && count_fhqc_04 != length ) {
         info() << "stop because fhqc != 0 somewhere for accumulation ending in " << endpoint.text(acc_start);
         DBGL;
         stop = true;
@@ -295,7 +295,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
     }
     if( Helpers::isMissingOrRejected(it->data()) ) {
         const int fhqc = it->controlinfo().flag(kvQCFlagTypes::f_fhqc);
-        if( fhqc == 0 ) {
+        if( fhqc == 0 IF_FUTURE(|| fhqc == 4) ) {
             warning() << "suspicious (missing/rejected) row " << *it
                       << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
                       << "; giving up";

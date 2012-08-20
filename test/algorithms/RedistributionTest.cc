@@ -1771,7 +1771,7 @@ TEST_F(RedistributionTest, RowsWithoutCorrectedAndFHCQ)
     ASSERT_EQ(3, logs->count(Message::WARNING));
     ASSERT_LE(0, logs->find("has fd != 2 while endpoint has fd == 2"));
     ASSERT_LE(0, logs->find("fmis!=3 while fd=2"));
-    ASSERT_LE(0, logs->find("fhqc!=0 for some rows"));
+    ASSERT_LE(0, logs->find("fhqc!=0/4 for some rows"));
 }
 
 // ------------------------------------------------------------------------
@@ -1809,3 +1809,77 @@ TEST_F(RedistributionTest, AccumulationWithoutMissingRowsFHCQ)
     ASSERT_EQ(1, logs->count(Message::WARNING));
     ASSERT_LE(0, logs->find("accumulation without missing rows.*obstime='2012-02-17 06:00:00'"));
 }
+
+// ------------------------------------------------------------------------
+
+#ifdef FD8
+TEST_F(RedistributionTest, MixingFd7And8)
+{
+    DataList data(83880, 110, 302);
+    data.add("2011-10-13 06:00:00",    4.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-15 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-16 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-17 06:00:00",   40.0, "0140004000002000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+        .add("2011-10-13 06:00:00",    5.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    5.0, "0110000000001000", "")
+        .add("2011-10-15 06:00:00",    5.0, "0110000000001000", "")
+        .add("2011-10-16 06:00:00",    5.0, "0110000000001000", "")
+        .add("2011-10-17 06:00:00",    5.0, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-13 06:00:00",    6.0, "0110000000001000", "")
+        .add("2011-10-14 06:00:00",    6.0, "0110000000001000", "")
+        .add("2011-10-15 06:00:00",    6.0, "0110000000001000", "")
+        .add("2011-10-16 06:00:00",    6.0, "0110000000001000", "")
+        .add("2011-10-17 06:00:00",    6.0, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    Configure(params, 13, 17);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 4);
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-14 06:00:00", "0000001000007000", 10.0, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-15 06:00:00", "0000001000007000", 10.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-16 06:00:00", "0000001000007000", 10.0, bc->update(2));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "0140004000008000", 10.0, bc->update(3));
+    ASSERT_EQ(1, logs->count("QC2-redist-endpoint"));
+
+    ASSERT_RUN(algo, bc, 0);
+
+    // add another 4 days of data, now with new (flaggspec 9.11)
+    // endpoint marker fd=4
+    data.setStation(83880)
+        .add("2011-10-18 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-19 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-20 06:00:00", -32767, "0000003000002000", "QC1-7-110")
+        .add("2011-10-21 06:00:00",   44.0, "0140004000004000", "QC1-2-72.b12,QC1-7-110")
+        .setStation(83520)
+        .add("2011-10-18 06:00:00",    5.5, "0110000000001000", "")
+        .add("2011-10-19 06:00:00",    5.5, "0110000000001000", "")
+        .add("2011-10-20 06:00:00",    5.5, "0110000000001000", "")
+        .add("2011-10-21 06:00:00",    5.5, "0110000000001000", "")
+        .setStation(84190)
+        .add("2011-10-18 06:00:00",    6.6, "0110000000001000", "")
+        .add("2011-10-19 06:00:00",    6.6, "0110000000001000", "")
+        .add("2011-10-20 06:00:00",    6.6, "0110000000001000", "")
+        .add("2011-10-21 06:00:00",    6.6, "0110000000001000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params2;
+    Configure(params2, 13, 22);
+
+    ASSERT_CONFIGURE(algo, params2);
+    ASSERT_RUN(algo, bc, 4);
+
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-18 06:00:00", "0000001000007000", 11.0, bc->update(0));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-19 06:00:00", "0000001000007000", 11.0, bc->update(1));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-20 06:00:00", "0000001000007000", 11.0, bc->update(2));
+    EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-21 06:00:00", "0140004000008000", 11.0, bc->update(3));
+    ASSERT_EQ(1, logs->count("QC2-redist-endpoint"));
+
+    ASSERT_RUN(algo, bc, 0);
+}
+#endif
