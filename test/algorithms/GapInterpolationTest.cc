@@ -1158,7 +1158,7 @@ TEST_F(GapInterpolationTest, MinMaxTooFar)
                                   "2012-07-10 20:00:00", "2012-07-10 22:00:00",
                                   "2012-07-10 16:00:00" };
     for(int i=0; i<N; ++i) {
-        EXPECT_NEAR(expectedI[i], bc->update(i).corrected(), 0.3);
+        EXPECT_NEAR(expectedI[i], bc->update(i).corrected(), 0.4);
         ASSERT_OBS_CONTROL_CFAILED(expectedTS[i], "0000001100000000", "QC2d-2-I", bc->update(i));
     }
 
@@ -1233,7 +1233,7 @@ TEST_F(GapInterpolationTest, UUBecomes0WithoutNieghbors)
     ASSERT_RUN(algo, bc, 0);
 }
 
-TEST_F(GapInterpolationTest, FluctuationSize)
+TEST_F(GapInterpolationTest, FluctuationSize1)
 {
     DataList data(2650, 211, 330);
     data.add("2012-08-01 09:00:00",      17.0,      17.0, "0111000000100010", "")
@@ -1311,10 +1311,74 @@ TEST_F(GapInterpolationTest, FluctuationSize)
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 4);
-    EXPECT_NEAR(17.8, bc->update(0).corrected(), 0.55);
-    EXPECT_NEAR(19.6, bc->update(1).corrected(), 0.55);
+    //logs->dump();
+    EXPECT_NEAR(17.8, bc->update(0).corrected(), 0.35);
+    EXPECT_NEAR(19.6, bc->update(1).corrected(), 0.35);
     EXPECT_NEAR(14.3, bc->update(2).corrected(), 0.15);
     EXPECT_NEAR(14.5, bc->update(3).corrected(), 0.15);
+
+    ASSERT_RUN(algo, bc, 0);
+}
+
+TEST_F(GapInterpolationTest, FluctuationSize2)
+{
+    DataList data(18700, 211, 330);
+    data
+        .add("2012-07-28 08:00:00",      15.1,      15.1, "0111000000100010", "")
+        .add("2012-07-28 09:00:00",      16.2,      16.2, "0111000000100010", "")
+        .add("2012-07-28 10:00:00",      16.4,      16.4, "0111000000100010", "")
+        .add("2012-07-28 11:00:00",      16.8,      16.8, "0111000000100010", "")
+        .add("2012-07-28 12:00:00",      16.7,      16.7, "0111000000100010", "")
+        .add("2012-07-28 13:00:00",      16.6,      16.6, "0111000000100010", "")
+        .add("2012-07-28 14:00:00",      16.4,      16.4, "0111000000100010", "")
+        .add("2012-07-28 15:00:00",      16.7,      16.7, "0111000000100010", "");
+    data.setParam(213);
+    data.setStation(18700).setType(330)
+        .add("2012-07-28 08:00:00",      14.8,      14.8, "0111000000000000", "")
+        .add("2012-07-28 09:00:00",      15.1,      15.1, "0111000000000000", "")
+        .add("2012-07-28 10:00:00",      16.2,      16.2, "0111000000000000", "")
+        .add("2012-07-28 11:00:00",    -32767,    -32767, "0000003000000000", "") // 16.4
+        .add("2012-07-28 12:00:00",    -32767,    -32767, "0000003000000000", "") // 16.7
+        .add("2012-07-28 13:00:00",      16.6,      16.6, "0111000000000000", "")
+        .add("2012-07-28 14:00:00",      16.4,      16.4, "0111000000000000", "")
+        .add("2012-07-28 15:00:00",      16.4,      16.4, "0111000000000000", "");
+    data.setParam(215);
+    data.setStation(18700).setType(330)
+        .add("2012-07-28 08:00:00",      15.1,      15.1, "0111000000000000", "")
+        .add("2012-07-28 09:00:00",      16.2,      16.2, "0111000000000000", "")
+        .add("2012-07-28 10:00:00",      16.7,      16.7, "0111000000000000", "")
+        .add("2012-07-28 11:00:00",    -32767,    -32767, "0000003000000000", "") // 16.8
+        .add("2012-07-28 12:00:00",    -32767,    -32767, "0000003000000000", "") // 16.9
+        .add("2012-07-28 13:00:00",      16.8,      16.8, "0111000000000000", "")
+        .add("2012-07-28 14:00:00",      16.6,      16.6, "0111000000000000", "")
+        .add("2012-07-28 15:00:00",      16.7,      16.7, "0111000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES(18700, 59.942, 10.720, 94.0, 0.0, 'OSLO - BLINDERN', 1492, 18700, NULL, NULL, NULL, 8, 't', '1937-02-25 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    std::stringstream config;
+    config << "Start_YYYY = 2012\n"
+           << "Start_MM   =   07\n"
+           << "Start_DD   =   28\n"
+           << "Start_hh   =   08\n"
+           << "End_YYYY   = 2012\n"
+           << "End_MM     =   07\n"
+           << "End_DD     =   28\n"
+           << "End_hh     =   15\n"
+           << "TypeId     =  330\n"
+           << "Parameter  =  par=211,minPar=213,maxPar=215,offsetCorrectionLimit=15,fluctuationLevel=0.5\n";
+    AlgorithmConfig params;
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 4);
+    //logs->dump();
+    EXPECT_NEAR(16.4, bc->update(0).corrected(), 0.15);
+    EXPECT_NEAR(16.7, bc->update(1).corrected(), 0.15);
+    EXPECT_NEAR(16.8, bc->update(2).corrected(), 0.15);
+    EXPECT_NEAR(16.9, bc->update(3).corrected(), 0.15);
 
     ASSERT_RUN(algo, bc, 0);
 }

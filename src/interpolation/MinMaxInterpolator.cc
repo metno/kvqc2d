@@ -33,6 +33,7 @@
 #include "helpers/mathutil.h"
 #include "helpers/timeutil.h"
 #include "helpers/WeightedMean.h"
+#include "helpers/mathutil.h"
 
 #define NDEBUG 1
 #include "debug.h"
@@ -99,6 +100,8 @@ void MinMaxImplementation::failMinMaxIfNeeded(int time)
     }
 }
 
+#define AKIMA_MIN_MAX 1
+
 void MinMaxImplementation::reconstructMinMax()
 {
     const int duration = data.duration();
@@ -106,10 +109,20 @@ void MinMaxImplementation::reconstructMinMax()
 
     DBG("reconstruction ..N/..X");
     Akima akima;
+#ifdef AKIMA_MIN_MAX
+    Akima akimaMin, akimaMax;
+#endif
     for(int t=0; t<duration; ++t) {
         const SimpleResult i = cd.getInterpolated(t);
         if( i.quality != FAILED )
             akima.add(t, i.value);
+#ifdef AKIMA_MIN_MAX
+        const SeriesData smin = data.minimum(t), smax = data.maximum(t);
+        if( smin.usable() )
+            akimaMin.add(t, smin.value());
+        if( smax.usable() )
+            akimaMax.add(t, smax.value());
+#endif
     }
 
     // we do not have data for t=-1, so first point always fails if it needs interpolation
@@ -123,25 +136,31 @@ void MinMaxImplementation::reconstructMinMax()
             continue;
 
         // TODO maybe find a more efficient algorithm
-        Helpers::WeightedMean diffs;
+        float diff_min = 1.5e6, diff_max = 1.5e6;
         for(int t_before = t-1; t_before >= 0; --t_before) {
+            const SimpleResult d = cd.getInterpolated(t_before);
+            if( d.quality == FAILED )
+                continue;
             const SeriesData smin = data.minimum(t_before), smax = data.maximum(t_before);
-            if( smin.usable() && smax.usable() ) {
-                DBG(DBG1(smax.value()) << DBG1(smin.value()));
-                diffs.add(smax.value() - smin.value(), 1);
-                break;
-            }
+            if( smin.usable() )
+                Helpers::minimize(diff_min, d.value - smin.value());
+            if( smax.usable() )
+                Helpers::minimize(diff_max, smax.value() - d.value);
         }
         for(int t_after = t+1; t_after < duration; ++t_after) {
+            const SimpleResult d = cd.getInterpolated(t_after);
+            if( d.quality == FAILED )
+                continue;
             const SeriesData smin = data.minimum(t_after), smax = data.maximum(t_after);
-            if( smin.usable() && smax.usable() ) {
-                DBG(DBG1(smax.value()) << DBG1(smin.value()));
-                diffs.add(smax.value() - smin.value(), 1);
-                break;
-            }
+            if( smin.usable() )
+                Helpers::minimize(diff_min, d.value - smin.value());
+            if( smax.usable() )
+                Helpers::minimize(diff_max, smax.value() - d.value);
         }
-        const double fluc = diffs.valid() ? 0.55*diffs.mean() : data.fluctuationLevel();
-        DBGV(diffs.mean());
+        if( diff_min >= 1e6 )
+            diff_min = 0;
+        if( diff_max >= 1e6 )
+            diff_max = 0;
 
         const SimpleResult i0 = cd.getInterpolated(t-1), i1 = cd.getInterpolated(t);
         const bool canUseAkima = (akima.distance(t+0.5) < 1.5);
@@ -157,13 +176,18 @@ void MinMaxImplementation::reconstructMinMax()
         const int Nbetween = 20;
         for(int j=1; j<Nbetween; ++j) {
             const float x = t-1 + j/float(Nbetween);
-            const float noise = fluc * Helpers::randUniform0();
+            const float noise = 0;
             const float akimaValue = akima.interpolate(x);
             const float value = akimaValue + noise;
-            Helpers::minimize(mini, value);
-            Helpers::maximize(maxi, value);
+            Helpers::minimize(mini, value-diff_min);
+            Helpers::maximize(maxi, value+diff_max);
         }
-        DBG(DBG1(mini) << DBG1(maxi));
+#ifdef AKIMA_MIN_MAX
+        if( akimaMin.distance(t) < 1.5 )
+            Helpers::minimize(mini, static_cast<float>(akimaMin.interpolate(t)));
+        if( akimaMax.distance(t) < 1.5 )
+            Helpers::maximize(maxi, static_cast<float>(akimaMax.interpolate(t)));
+#endif
         if( minNeeded ) {
             data.setMinimum(t, BAD, mini);
             results.addOk();
