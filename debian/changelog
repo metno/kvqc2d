@@ -1,3 +1,9 @@
+kvqc2d (1.4.1-1) unstable; urgency=low
+
+  * release, no changes since rc8
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 29 Aug 2012 09:05:54 +0200
+
 kvqc2d (1.4.1~rc8-1) unstable; urgency=low
 
   * tried to improve min/max interpolation
