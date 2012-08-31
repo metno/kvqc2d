@@ -1,3 +1,9 @@
+kvqc2d (1.5.0~a1-1) unstable; urgency=low
+
+  * enable AggregatorLimits and StatisticalMean
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 31 Aug 2012 10:01:22 +0200
+
 kvqc2d (1.4.1-1) unstable; urgency=low
 
   * release, no changes since rc8
