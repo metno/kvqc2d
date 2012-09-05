@@ -112,8 +112,11 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
 {
     DBG("endpoint=" << endpoint);
+    const int m_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
+    const bool hqc04 = ( m_fhqc == 0 IF_FUTURE(|| m_fhqc == 4) );
     if( Helpers::isMissingOrRejected(endpoint) ) {
-        warning() << "endpoint missing/rejected: " << Helpers::datatext(endpoint);
+        if( hqc04 )
+            warning() << "endpoint missing/rejected: " << Helpers::datatext(endpoint);
         return false;
     }
     if( endpoint.obstime().hour() != mMeasurementHour ) {
@@ -122,18 +125,21 @@ bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
         return false;
     }
     if( endpoint.controlinfo().flag(kvQCFlagTypes::f_fmis) == 0 && !equal(endpoint.original(), -1.0f) ) {
-        warning() << "fmis=0 and original!=-1 for endpoint " << Helpers::datatext(endpoint);
+        if( hqc04 )
+            warning() << "fmis=0 and original!=-1 for endpoint " << Helpers::datatext(endpoint);
         return false;
     }
     const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
     if( !end_fd_before_redist(endpoint_fd) && !end_fd_after_redist(endpoint_fd) ) {
-        warning() << "unexpected endpoint fd flags for accumulation ending in " << Helpers::datatext(endpoint);
+        warning() << "unexpected endpoint fd flag (" << Helpers::int2char(endpoint_fd)
+                  << ") for accumulation ending in " << Helpers::datatext(endpoint);
         return false;
     }
     if( end_fd_before_redist(endpoint_fd)
         && !equal(endpoint.original(), endpoint.corrected()) )
     {
-        warning() << "fd=2/4 and original!=corrected for endpoint " << Helpers::datatext(endpoint);
+        if( hqc04 )
+            warning() << "fd=2/4 and original!=corrected for endpoint " << Helpers::datatext(endpoint);
         return false;
     }
     if( warn_and_stop_flags.matches(endpoint) ) {
