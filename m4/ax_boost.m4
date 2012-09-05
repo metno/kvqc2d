@@ -223,10 +223,10 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK([whether the Boost::Filesystem library is available],
 						   ax_cv_boost_filesystem,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/filesystem/path.hpp>]],
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/filesystem/path.hpp>]],
                                    [[using namespace boost::filesystem;
                                    path my_path( "foo/bar/data.txt" );
-                                   return 0;]]),
+                                   return 0;]])],
             				       ax_cv_boost_filesystem=yes, ax_cv_boost_filesystem=no)
                                    AC_LANG_POP([C++])
 			])
@@ -248,9 +248,9 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK([whether the Boost::Program_Options library is available],
 						   ax_cv_boost_program_options,
 						   [AC_LANG_PUSH([C++])
-			               AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/program_options.hpp>]],
+			               AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/program_options.hpp>]],
                                    [[boost::program_options::options_description generic("Generic options");
-                                   return 0;]]),
+                                   return 0;]])],
                            ax_cv_boost_program_options=yes, ax_cv_boost_program_options=no)
                            AC_LANG_POP([C++])
 			])
@@ -281,9 +281,9 @@ AC_DEFUN([AX_BOOST],
 			 else
 				CXXFLAGS="-pthread $CXXFLAGS"
 			 fi
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/thread/thread.hpp>]],
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/thread/thread.hpp>]],
                                    [[boost::thread_group thrds;
-                                   return 0;]]),
+                                   return 0;]])],
                    ax_cv_boost_thread=yes, ax_cv_boost_thread=no)
 			 CXXFLAGS=$CXXFLAGS_SAVE
              AC_LANG_POP([C++])
@@ -329,14 +329,14 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK(whether the Boost::IOStreams library is available,
 						   ax_cv_boost_iostreams,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/iostreams/filtering_stream.hpp>
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/iostreams/filtering_stream.hpp>
 												 @%:@include <boost/range/iterator_range.hpp>
 												]],
                                    [[std::string  input = "Hello World!";
 									 namespace io = boost::iostreams;
 									 io::filtering_istream  in(boost::make_iterator_range(input));
 									 return 0;
-                                   ]]),
+                                   ]])],
                    ax_cv_boost_iostreams=yes, ax_cv_boost_iostreams=no)
 			 AC_LANG_POP([C++])
 			])
@@ -357,14 +357,14 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK(whether the Boost::Serialization library is available,
 						   ax_cv_boost_serialization,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <fstream>
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <fstream>
 												 @%:@include <boost/archive/text_oarchive.hpp>
                                                  @%:@include <boost/archive/text_iarchive.hpp>
 												]],
                                    [[std::ofstream ofs("filename");
 									boost::archive::text_oarchive oa(ofs);
 									 return 0;
-                                   ]]),
+                                   ]])],
                    ax_cv_boost_serialization=yes, ax_cv_boost_serialization=no)
 			 AC_LANG_POP([C++])
 			])
@@ -398,11 +398,11 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK(whether the Boost::Signals library is available,
 						   ax_cv_boost_signals,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/signal.hpp>
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/signal.hpp>
 												]],
                                    [[boost::signal<void ()> sig;
                                      return 0;
-                                   ]]),
+                                   ]])],
                    ax_cv_boost_signals=yes, ax_cv_boost_signals=no)
 			 AC_LANG_POP([C++])
 			])
@@ -423,11 +423,11 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK(whether the Boost::Date_Time library is available,
 						   ax_cv_boost_date_time,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/date_time/gregorian/gregorian_types.hpp>
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/date_time/gregorian/gregorian_types.hpp>
 												]],
                                    [[using namespace boost::gregorian; date d(2002,Jan,10);
                                      return 0;
-                                   ]]),
+                                   ]])],
                    ax_cv_boost_date_time=yes, ax_cv_boost_date_time=no)
 			 AC_LANG_POP([C++])
 			])
@@ -448,9 +448,9 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK(whether the Boost::Regex library is available,
 						   ax_cv_boost_regex,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/regex.hpp>
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/regex.hpp>
 												]],
-                                   [[boost::regex r(); return 0;]]),
+                                   [[boost::regex r(); return 0;]])],
                    ax_cv_boost_regex=yes, ax_cv_boost_regex=no)
 			 AC_LANG_POP([C++])
 			])
@@ -471,9 +471,9 @@ AC_DEFUN([AX_BOOST],
 			AC_CACHE_CHECK(whether the Boost::UnitTestFramework library is available,
 						   ax_cv_boost_unit_test_framework,
 						[AC_LANG_PUSH([C++])
-			 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[@%:@include <boost/test/unit_test.hpp>]],
+			 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[@%:@include <boost/test/unit_test.hpp>]],
                                     [[using boost::unit_test::test_suite;
-					                 test_suite* test= BOOST_TEST_SUITE( "Unit test example 1" ); return 0;]]),
+					                 test_suite* test= BOOST_TEST_SUITE( "Unit test example 1" ); return 0;]])],
                    ax_cv_boost_unit_test_framework=yes, ax_cv_boost_unit_test_framework=no)
 			 AC_LANG_POP([C++])
 			])
