@@ -1,3 +1,10 @@
+kvqc2d (1.4.2~rc1-1) unstable; urgency=low
+
+  * less warnings from Redistribution if fhqc != 0/4
+  * disabled AggregatorLimits and StatisticalMean
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 06 Sep 2012 12:08:00 +0200
+
 kvqc2d (1.5.0~a1-1) unstable; urgency=low
 
   * enable AggregatorLimits and StatisticalMean

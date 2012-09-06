@@ -29,8 +29,8 @@
 
 #include "AlgorithmDispatcher.h"
 
-#define ENABLE_STATISTICALMEAN 1
-#define ENABLE_AGGREGATORLIMITS 1
+//#define ENABLE_STATISTICALMEAN 1
+//#define ENABLE_AGGREGATORLIMITS 1
 
 #ifdef ENABLE_AGGREGATORLIMITS
 #include "algorithms/AggregatorLimits.h"
