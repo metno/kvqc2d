@@ -1,4 +1,4 @@
-kvqc2d (1.4.2~rc1-1) unstable; urgency=low
+kvqc2d (1.4.2-1) unstable; urgency=low
 
   * less warnings from Redistribution if fhqc != 0/4
   * disabled AggregatorLimits and StatisticalMean
