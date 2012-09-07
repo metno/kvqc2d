@@ -46,7 +46,7 @@
 #define NDEBUG
 #include "debug.h"
 
-// #define FUTURE 1
+#define FUTURE 1
 #ifdef FUTURE
 #define IF_FUTURE(x) x
 #define IF_NOT_FUTURE(x) 

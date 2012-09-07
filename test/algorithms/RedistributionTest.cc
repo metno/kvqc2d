@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <numeric>
 
-// #define FD8 1
+#define FD8 1
 #ifdef FD8
 #define END_FD "8"
 #else
