@@ -67,3 +67,4 @@ test/corbatest
 /obj-i486-linux-gnu/
 /build
 /test/libgtest_local.a
+/plu-autoupdate-from-stinfosys

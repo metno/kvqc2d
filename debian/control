@@ -11,7 +11,8 @@ Standards-Version: 3.7.2
 
 Package: kvqc2d
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ libdbd-pg-perl (>= 2.16), ${perl:Depends}
 Recommends: kvalobs (>= 2.5.2a)
 Description: Non-real-time and geo-statistical quality controls.
  The geo-statistical algorithms will make up the QC2-ROM (space-control)

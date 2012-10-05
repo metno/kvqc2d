@@ -2,12 +2,11 @@
 
 # needs libdbd-pg-perl
 # see http://stinfosys/veil1.html
-# run with " PGPASSWORD=... perl stinfosys-vipp-pluviometer.pl" (space at beginning to avoid bash history)
 
 use DBI;
 use strict;
 
-my $conn = DBI->connect("dbi:Pg:dbname=stinfosys;host=stinfosys;port=5435", "pstinfosys");
+my $conn = DBI->connect("dbi:Pg:dbname=stinfosys;host=stinfosys;port=5435", "pstinfosys", "info12");
 
 my %resolution_stations = ();
 
