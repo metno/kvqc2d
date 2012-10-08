@@ -181,7 +181,9 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     if( length == 1 ) {
         const int m_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
         if( m_fhqc == 0 IF_FUTURE(|| m_fhqc == 4) )
-            warning() << "accumulation without missing rows in " << endpoint;
+            warning() << "HQC: station=" << endpoint.data().stationID()
+                      << " date_to=" << endpoint.obstime()
+                      << " message: accumulation without missing rows";
         return false;
     }
 
@@ -191,6 +193,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
     const bool endpoint_before_redist = end_fd_before_redist(endpoint_fd);
     const bool endpoint_after_redist = end_fd_after_redist(endpoint_fd);
+    std::string hqc_bad_sum = "";
 
     for(updateList_cit it = mdata.begin(); it != mdata.end(); ++it ) {
         const RedisUpdate& m = *it;
@@ -260,6 +263,8 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             << (fix ? "; will try to fix it" : "; will not fix");
         DBGV(fix);
         stop = !fix;
+        if( !fix )
+            hqc_bad_sum = "; redistributed sum differs from original accumulated value";
     }
     if( count_corrected > 0 && count_corrected != length && count_fhqc_04 < length ) {
         warning() << "fhqc!=0/4 for some rows, while others have no corrected value for accumulation from " << acc_start
@@ -273,6 +278,12 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         stop = true;
     }
     DBGV(stop);
+    if( stop ) {
+        warning() << "HQC: station=" << endpoint.data().stationID()
+                  << " date_from=" << mdata.back().obstime()
+                  << " date_to=" << endpoint.obstime()
+                  << " message: accumulation with errors" << hqc_bad_sum;
+    }
     return !stop;
 }
 
@@ -302,9 +313,10 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
     if( Helpers::isMissingOrRejected(it->data()) ) {
         const int fhqc = it->controlinfo().flag(kvQCFlagTypes::f_fhqc);
         if( fhqc == 0 IF_FUTURE(|| fhqc == 4) ) {
-            warning() << "suspicious (missing/rejected) row " << *it
-                      << " before endpoint " << Helpers::datatext(endpoint, it->obstime())
-                      << "; giving up";
+            warning() << "HQC: station=" << endpoint.stationID()
+                      << " date_from=" << it->obstime()
+                      << " date_to=" << endpoint.obstime()
+                      << " message: missing or bad data in accumulation period";
         }
         return false;
     }
@@ -543,9 +555,14 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     if( scale < 0.001f && accumulated > 0.05f ) {
         const int ageInDays = miutil::miDate::today().julianDay() - before.front().obstime().date().julianDay();
         const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
-        (doWARN ? warning() : info())
-            << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint "
-            << before.front().text(before.back().obstime(), false);
+        if (!doWARN)
+            info() << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint "
+                   << before.front().text(before.back().obstime(), false);
+        else
+            warning() << "HQC: station=" << before.front().data().stationID()
+                      << " date_from=" << before.back().obstime()
+                      << " date_to=" << before.front().obstime()
+                      << " message: non-0 accumulation with dry neighbors";
         return false;
     }
     float corrected_sum = 0;

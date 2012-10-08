@@ -1190,7 +1190,7 @@ TEST_F(RedistributionTest, NonzeroAccumulationButNeighborsBonedry)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(1, logs->count(Message::WARNING));
-    ASSERT_EQ(0, logs->find("would be redistributed to zeros"));
+    ASSERT_EQ(0, logs->find("non-0 accumulation with dry neighbors"));
 
     data.setStation(88100)
         .add("2011-12-21 06:00:00", 5, "0110000000001000")
@@ -1733,7 +1733,7 @@ TEST_F(RedistributionTest, SuspiciousRowsOnlyIfHQC0)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(1, logs->count(Message::WARNING));
-    ASSERT_LE(0, logs->find("suspicious"));
+    ASSERT_LE(0, logs->find("missing or bad data in accumulation period"));
 }
 
 // ------------------------------------------------------------------------
@@ -1768,10 +1768,11 @@ TEST_F(RedistributionTest, RowsWithoutCorrectedAndFHCQ)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 
-    ASSERT_EQ(3, logs->count(Message::WARNING));
+    ASSERT_EQ(4, logs->count(Message::WARNING));
     ASSERT_LE(0, logs->find("has fd != 2 while endpoint has fd == 2"));
     ASSERT_LE(0, logs->find("fmis!=3 while fd=2"));
     ASSERT_LE(0, logs->find("fhqc!=0/4 for some rows"));
+    ASSERT_LE(0, logs->find("HQC: .* accumulation with errors"));
 }
 
 // ------------------------------------------------------------------------
@@ -1807,7 +1808,7 @@ TEST_F(RedistributionTest, AccumulationWithoutMissingRowsFHCQ)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
     ASSERT_EQ(1, logs->count(Message::WARNING));
-    ASSERT_LE(0, logs->find("accumulation without missing rows.*obstime='2012-02-17 06:00:00'"));
+    ASSERT_LE(0, logs->find("2012-02-17 06:00:00.*accumulation without missing rows"));
 }
 
 // ------------------------------------------------------------------------
