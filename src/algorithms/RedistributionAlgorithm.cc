@@ -193,7 +193,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
     const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
     const bool endpoint_before_redist = end_fd_before_redist(endpoint_fd);
     const bool endpoint_after_redist = end_fd_after_redist(endpoint_fd);
-    std::string hqc_bad_sum = "";
+    std::ostringstream hqc_bad_sum;
 
     for(updateList_cit it = mdata.begin(); it != mdata.end(); ++it ) {
         const RedisUpdate& m = *it;
@@ -263,8 +263,10 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             << (fix ? "; will try to fix it" : "; will not fix");
         DBGV(fix);
         stop = !fix;
-        if( !fix )
-            hqc_bad_sum = "; redistributed sum differs from original accumulated value";
+        if( !fix ) {
+            hqc_bad_sum << "; redistributed sum " << redistributed_sum
+                        << " differs from original accumulated value " << endpoint.original();
+        }
     }
     if( count_corrected > 0 && count_corrected != length && count_fhqc_04 < length ) {
         warning() << "fhqc!=0/4 for some rows, while others have no corrected value for accumulation from " << acc_start
@@ -282,7 +284,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         warning() << "HQC: station=" << endpoint.data().stationID()
                   << " date_from=" << mdata.back().obstime()
                   << " date_to=" << endpoint.obstime()
-                  << " message: accumulation with errors" << hqc_bad_sum;
+                  << " message: accumulation with errors" << hqc_bad_sum.str();
     }
     return !stop;
 }
