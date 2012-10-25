@@ -1768,11 +1768,10 @@ TEST_F(RedistributionTest, RowsWithoutCorrectedAndFHCQ)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 
-    ASSERT_EQ(4, logs->count(Message::WARNING));
+    ASSERT_EQ(3, logs->count(Message::WARNING));
     ASSERT_LE(0, logs->find("has fd != 2 while endpoint has fd == 2"));
     ASSERT_LE(0, logs->find("fmis!=3 while fd=2"));
     ASSERT_LE(0, logs->find("fhqc!=0/4 for some rows"));
-    ASSERT_LE(0, logs->find("HQC: .* accumulation with errors"));
 }
 
 // ------------------------------------------------------------------------

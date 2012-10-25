@@ -187,7 +187,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         return false;
     }
 
-    bool stop = false;
+    bool stop = false, hqc_message = false;
     float redistributed_sum = 0.0f;
     int count_fhqc_04 = 0, count_corrected = 0;
     const int endpoint_fd = endpoint.controlinfo().flag(kvQCFlagTypes::f_fd);
@@ -253,6 +253,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
                   << acc_start << " to endpoint " << endpoint.text(acc_start);
         DBGL;
         stop = true;
+        hqc_message = true;
     }
     if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
         const bool fix = (endpoint_fd == 7 IF_FUTURE(|| endpoint_fd == 8) ) && count_fhqc_04 == length;
@@ -266,6 +267,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         if( !fix ) {
             hqc_bad_sum << "; redistributed sum " << redistributed_sum
                         << " differs from original accumulated value " << endpoint.original();
+            hqc_message = true;
         }
     }
     if( count_corrected > 0 && count_corrected != length && count_fhqc_04 < length ) {
@@ -280,7 +282,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         stop = true;
     }
     DBGV(stop);
-    if( stop ) {
+    if( hqc_message ) {
         warning() << "HQC: station=" << endpoint.data().stationID()
                   << " date_from=" << mdata.back().obstime()
                   << " date_to=" << endpoint.obstime()
