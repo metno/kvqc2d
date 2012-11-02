@@ -183,7 +183,7 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
         discardAllNonOperationalTimes(data);
         checkShowers(data, mmpv);
         checkSlidingSums(data);
-        checkNeighborStations(stationid, data);
+        checkNeighborStations(stationid, typeId, data);
         storeUpdates(data);
     }
 }
@@ -566,7 +566,7 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateLis
 
 // ------------------------------------------------------------------------
 
-void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_t& data)
+void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, const kvUpdateList_t& data)
 {
     if( data.empty() )
         return;
@@ -608,13 +608,13 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, const kvUpdateList_
         }
 
         if( !discarded && operational )
-            compareWithNeighborStations(stationid, nextXX06, sum);
+            compareWithNeighborStations(stationid, type, nextXX06, sum);
     }
 }
 
 // ------------------------------------------------------------------------
 
-void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil::miTime& obstime, float sum)
+void PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum)
 {
     DBG("station=" << stationid << " obstime=" << obstime << " sum=" << sum);
     if( sum > mThresholdDry && sum < mThresholdWet ) {
@@ -677,14 +677,18 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     }
     DBG("sum=" << sum << " n wet=" << nNeighborsWet << " dry=" << nNeighborsDry);
     if( nNeighbors >= 3 ) {
-        if( sum <= mThresholdDry && nNeighborsWet == nNeighbors ) {
-            warning() << "station " << stationid << " is dry (" << sum
-                      << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
-                      << ") are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
-        } else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors ) {
-            warning() << "station " << stationid << " is wet (" << sum
-                      << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
-                      << ") are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
+        const char* text_dry_wet[2] = { "dry", "wet" };
+        const char* text_low_high[2] = { "lowest", "highest" };
+        int whichtext = -1;
+        if( sum <= mThresholdDry && nNeighborsWet == nNeighbors )
+            whichtext = 0;
+        else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors )
+            whichtext = 1;
+        if( whichtext == 0 || whichtext == 1 ) {
+            warning() << "station " << stationid << " with typeid " << type
+                      << " is " << text_dry_wet[whichtext] << " (" << sum << ')'
+                      << " while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2) << ") are " << text_dry_wet[1-whichtext] 
+                      << " (" << text_low_high[whichtext] << '=' << lowestWetNeighbor << ") in 24h before " << obstime;
         }
     } else {
         info() << "found only " << nNeighbors << " neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;

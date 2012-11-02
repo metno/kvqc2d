@@ -865,8 +865,8 @@ TEST_F(PlumaticTest, Neighbors)
     ASSERT_RUN(algo, bc, 0);
 
     ASSERT_EQ(2, logs->count());
-    EXPECT_EQ(0, logs->find("station 27270 is dry .* before 2011-10-03 06:00:00"));
-    EXPECT_EQ(1, logs->find("station 27270 is wet .* before 2011-10-04 06:00:00"));
+    EXPECT_EQ(0, logs->find("station 27270 with typeid 4 is dry .* before 2011-10-03 06:00:00"));
+    EXPECT_EQ(1, logs->find("station 27270 with typeid 4 is wet .* before 2011-10-04 06:00:00"));
 }
 
 // ------------------------------------------------------------------------
@@ -934,7 +934,7 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
 
     ASSERT_EQ(2, logs->count());
     EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
-    EXPECT_EQ(1, logs->find("station 44640 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
+    EXPECT_EQ(1, logs->find("station 44640 with typeid 4 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
 }
 
 // ------------------------------------------------------------------------

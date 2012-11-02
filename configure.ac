@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([kvqc2d], [1.4.5], [kvalobs-dev@met.no])
+AC_INIT([kvqc2d], [1.4.6], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
@@ -26,7 +26,6 @@ AC_CONFIG_FILES([
         src/interpolation/Makefile
         src/statisticalmean/Makefile
         src/helpers/Makefile
-        test/Makefile
-        plu-autoupdate-from-stinfosys
-],[chmod +x plu-autoupdate-from-stinfosys])
+        test/Makefile])
+AC_CONFIG_FILES([plu-autoupdate-from-stinfosys],[chmod +x plu-autoupdate-from-stinfosys])
 AC_OUTPUT

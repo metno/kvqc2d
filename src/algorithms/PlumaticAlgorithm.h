@@ -124,8 +124,8 @@ private:
     void flagHighSingle(const Shower& shower);
     void flagHighStart(const Shower& shower, int length);
 
-    void checkNeighborStations(int stationid, const kvUpdateList_t& data);
-    void compareWithNeighborStations(int stationid, const miutil::miTime& obstime, float sum);
+    void checkNeighborStations(int stationid, int type, const kvUpdateList_t& data);
+    void compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum);
 
     void storeUpdates(const kvUpdateList_t& data);
 

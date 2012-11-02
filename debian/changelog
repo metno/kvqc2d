@@ -1,3 +1,9 @@
+kvqc2d (1.4.6-1) unstable; urgency=low
+
+  * Plumatic: print typeid in dry/wet warning
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 02 Nov 2012 14:25:58 +0100
+
 kvqc2d (1.4.5-1) unstable; urgency=low
 
   * print fewer messages for HQC in Redistribute
