@@ -27,77 +27,29 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef KVALOBSSINGLEPARAMETERDATA_H_
-#define KVALOBSSINGLEPARAMETERDATA_H_
+#ifndef KVALOBSNEIGHBORDATA_H_
+#define KVALOBSNEIGHBORDATA_H_
 
-#include "DBInterface.h"
-#include "FlagPatterns.h"
-#include "Instrument.h"
-#include "KvalobsDataList.h"
+#include "GapData.hh"
 #include "NeighborInterpolator.h"
-#include "ParameterInfo.h"
-#include "SimpleInterpolationResult.h"
-#include "TimeRange.h"
 
 class KvalobsNeighborData : public Interpolation::NeighborInterpolator::Data {
 public:
-    KvalobsNeighborData(DBInterface* db, const Instrument& i, const TimeRange& t, const ParameterInfo& pi);
+    KvalobsNeighborData(GapData& data);
 
     virtual int duration();
-
-    virtual Interpolation::SeriesData parameter(int time);
-
-    virtual void setInterpolated(int time, Interpolation::Quality q, float value);
-
-    virtual int neighbors();
-
     virtual float maximumOffset();
 
-    virtual Interpolation::SupportData neighbor(int n, int time);
+    virtual Interpolation::SeriesData parameter(int time);
+    virtual void setParameter(int time, Interpolation::Quality q, float value);
     virtual Interpolation::SupportData model(int time);
+
+    virtual int neighborCount();
     virtual Interpolation::SupportData transformedNeighbor(int n, int t);
     virtual float neighborWeight(int n);
 
-    DBInterface* getDatabase()
-        { return mDB; }
-
-    const Instrument& getInstrument() const
-        { return mInstrument; }
-
-    const TimeRange& getTimeRange() const
-        { return mTimeRange; }
-
-    miutil::miTime timeAtOffset(int time) const;
-
-    const NeighborData& getNeighborData(int n) const
-        { return neighborCorrelations[n]; }
-
-    const Interpolation::SimpleResultVector& getInterpolated()
-        { return interpolations; }
-
-    Interpolation::SimpleResult getInterpolated(int time);
-
-    const ParameterInfo& getParameterInfo() const
-        { return mParameterInfo; }
-
 private:
-    void fetchNeighborCorrelations();
-
-private:
-    DBInterface* mDB;
-    const TimeRange& mTimeRange;
-    const Instrument& mInstrument;
-    const ParameterInfo& mParameterInfo;
-
-    KvalobsSeriesDataList centerObservations;
-    KvalobsSupportModelDataList centerModel;
-    bool mFetchedNeighborCorrelations;
-    NeighborDataVector neighborCorrelations;
-    typedef std::vector<KvalobsSupportDataList> NeighborObservations;
-    NeighborObservations neighborObservations;
-    FlagSetCU mNeighborFlags;
-
-    Interpolation::SimpleResultVector interpolations;
+    GapData& mData;
 };
 
-#endif /* KVALOBSSINGLEPARAMETERDATA_H_ */
+#endif /* KVALOBSNEIGHBORDATA_H_ */

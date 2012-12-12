@@ -5,12 +5,12 @@ set -e
 # TODO "kvalobs/Qc2Config" should not be hardcoded
 CONFIG_DIR=@sysconfdir@/kvalobs/Qc2Config
 
-prefix=@prefix@
-libexecdir=@libexecdir@
+exec_prefix=@prefix@
+scriptdir=@libdir@/kvqc2d
 
 # fetch new list from stinfosys, store in $STATIONS_LIST
 STATIONS_LIST=/tmp/stations.txt
-perl -w ${libexecdir}/plu-update-from-stinfosys > "$STATIONS_LIST"
+perl -w ${scriptdir}/plu-update-from-stinfosys > "$STATIONS_LIST"
 
 # function to update a single config file
 update_file() {

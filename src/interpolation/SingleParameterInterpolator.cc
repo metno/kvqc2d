@@ -35,8 +35,4 @@ SingleParameterInterpolator::Data::~Data()
 {
 }
 
-SingleParameterInterpolator::~SingleParameterInterpolator()
-{
-}
-
 } // namespace Interpolation

@@ -450,10 +450,10 @@ void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
         a.corrected(-1);
         a.cfailed("QC2-redist-bonedry", CFAILED_STRING);
         if( endpoint ) {
-            a.controlinfo(endpoint_flagchange.apply(a.controlinfo()));
+            a.flagchange(endpoint_flagchange);
             a.cfailed("QC2-redist-endpoint");
         } else {
-            a.controlinfo(update_flagchange.apply(a.controlinfo()));
+            a.flagchange(update_flagchange);
         }
         endpoint = false;
     }
@@ -545,10 +545,10 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         b.corrected(weightedNeighbors);
         b.cfailed(accumulationIsDry && usedNeighbors==0 ? "QC2-redist-dry-no-neighbors" : cfailed.str(), CFAILED_STRING);
         if( endpoint ) {
-            b.controlinfo(endpoint_flagchange.apply(b.controlinfo()));
+            b.flagchange(endpoint_flagchange);
             b.cfailed("QC2-redist-endpoint");
         } else {
-            b.controlinfo(update_flagchange.apply(b.controlinfo()));
+            b.flagchange(update_flagchange);
         }
         endpoint = false;
     }

@@ -29,7 +29,9 @@
 
 #include "ParameterInfo.h"
 
+#include "helpers/mathutil.h"
 #include "helpers/stringutil.h"
+#include "interpolation/InterpolationData.h"
 #include "foreach.h"
 
 #include <limits>
@@ -38,7 +40,7 @@
 
 void ParameterInfo::constrain(float& value) const
 {
-    if( value < minValue && value >= -32765 )
+    if( value < minValue && value >= Interpolation::INVALID_VALUE )
         value = minValue;
     if( value > maxValue )
         value = maxValue;
@@ -46,7 +48,7 @@ void ParameterInfo::constrain(float& value) const
 
 ParameterInfo::ParameterInfo(const std::string& pi)
   : parameter(-1)
-  , minValue(std::numeric_limits<float>::min())
+  , minValue(Interpolation::MISSING_VALUE)
   , maxValue(std::numeric_limits<float>::max())
   , maxOffset(15)
   , maxSigma(2.7)
@@ -99,5 +101,5 @@ float ParameterInfo::toStorage(float v) const
     constrain(v);
     if( parameter == 112 && v >= -1000 && v <= 0.5 )
         return -1;
-    return v;
+    return Helpers::round(v, roundingFactor);
 }

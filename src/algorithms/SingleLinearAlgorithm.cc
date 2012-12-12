@@ -113,7 +113,7 @@ void SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, Da
         if( ftime == 0 || ftime == 1 ) {
             middle.corrected(Helpers::round1( 0.5*(before.original()+after.original()) ));
             if( ftime == 0 )
-                middle.controlinfo(ftime0_flagchange.apply(middle.controlinfo()));
+                middle.flagchange(ftime0_flagchange);
             middle.cfailed("QC2d-2", CFAILED_STRING);
         }
     } else if( ftime == 1) {
@@ -127,7 +127,7 @@ void SingleLinearAlgorithm::calculateCorrected(const kvalobs::kvData& before, Da
             // XXX this is not in the specification
             middle.corrected(Helpers::round1( 0.5*(before.original()+after.original()) ));
         }
-        middle.controlinfo(ftime1_flagchange.apply(middle.controlinfo()));
+        middle.flagchange(ftime1_flagchange);
         middle.cfailed("QC2d-2", CFAILED_STRING);
     }
     DBG("after corr=" << middle.data() << " mod=" << middle.needsWrite());

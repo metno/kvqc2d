@@ -30,14 +30,22 @@
 #ifndef GapInterpolationAlgorithm_H
 #define GapInterpolationAlgorithm_H 1
 
+#include "algorithms/DataUpdate.h"
 #include "Instrument.h"
-#include "interpolation/NeighborInterpolator.h"
-#include "interpolation/MinMaxInterpolator.h"
 #include "interpolation/ParameterInfo.h"
-#include "interpolation/SimpleInterpolationResult.h"
+#include "KvalobsMinMaxData.h"
 #include "Qc2Algorithm.h"
 
 #include <boost/shared_ptr.hpp>
+
+namespace Interpolation {
+class MinMaxInterpolator;
+class MinMaxReconstruction;
+class NeighborInterpolator;
+} // namespace Interpolation
+
+class GapData;
+class GapUpdate;
 
 class GapInterpolationAlgorithm : public Qc2Algorithm {
 public:
@@ -57,23 +65,38 @@ private:
         ParamGroupMissingRange(const kvalobs::kvData& missing);
     };
 
+    typedef std::vector<ParamGroupMissingRange> MissingRanges;
+    typedef std::map<Instrument, MissingRanges, lt_Instrument> InstrumentMissingRanges;
+
 private:
+    void interpolateMissingRange(const Instrument& instrument, const MissingRanges& mr);
+    GapDataPtr findSeriesData(const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi);
+    bool seriesHasMissingRows(GapData& data);
+    void discardUnreliableMinMax(GapData& data);
+    bool hasRADownStep(GapData& data);
+    bool replaceFromOtherTypeid(GapData& data);
+    bool interpolateFromMinMax(GapData& data);
+    bool interpolateFromNeighbors(GapData& data);
+    bool reconstructMinMax(GapData& data);
+    void markFailedInterpolations(GapData& data);
+
     Instrument getMasterInstrument(const kvalobs::kvData& data);
-    void makeUpdates(const ParamGroupMissingRange::MissingRange& mr,
-                     const Interpolation::SimpleResultVector& interpolated,
-                     const TimeRange& range,
-                     DBInterface::DataList& updates,
-                     const ParameterInfo& parameterInfo);
+    void makeUpdates(GapData& data);
+    void makeUpdates(std::vector<GapUpdate>& dul, const ParameterInfo& pi, DBInterface::DataList& updates);
+    InstrumentMissingRanges findMissing();
+
+    const ParameterInfo& findParameterInfo(int parameter);
+    bool checkTimeRangeLimits(const Instrument& instrument, const ParamGroupMissingRange& pgmr);
+    bool replaceFromOtherTypeid(GapUpdate& data);
+
+public:
+    NeighborDataVector findNeighborData(int stationid, int paramid, float maxsigma);
+    Interpolation::SupportDataList getNeighborData(const TimeRange& t, int neighborid, int paramid);
 
 private:
-    typedef DBInterface::DataList    DataList;
-    typedef DataList::iterator       DataList_it;
-    typedef DataList::const_iterator DataList_cit;
+    typedef DBInterface::DataList DataList;
 
 private:
-    boost::shared_ptr<Interpolation::NeighborInterpolator> mNeighborInterpolator;
-    boost::shared_ptr<Interpolation::MinMaxInterpolator> mMinMaxInterpolator;
-
     typedef std::vector<ParameterInfo> ParameterInfos;
     typedef ParameterInfos::const_iterator ParameterInfos_it;
     ParameterInfos mParameterInfos;
@@ -81,8 +104,8 @@ private:
     std::vector<int> tids;
     float mRAThreshold;
 
-    FlagSetCU missing_flags;
-    FlagChange missing_flagchange_good, missing_flagchange_bad, missing_flagchange_common;
+    FlagSetCU missing_flags, mNeighborFlags, mDataFlagsUUTA;
+    FlagChange missing_flagchange_good, missing_flagchange_bad, missing_flagchange_failed, missing_flagchange_common;
 };
 
 #endif

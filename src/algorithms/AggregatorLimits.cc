@@ -266,10 +266,10 @@ void AggregatorLimits::run()
             continue;
         }
         if( du.corrected() < limits.min ) {
-            du.controlinfo(mFlagChangeMin.apply(du.controlinfo()));
+            du.flagchange(mFlagChangeMin);
             du.cfailed("QC2-agglim-min");
         } else if( du.corrected() > limits.max ) {
-            du.controlinfo(mFlagChangeMax.apply(du.controlinfo()));
+            du.flagchange(mFlagChangeMax);
             du.cfailed("QC2-agglim-max");
         } else {
             DBGL;

@@ -34,11 +34,11 @@
 
 namespace Interpolation {
 
-class NeighborInterpolator : public SingleParameterInterpolator {
+class NeighborInterpolator {
 public:
-    class Data: public SingleParameterInterpolator::Data {
+    class Data : public SingleParameterInterpolator::Data {
     public:
-        virtual int neighbors() = 0;
+        virtual int neighborCount() = 0;
 
         virtual float maximumOffset() = 0;
 
@@ -52,8 +52,7 @@ public:
     /** amount of extra data required before and after the gap for Akima interpolation. */
     static const int EXTRA_DATA;
 
-    virtual Interpolation::Summary interpolate(SingleParameterInterpolator::Data& data);
-    Interpolation::Summary doInterpolate(Data& data);
+    Interpolation::Summary run(Data& data);
 
 };
 

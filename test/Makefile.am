@@ -8,6 +8,13 @@ corbatest_SOURCES= \
 kvqc2dTest_SOURCES= \
 	AkimaTest.cc \
 	AlgorithmConfigTest.cc \
+	ConfigParserTest.cc \
+	FlagChangeTest.cc \
+	FlagPatternsTest.cc \
+	FlagPatternTest.cc \
+	FlagUpdateTest.cc \
+	FormulaUUTest.cc \
+	HelpersTest.cc \
 	algorithms/AggregatorLimitsTest.cc \
 	algorithms/AkimaSplineTest.cc \
 	algorithms/AlgorithmHelpersTest.cc \
@@ -15,7 +22,6 @@ kvqc2dTest_SOURCES= \
 	algorithms/AlgorithmTestBase.h \
 	algorithms/DataUpdateTest.cc \
 	algorithms/DipTestTest.cc \
-	algorithms/GapInterpolationTest.cc \
 	algorithms/PlumaticTest.cc \
 	algorithms/RedistributionTest.cc \
 	algorithms/SingleLinearTest.cc \
@@ -28,14 +34,33 @@ kvqc2dTest_SOURCES= \
 	algorithms/TestNotifier.cc \
 	algorithms/TestNotifier.h \
 	algorithms/StatisticalMeanTest.cc \
-	ConfigParserTest.cc \
-	FlagChangeTest.cc \
-	FlagPatternsTest.cc \
-	FlagPatternTest.cc \
-	FlagUpdateTest.cc \
-	FormulaUUTest.cc \
-	HelpersTest.cc \
-        test_main.cc
+	interpolation/GapInterpolationTestBase.hh \
+	interpolation/GapInterpolationTestBase.cc \
+	interpolation/GIT_DoNotSetMaxTo100.cc \
+	interpolation/GIT_FluctuationSize1.cc \
+	interpolation/GIT_FluctuationSize2.cc \
+	interpolation/GIT_GapInMultiplePar.cc \
+	interpolation/GIT_InterpolationOutsideMinMax.cc \
+	interpolation/GIT_MinMaxTooFar.cc \
+	interpolation/GIT_MissingTASomeTAXN.cc \
+	interpolation/GIT_NoInterpolationAtEnd.cc \
+	interpolation/GIT_OnlyMissing.cc \
+	interpolation/GIT_Overwritten.cc \
+	interpolation/GIT_RABucketEmptied.cc \
+	interpolation/GIT_reproduce_kvalobs_18950.cc \
+	interpolation/GIT_reproduce_kvalobs_3290.cc \
+	interpolation/GIT_reproduce_kvalobs_76926.cc \
+	interpolation/GIT_reproduce_kvalobs_99740.cc \
+	interpolation/GIT_SingleMissingTAXN.cc \
+	interpolation/GIT_TAGroup.cc \
+	interpolation/GIT_TAInterpolatedNeighbors.cc \
+	interpolation/GIT_test1.cc \
+	interpolation/GIT_UUBecomes0WithoutNieghbors.cc \
+	interpolation/GIT_UUGroup.cc \
+	interpolation/GIT_UUNoJump1.cc \
+	interpolation/GIT_UUSeries.cc \
+	interpolation/GIT_VeryLittleSnow.cc \
+	test_main.cc
 
 kvqc2dTest_DEPENDENCIES = algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc \
 	../src/libkvqc2d_1.a ../src/interpolation/libinterpolation.a \
@@ -78,7 +103,7 @@ if HAVE_COMPILED_GTEST
 # nothing
 else
 noinst_LIBRARIES = libgtest_local.a
-libgtest_local_a_SOURCES = $(GTEST_BASE)/src/gtest/src/gtest-all.cc
+nodist_libgtest_local_a_SOURCES = $(GTEST_BASE)/src/gtest/src/gtest-all.cc
 libgtest_local_a_CXXFLAGS = -I$(GTEST_BASE)/src/gtest
 
 kvqc2dTest_LDADD += ./libgtest_local.a

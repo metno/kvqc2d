@@ -31,6 +31,7 @@
 #define TIMERANGE_H 1
 
 #include <puTools/miTime.h>
+#include <iosfwd>
 
 struct TimeRange {
     miutil::miTime t0;
@@ -43,5 +44,7 @@ struct TimeRange {
         { TimeRange t(*this); t.extendByHours(nHours); return t; }
     void extendByHours(int nHours);
 };
+
+std::ostream& operator<<(std::ostream& out, const TimeRange& tr);
 
 #endif /* TIMERANGE_H */

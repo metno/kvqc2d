@@ -7,4 +7,5 @@ ebrowse:
 
 EXTRA_DIST = kvqc2d.1 debian singlecheck.sh
 
-libexec_SCRIPTS = plu-update-from-stinfosys plu-autoupdate-from-stinfosys
+lib_qc2dir = $(libdir)/kvqc2d
+lib_qc2_SCRIPTS = plu-update-from-stinfosys plu-autoupdate-from-stinfosys

@@ -91,6 +91,11 @@ private:
  */
 class FlagSetCU {
 public:
+    FlagSetCU() { }
+
+    FlagSetCU(const std::string& cflags, const std::string& uflags)
+        : mControlflags(cflags, FlagPattern::CONTROLINFO), mUseflags(uflags, FlagPattern::USEINFO) { }
+
     FlagSetCU& setC(const FlagPatterns& controlflags)
         { mControlflags = controlflags; return *this; }
 

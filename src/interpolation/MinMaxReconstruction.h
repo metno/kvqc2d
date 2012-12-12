@@ -1,7 +1,7 @@
 /* -*- c++ -*-
   Kvalobs - Free Quality Control Software for Meteorological Observations
 
-  Copyright (C) 2011 met.no
+  Copyright (C) 2011-2012 met.no
 
   Contact information:
   Norwegian Meteorological Institute
@@ -27,25 +27,37 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SIMPLEINTERPOLATIONRESULT_H_
-#define SIMPLEINTERPOLATIONRESULT_H_
+#ifndef MINMAXRECONSTRUCTION_H
+#define MINMAXRECONSTRUCTION_H 1
 
-#include "InterpolationData.h"
-#include <vector>
+#include "SingleParameterInterpolator.h"
 
 namespace Interpolation {
 
-struct SimpleResult {
-    int time;
-    Quality quality;
-    float value;
+class MinMaxReconstruction {
+public:
+    class Data {
+    public:
+        virtual ~Data() { }
 
-    SimpleResult(int t) : time(t), quality(FAILED), value(-32767) { }
-    SimpleResult(int t, Quality q, float v) : time(t), quality(q), value(v) { }
+        virtual int duration() = 0;
+        virtual float fluctuationLevel() = 0;
+
+        virtual SupportData parameter(int time) = 0;
+
+        virtual SeriesData minimum(int t) = 0;
+        virtual SeriesData maximum(int t) = 0;
+        virtual void setMinimum(int time, Quality q, float value) = 0;
+        virtual void setMaximum(int time, Quality q, float value) = 0;
+    };
+
+    Summary run(Data& data);
+
+private:
+    void failMinMaxIfNeeded(Data& data, int time, Summary& results);
+    Summary reconstructMinMax(Data& data);
 };
-
-typedef std::vector<SimpleResult> SimpleResultVector;
 
 } // namespace Interpolation
 
-#endif /* SIMPLEINTERPOLATIONRESULT_H_ */
+#endif /* MINMAXRECONSTRUCTION_H */

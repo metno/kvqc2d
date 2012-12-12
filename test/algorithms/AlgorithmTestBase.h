@@ -89,8 +89,10 @@ class Qc2Algorithm;
         logs->clear();                                                  \
         BROADCASTER->clear();                                           \
         ALGO->run();                                                    \
-        if( BROADCASTER->count() != COUNT )                             \
+        if( BROADCASTER->count() != COUNT ) {                           \
+            logs->dump();                                               \
             FAIL() << "Expected " << COUNT << ", but got " << BROADCASTER->count() << " updates."; \
+        }                                                               \
     } catch(std::exception& e) {                                        \
         FAIL() << "Exception in run(): " << e.what();                   \
     } catch(...) {                                                      \

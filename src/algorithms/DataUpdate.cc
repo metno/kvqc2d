@@ -29,11 +29,12 @@
 
 #include "DataUpdate.h"
 
+#include "FlagChange.h"
 #include "helpers/AlgorithmHelpers.h"
 #include <iostream>
 
 DataUpdate::DataUpdate()
-    : mNew(false)
+    : mNew(true)
     , mForced(FORCED_NOTHING)
     , mOrigControl("0000000000000000")
     , mOrigCorrected(-32767.0f)
@@ -89,6 +90,13 @@ DataUpdate& DataUpdate::controlinfo(const kvalobs::kvControlInfo& ci)
     mData.controlinfo(ci);
     Helpers::updateUseInfo(mData);
     return *this;
+}
+
+// ------------------------------------------------------------------------
+
+DataUpdate& DataUpdate::flagchange(const FlagChange& fc)
+{
+    return controlinfo(fc.apply(controlinfo()));
 }
 
 // ------------------------------------------------------------------------

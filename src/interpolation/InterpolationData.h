@@ -30,16 +30,20 @@
 #ifndef INTERPOLATIONDATA_H_
 #define INTERPOLATIONDATA_H_
 
+#include <iosfwd>
+#include <vector>
+
 namespace Interpolation {
 
-enum Quality { OBSERVATION=0, GOOD=1, BAD=2, FAILED=3 };
+enum Quality { OBSERVATION, GOOD, BAD, FAILED, MISSING, UNUSABLE, NO_ROW };
+enum Values { MISSING_VALUE = -32767, INVALID_VALUE=-32765 };
 
 class SupportData {
 public:
     SupportData()
-        : mUsable(false), mValue(-32766.5) { }
-    SupportData(float v)
-        : mUsable(true), mValue(v) { }
+        : mUsable(false), mValue(MISSING_VALUE) { }
+    SupportData(float v, bool usable=true)
+        : mUsable(usable), mValue(v) { }
 
     bool usable() const
         { return mUsable; }
@@ -47,7 +51,7 @@ public:
     float value() const
         { return mValue; }
 
-private:
+protected:
     bool mUsable;
     float mValue;
 };
@@ -55,19 +59,18 @@ private:
 class SeriesData : public SupportData {
 public:
     SeriesData()
-        : SupportData(), mNeedsInterpolation(true) { }
+        : SupportData(), mQuality(MISSING) { }
 
-    SeriesData(float v)
-        : SupportData(v), mNeedsInterpolation(false) { }
+    SeriesData(float v, Quality q, bool usable)
+        : SupportData(v, usable), mQuality(q) { }
 
-    explicit SeriesData(const SupportData& sd)
-        : SupportData(sd), mNeedsInterpolation(!sd.usable()) { }
+    bool needsInterpolation() const;
 
-    bool needsInterpolation() const
-        { return mNeedsInterpolation; }
+    Quality quality() const
+        { return mQuality; }
 
 private:
-    bool mNeedsInterpolation;
+    Quality mQuality;
 };
 
 class Summary {
@@ -104,6 +107,12 @@ private:
     int mFailed;
 };
 
+typedef std::vector<SupportData> SupportDataList;
+typedef std::vector<SeriesData> SeriesDataList;
+
 } // namespace Interpolation
+
+std::ostream& operator<<(std::ostream& out, const Interpolation::SupportData& s);
+std::ostream& operator<<(std::ostream& out, const Interpolation::SeriesData& s);
 
 #endif /* INTERPOLATIONDATA_H_ */

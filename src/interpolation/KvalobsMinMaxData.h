@@ -27,48 +27,66 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef KVALOBSDATA_H_
-#define KVALOBSDATA_H_
+#ifndef KVALOBSMINMAXDATA_H_
+#define KVALOBSMINMAXDATA_H_
 
-#include "FlagPatterns.h"
-#include "KvalobsNeighborData.h"
+#include "GapData.hh"
 #include "MinMaxInterpolator.h"
+#include "MinMaxReconstruction.h"
 
-class KvalobsMinMaxData : public Interpolation::MinMaxInterpolator::Data {
+class KvalobsMinMaxInterpolatorData : public Interpolation::MinMaxInterpolator::Data {
 public:
-    KvalobsMinMaxData(KvalobsNeighborData& nd);
+    KvalobsMinMaxInterpolatorData(GapData& data)
+        : mData(data) { }
 
-    virtual Interpolation::SeriesData minimum(int time);
-    virtual Interpolation::SeriesData maximum(int time);
-    virtual void setMinimum(int time, Interpolation::Quality q, float value);
-    virtual void setMaximum(int time, Interpolation::Quality q, float value);
-    virtual float fluctuationLevel();
+    virtual int duration()
+        { return mData.duration(); }
 
-    const Interpolation::SimpleResultVector& getInterpolatedMin()
-        { return interpolationsMin; }
+    virtual Interpolation::SeriesData parameter(int time)
+        { return mData.parameter(time); }
 
-    const Interpolation::SimpleResultVector& getInterpolatedMax()
-        { return interpolationsMax; }
+    virtual void setParameter(int time, Interpolation::Quality q, float value)
+        { mData.setParameter(time, q, value); }
 
-private:
-    miutil::miTime timeAtOffset(int time) const
-        { return neighborData().timeAtOffset(time); }
+    virtual Interpolation::SupportData minimum(int time)
+        { return mData.minimum(time); }
 
-    DBInterface* database()
-        { return neighborData().getDatabase(); }
-
-    KvalobsNeighborData& neighborData()
-        { return static_cast<KvalobsNeighborData&>(centerData()); }
-
-    const KvalobsNeighborData& neighborData() const
-        { return static_cast<const KvalobsNeighborData&>(centerData()); }
-
-    Interpolation::SeriesData minmax(int time, int paramid, KvalobsSeriesDataList& data);
+    virtual Interpolation::SupportData maximum(int time)
+        { return mData.maximum(time); }
 
 private:
-    FlagSetCU mNeighborFlags;
-    KvalobsSeriesDataList minimumData, maximumData;
-    Interpolation::SimpleResultVector interpolationsMin, interpolationsMax;
+    GapData& mData;
 };
 
-#endif /* KVALOBSDATA_H_ */
+// ========================================================================
+
+class KvalobsMinMaxReconstructionData : public Interpolation::MinMaxReconstruction::Data {
+public:
+    KvalobsMinMaxReconstructionData(GapData& data)
+        : mData(data) { }
+
+    virtual int duration()
+        { return mData.duration(); }
+
+    virtual float fluctuationLevel();
+
+    virtual Interpolation::SupportData parameter(int time);
+
+    virtual Interpolation::SeriesData minimum(int time)
+        { return mData.minimum(time); }
+
+    virtual Interpolation::SeriesData maximum(int time)
+        { return mData.maximum(time); }
+
+    virtual void setMinimum(int time, Interpolation::Quality q, float value)
+        { mData.setMinimum(time, q, value); }
+
+    virtual void setMaximum(int time, Interpolation::Quality q, float value)
+        { mData.setMaximum(time, q, value); }
+
+private:
+    GapData& mData;
+    float mFluctuationLevel;
+};
+
+#endif /* KVALOBSMINMAXDATA_H_ */

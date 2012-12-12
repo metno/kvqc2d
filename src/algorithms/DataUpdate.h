@@ -35,6 +35,8 @@
 #include <puTools/miTime.h>
 #include <iosfwd>
 
+class FlagChange;
+
 // ########################################################################
 
 /**
@@ -98,6 +100,8 @@ public:
         { mData.corrected(c); return *this; }
 
     DataUpdate& controlinfo(const kvalobs::kvControlInfo& ci);
+
+    DataUpdate& flagchange(const FlagChange& fc);
 
     DataUpdate& cfailed(const std::string& cf, const std::string& extra="");
 

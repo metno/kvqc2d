@@ -2,7 +2,7 @@ Source: kvqc2d
 Section: science
 Priority: extra
 Maintainer: Met.no Kvalobs Developers <kvalobs-dev@met.no>
-Build-Depends: debhelper (>= 7), cdbs, g++ (>= 4.4),
+Build-Depends: debhelper (>= 7.0.50), g++ (>= 4.4),
  automake, libsqlite3-dev (>= 3.6), libgsl0-dev (>= 1.8),
  libboost-dev (>= 1.40.0), libboost-thread-dev (>= 1.40.0),
  libboost-filesystem-dev (>= 1.40.0), libomniorb4-dev (>= 4.0.6),

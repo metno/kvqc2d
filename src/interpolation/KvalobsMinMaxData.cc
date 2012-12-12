@@ -29,58 +29,19 @@
 
 #include "KvalobsMinMaxData.h"
 
-#include "helpers/AlgorithmHelpers.h"
-#include "helpers/timeutil.h"
-#include "AlgorithmConfig.h"
-#include "foreach.h"
-
-#define NDEBUG 1
-#include "debug.h"
+#include "ParameterInfo.h"
 
 using Interpolation::SeriesData;
 using Interpolation::SupportData;
 
-KvalobsMinMaxData::KvalobsMinMaxData(KvalobsNeighborData& nd)
-        : Interpolation::MinMaxInterpolator::Data(nd)
+SupportData KvalobsMinMaxReconstructionData::parameter(int time)
 {
+    const SeriesData sd(mData.parameter(time));
+    const int q = sd.quality();
+    return SupportData(sd.value(), q < Interpolation::FAILED);
 }
 
-void KvalobsMinMaxData::setMinimum(int time, Interpolation::Quality q, float value)
+float KvalobsMinMaxReconstructionData::fluctuationLevel()
 {
-    interpolationsMin.push_back(Interpolation::SimpleResult(time, q, value));
-}
-
-
-void KvalobsMinMaxData::setMaximum(int time, Interpolation::Quality q, float value)
-{
-    interpolationsMax.push_back(Interpolation::SimpleResult(time, q, value));
-}
-
-SeriesData KvalobsMinMaxData::minimum(int time)
-{
-    return minmax(time, neighborData().getParameterInfo().minParameter, minimumData);
-}
-
-SeriesData KvalobsMinMaxData::maximum(int time)
-{
-    return minmax(time, neighborData().getParameterInfo().maxParameter, maximumData);
-}
-
-Interpolation::SeriesData KvalobsMinMaxData::minmax(int time, int paramid, KvalobsSeriesDataList& data)
-{
-    const ParameterInfo& pi = neighborData().getParameterInfo();
-    if (data.fetchRequired()) {
-        FlagSetCU all;
-        const Instrument& i = neighborData().getInstrument();
-        data.set(database()->findDataMaybeTSLOrderObstime(i.stationid, paramid, i.type, i.sensor,
-                i.level, neighborData().getTimeRange(), all));
-    }
-
-    const miutil::miTime t = timeAtOffset(time);
-    return data.find(t, pi);
-}
-
-float KvalobsMinMaxData::fluctuationLevel()
-{
-    return neighborData().getParameterInfo().fluctuationLevel;
+    return mData.mParameterInfo.fluctuationLevel;
 }

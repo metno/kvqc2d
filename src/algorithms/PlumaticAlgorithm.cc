@@ -481,11 +481,11 @@ void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower&
         }
         if( needInsert ) {
             PlumaticUpdate insert(shower.first->data(), t, now, missing, missing, "0008003000000000");
-            insert.controlinfo(interruptedrain_flagchange.apply(insert.controlinfo()))
+            insert.flagchange(interruptedrain_flagchange)
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
             data.insert(shower.first, insert);
         } else {
-            it->controlinfo(interruptedrain_flagchange.apply(it->controlinfo()))
+            it->flagchange(interruptedrain_flagchange)
                 .cfailed("QC2h-1-interruptedrain", CFAILED_STRING);
         }
     }
@@ -495,7 +495,7 @@ void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower&
 
 void PlumaticAlgorithm::flagHighSingle(const Shower& shower)
 {
-    shower.first->controlinfo(highsingle_flagchange.apply(shower.first->controlinfo()))
+    shower.first->flagchange(highsingle_flagchange)
         .cfailed("QC2h-1-highsingle", CFAILED_STRING);
 }
 
@@ -505,7 +505,7 @@ void PlumaticAlgorithm::flagHighStart(const Shower& shower, int length)
 {
     kvUpdateList_it it = shower.first;
     for(int i=0; i<length; ++i, ++it) {
-        it->controlinfo(highstart_flagchange.apply(it->controlinfo()))
+        it->flagchange(highstart_flagchange)
             .cfailed("QC2h-1-highstart", CFAILED_STRING);
     }
 }

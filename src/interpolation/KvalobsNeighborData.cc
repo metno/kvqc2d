@@ -29,137 +29,57 @@
 
 #include "KvalobsNeighborData.h"
 
+#include "GapInterpolationAlgorithm.h"
 #include "helpers/AlgorithmHelpers.h"
 #include "helpers/timeutil.h"
 #include "AlgorithmConfig.h"
 #include "FlagPatterns.h"
 #include "foreach.h"
 
-#define NDEBUG 1
-#include "debug.h"
-
 using Interpolation::SeriesData;
-using Interpolation::SimpleResult;
 using Interpolation::SupportData;
 
-KvalobsNeighborData::KvalobsNeighborData(DBInterface* db, const Instrument& instrument, const TimeRange& t, const ParameterInfo& pi)
-    : mDB(db)
-    , mTimeRange(t)
-    , mInstrument(instrument)
-    , mParameterInfo(pi)
-    , mFetchedNeighborCorrelations(false)
+KvalobsNeighborData::KvalobsNeighborData(GapData& data)
+    : mData(data)
 {
 }
 
 float KvalobsNeighborData::maximumOffset()
 {
-    return mParameterInfo.maxOffset;
+    return mData.mParameterInfo.maxOffset;
 }
 
 int KvalobsNeighborData::duration()
 {
-    DBG("calc duration = " << mTimeRange.hours() + 1 << DBG1(mTimeRange.t0) << DBG1(mTimeRange.t1));
-    return mTimeRange.hours() + 1;
+    return mData.duration();
 }
 
 SeriesData KvalobsNeighborData::parameter(int time)
 {
-    if (centerObservations.fetchRequired()) {
-        FlagSetCU all;
-        centerObservations.set(mDB->findDataMaybeTSLOrderObstime(mInstrument.stationid, mInstrument.paramid, mInstrument.type, mInstrument.sensor,
-                mInstrument.level, mTimeRange, all));
-    }
-
-    const miutil::miTime t = timeAtOffset(time);
-    return centerObservations.find(t, mParameterInfo);
+    return mData.parameter(time);
 }
 
-void KvalobsNeighborData::setInterpolated(int time, Interpolation::Quality q, float value)
+void KvalobsNeighborData::setParameter(int time, Interpolation::Quality q, float value)
 {
-    DBG(DBG1(time) << DBG1(q) << DBG1(value));
-    Interpolation::SimpleResult sr(time, q, mParameterInfo.toStorage(value));
-    for(unsigned int i=0; i<interpolations.size(); ++i)
-        if( interpolations[i].time == time ) {
-            interpolations[i] = sr;
-            return;
-        }
-    interpolations.push_back(sr);
-}
-
-SimpleResult KvalobsNeighborData::getInterpolated(int time)
-{
-    for(unsigned int i=0; i<interpolations.size(); ++i)
-        if( interpolations[i].time == time )
-            return interpolations[i];
-    const SeriesData sd = parameter(time);
-    if( sd.usable() && !sd.needsInterpolation() )
-        return Interpolation::SimpleResult(time, Interpolation::OBSERVATION, sd.value());
-    else
-        return Interpolation::SimpleResult(time, Interpolation::FAILED, 0);
+    mData.setParameter(time, q, value);
 }
 
 SupportData KvalobsNeighborData::model(int time)
 {
-    if( centerModel.fetchRequired() )
-        centerModel.set(mDB->findModelData(mInstrument.stationid, mInstrument.paramid, mInstrument.level, mTimeRange));
-
-    const miutil::miTime t = timeAtOffset(time);
-    return centerModel.find(t, mParameterInfo);
+    return mData.model(time);
 }
 
-void KvalobsNeighborData::fetchNeighborCorrelations()
+int KvalobsNeighborData::neighborCount()
 {
-    neighborCorrelations = mDB->findNeighborData(mInstrument.stationid, mInstrument.paramid, mParameterInfo.maxSigma);
-    neighborObservations = NeighborObservations(neighborCorrelations.size());
-    mFetchedNeighborCorrelations = true;
-}
-
-int KvalobsNeighborData::neighbors()
-{
-    if( !mFetchedNeighborCorrelations )
-        fetchNeighborCorrelations();
-    return neighborCorrelations.size();
-}
-
-SupportData KvalobsNeighborData::neighbor(int n, int time)
-{
-    DBG(DBG1(n) << DBG1(neighborCorrelations.size()));
-    if (n >= neighbors())
-        return SupportData();
-
-    KvalobsSupportDataList& no = neighborObservations[n];
-    if( no.fetchRequired() ) {
-        const NeighborData& nd = getNeighborData(n);
-        const Instrument& i = mInstrument;
-        no.set(mDB->findDataMaybeTSLOrderObstime(nd.neighborid, i.paramid,
-                DBInterface::INVALID_ID, DBInterface::INVALID_ID,
-                DBInterface::INVALID_ID, mTimeRange, mNeighborFlags));
-    }
-
-    const miutil::miTime t = timeAtOffset(time);
-    return no.find(t, mParameterInfo);
+    return mData.neighborCount();
 }
 
 SupportData KvalobsNeighborData::transformedNeighbor(int n, int time)
 {
-    const SupportData sd = neighbor(n, time);
-    if (sd.usable()) {
-        const NeighborData& nd = neighborCorrelations[n];
-        return SupportData(nd.offset + nd.slope * sd.value());
-    } else {
-        return sd;
-    }
+    return mData.transformedNeighbor(n, time);
 }
 
 float KvalobsNeighborData::neighborWeight(int neighbor)
 {
-    if( !mFetchedNeighborCorrelations )
-        fetchNeighborCorrelations();
-    const float s = neighborCorrelations[neighbor].sigma;
-    return 1 / (s * s * s);
-}
-
-miutil::miTime KvalobsNeighborData::timeAtOffset(int time) const
-{
-    return Helpers::plusHour(mTimeRange.t0, time);
+    return mData.neighborWeight(neighbor);
 }

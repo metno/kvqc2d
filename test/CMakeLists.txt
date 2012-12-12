@@ -1,7 +1,8 @@
-include_directories(${CMAKE_SOURCE_DIR}/src)
-
-# include directory for generated files
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/algorithms)
+include_directories("${CMAKE_SOURCE_DIR}/src"
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  # include directory for generated files
+  "${CMAKE_CURRENT_BINARY_DIR}/algorithms"
+)
 
 find_package(Boost COMPONENTS regex REQUIRED)
 
@@ -35,41 +36,12 @@ ADD_CUSTOM_COMMAND(
    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat
 )
 
-SET(kvqc2dTest_SRCS
-   AkimaTest.cc
-   AlgorithmConfigTest.cc
-   algorithms/AggregatorLimitsTest.cc
-   algorithms/AkimaSplineTest.cc
-   algorithms/AlgorithmHelpersTest.cc
-   algorithms/AlgorithmTestBase.cc
-   algorithms/AlgorithmTestBase.h
-   algorithms/DataUpdateTest.cc
-   algorithms/DipTestTest.cc
-   algorithms/GapInterpolationTest.cc
-   algorithms/PlumaticTest.cc
-   algorithms/RedistributionTest.cc
-   algorithms/SingleLinearTest.cc
-   algorithms/TestBroadcaster.cc
-   algorithms/TestBroadcaster.h
-   algorithms/TestData.cc
-   algorithms/TestData.h
-   algorithms/TestDB.cc
-   algorithms/TestDB.h
-   algorithms/TestNotifier.cc
-   algorithms/TestNotifier.h
-   algorithms/StatisticalMeanTest.cc
-   algorithms/StatisticalMean_n212.icc
-   algorithms/StatisticalMean_n110.icc
-   ConfigParserTest.cc
-   FlagChangeTest.cc
-   FlagPatternsTest.cc
-   FlagPatternTest.cc
-   FlagUpdateTest.cc
-   FormulaUUTest.cc
-   HelpersTest.cc
-   test_main.cc
-)
-
+FILE(GLOB_RECURSE kvqc2dTest_SRCS "*.cc")
+FOREACH(item ${kvqc2dTest_SRCS})
+  IF(${item} MATCHES "dummy-kvserviced.cc")
+    LIST(REMOVE_ITEM kvqc2dTest_SRCS ${item})
+  ENDIF()
+ENDFOREACH()
 add_executable(kvqc2dTest ${kvqc2dTest_SRCS})
 
 target_link_libraries(kvqc2dTest kvqc2d_1 interpolation statisticalmean kvqc2d_2 helpers

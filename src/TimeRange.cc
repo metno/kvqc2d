@@ -29,12 +29,14 @@
 
 #include "TimeRange.h"
 
+#include <ostream>
+
 #define NDEBUG 1
 #include "debug.h"
 
 int TimeRange::days() const
 {
-    return 24*hours();
+    return hours() / 24;
 }
 
 // ------------------------------------------------------------------------
@@ -50,4 +52,12 @@ void TimeRange::extendByHours(int nHours)
 {
     t0.addHour(-nHours);
     t1.addHour( nHours);
+}
+
+// ========================================================================
+
+std::ostream& operator<<(std::ostream& out, const TimeRange& tr)
+{
+    out << '[' << tr.t0 << "--" << tr.t1 << ']';
+    return out;
 }

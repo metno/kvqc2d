@@ -1,3 +1,37 @@
+kvqc2d (1.5.0~rc1-1) unstable; urgency=low
+
+  * new implementation of interpolation algorithm
+  * unit test for mixed fd=2/3/4 in Redistribution -- only WARNs
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 12 Dev 2012 11:57:00 +0100
+
+kvqc2d (1.5.0~b4-1) unstable; urgency=low
+
+  * GapInterpolation: round values before writing to database
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 28 Nov 2012 13:51:33 +0100
+
+kvqc2d (1.5.0~b3-1) unstable; urgency=low
+
+  * fixed problems in GapInterpolation with data usablility
+  * fixed past-end bug in NeighborInterpolator
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 13 Nov 2012 13:33:58 +0100
+
+kvqc2d (1.5.0~b2-1) unstable; urgency=low
+
+  * fixed paths for plu-update scripts
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 12 Nov 2012 13:23:00 +0100
+
+kvqc2d (1.5.0~b1-1) unstable; urgency=low
+
+  * new implementation of interpolation
+  * discards unreliable min/max before interpolation
+  * uses interpolated TA for UU interpolation
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 09 Nov 2012 13:08:08 +0100
+
 kvqc2d (1.4.6-1) unstable; urgency=low
 
   * Plumatic: print typeid in dry/wet warning

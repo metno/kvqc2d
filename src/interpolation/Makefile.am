@@ -2,36 +2,30 @@
 noinst_LIBRARIES = libinterpolation.a
 
 libinterpolation_a_SOURCES = \
+	gdebug.hh \
+	GapData.hh \
+	GapData.cc \
+	GapUpdate.hh \
+	GapUpdate.cc \
 	InterpolationData.h \
+	InterpolationData.cc \
+	InterpolationError.hh \
 	SingleParameterInterpolator.cc \
 	SingleParameterInterpolator.h \
 	NeighborInterpolator.cc \
 	NeighborInterpolator.h \
-	SimpleInterpolationResult.h \
 	MinMaxInterpolator.cc \
 	MinMaxInterpolator.h \
-	KvalobsDataFilter.cc \
-	KvalobsDataFilter.h \
-	KvalobsDataList.h \
+	MinMaxReconstruction.cc \
+	MinMaxReconstruction.h \
 	KvalobsNeighborData.cc \
 	KvalobsNeighborData.h \
 	KvalobsMinMaxData.cc \
 	KvalobsMinMaxData.h \
-	KvalobsDataUU.cc \
-	KvalobsDataUU.h \
 	ParameterInfo.cc \
 	ParameterInfo.h \
 	GapInterpolationAlgorithm.cc \
 	GapInterpolationAlgorithm.h
-
-#	InterpolatorUU.cc \
-#	InterpolatorUU.h \
-#	CorrelatedNeighborInterpolator.cc \
-#	CorrelatedNeighborInterpolator.h \
-#	Instrument.cc \
-#	Instrument.h \
-#	SimpleData.cc \
-#	SimpleData.h
 
 AM_CXXFLAGS = -Wall -W -I$(top_srcdir)/src \
 	$(PROG_DEPS_CFLAGS) \
