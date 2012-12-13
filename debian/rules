@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-DH_COMMAND = dh --with python2
+DH_COMMAND = dh #--with python2 python2 not available on lucid
 
 %:
 	$(DH_COMMAND) $@
