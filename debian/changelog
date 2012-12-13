@@ -1,9 +1,15 @@
+kvqc2d (1.5.0~rc2-1) unstable; urgency=low
+
+  * for failed interpolation, do not change corrected
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 13 Dec 2012 11:05:00 +0100
+
 kvqc2d (1.5.0~rc1-1) unstable; urgency=low
 
   * new implementation of interpolation algorithm
   * unit test for mixed fd=2/3/4 in Redistribution -- only WARNs
 
- -- Alexander Bürger <alexander.buerger@met.no>  Wed, 12 Dev 2012 11:57:00 +0100
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 12 Dec 2012 11:57:00 +0100
 
 kvqc2d (1.5.0~b4-1) unstable; urgency=low
 

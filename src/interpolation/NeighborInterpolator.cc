@@ -254,7 +254,7 @@ void NeighborImplementation::interpolateSinglePoint(int t)
 void NeighborImplementation::failure(int time)
 {
     DBGV(time);
-    data.setParameter(time, Interpolation::FAILED, 0);
+    data.setParameter(time, Interpolation::FAILED, Interpolation::MISSING_VALUE);
     result.addFailed();
 }
 

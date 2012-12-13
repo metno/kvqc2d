@@ -109,7 +109,7 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
 
     params.getFlagChange(missing_flagchange_good,   "missing_flagchange_good", "ftime=1");
     params.getFlagChange(missing_flagchange_bad,    "missing_flagchange_bad" , "ftime=2");
-    params.getFlagChange(missing_flagchange_failed, "missing_flagchange_failed" , "fmis=1->fmis=3;fmis=4->fmis=2;ftime=3");
+    params.getFlagChange(missing_flagchange_failed, "missing_flagchange_failed" , "ftime=3");
     params.getFlagChange(missing_flagchange_common, "missing_flagchange_common", "fmis=3->fmis=1;fmis=2->fmis=4");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
@@ -171,18 +171,21 @@ void GapInterpolationAlgorithm::makeUpdates(GapData::DataUpdates& dul, const Par
     foreach(GapUpdate& du, dul) {
         if( not du.isNew() and du.isUpdated() ) {
             const float v = pi.toStorage(du.value());
-            du.corrected(v).cfailed("QC2d-2-I").flagchange(missing_flagchange_common);
-            if( du.quality() == Interpolation::GOOD ) 
-                du.flagchange(missing_flagchange_good);
-            else if( du.quality() == Interpolation::BAD ) 
-                du.flagchange(missing_flagchange_bad);
-            else if( du.quality() == Interpolation::FAILED ) 
+            const int q = du.quality();
+            if( q == Interpolation::FAILED )  {
                 du.flagchange(missing_flagchange_failed);
-            else {
+            } else if (q == Interpolation::GOOD or q == Interpolation::BAD) {
+                du.corrected(v).flagchange(missing_flagchange_common);
+                if (q == Interpolation::GOOD)
+                    du.flagchange(missing_flagchange_good);
+                else
+                    du.flagchange(missing_flagchange_bad);
+            } else {
                 DBGV(du);
                 continue;
             }
             if( du.needsWrite() ) {
+                du.cfailed("QC2d-2-I");
                 updates.push_back(du.data());
                 DBG("update " << du);
             }
