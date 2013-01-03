@@ -62,6 +62,26 @@ struct HasParameter : public std::unary_function<bool, ParameterInfo> {
     int parameter;
     HasParameter(int p) : parameter(p) { }
 };
+
+bool isFailed(const Interpolation::SeriesData& d)
+{
+    DBGV(d);
+    return d.quality() == Interpolation::FAILED;
+}
+
+bool isReliableMinMax(const Interpolation::SeriesData& d)
+{
+    DBGV(d);
+    return d.quality() < Interpolation::FAILED;
+}
+
+void discardUpdate(GapUpdate& gu) {
+    if( not gu.isNew() ) {
+        DBGV(gu);
+        gu.update(Interpolation::FAILED, Interpolation::MISSING_VALUE, true);
+    }
+}
+
 } // anonymous namespace
 
 // ========================================================================
@@ -287,19 +307,14 @@ void GapInterpolationAlgorithm::interpolateMissingRange(const Instrument& instru
         if( instrument.paramid == KVALOBS_PARAMID_RA and hasRADownStep(*data) )
             continue;
 
-        bool complete = replaceFromOtherTypeid(*data);
+        replaceFromOtherTypeid(*data);
 
-        //if( not complete )
-            complete = interpolateFromMinMax(*data);
+        interpolateFromMinMax(*data);
 
-            //if( not complete )
-            complete = interpolateFromNeighbors(*data);
+        interpolateFromNeighbors(*data);
 
-        complete = reconstructMinMax(*data);
-
-        if( not complete )
-            markFailedInterpolations(*data);
-
+        reconstructMinMax(*data);
+        
         makeUpdates(*data);
     }
 }
@@ -409,6 +424,10 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
         } else if( fmis == 1 or fmis == 3 ) {
             q = Interpolation::MISSING;
             value = d.original();
+        } else if( useinfo.flag(2) == 9 ) { // not checked
+            // FIXME this needs to be clarified
+            q = Interpolation::MISSING;
+            value = d.original();
         } else {
             continue;
         }
@@ -475,13 +494,6 @@ bool GapInterpolationAlgorithm::reconstructMinMax(GapData& data)
 
 // ------------------------------------------------------------------------
 
-void GapInterpolationAlgorithm::markFailedInterpolations(GapData& data)
-{
-    // TODO
-}
-
-// ------------------------------------------------------------------------
-
 bool GapInterpolationAlgorithm::seriesHasMissingRows(GapData& data)
 {
     DBGL;
@@ -496,16 +508,6 @@ bool GapInterpolationAlgorithm::seriesHasMissingRows(GapData& data)
 
 // ------------------------------------------------------------------------
 
-static bool isReliableMinMax(const Interpolation::SeriesData& d) {
-    return d.quality() < Interpolation::FAILED;
-}
-static void discardMinMax(GapUpdate& gu) {
-    if( not gu.isNew() ) {
-        DBGV(gu);
-        gu.update(Interpolation::FAILED, Interpolation::MISSING_VALUE, true);
-    }
-}
-
 void GapInterpolationAlgorithm::discardUnreliableMinMax(GapData& data)
 {
     DBGL;
@@ -517,8 +519,8 @@ void GapInterpolationAlgorithm::discardUnreliableMinMax(GapData& data)
         const bool this_ok = isReliableMinMax(data.minimum(t)) and isReliableMinMax(data.maximum(t));
         DBG(DBG1(t) << DBG1(this_ok) << DBG1(last_t_ok));
         if( not last_t_ok ) {
-            discardMinMax(data.mDataMin.at(t));
-            discardMinMax(data.mDataMax.at(t));
+            discardUpdate(data.mDataMin.at(t));
+            discardUpdate(data.mDataMax.at(t));
         }
         last_t_ok = this_ok;
     }
@@ -534,16 +536,16 @@ bool GapInterpolationAlgorithm::replaceFromOtherTypeid(GapData& data)
     for(int t=0; t<duration; ++t) {
         if( data.parameter(t).needsInterpolation() ) {
             DBGV(t);
-            allok &= replaceFromOtherTypeid(data.mDataPar.at(t));
+            allok &= replaceFromOtherTypeid(data.mDataPar.at(t)/*, data.mParameterInfos.parameter*/);
         }
         if( data.hasMinMax() ) {
             if( data.minimum(t).needsInterpolation() ) {
                 DBGV(t);
-                allok &= replaceFromOtherTypeid(data.mDataMin.at(t));
+                allok &= replaceFromOtherTypeid(data.mDataMin.at(t)/*, data.mParameterInfos.minParameter*/);
             }
             if( data.maximum(t).needsInterpolation() ) {
                 DBGV(t);
-                allok &= replaceFromOtherTypeid(data.mDataMax.at(t));
+                allok &= replaceFromOtherTypeid(data.mDataMax.at(t)/*, data.mParameterInfos.maxParameter*/);
             }
         }
     }
@@ -553,12 +555,12 @@ bool GapInterpolationAlgorithm::replaceFromOtherTypeid(GapData& data)
 
 // ------------------------------------------------------------------------
 
-bool GapInterpolationAlgorithm::replaceFromOtherTypeid(GapUpdate& data)
+bool GapInterpolationAlgorithm::replaceFromOtherTypeid(GapUpdate& data/*, int paramID*/)
 {
-    DBGL;
     const TimeRange obstime(data.obstime(), data.obstime());
     const FlagSetCU good_flags("", "U2=0");
     const kvalobs::kvData& d = data.data();
+    DBGV(d.paramID());
     const DataList other = database()->findDataMaybeTSLOrderObstime(d.stationID(), d.paramID(), DBInterface::INVALID_ID,
                                                                     d.sensor(), d.level(), obstime, good_flags);
     if( other.empty() )

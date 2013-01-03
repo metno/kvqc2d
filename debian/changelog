@@ -1,3 +1,9 @@
+kvqc2d (1.5.0~rc3-1) unstable; urgency=low
+
+  * GapInterpolation: regard data with useinfo == 9 (not checked) like missing
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 13 Dec 2012 11:05:00 +0100
+
 kvqc2d (1.5.0~rc2-1) unstable; urgency=low
 
   * for failed interpolation, do not change corrected

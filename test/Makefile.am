@@ -35,6 +35,7 @@ kvqc2dTest_SOURCES= \
 	algorithms/TestNotifier.h \
 	algorithms/StatisticalMeanTest.cc \
 	interpolation/data_reproduce_kvalobs_18230.cc \
+	interpolation/data_reproduce_kvalobs_68290.cc \
 	interpolation/GapInterpolationTestBase.hh \
 	interpolation/GapInterpolationTestBase.cc \
 	interpolation/GIT_DoNotSetMaxTo100.cc \
@@ -51,6 +52,7 @@ kvqc2dTest_SOURCES= \
 	interpolation/GIT_reproduce_kvalobs_18230.cc \
 	interpolation/GIT_reproduce_kvalobs_18950.cc \
 	interpolation/GIT_reproduce_kvalobs_3290.cc \
+	interpolation/GIT_reproduce_kvalobs_68290.cc \
 	interpolation/GIT_reproduce_kvalobs_76926.cc \
 	interpolation/GIT_reproduce_kvalobs_99740.cc \
 	interpolation/GIT_SingleMissingTAXN.cc \

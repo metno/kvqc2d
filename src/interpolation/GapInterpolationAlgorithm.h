@@ -78,7 +78,6 @@ private:
     bool interpolateFromMinMax(GapData& data);
     bool interpolateFromNeighbors(GapData& data);
     bool reconstructMinMax(GapData& data);
-    void markFailedInterpolations(GapData& data);
 
     Instrument getMasterInstrument(const kvalobs::kvData& data);
     void makeUpdates(GapData& data);
