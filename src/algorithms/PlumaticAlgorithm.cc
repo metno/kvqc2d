@@ -38,6 +38,8 @@
 #include "Notifier.icc"
 #include "foreach.h"
 
+#include <kvalobs/kvDataOperations.h>
+
 #include <milog/milog.h>
 #include <puTools/miTime.h>
 
@@ -111,6 +113,9 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
     params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
     params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
+    params.getFlagChange(fc_no_neighbors,            "no_neighbors_flagchange",    "fw=0");
+    params.getFlagChange(fc_neighbors_ok,            "neighbors_ok_flagchange",    "fw=1");
+    params.getFlagChange(fc_neighbors_suspicious,    "neighbors_suspicious_flagchange", "fw=3");
 
     mNeighbors->configure(params);
 
@@ -566,13 +571,13 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateLis
 
 // ------------------------------------------------------------------------
 
-void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, const kvUpdateList_t& data)
+void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, kvUpdateList_t& data)
 {
-    if( data.empty() )
+    if (data.empty())
         return;
 
     miutil::miTime nextXX06 = UT0extended;
-    if( nextXX06.hour() > 6 )
+    if (nextXX06.hour() > 6)
         nextXX06.addDay(1);
     nextXX06.addHour(6 - nextXX06.hour());
     nextXX06.addMin(-nextXX06.min());
@@ -581,48 +586,137 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, const kvU
     bool operational = true;
 
     // advance mark just beyond first ..:06 measurement
-    kvUpdateList_cit mark = data.begin();
-    while( mark != data.end() && mark->obstime() < nextXX06 ) {
-        if( mark->isNotOperationalStart() )
+    kvUpdateList_it mark = data.begin();
+    while (mark != data.end() && mark->obstime() <= nextXX06) {
+        if (mark->isNotOperationalStart())
             operational = false;
-        if( mark->isNotOperationalEnd() )
+        if (mark->isNotOperationalEnd())
             operational = true;
         ++mark;
     }
 
-    while( mark != data.end() ) {
+    while (mark != data.end()) {
         nextXX06.addDay(1);
-        bool discarded = false;
+        bool discarded = false, hasNonOperational = !operational;
         float sum = 0;
-        for( ; mark != data.end() && mark->obstime() <= nextXX06; ++mark ) {
-            if( mark->isNotOperationalStart() )
+        int foundFW = -1;
+        kvUpdateList_it start = mark;
+        for (; mark != data.end() && mark->obstime() <= nextXX06; ++mark) {
+            if (mark->isNotOperationalStart()) {
                 operational = false;
-            if( mark->isNotOperationalEnd() )
+                hasNonOperational = true;
+            }
+            if (mark->isNotOperationalEnd())
                 operational = true;
-            if( isBadData(*mark) || mark->isAggregationFlagged() ) {
+            if (isBadData(*mark) || mark->isAggregationFlagged()) {
                 discarded = true;
                 // no break here as we have to advance to the next ..:06 observation
-            } else if( mark->original() > 0 ) {
+            } else if (mark->original() >= 0) {
+                const int markFW = mark->controlinfo().flag(kvQCFlagTypes::f_fw);
+                if (foundFW == -1)
+                    foundFW = markFW;
+                else if (foundFW >= 0 and foundFW != markFW)
+                    foundFW = -2;
                 sum = Helpers::round(sum + mark->original(), 1000);
             }
         }
 
-        if( !discarded && operational )
-            compareWithNeighborStations(stationid, type, nextXX06, sum);
+        if (mark != data.end() and not discarded and not hasNonOperational) {
+            if (foundFW == -1) {
+                warning() << "no data for station " << stationid
+                          << " in 24h before " << nextXX06;
+            } else if (foundFW == -2) {
+                warning() << "mixture of different FW flags at station " << stationid
+                          << " in 24h before " << nextXX06;
+            } else {
+                const int newFW = compareWithNeighborStations(stationid, type, nextXX06, sum);
+                if (newFW != foundFW) {
+                    const FlagChange* fc = 0;
+                    if (newFW == 0)
+                        fc = &fc_no_neighbors;
+                    else if (newFW == 1)
+                        fc = &fc_neighbors_ok;
+                    else if (newFW == 3)
+                        fc = &fc_neighbors_suspicious;
+                    if (fc) {
+                        if (foundFW != 0)
+                            info() << "updating fw for station " << stationid
+                                   << " in 24h before " << nextXX06 << ", probably neighbor data have changed";
+                        for (; start != mark; ++start)
+                            start->flagchange(*fc);
+                    } else {
+                        warning() << "Plumatic implementation error, unexpected new FW flag";
+                    }
+                }
+            }
+        }
     }
 }
 
 // ------------------------------------------------------------------------
 
-void PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum)
+int PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum)
 {
     DBG("station=" << stationid << " obstime=" << obstime << " sum=" << sum);
-    if( sum > mThresholdDry && sum < mThresholdWet ) {
-        // neither dry nor wet :-) -- no need to check neighbor stations
-        return;
+    const bool isDry = (sum <= mThresholdDry), isWet = (sum >= mThresholdWet);
+    if (not isDry and not isWet) {
+        // neither dry nor wet :-) -- no need to look at neighbor stations
+        return 1;
     }
 
-    if( !mNeighbors->hasStationList() ) {
+    std::vector<int> dryNeighbors, wetNeighbors;
+    float highestDry = 0, lowestWet = 0;
+    const unsigned int totalNeighbors
+        = countNeighborStations(stationid, obstime, dryNeighbors, highestDry, wetNeighbors, lowestWet);
+
+    DBG("sum=" << sum << " dry? " << (isDry ? "y" : "n")
+        << " wet? " << (isWet ? "y" : "n")
+        << " n wet=" << wetNeighbors.size() << " dry=" << dryNeighbors.size() << " total=" << totalNeighbors);
+    if (totalNeighbors < 3) {
+        info() << "found only " << totalNeighbors << " neighbor stations with data near "
+               << stationid << " (sum=" << sum << ") at " << obstime;
+        return 0;
+    }
+
+    int whichFW;
+    if (isDry and wetNeighbors.size() == totalNeighbors) {
+        DBGL;
+        whichFW = 3;
+    } else if (isWet and dryNeighbors.size() == totalNeighbors) {
+        DBGL;
+        whichFW = 1; // TODO maybe fw=2 (slightly suspicious) is more appropriate?
+    } else {
+        DBGL;
+        return 1;
+    }
+    DBGV(whichFW);
+
+    Message wm = warning();
+    wm << "station " << stationid << " with typeid " << type
+       << " is " << (isDry ? "dry" : "wet") << " (" << sum << ')'
+       << " while " << totalNeighbors << " neighbors (";
+    const std::vector<int>& neighbors = isDry ? wetNeighbors : dryNeighbors;
+    for(unsigned int i=0; i<neighbors.size(); ++i) {
+        if (i>0)
+            wm << ", ";
+        wm << neighbors[i];
+    }
+    wm << ") are " << (isDry ? "wet" : "dry")
+       << " (" << (isDry ? "lowest" : "highest") << '=' << (isDry ? lowestWet : highestDry)
+       << ") in 24h before " << obstime;
+    return whichFW;
+}
+
+// ------------------------------------------------------------------------
+
+int PlumaticAlgorithm::countNeighborStations(int stationid, const miutil::miTime& obstime,
+                                             std::vector<int>& dryNeighbors, float& highestDry,
+                                             std::vector<int>& wetNeighbors, float& lowestWet)
+{
+    dryNeighbors.clear();
+    wetNeighbors.clear();
+
+    if (not mNeighbors->hasStationList()) {
         std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
         std::list<int> allStationIDs;
         fillStationLists(allStations, allStationIDs);
@@ -632,7 +726,7 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, con
     std::list<int> neighbors = mNeighbors->findNeighbors(stationid);
     std::vector<int> neighborsSorted;
     foreach(int n, neighbors) {
-        if( mNeighbors->getWeight(n) > 0 )
+        if (mNeighbors->getWeight(n) > 0)
             neighborsSorted.push_back(n);
     }
     // sort neighbors by decreasing weight
@@ -641,10 +735,8 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, con
 
     const DBInterface::DataList ndata
         = database()->findDataOrderObstime(neighbors, 110 /* RR_24 */, TimeRange(obstime, obstime), neighbor_flags);
-    if( ndata.empty() ) {
-        info() << "no neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
-        return;
-    }
+    if (ndata.empty())
+        return 0;
 
     typedef std::map<int, kvalobs::kvData> neighborDataByID_t;
     neighborDataByID_t neighborDataByID;
@@ -652,46 +744,25 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, con
         neighborDataByID[n.stationID()] = n;
     }
 
-    int nNeighbors = 0, nNeighborsDry = 0, nNeighborsWet = 0;
-    std::ostringstream textNeighbors;
-    float highestDryNeighbor = 0, lowestWetNeighbor = 0;
+    highestDry = lowestWet  = 0;
+    int totalNeighbors = 0;
     foreach(int n, neighborsSorted) {
         neighborDataByID_t::const_iterator itN = neighborDataByID.find(n);
-        if( itN == neighborDataByID.end() )
+        if (itN == neighborDataByID.end())
             continue;
         const float nOriginal = itN->second.original();
-        if( nOriginal <= mThresholdDry ) {
-            if( nNeighborsDry == 0 || nOriginal > highestDryNeighbor )
-                highestDryNeighbor = nOriginal;
-            nNeighborsDry += 1;
-            textNeighbors << ", " << n;
+        if (nOriginal <= mThresholdDry) {
+            if (dryNeighbors.empty() || nOriginal > highestDry)
+                highestDry = nOriginal;
+            dryNeighbors.push_back(n);
         }
-        if( nOriginal >= mThresholdWet ) {
-            if( nNeighborsWet == 0 || nOriginal < lowestWetNeighbor )
-                lowestWetNeighbor = nOriginal;
-            nNeighborsWet += 1;
-            textNeighbors << ", " << n;
+        if (nOriginal >= mThresholdWet) {
+            if (wetNeighbors.empty() || nOriginal < lowestWet)
+                lowestWet = nOriginal;
+            wetNeighbors.push_back(n);
         }
-        if( ++nNeighbors >= 6 )
+        if (++totalNeighbors >= 6)
             break;
     }
-    DBG("sum=" << sum << " n wet=" << nNeighborsWet << " dry=" << nNeighborsDry);
-    if( nNeighbors >= 3 ) {
-        const char* text_dry_wet[2] = { "dry", "wet" };
-        const char* text_low_high[2] = { "lowest", "highest" };
-        int whichtext = -1;
-        if( sum <= mThresholdDry && nNeighborsWet == nNeighbors )
-            whichtext = 0;
-        else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors )
-            whichtext = 1;
-        if( whichtext == 0 || whichtext == 1 ) {
-            warning() << "station " << stationid << " with typeid " << type
-                      << " is " << text_dry_wet[whichtext] << " (" << sum << ')'
-                      << " while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2) << ") are " << text_dry_wet[1-whichtext] 
-                      << " (" << text_low_high[whichtext] << '=' << lowestWetNeighbor << ") in 24h before " << obstime;
-        }
-    } else {
-        info() << "found only " << nNeighbors << " neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
-        return;
-    }
+    return totalNeighbors;
 }

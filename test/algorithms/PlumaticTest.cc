@@ -861,12 +861,90 @@ TEST_F(PlumaticTest, Neighbors)
     AlgorithmConfig params;
     Configure(params, 10, 1, 0, 10, 1+NDAYS, 0);
 
+    const int nup1 = 24*4, nup2 = 24, nup3 = 24*4, nup = nup1 + nup2 + nup3;
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 0);
+    ASSERT_RUN(algo, bc, nup);
 
-    ASSERT_EQ(2, logs->count());
+    ASSERT_EQ(2 + nup, logs->count());
     EXPECT_EQ(0, logs->find("station 27270 with typeid 4 is dry .* before 2011-10-03 06:00:00"));
     EXPECT_EQ(1, logs->find("station 27270 with typeid 4 is wet .* before 2011-10-04 06:00:00"));
+    for(int u=0; u<nup1; ++u)
+        EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
+    for(int u=nup1; u<nup2; ++u)
+        EXPECT_EQ(3, bc->update(u).controlinfo().flag(8));
+    for(int u=nup2; u<nup3; ++u)
+        EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
+
+    ASSERT_RUN(algo, bc, 0);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NeighborUpdate)
+{
+    std::ostringstream sql;
+    sql << "INSERT INTO station VALUES( 3005, 59.1778, 11.2075,  40, 0, 'INGEDAL',             NULL,   3005, NULL,   NULL, NULL, 0, 't', '2010-01-21 00:00:00');"
+        << "INSERT INTO station VALUES(17000, 59.1513, 10.8288,  10, 0, 'STROMTANGEN FYR',     1495,  17000, NULL,   NULL, NULL, 8, 't', '1994-05-09 00:00:00');"
+        << "INSERT INTO station VALUES(17090, 59.3503,  10.897,  50, 0, 'RADE - KIRKEBO',      1511,  17090, NULL,   NULL, NULL, 0, 't', '2010-01-21 00:00:00');"
+        << "INSERT INTO station VALUES(17150, 59.3786, 10.7752,  40, 0, 'RYGGE',               1494,  17150, 'ENRY', NULL, NULL, 8, 't', '1955-01-01 00:00:00');"
+        << "INSERT INTO station VALUES(17280, 59.4352,  10.578,  14, 0, 'GULLHOLMEN',          1508,  17280, NULL,   NULL, NULL, 8, 't', '2010-07-01 00:00:00');"
+        << "INSERT INTO station VALUES(17400, 59.4765,   10.79,  30, 0, 'KJESEBOTN',           NULL,  17400, NULL,   NULL, NULL, 0, 't', '2010-01-05 00:00:00');"
+        << "INSERT INTO station VALUES(27045, 59.5867, 10.1917,  10, 0, 'SANDE - VALLE',       NULL,  27045, NULL,   NULL, NULL, 8, 't', '2001-02-01 00:00:00');"
+        << "INSERT INTO station VALUES(27450,   59.23, 10.3483,  26, 0, 'MELSOM',              1481,  27450, NULL,   NULL, NULL, 8, 't', '2011-08-12 00:00:00');"
+        << "INSERT INTO station VALUES(27470, 59.1845, 10.2553,  88, 0, 'TORP',                1483,  27470, 'ENTO', NULL, NULL, 8, 't', '1959-09-01 00:00:00');"
+        << "INSERT INTO station VALUES(30420, 59.1833,  9.5667, 136, 0, 'SKIEN - GEITERYGGEN', 1475,  30420, 'ENSN', NULL, NULL, 8, 't', '1962-10-01 00:00:00');";
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    const int NDAYS = 4;
+    DataList dataC(27270, 105, 4);
+    for(int day=0; day<NDAYS; ++day) {
+        for(int hour=0; hour<24; ++hour) {
+            miutil::miTime tC(2011, 10, 1 + day, hour, 0, 0);
+            dataC.add(tC, 0.0, "0101000000000000", "");
+        }
+    }
+    ASSERT_NO_THROW(dataC.insert(db));
+    // Pluviometer is dry
+
+    const int neighborIDs[] = { 27450, -3005, 17000, -17090, 17150, 17280, 17400, 27045, 27470, 30420, -1 };
+    DataList dataN(neighborIDs[0], 110, 302);
+    for(int day=0; day<NDAYS; ++day) {
+        const miutil::miTime tN(2011, 10, 1 + day, 6, 0, 0);
+        for(int i=0; neighborIDs[i] != -1; ++i) {
+            if (neighborIDs[i] > 0)
+                dataN.setStation(neighborIDs[i]).add(tN, (day == 2 or i&1) ? 5 : 0, "0101000000000000", "");
+        }
+    }
+    ASSERT_NO_THROW(dataN.insert(db));
+    // now, all available neighbors are wet
+
+    AlgorithmConfig params;
+    Configure(params, 10, 1, 0, 10, 1+NDAYS, 0);
+    ASSERT_CONFIGURE(algo, params);
+
+    const int nup_a = 3*24;
+    ASSERT_RUN(algo, bc, nup_a);
+    ASSERT_EQ(1 + nup_a, logs->count());
+    EXPECT_EQ(0, logs->find("station 27270 with typeid 4 is dry .* before 2011-10-03 06:00:00"));
+    for(int u=0; u<nup_a; ++u) {
+        const int expected_fw = (u<24 or u>=48) ? 1 : 3;
+        EXPECT_EQ(expected_fw, bc->update(u).controlinfo().flag(8));
+    }
+
+    const miutil::miTime tN(2011, 10, 3, 6, 0, 0);
+    for(int i=0; neighborIDs[i] != -1; ++i) {
+        if (neighborIDs[i] < 0)
+            dataN.setStation(-neighborIDs[i]).add(tN, 0, "0101000000000000", "");
+    }
+    ASSERT_NO_THROW(dataN.insert(db));
+
+    const int nup_b = 24;
+    ASSERT_RUN(algo, bc, nup_b);
+    ASSERT_EQ(1+nup_b, logs->count());
+    for(int u=0; u<nup_b; ++u)
+        EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
+
+    ASSERT_RUN(algo, bc, 0);
 }
 
 // ------------------------------------------------------------------------
@@ -929,12 +1007,17 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
         "ParamId = 105\n";
     params.Parse(config);
 
+    const int nup = 23*3+1;
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 0);
+    ASSERT_RUN(algo, bc, nup);
 
-    ASSERT_EQ(2, logs->count());
+    ASSERT_EQ(nup+2, logs->count());
     EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
     EXPECT_EQ(1, logs->find("station 44640 with typeid 4 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
+    for(int u=0; u<nup; ++u)
+        EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
+
+    ASSERT_RUN(algo, bc, 0);
 }
 
 // ------------------------------------------------------------------------

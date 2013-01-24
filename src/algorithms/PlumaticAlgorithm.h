@@ -124,8 +124,11 @@ private:
     void flagHighSingle(const Shower& shower);
     void flagHighStart(const Shower& shower, int length);
 
-    void checkNeighborStations(int stationid, int type, const kvUpdateList_t& data);
-    void compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum);
+    void checkNeighborStations(int stationid, int type, kvUpdateList_t& data);
+    int compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum);
+    int countNeighborStations(int stationid, const miutil::miTime& obstime,
+                              std::vector<int>& dryNeighbors, float& highestDry,
+                              std::vector<int>& wetNeighbors, float& lowestWet);
 
     void storeUpdates(const kvUpdateList_t& data);
 
@@ -141,6 +144,7 @@ private:
     float mThresholdDry, mThresholdWet;
     FlagSetCU discarded_flags, neighbor_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;
+    FlagChange fc_no_neighbors, fc_neighbors_ok, fc_neighbors_suspicious;
     std::vector<ResolutionStations> mStationlist;
     std::vector<SlidingAlarm> mSlidingAlarms;
     miutil::miTime UT0extended;
