@@ -426,7 +426,7 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
             value = d.original();
         } else if( useinfo.flag(2) == 9 ) { // not checked
             // FIXME this needs to be clarified
-            q = Interpolation::MISSING;
+            q = Interpolation::UNUSABLE;
             value = d.original();
         } else {
             continue;

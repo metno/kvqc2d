@@ -22,8 +22,8 @@ TEST_F(GapInterpolationTest, reproduce_kvalobs_68290)
     AlgorithmConfig params;
     params.Parse(config);
     ASSERT_CONFIGURE(algo, params);
-    ASSERT_RUN(algo, bc, 10);
-    for (int i=0; i<10; ++i)
+    ASSERT_RUN(algo, bc, 9);
+    for (int i=0; i<9; ++i)
         EXPECT_LT(-10, bc->update(i).corrected());
     ASSERT_RUN(algo, bc, 0);
 }
