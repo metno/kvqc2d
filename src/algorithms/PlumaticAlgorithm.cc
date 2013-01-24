@@ -108,14 +108,14 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     mThresholdDry = params.getParameter<float>("threshold_dry", 0.5);
     mThresholdWet = params.getParameter<float>("threshold_wet", 3.0);
 
-    params.getFlagSetCU(discarded_flags, "discarded", "fr=9|fs=8|fmis=2", "");
+    params.getFlagSetCU(discarded_flags, "discarded", "fr=9&fhqc=)1(|fs=8&fhqc=)1(|fmis=2&fhqc=)1(|fhqc=A", "");
     params.getFlagSetCU(neighbor_flags,  "neighbor",  "", "U2=0");
-    params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fs=8,fmis=2");
-    params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fs=8,fmis=2");
-    params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fs=8,fmis=2");
-    params.getFlagChange(fc_no_neighbors,            "no_neighbors_flagchange",    "fw=0");
-    params.getFlagChange(fc_neighbors_ok,            "neighbors_ok_flagchange",    "fw=1");
-    params.getFlagChange(fc_neighbors_suspicious,    "neighbors_suspicious_flagchange", "fw=3");
+    params.getFlagChange(highstart_flagchange,       "highstart_flagchange",       "fhqc=[04]->fs=8,fmis=2");
+    params.getFlagChange(highsingle_flagchange,      "highsingle_flagchange",      "fhqc=[04]->fs=8,fmis=2");
+    params.getFlagChange(interruptedrain_flagchange, "interruptedrain_flagchange", "fhqc=[04]->fs=8,fmis=2");
+    params.getFlagChange(fc_no_neighbors,            "no_neighbors_flagchange",    "fhqc=[04]->fw=0");
+    params.getFlagChange(fc_neighbors_ok,            "neighbors_ok_flagchange",    "fhqc=[04]->fw=1");
+    params.getFlagChange(fc_neighbors_suspicious,    "neighbors_suspicious_flagchange", "fhqc=[04]->fw=3");
 
     mNeighbors->configure(params);
 

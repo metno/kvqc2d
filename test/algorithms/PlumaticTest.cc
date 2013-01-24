@@ -895,6 +895,7 @@ TEST_F(PlumaticTest, NeighborUpdate)
         << "INSERT INTO station VALUES(30420, 59.1833,  9.5667, 136, 0, 'SKIEN - GEITERYGGEN', 1475,  30420, 'ENSN', NULL, NULL, 8, 't', '1962-10-01 00:00:00');";
     ASSERT_NO_THROW(db->exec(sql.str()));
 
+    // Pluviometer is dry
     const int NDAYS = 4;
     DataList dataC(27270, 105, 4);
     for(int day=0; day<NDAYS; ++day) {
@@ -904,9 +905,10 @@ TEST_F(PlumaticTest, NeighborUpdate)
         }
     }
     ASSERT_NO_THROW(dataC.insert(db));
-    // Pluviometer is dry
 
     const int neighborIDs[] = { 27450, -3005, 17000, -17090, 17150, 17280, 17400, 27045, 27470, 30420, -1 };
+
+    // now, all available neighbors are wet
     DataList dataN(neighborIDs[0], 110, 302);
     for(int day=0; day<NDAYS; ++day) {
         const miutil::miTime tN(2011, 10, 1 + day, 6, 0, 0);
@@ -916,12 +918,12 @@ TEST_F(PlumaticTest, NeighborUpdate)
         }
     }
     ASSERT_NO_THROW(dataN.insert(db));
-    // now, all available neighbors are wet
 
     AlgorithmConfig params;
     Configure(params, 10, 1, 0, 10, 1+NDAYS, 0);
     ASSERT_CONFIGURE(algo, params);
 
+    // all plu data got fw=1 or fw=3
     const int nup_a = 3*24;
     ASSERT_RUN(algo, bc, nup_a);
     ASSERT_EQ(1 + nup_a, logs->count());
@@ -931,6 +933,7 @@ TEST_F(PlumaticTest, NeighborUpdate)
         EXPECT_EQ(expected_fw, bc->update(u).controlinfo().flag(8));
     }
 
+    // make some neighbors dry for 2011-10-03, so that the neighbors check passes
     const miutil::miTime tN(2011, 10, 3, 6, 0, 0);
     for(int i=0; neighborIDs[i] != -1; ++i) {
         if (neighborIDs[i] < 0)
@@ -938,13 +941,23 @@ TEST_F(PlumaticTest, NeighborUpdate)
     }
     ASSERT_NO_THROW(dataN.insert(db));
 
+    // now the data which got fw=3 in the first run must be updated to fw=1
     const int nup_b = 24;
     ASSERT_RUN(algo, bc, nup_b);
     ASSERT_EQ(1+nup_b, logs->count());
     for(int u=0; u<nup_b; ++u)
         EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
 
+    // put some rain in the Pluviometer
+    miutil::miTime t(2011, 10, 2, 6, 5, 0), t1(2011, 10, 3, 6, 0, 0);
+    for(; t < t1; t.addMin(10))
+        dataC.add(t, 0.1, "0101000000000000", "");
+    ASSERT_NO_THROW(dataC.insert(db));
+
+    // now there should be a complaint about mixed fw flags
     ASSERT_RUN(algo, bc, 0);
+    ASSERT_EQ(1, logs->count());
+    EXPECT_EQ(0, logs->find("mixture of different FW flags at station 27270 in 24h before"));
 }
 
 // ------------------------------------------------------------------------
