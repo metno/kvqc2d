@@ -297,12 +297,16 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
     }
 
     // search for hours without data and without value at :00 of the next hour => mark :01 -- :00 as bad
-    const miutil::miTime now = miutil::miTime::nowTime();
 
     kvUpdateList_it m1 = data.begin();
     // advance m1 to the first non-discarded value
     while( m1 != data.end() && discarded_flags.matches(m1->data()) )
         ++m1;
+
+    if (m1 != data.end()) {
+        kvUpdateList_it m0 = m1;
+        checkNonOperationalTime(data, m0, UT0extended, m1, m1->obstime());
+    }
 
     for(kvUpdateList_it m2 = m1; m2 != data.end(); m1 = m2 ) {
         ++m2;
@@ -310,36 +314,44 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
         while( m2 != data.end() && discarded_flags.matches(m2->data()) )
             ++m2;
 
-        const miutil::miTime &t1 = m1->obstime(), &t2 = (m2 != data.end()) ? m2->obstime() : UT1;
-        const int minDiff = miutil::miTime::minDiff(t2, t1);
-
-        if( minDiff < 60 || (minDiff == 60 && t1.min() == 0 && t2.min() == 0) )
-            continue;
-
-        miutil::miTime tBegin = t1;
-        if( tBegin.min() > 0 )
-            tBegin.addMin(-t1.min());
-        tBegin.addHour(1);
-        miutil::miTime tEnd = t2;
-        if( tEnd.min() != 0 )
-            tEnd.addMin(-t2.min());
-        tEnd.addMin(-1);
-
-        if( tBegin >= tEnd )
-            continue;
-
-        if( tBegin > t1 ) {
-            PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
-            uBegin.forceNoWrite();
-            m1 = data.insert(m2, uBegin);
-        }
-        if( tEnd < t2 ) {
-            PlumaticUpdate uEnd(m2->data(), tEnd, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
-            uEnd.forceNoWrite();
-            m2 = data.insert(m2, uEnd);
-        }
-        discardNonOperationalTime(data, m1, m2);
+        checkNonOperationalTime(data, m1, m1->obstime(), m2, (m2 != data.end()) ? m2->obstime() : UT1);
     }
+}
+
+// ------------------------------------------------------------------------
+
+void PlumaticAlgorithm::checkNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it& m1, const miutil::miTime& t1,
+                                                kvUpdateList_it& m2, const miutil::miTime& t2)
+{
+    const int minDiff = miutil::miTime::minDiff(t2, t1);
+    
+    if( minDiff < 60 || (minDiff == 60 && t1.min() == 0 && t2.min() == 0) )
+        return;
+    
+    miutil::miTime tBegin = t1;
+    if( tBegin.min() > 0 )
+        tBegin.addMin(-t1.min());
+    tBegin.addHour(1);
+    miutil::miTime tEnd = t2;
+    if( tEnd.min() != 0 )
+        tEnd.addMin(-t2.min());
+    tEnd.addMin(-1);
+    
+    if( tBegin >= tEnd )
+        return;
+    
+    const miutil::miTime now = miutil::miTime::nowTime();
+    if( tBegin > t1 ) {
+        PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
+        uBegin.forceNoWrite();
+        m1 = data.insert(m2, uBegin);
+    }
+    if( tEnd < t2 ) {
+        PlumaticUpdate uEnd(m2->data(), tEnd, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
+        uEnd.forceNoWrite();
+        m2 = data.insert(m2, uEnd);
+    }
+    discardNonOperationalTime(data, m1, m2);
 }
 
 // ------------------------------------------------------------------------

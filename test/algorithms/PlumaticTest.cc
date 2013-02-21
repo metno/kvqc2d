@@ -1024,9 +1024,10 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, nup);
 
-    ASSERT_EQ(nup+2, logs->count());
-    EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
-    EXPECT_EQ(1, logs->find("station 44640 with typeid 4 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
+    ASSERT_EQ(nup+3, logs->count());
+    // first is non-operational time at start
+    EXPECT_EQ(1, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
+    EXPECT_EQ(2, logs->find("station 44640 with typeid 4 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));
     for(int u=0; u<nup; ++u)
         EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
 
@@ -1083,8 +1084,9 @@ TEST_F(PlumaticTest, NeighborsAggregationFlagged)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 
-    ASSERT_EQ(1, logs->count());
-    EXPECT_EQ(0, logs->find("aggregation-2 .* BETWEEN '2011-10-01 06:16:00' AND '2011-10-01 06:17:00'"));
+    ASSERT_EQ(2, logs->count());
+    // first is non-operational time at start
+    EXPECT_EQ(1, logs->find("aggregation-2 .* BETWEEN '2011-10-01 06:16:00' AND '2011-10-01 06:17:00'"));
 }
 
 // ------------------------------------------------------------------------
@@ -1114,4 +1116,99 @@ TEST_F(PlumaticTest, HighSingleOneTypeid)
     EXPECT_EQ(0, logs->find("'2011-10-01 22:01:00' .* typeid=4 .*highsingle"));
 
     ASSERT_RUN(algo, bc, 0);
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NoDataAtStart)
+{
+    std::ostringstream sql;
+    INSERT_STATION(sql, 90495, "STAKKEVOLLAN", 69.694, 18.982, 80);
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(90495, 105, 4);
+    data.add("2013-02-20 20:36:00",       0.1,       0.1, "0100000000000000", "")
+        .add("2013-02-20 21:08:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-20 22:07:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-20 23:05:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 00:00:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 00:05:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 01:00:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 01:03:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 01:58:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 02:03:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 02:47:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 03:03:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 03:48:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 04:14:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 04:23:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 04:32:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 04:59:00",       0.1,       0.1, "0101000000000000", "")
+        .add("2013-02-21 05:39:00",       0.1,       0.1, "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2013\n"
+        "Start_MM   =   02\n"
+        "Start_DD   =   18\n"
+        "Start_hh   =   06\n"
+        "End_YYYY   = 2013\n"
+        "End_MM     =   02\n"
+        "End_DD     =   21\n"
+        "End_hh     =   06\n"
+        "highstart_flagchange       = fs=A,fmis=2\n"
+        "highsingle_flagchange      = fs=B,fmis=2\n"
+        "interruptedrain_flagchange = fs=C,fmis=2\n"
+        "discarded_cflags           = fr=9|fs=[ABC]|fmis=)0(|fhqc=)0(\n"
+        "stations = 0.1:90495\n"
+        "sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+    
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    ASSERT_EQ(1, logs->count());
+    EXPECT_EQ(0, logs->find("ignoring non-operational time for station 90495 between 2013-02-17 07:00:00 and 2013-02-20 19:59:00"));
+}
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, NoDataAtEnd)
+{
+    std::ostringstream sql;
+    INSERT_STATION(sql, 90495, "STAKKEVOLLAN", 69.694, 18.982, 80);
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(90495, 105, 4);
+    miutil::miTime t(2013, 01, 19, 6, 30, 0);
+    for(int hour=0; hour<30; ++hour, t.addHour(1))
+        data.add(t, 0.1, "0101000010000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2013\n"
+        "Start_MM   =   01\n"
+        "Start_DD   =   20\n"
+        "Start_hh   =   06\n"
+        "End_YYYY   = 2013\n"
+        "End_MM     =   01\n"
+        "End_DD     =   22\n"
+        "End_hh     =   06\n"
+        "highstart_flagchange       = fs=A,fmis=2\n"
+        "highsingle_flagchange      = fs=B,fmis=2\n"
+        "interruptedrain_flagchange = fs=C,fmis=2\n"
+        "discarded_cflags           = fr=9|fs=[ABC]|fmis=)0(|fhqc=)0(\n"
+        "stations = 0.1:90495\n"
+        "sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+    
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 0);
+
+    ASSERT_EQ(1, logs->count());
+    EXPECT_EQ(0, logs->find("ignoring non-operational time for station 90495 between 2013-01-20 12:00:00 and 2013-01-22 05:59:00"));
 }

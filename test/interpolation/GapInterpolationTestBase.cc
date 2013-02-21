@@ -36,10 +36,6 @@ void INSERT_NEIGHBOR(std::ostream& sql, int stationid, int paramid, int neighbor
     sql << "INSERT INTO qc2_interpolation_best_neighbors VALUES ("
         << stationid << ',' << neighborid << ',' << paramid << ", 0, " << offset << ',' << slope << ',' << sigma << ");\n";
 }
-void INSERT_STATION(std::ostream& sql, int stationid, const std::string& name, float lat, float lon, float height) {
-    sql << "INSERT INTO station VALUES(" << stationid << ',' << lat << ',' << lon << ',' << height << ", 0.0, '"
-        << name << "', NULL, " << stationid << ", NULL, NULL, NULL, 8, 't', '2000-01-01 00:00:00');";
-}
 
 void GapInterpolationTest::SetUp()
 {

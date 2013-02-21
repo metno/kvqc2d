@@ -49,6 +49,5 @@ public:
     }
 
 void INSERT_NEIGHBOR(std::ostream& sql, int stationid, int paramid, int neighborid, float offset=0, float slope=1, float sigma=1);
-void INSERT_STATION(std::ostream& sql, int stationid, const std::string& name, float lat, float lon, float height=0);
 
 #endif /* GAPINTERPOLATIONTESTBASE_HH */

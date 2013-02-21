@@ -106,6 +106,8 @@ private:
         { return miutil::miTime::minDiff(t0, t1); }
 
     void discardAllNonOperationalTimes(kvUpdateList_t& data);
+    void checkNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it& m1, const miutil::miTime& t1,
+                                 kvUpdateList_it& m2, const miutil::miTime& t2);
     void discardNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it begin, kvUpdateList_it end);
 
     void checkStation(int stationid, float mmpv);

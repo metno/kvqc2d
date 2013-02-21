@@ -101,6 +101,10 @@ class Qc2Algorithm;
 
 // #######################################################################
 
+void INSERT_STATION(std::ostream& sql, int stationid, const std::string& name, float lat, float lon, float height=0);
+
+// #######################################################################
+
 class AlgorithmTestBase: public ::testing::Test {
 public:
     AlgorithmTestBase();
