@@ -421,7 +421,7 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
         } else if( ftime == 3 ) {
             q = Interpolation::FAILED;
             value = d.corrected();
-        } else if( fmis == 1 or fmis == 3 ) {
+        } else if( fmis == 1 or fmis == 2 or fmis == 3 ) {
             q = Interpolation::MISSING;
             value = d.original();
         } else if( useinfo.flag(2) == 9 ) { // not checked

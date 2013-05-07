@@ -52,6 +52,7 @@ kvqc2dTest_SOURCES= \
 	interpolation/GIT_reproduce_kvalobs_18230.cc \
 	interpolation/GIT_reproduce_kvalobs_18950.cc \
 	interpolation/GIT_reproduce_kvalobs_3290.cc \
+	interpolation/GIT_reproduce_kvalobs_32060.cc \
 	interpolation/GIT_reproduce_kvalobs_68290.cc \
 	interpolation/GIT_reproduce_kvalobs_76926.cc \
 	interpolation/GIT_reproduce_kvalobs_99740.cc \

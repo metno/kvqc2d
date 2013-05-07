@@ -31,6 +31,7 @@
 #define DEBUG_H 1
 
 #include <milog/milog.h>
+#include <iostream>
 
 #ifndef NDEBUG
 #define DBGINF(x) std::cout << __FILE__ << ":" << __LINE__ << "[" << __FUNCTION__ << "]\n    " << x << std::endl
