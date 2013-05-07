@@ -84,12 +84,6 @@ INCLUDES = -I$(top_srcdir)/src
 
 LDADD = \
 	$(TEST_DEPS_LIBS) \
-	-lkvalobs2_fileutil \
-	-lkvalobs2_kvalobs \
-	-lkvalobs2_kvdb \
-	-lkvalobs2_miconfparser \
-	-lkvalobs2_milog \
-	-lkvalobs2_kvskel \
 	$(GTEST_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) -lboost_system

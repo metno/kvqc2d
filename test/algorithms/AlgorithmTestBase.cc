@@ -35,25 +35,25 @@
 // ########################################################################
 
 ::testing::AssertionResult AssertObstime(const char* e_expr, const char* /*a_expr*/,
-                                         const miutil::miTime& e, const kvalobs::kvData& a)
+                                         const kvtime::time& e, const kvalobs::kvData& a)
 {
     if( e == a.obstime() )
         return ::testing::AssertionSuccess();
 
     ::testing::Message msg;
-    msg << e_expr << " != " << e_expr << " (" << e.isoTime() << " and " << a.obstime().isoTime() << ")";
+    msg << e_expr << " != " << e_expr << " (" << e << " and " << kvtime::iso(a.obstime()) << ")";
     return ::testing::AssertionFailure(msg);
 }
 
 ::testing::AssertionResult AssertObsControlCfailed(const char* eo_expr, const char* eci_expr, const char* ecf_expr, const char* /*a_expr*/,
 // ------------------------------------------------------------------------
 
-                                                   const miutil::miTime& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a)
+                                                   const kvtime::time& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a)
 {
     bool failed = false;
     ::testing::Message msg;
     if( eo != a.obstime() ) {
-        msg << "(obstime " << eo_expr << " != " << a.obstime().isoTime() << ")";
+        msg << "(obstime " << eo_expr << " != " << kvtime::iso(a.obstime()) << ")";
         failed = true;
     }
     if( eci != a.controlinfo().flagstring() ) {
@@ -74,7 +74,7 @@
 // ------------------------------------------------------------------------
 
 ::testing::AssertionResult AssertStationObsControlCorrected(const char* es_expr, const char* eo_expr, const char* eci_expr, const char* eco_expr, const char* /*a_expr*/,
-                                                            int es, const miutil::miTime& eo, const std::string& eci, float eco, const kvalobs::kvData& a)
+        int es, const kvtime::time& eo, const std::string& eci, float eco, const kvalobs::kvData& a)
 {
     bool failed = false;
     ::testing::Message msg;
@@ -85,7 +85,7 @@
     if( eo != a.obstime() ) {
         if( failed )
             msg << "; ";
-        msg << "(obstime " << eo_expr << " != " << a.obstime().isoTime() << ")";
+        msg << "(obstime " << eo_expr << " != " << kvtime::iso(a.obstime()) << ")";
         failed = true;
     }
     if( eci != a.controlinfo().flagstring() ) {

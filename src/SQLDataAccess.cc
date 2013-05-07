@@ -82,7 +82,7 @@ DBInterface::StationIDList SQLDataAccess::findNorwegianFixedStationIDs() throw (
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException)
+DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) throw (DBException)
 {
     const std::list<int> station(1, stationID);
     return extractStationParams(kvalobs::kvStationParam().selectAllQuery()
@@ -173,7 +173,7 @@ DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, c
     formatIDList(sql, pids, "paramid");
     sql << " AND ";
     formatIDList(sql, tids, "typeid");
-    sql << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+    sql << " AND obstime BETWEEN '" << kvtime::iso(time.t0) << "' AND '" << kvtime::iso(time.t1) << "'"
         << " AND " << flags.sql();
     if( sensor != INVALID_ID )
         sql << " AND sensor = '" << sensor << '\'';
@@ -196,7 +196,7 @@ DBInterface::DataList SQLDataAccess::findDataAggregations(const StationIDList& s
     sql << " AND ";
     formatIDList(sql, pids, "paramid");
     sql << " AND typeid < 0"
-        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'"
+        << " AND obstime BETWEEN '" << kvtime::iso(time.t0) << "' AND '" << kvtime::iso(time.t1) << "'"
         << " AND " << flags.sql()
         << " ORDER BY stationid, obstime";
     return extractData(sql.str());
@@ -234,7 +234,7 @@ DBInterface::ModelDataList SQLDataAccess::findModelData(int stationID, int param
         << " WHERE stationid = " << stationID
         << " AND paramid = " << paramID
         << " AND level = " << level
-        << " AND obstime BETWEEN '" << time.t0.isoTime() << "' AND '" << time.t1.isoTime() << "'";
+        << " AND obstime BETWEEN '" << kvtime::iso(time.t0) << "' AND '" << kvtime::iso(time.t1) << "'";
     return extractModelData(sql.str());
 }
 

@@ -29,16 +29,13 @@
 
 #include "DayValue.h"
 
-#include "helpers/timeutil.h"
-#include <puTools/miDate.h>
-
 DayValue::~DayValue()
 {
 }
 
-int DayValue::normalisedDayOfYear(const miutil::miDate& day0) const
+int DayValue::normalisedDayOfYear(const kvtime::date& day0) const
 {
-    miutil::miDate date(day0);
-    date.addDay(mDay);
+    kvtime::date date(day0);
+    kvtime::addDays(date, mDay);
     return Helpers::normalisedDayOfYear(date);
 }

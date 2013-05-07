@@ -3,7 +3,7 @@
 
 #include "helpers/timeutil.h"
 
-static kvalobs::kvData getDb(DBInterface* db, int stationid, int paramid, const miutil::miTime& obstime)
+static kvalobs::kvData getDb(DBInterface* db, int stationid, int paramid, const kvtime::time& obstime)
 {
     std::list<kvalobs::kvData> series
         = db->findDataOrderObstime(stationid, paramid, TimeRange(obstime, obstime));
@@ -91,9 +91,9 @@ TEST_F(GapInterpolationTest, InterpolationOutsideMinMax)
     ASSERT_RUN(algo, bc, 18);
 
     const int stationid = bc->update(0).stationID();
-    const miutil::miTime t0("2012-08-26 16:00:00");
+    const kvtime::time t0 = kvtime::maketime("2012-08-26 16:00:00");
     for(int i=0; i<11; ++i) {
-        const miutil::miTime t = Helpers::plusHour(t0, i);
+        const kvtime::time t = Helpers::plusHour(t0, i);
         const float TA  = getDb(db, stationid, 211, t).corrected();
         const float TAN = getDb(db, stationid, 213, t).corrected();
         const float TAX = getDb(db, stationid, 215, t).corrected();

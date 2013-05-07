@@ -116,22 +116,22 @@ std::ostream& digits1(std::ostream& out)
 
 std::string datatext(const kvalobs::kvData& data, int hoursBefore)
 {
-    miutil::miTime start = data.obstime();
-    if( hoursBefore > 0 )
-        start.addHour( -hoursBefore );
+    kvtime::time start = data.obstime();
+    if (hoursBefore > 0)
+        kvtime::addHours(start, -hoursBefore);
     return datatext(data, start);
 }
 
 // ------------------------------------------------------------------------
 
-std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start)
+std::string datatext(const kvalobs::kvData& data, const kvtime::time& start)
 {
     std::ostringstream out;
     out << "[stationid=" << data.stationID() << " AND ";
     if( start >= data.obstime() ) {
-        out << "obstime='" << data.obstime().isoTime() << '\'';
+        out << "obstime='" << kvtime::iso(data.obstime()) << '\'';
     } else {
-        out << "obstime BETWEEN '" << start.isoTime() << "' AND '" << data.obstime().isoTime() << '\'';
+        out << "obstime BETWEEN '" << kvtime::iso(start) << "' AND '" << kvtime::iso(data.obstime()) << '\'';
     }
     out << " AND paramid="  << data.paramID()
         << " AND typeid="   << data.typeID()

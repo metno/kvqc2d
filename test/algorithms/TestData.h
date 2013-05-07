@@ -30,6 +30,7 @@
 #ifndef TestData_h
 #define TestData_h 1
 
+#include "helpers/timeutil.h"
 #include <kvalobs/kvData.h>
 #include <list>
 class SqliteTestDB;
@@ -48,19 +49,31 @@ public:
     DataList& setType(int tid)
         { mTypeId = tid; return *this; }
 
-    DataList& add(int stationid, const miutil::miTime& obstime, float original, int paramid, int type, float corrected, const std::string& controlinfo, const std::string& cfailed);
+    DataList& add(int stationid, const kvtime::time& obstime, float original, int paramid, int type, float corrected, const std::string& controlinfo, const std::string& cfailed);
 
-    DataList& add(int stationid, const miutil::miTime& obstime, float original, int paramid, int type, const std::string& controlinfo, const std::string& cfailed)
+    DataList& add(int stationid, const kvtime::time& obstime, float original, int paramid, int type, const std::string& controlinfo, const std::string& cfailed)
         { return add(stationid, obstime, original, paramid, type, original, controlinfo, cfailed); }
 
-    DataList& add(const miutil::miTime& obstime, float original, float corrected, const std::string& controlinfo, const std::string& cfailed)
+    DataList& add(const kvtime::time& obstime, float original, float corrected, const std::string& controlinfo, const std::string& cfailed)
         { return add(mStationId, obstime, original, mParamId, mTypeId, corrected, controlinfo, cfailed); }
 
-    DataList& add(const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
+    DataList& add(const kvtime::time& obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
         { return add(obstime, original, original, controlinfo, cfailed); }
 
-    DataList& add(int stationid, const miutil::miTime& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
+    DataList& add(int stationid, const kvtime::time& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
         { return add(stationid, obstime, original, mParamId, mTypeId, original, controlinfo, cfailed); }
+
+    DataList& add(int stationid, const char* obstime, float original, int paramid, int type, const std::string& controlinfo, const std::string& cfailed)
+        { return add(stationid, kvtime::maketime(obstime), original, paramid, type, original, controlinfo, cfailed); }
+
+    DataList& add(const char* obstime, float original, float corrected, const std::string& controlinfo, const std::string& cfailed)
+        { return add(mStationId, kvtime::maketime(obstime), original, mParamId, mTypeId, corrected, controlinfo, cfailed); }
+
+    DataList& add(const char* obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
+        { return add(kvtime::maketime(obstime), original, original, controlinfo, cfailed); }
+
+    DataList& add(int stationid, const char* obstime, float original, const std::string& controlinfo, const std::string& cfailed)
+        { return add(stationid, kvtime::maketime(obstime), original, mParamId, mTypeId, original, controlinfo, cfailed); }
 
     void insert(SqliteTestDB* db);
     void update(SqliteTestDB* db);

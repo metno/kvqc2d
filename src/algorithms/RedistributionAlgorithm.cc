@@ -88,7 +88,7 @@ RedistributionAlgorithm::RedistributionAlgorithm()
 
 // ------------------------------------------------------------------------
 
-miutil::miTime RedistributionAlgorithm::stepTime(const miutil::miTime& time)
+kvtime::time RedistributionAlgorithm::stepTime(const kvtime::time& time)
 {
     return Helpers::plusDay(time, -1);
 }
@@ -119,7 +119,7 @@ bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
             warning() << "endpoint missing/rejected: " << Helpers::datatext(endpoint);
         return false;
     }
-    if( endpoint.obstime().hour() != mMeasurementHour ) {
+    if( kvtime::hour(endpoint.obstime()) != mMeasurementHour ) {
         warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                   << " not seen in endpoint " << Helpers::datatext(endpoint);
         return false;
@@ -151,11 +151,11 @@ bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
 
 // ------------------------------------------------------------------------
 
-void RedistributionAlgorithm::insertMissingRows(const kvalobs::kvData& endpoint, updateList_t& mdata, const miutil::miTime& beforeTime)
+void RedistributionAlgorithm::insertMissingRows(const kvalobs::kvData& endpoint, updateList_t& mdata, const kvtime::time& beforeTime)
 {
-    miutil::miTime t = stepTime(endpoint.obstime()), now = miutil::miTime::nowTime();
+    kvtime::time t = stepTime(endpoint.obstime()), now = kvtime::now();
     for(updateList_it it = mdata.begin(); t > beforeTime; ++it ) {
-        const miutil::miTime tdata = (it != mdata.end()) ? it->obstime() : beforeTime;
+        const kvtime::time tdata = (it != mdata.end()) ? it->obstime() : beforeTime;
         DBG("tdata=" << tdata << " t=" << t);
         while( t > tdata ) {
             const RedisUpdate fake(endpoint, t, now, missing, missing, "0000003000002000");
@@ -197,7 +197,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
 
     for(updateList_cit it = mdata.begin(); it != mdata.end(); ++it ) {
         const RedisUpdate& m = *it;
-        if( m.obstime().hour() != mMeasurementHour ) {
+        if( kvtime::hour(m.obstime()) != mMeasurementHour ) {
             warning() << "expected obstime hour "  << std::setw(2) << std::setfill('0')
                       << mMeasurementHour << " not found in missing point " << m
                       << " for accumulation ending in " << endpoint.text(m.obstime());
@@ -246,7 +246,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             stop = true;
         }
     }
-    const miutil::miTime acc_start = mdata.back().obstime();
+    const kvtime::time acc_start = mdata.back().obstime();
     if( (endpoint_before_redist && count_corrected != 1) || (endpoint_after_redist && count_corrected != length) ) {
         warning() << "found " << count_corrected << ", but expected " << (endpoint_before_redist ? 1 : length)
                   << " rows with corrected values for accumulation from "
@@ -293,7 +293,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
 
 // ------------------------------------------------------------------------
 
-bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& mdata)
+bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const kvtime::time& earliest, updateList_t& mdata)
 {
     const DBInterface::DataList mdatao
         = database()->findDataOrderObstime(endpoint.stationID(), endpoint.paramID(), endpoint.typeID(), TimeRange(stepTime(earliest), stepTime(endpoint.obstime())));
@@ -324,7 +324,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
         }
         return false;
     }
-    const miutil::miTime beforeTime = it->obstime();
+    const kvtime::time beforeTime = it->obstime();
     mdata.erase(it, mdata.end());
 
     insertMissingRows(endpoint, mdata, beforeTime);
@@ -358,7 +358,7 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
     ndata = dataList_t(ndata_r.rbegin(), ndata_r.rend());
 
     foreach(const kvalobs::kvData& n, ndata) {
-        if( n.obstime().hour() != mMeasurementHour ) {
+        if( kvtime::hour(n.obstime()) != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                       << " not seen in neighbor " << Helpers::datatext(n)
                       << " for accumulation ending in " << Helpers::datatext(endpoint, n.obstime());
@@ -411,12 +411,12 @@ void RedistributionAlgorithm::run()
         = database()->findDataOrderStationObstime(stationIDs, pids, tids, TimeRange(UT0, UT1), endpoint_flags);
 
     int lastStationId = -1;
-    miutil::miTime lastObstime = UT0;
+    kvtime::time lastObstime = UT0;
     foreach(const kvalobs::kvData& endpoint, edata) {
         if( !checkEndpoint(endpoint) )
             continue;
 
-        const miutil::miTime earliestPossibleMissing = ( endpoint.stationID() != lastStationId ) ? UT0 : lastObstime;
+        const kvtime::time earliestPossibleMissing = ( endpoint.stationID() != lastStationId ) ? UT0 : lastObstime;
         lastStationId = endpoint.stationID();
         lastObstime   = endpoint.obstime();
 
@@ -530,7 +530,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         }
         if( usedNeighbors < mMinNeighbors && !accumulationIsDry ) {
             DBG("not enough neighbors");
-            const int ageInDays = miutil::miDate::today().julianDay() - b.obstime().date().julianDay();
+            const int ageInDays = kvtime::julianDay(kvtime::now().date()) - kvtime::julianDay(b.obstime().date());
             const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
             (doWARN ? warning() : info())
                 << "not enough good neighbors at t=" << b.obstime()
@@ -557,7 +557,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     const float scale = ( weightedNeighborsAccumulated > 0.0f )
         ? accumulated / weightedNeighborsAccumulated : 0.0f;
     if( scale < 0.001f && accumulated > 0.05f ) {
-        const int ageInDays = miutil::miDate::today().julianDay() - before.front().obstime().date().julianDay();
+        const int ageInDays = kvtime::julianDay(kvtime::now().date()) - kvtime::julianDay(before.front().obstime().date());
         const bool doWARN = ageInDays > mDaysBeforeNoNeighborWarning;
         if (!doWARN)
             info() << "accumulation " << accumulated << " > 0 would be redistributed to zeros for endpoint "

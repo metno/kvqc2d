@@ -244,7 +244,7 @@ void AggregatorLimits::addStationLimits(const DBInterface::StationParamList&
 
 void AggregatorLimits::run()
 {
-    // const miutil::miTime now = miutil::miTime::nowTime();
+    // const kvtime::time now = kvtime::time::nowTime();
 
     DBInterface::DataList updates;
 
@@ -255,7 +255,7 @@ void AggregatorLimits::run()
     foreach(const kvalobs::kvData& data, outOfRange) {
         DataUpdate du(data);
         DBGV(data);
-        const Limits limits = mLimits->find(data.stationID(), data.paramID(), data.obstime().hour(), Helpers::normalisedDayOfYear(data.obstime().date()));
+        const Limits limits = mLimits->find(data.stationID(), data.paramID(), kvtime::hour(data.obstime()), Helpers::normalisedDayOfYear(data.obstime().date()));
         DBG(DBG1(limits.valid()) << DBG1(limits.max));
         if( !limits.valid() ) {
             error() << "no parameter limits found for " << data;

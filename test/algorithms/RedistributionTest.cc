@@ -148,7 +148,7 @@ void RedistributionTest::RoundingTest(const float* values, const float* expected
         .add("2011-10-13 06:00:00",    0.1,      "0110000000001000", "");
 
     for(int i=0; i<N; ++i) {
-        const miutil::miTime t(2011, 10, 14 + i, 6, 0, 0);
+        const kvtime::time t = kvtime::maketime(2011, 10, 14 + i, 6, 0, 0);
         data.setStation(83520)
             .add(t, rounded_values[i], "0110000000001000", "")
             .setStation(84190)
@@ -425,7 +425,7 @@ TEST_F(RedistributionTest, MissingRows)
     ASSERT_RUN(algo, bc, 5);
 
     for(int i=0; i<bc->count()-1; ++i)
-        EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
+        EXPECT_STATION_OBS_CONTROL_CORR(83880, kvtime::maketime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "014000400000" END_FD "000", 2.0, bc->update(4));
 }
 
@@ -473,7 +473,7 @@ TEST_F(RedistributionTest, ReRun)
     ASSERT_EQ(6, series.size());
 
     for(int i=0; i<bc->count()-1; ++i)
-        EXPECT_STATION_OBS_CONTROL_CORR(83880, miutil::miTime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
+        EXPECT_STATION_OBS_CONTROL_CORR(83880, kvtime::maketime(2011, 10, 13+i, 6, 0, 0), "0000001000007000", 2.0, bc->update(i));
     EXPECT_STATION_OBS_CONTROL_CORR(83880, "2011-10-17 06:00:00", "014000400000" END_FD "000", 2.0, bc->update(4));
 
     std::stringstream config;
@@ -938,7 +938,7 @@ TEST_F(RedistributionTest, Release113)
     for(int n=0; n<4; ++n) {
         data.setStation(neighbors[n]);
         for(int d=5; d<=16; ++d)
-            data.add(miutil::miTime(2011, 5, d, 6, 0, 0), 2.7, "0110000000001000", "");
+            data.add(kvtime::maketime(2011, 5, d, 6, 0, 0), 2.7, "0110000000001000", "");
     }
     ASSERT_NO_THROW(data.insert(db));
 
@@ -980,8 +980,8 @@ TEST_F(RedistributionTest, Release113)
 
     AlgorithmConfig params;
     Configure(params, 5, 16);
-    params.UT0 = "2011-05-05 06:00:00";
-    params.UT1 = "2011-05-16 06:00:00";
+    params.UT0 = kvtime::maketime("2011-05-05 06:00:00");
+    params.UT1 = kvtime::maketime("2011-05-16 06:00:00");
 
     // with bad fd flags, make sure that the redistribution does not run
     ASSERT_CONFIGURE(algo, params);

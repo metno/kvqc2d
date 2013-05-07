@@ -175,7 +175,7 @@ TEST(AlgorithmConfigTest, StartHH)
     AlgorithmConfig params;
     ASSERT_NO_THROW(params.Parse(config));
 
-    ASSERT_EQ(6, params.UT0.hour());
-    ASSERT_EQ(6, params.UT1.hour());
-    ASSERT_EQ(4*24, miutil::miTime::hourDiff(params.UT1, params.UT0));
+    ASSERT_EQ(6, kvtime::hour(params.UT0));
+    ASSERT_EQ(6, kvtime::hour(params.UT1));
+    ASSERT_EQ(4*24, kvtime::hourDiff(params.UT1, params.UT0));
 }

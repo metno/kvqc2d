@@ -31,6 +31,7 @@
 #define DAYVALUEEXTRACTOR_H_
 
 #include "DayValue.h"
+#include "helpers/timeutil.h"
 #include <boost/shared_ptr.hpp>
 
 namespace miutil { class miTime; }
@@ -39,7 +40,7 @@ class DayValueExtractor {
 public:
     virtual ~DayValueExtractor();
     virtual void newDay() = 0;
-    virtual bool addObservation(const miutil::miTime& obstime, float original) = 0;
+    virtual bool addObservation(const kvtime::time& obstime, float original) = 0;
     virtual bool isCompleteDay() = 0;
     virtual DayValueP value() = 0;
 };

@@ -177,7 +177,7 @@ DBInterface::StationList SqliteTestDB::extractStations(const std::string& sql) t
         const std::string stationstr = sqlite3_column_string(stmt, col++);
         const int environmentid = sqlite3_column_int(stmt, col++);
         const bool is_static = sqlite3_column_string(stmt, col++) == "t";
-        const miutil::miTime fromtime = (const char*)sqlite3_column_text(stmt, col++);
+        const kvtime::time fromtime = kvtime::maketime((const char*)sqlite3_column_text(stmt, col++));
 
         kvalobs::kvStation station(stationid, lat, lon, height, maxspeed, name, wmonr, nationalnr, ICAOid, call_sign, stationstr, environmentid, is_static, fromtime);
         stations.push_back(station);
@@ -220,7 +220,7 @@ DBInterface::StationParamList SqliteTestDB::extractStationParams(const std::stri
         const std::string qcx = sqlite3_column_string(stmt, col++);
         const std::string metadata = sqlite3_column_string(stmt, col++);
         const std::string desc_metadata = sqlite3_column_string(stmt, col++);
-        const miutil::miTime fromtime((const char*)sqlite3_column_text(stmt, col++));
+        const kvtime::time fromtime = kvtime::maketime((const char*)sqlite3_column_text(stmt, col++));
 
         kvalobs::kvStationParam sp(stationid, paramid, level, sensor, fromday, today, hour, qcx, metadata, desc_metadata, fromtime);
         d.push_back(sp);
@@ -239,10 +239,10 @@ DBInterface::DataList SqliteTestDB::extractData(const std::string& sql) throw (D
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
         const int stationid = sqlite3_column_int(stmt, col++);
-        const miutil::miTime obstime((const char*)(sqlite3_column_text(stmt, col++)));
+        const kvtime::time obstime = kvtime::maketime((const char*)(sqlite3_column_text(stmt, col++)));
         const float original = sqlite3_column_double(stmt, col++);
         const int paramid = sqlite3_column_int(stmt, col++);
-        const miutil::miTime tbtime((const char*)(sqlite3_column_text(stmt, col++)));
+        const kvtime::time tbtime  = kvtime::maketime((const char*)(sqlite3_column_text(stmt, col++)));
         const int type_id = sqlite3_column_int(stmt, col++);
         const int sensor = sqlite3_column_int(stmt, col++);
         const int level = sqlite3_column_int(stmt, col++);
@@ -308,7 +308,7 @@ DBInterface::ModelDataList SqliteTestDB::extractModelData(const std::string& sql
     while( (step = sqlite3_step(stmt)) == SQLITE_ROW ) {
         int col = 0;
         const int stationid = sqlite3_column_int(stmt, col++);
-	const miutil::miTime obstime((const char*)(sqlite3_column_text(stmt, col++)));
+	const kvtime::time obstime = kvtime::maketime((const char*)(sqlite3_column_text(stmt, col++)));
         const int paramid = sqlite3_column_int(stmt, col++);
         const int level = sqlite3_column_int(stmt, col++);
         const int modelid = sqlite3_column_int(stmt, col++);

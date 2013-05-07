@@ -3,6 +3,7 @@
 #ifndef NOTIFIER_ICC
 #define NOTIFIER_ICC 1
 
+#include "helpers/timeutil.h"
 #include <sstream>
 
 template<class T>
@@ -10,5 +11,11 @@ Message& Message::operator<<(const T& t)
 {
     *mStream << t; return *this;
 }
+
+template<>
+Message& Message::operator<< <kvtime::time>(const kvtime::time& t);
+
+template<>
+Message& Message::operator<< <kvtime::date>(const kvtime::date& d);
 
 #endif /* NOTIFIER_ICC */

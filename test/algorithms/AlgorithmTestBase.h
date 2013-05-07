@@ -42,7 +42,10 @@ class Qc2Algorithm;
 // ########################################################################
 
 ::testing::AssertionResult AssertObstime(const char* e_expr, const char* /*a_expr*/,
-                                         const miutil::miTime& e, const kvalobs::kvData& a);
+        const kvtime::time& e, const kvalobs::kvData& a);
+inline ::testing::AssertionResult AssertObstime(const char* e_expr, const char* a_expr,
+        const char* e, const kvalobs::kvData& a)
+{ return AssertObstime(e_expr, a_expr, kvtime::maketime(e), a); }
 
 #define EXPECT_OBSTIME(e, a) EXPECT_PRED_FORMAT2(AssertObstime, e, a)
 #define ASSERT_OBSTIME(e, a) ASSERT_PRED_FORMAT2(AssertObstime, e, a)
@@ -51,13 +54,19 @@ class Qc2Algorithm;
 #define ASSERT_CFAILED(e, a) EXPECT_PRED_FORMAT2(::testing::IsSubstring, e, a.cfailed())
 
 ::testing::AssertionResult AssertObsControlCfailed(const char* eo_expr, const char* eci_expr, const char* ecf_expr, const char* a_expr,
-                                                   const miutil::miTime& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a);
+        const kvtime::time& eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a);
+inline ::testing::AssertionResult AssertObsControlCfailed(const char* eo_expr, const char* eci_expr, const char* ecf_expr, const char* a_expr,
+        const char* eo, const std::string& eci, const std::string& ecf, const kvalobs::kvData& a)
+{ return AssertObsControlCfailed(eo_expr, eci_expr, ecf_expr, a_expr, kvtime::maketime(eo), eci, ecf, a); }
 
 #define EXPECT_OBS_CONTROL_CFAILED(eo, eci, ecf, a) EXPECT_PRED_FORMAT4(AssertObsControlCfailed, eo, eci, ecf, a)
 #define ASSERT_OBS_CONTROL_CFAILED(eo, eci, ecf, a) ASSERT_PRED_FORMAT4(AssertObsControlCfailed, eo, eci, ecf, a)
 
 ::testing::AssertionResult AssertStationObsControlCorrected(const char* es_expr, const char* eo_expr, const char* eci_expr, const char* eco_expr, const char* a_expr,
-                                                            int es, const miutil::miTime& eo, const std::string& eci, float eco, const kvalobs::kvData& a);
+        int es, const kvtime::time& eo, const std::string& eci, float eco, const kvalobs::kvData& a);
+inline ::testing::AssertionResult AssertStationObsControlCorrected(const char* es_expr, const char* eo_expr, const char* eci_expr, const char* eco_expr, const char* a_expr,
+                                                            int es, const char* eo, const std::string& eci, float eco, const kvalobs::kvData& a)
+{ return AssertStationObsControlCorrected(es_expr, eo_expr, eci_expr, eco_expr, a_expr, es, kvtime::maketime(eo), eci, eco, a); }
 
 #define EXPECT_STATION_OBS_CONTROL_CORR(es, eo, eci, eco, a) EXPECT_PRED_FORMAT5(AssertStationObsControlCorrected, es, eo, eci, eco, a)
 #define ASSERT_STATION_OBS_CONTROL_CORR(es, eo, eci, eco, a) ASSERT_PRED_FORMAT5(AssertStationObsControlCorrected, es, eo, eci, eco, a)

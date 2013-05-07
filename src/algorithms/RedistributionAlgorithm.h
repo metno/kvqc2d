@@ -46,7 +46,7 @@ private:
         RedisUpdate(const kvalobs::kvData& data)
             : DataUpdate(data), mHasNeigboursWithPrecipitation(false), mHasAllNeighborsBoneDry(false) { }
 
-        RedisUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+        RedisUpdate(const kvalobs::kvData& templt, const kvtime::time& obstime, const kvtime::time& tbtime,
                     float original, float corrected, const std::string& controlinfo)
             : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo),
               mHasNeigboursWithPrecipitation(false), mHasAllNeighborsBoneDry(false) { }
@@ -83,8 +83,8 @@ public:
 private:
     std::list<int> findNeighbors(int stationID);
 
-    void insertMissingRows(const kvalobs::kvData& endpoint, updateList_t& mdata, const miutil::miTime& beforeTime);
-    bool findMissing(const kvalobs::kvData& endpoint, const miutil::miTime& earliest, updateList_t& accumulation);
+    void insertMissingRows(const kvalobs::kvData& endpoint, updateList_t& mdata, const kvtime::time& beforeTime);
+    bool findMissing(const kvalobs::kvData& endpoint, const kvtime::time& earliest, updateList_t& accumulation);
     bool checkEndpoint(const kvalobs::kvData& endpoint);
     bool checkAccumulationPeriod(const updateList_t& mdata);
     bool getNeighborData(const updateList_t& accumulation, dataList_t& ndata);
@@ -92,7 +92,7 @@ private:
     bool redistributePrecipitation(updateList_t& accumulation);
     void updateOrInsertData(const updateList_t& toStore);
     
-    miutil::miTime stepTime(const miutil::miTime& time);
+    kvtime::time stepTime(const kvtime::time& time);
 
 private:
     boost::shared_ptr<RedistributionNeighbors> mNeighbors;

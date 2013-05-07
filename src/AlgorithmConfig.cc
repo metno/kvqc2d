@@ -48,25 +48,25 @@ namespace fs = boost::filesystem;
 
 namespace {
 
-void extractTime(const ConfigParser& c, const std::string& prefix, miutil::miTime& time)
+void extractTime(const ConfigParser& c, const std::string& prefix, kvtime::time& time)
 {
-    const int Year   = c.get(prefix+"_YYYY").convert<int>(0, time.year());
-    const int Month  = c.get(prefix+"_MM")  .convert<int>(0, time.month());
-    const int Day    = c.get(prefix+"_DD")  .convert<int>(0, time.day());
-    const int Hour   = c.get(prefix+"_hh")  .convert<int>(0, time.hour());
+    const int Year   = c.get(prefix+"_YYYY").convert<int>(0, kvtime::year (time));
+    const int Month  = c.get(prefix+"_MM")  .convert<int>(0, kvtime::month(time));
+    const int Day    = c.get(prefix+"_DD")  .convert<int>(0, kvtime::day  (time));
+    const int Hour   = c.get(prefix+"_hh")  .convert<int>(0, kvtime::hour (time));
     const int Minute = c.get(prefix+"_mm")  .convert<int>(0, 0);
     const int Second = c.get(prefix+"_ss")  .convert<int>(0, 0);
-    time = miutil::miTime(Year, Month, Day, Hour, Minute, Second);
+    time = kvtime::maketime(Year, Month, Day, Hour, Minute, Second);
 }
 
-void extractHHMMSS(const ConfigParser& c, const std::string& prefix, miutil::miTime& time)
+void extractHHMMSS(const ConfigParser& c, const std::string& prefix, kvtime::time& time)
 {
     if( c.has(prefix + "_hh") )
-        time.addHour(-time.hour() + c.get(prefix + "_hh").convert<int>(0));
+        kvtime::addHours(time, -kvtime::hour(time) + c.get(prefix + "_hh").convert<int>(0));
     if( c.has(prefix + "_mm") )
-        time.addMin(-time.min()   + c.get(prefix + "_mm").convert<int>(0));
+        kvtime::addMinutes(time, -kvtime::minute(time)   + c.get(prefix + "_mm").convert<int>(0));
     if( c.has(prefix + "_ss") )
-        time.addSec(-time.sec()   + c.get(prefix + "_ss").convert<int>(0));
+        kvtime::addSeconds(time, -kvtime::second(time)   + c.get(prefix + "_ss").convert<int>(0));
 }
 
 #if BOOST_FILESYSTEM_VERSION >= 3
@@ -177,9 +177,9 @@ void AlgorithmConfig::ParseStreamThrow(std::istream& input)
     if( !c.load(input) )
         throw ConfigException("Problems parsing kvqc2d algorithm configuration: " + c.errors().format("; ") + " -- giving up!");
 
-    miutil::miTime now = miutil::miTime::nowTime();
-    now.addSec(-now.sec());
-    now.addMin(-now.min());
+    kvtime::time now = kvtime::now();
+    kvtime::addSeconds(now, -kvtime::second(now));
+    kvtime::addMinutes(now, -kvtime::minute(now));
 
     // see https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:config_summary (bottom) for some hints
     // also https://kvalobs.wiki.met.no/doku.php?id=kvoss:system:qc2:user:configuration
@@ -194,7 +194,7 @@ void AlgorithmConfig::ParseStreamThrow(std::istream& input)
         UT1 = UT0;
         extractHHMMSS(c, "End", UT1);
 
-        UT0.addDay( -c.get("Last_NDays").convert<int>(0) );
+        kvtime::addDays(UT0, -c.get("Last_NDays").convert<int>(0) );
     } else {
         extractTime(c, "Start", UT0);
         extractTime(c, "End",   UT1);

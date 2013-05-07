@@ -29,7 +29,6 @@
 
 #include "PlumaticAlgorithm.h"
 
-//#include "helpers/AlgorithmHelpers.h"
 #include "helpers/mathutil.h"
 #include "helpers/stringutil.h"
 #include "helpers/timeutil.h"
@@ -41,7 +40,6 @@
 #include <kvalobs/kvDataOperations.h>
 
 #include <milog/milog.h>
-#include <puTools/miTime.h>
 
 #include <boost/bind.hpp>
 
@@ -74,7 +72,7 @@ PlumaticAlgorithm::PlumaticUpdate::PlumaticUpdate(const kvalobs::kvData& data)
     , mNotOperationalEnd(false)
     , mAggregationFlagged(false) { }
 
-PlumaticAlgorithm::PlumaticUpdate::PlumaticUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+PlumaticAlgorithm::PlumaticUpdate::PlumaticUpdate(const kvalobs::kvData& templt, const kvtime::time& obstime, const kvtime::time& tbtime,
                                                   float original, float corrected, const std::string& controlinfo)
     : DataUpdate(templt, obstime, tbtime, original, corrected, controlinfo)
     , mNotOperationalStart(false)
@@ -159,7 +157,7 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     }
 
     UT0extended = params.UT0;
-    UT0extended.addMin(-lookback);
+    kvtime::addMinutes(UT0extended, -lookback);
 }
 
 // ------------------------------------------------------------------------
@@ -320,27 +318,27 @@ void PlumaticAlgorithm::discardAllNonOperationalTimes(kvUpdateList_t& data)
 
 // ------------------------------------------------------------------------
 
-void PlumaticAlgorithm::checkNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it& m1, const miutil::miTime& t1,
-                                                kvUpdateList_it& m2, const miutil::miTime& t2)
+void PlumaticAlgorithm::checkNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it& m1, const kvtime::time& t1,
+                                                kvUpdateList_it& m2, const kvtime::time& t2)
 {
-    const int minDiff = miutil::miTime::minDiff(t2, t1);
+    const int minDiff = kvtime::minDiff(t2, t1);
     
-    if( minDiff < 60 || (minDiff == 60 && t1.min() == 0 && t2.min() == 0) )
+    if( minDiff < 60 || (minDiff == 60 && kvtime::minute(t1) == 0 && kvtime::minute(t2) == 0) )
         return;
     
-    miutil::miTime tBegin = t1;
-    if( tBegin.min() > 0 )
-        tBegin.addMin(-t1.min());
-    tBegin.addHour(1);
-    miutil::miTime tEnd = t2;
-    if( tEnd.min() != 0 )
-        tEnd.addMin(-t2.min());
-    tEnd.addMin(-1);
+    kvtime::time tBegin = t1;
+    if( kvtime::minute(tBegin) > 0 )
+        kvtime::addMinutes(tBegin, -kvtime::minute(t1));
+    kvtime::addHours(tBegin, 1);
+    kvtime::time tEnd = t2;
+    if( kvtime::minute(tEnd) != 0 )
+        kvtime::addMinutes(tEnd, -kvtime::minute(t2));
+    kvtime::addMinutes(tEnd, -1);
     
     if( tBegin >= tEnd )
         return;
     
-    const miutil::miTime now = miutil::miTime::nowTime();
+    const kvtime::time now = kvtime::now();
     if( tBegin > t1 ) {
         PlumaticUpdate uBegin(m1->data(), tBegin, now, 0.0, missing, "FFFFFFFFFFFFFFFF");
         uBegin.forceNoWrite();
@@ -359,10 +357,10 @@ void PlumaticAlgorithm::checkNonOperationalTime(kvUpdateList_t& data, kvUpdateLi
 void PlumaticAlgorithm::discardNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it begin, kvUpdateList_it end)
 {
     const bool endHasData = (end != data.end());
-    const miutil::miTime beginTime = begin->obstime(), endTime = (endHasData ? end->obstime() : UT1);
+    const kvtime::time beginTime = begin->obstime(), endTime = (endHasData ? end->obstime() : UT1);
     info() << "ignoring non-operational time for station " << begin->data().stationID()
            << " between " << beginTime << " and "
-           << (endHasData ? endTime.isoTime() : UT1.isoTime() + " [end]");
+           << (endHasData ? kvtime::iso(endTime) : kvtime::iso(UT1) + " [end]");
 
     begin->setNotOperationalStart();
     if( begin == end ) {
@@ -420,7 +418,7 @@ bool PlumaticAlgorithm::checkRainInterruption(const Shower& shower, const Shower
     if( shower.first->original() < threshold || previousShower.last->original() < threshold )
         return false;
 
-    const int interruption = miutil::miTime::minDiff(shower.first->obstime(), previousShower.last->obstime());
+    const int interruption = kvtime::minDiff(shower.first->obstime(), previousShower.last->obstime());
     if( interruption > maxRainInterrupt )
         return false;
 
@@ -482,12 +480,12 @@ int PlumaticAlgorithm::checkHighStartLength(const Shower& shower, const float mm
 
 void PlumaticAlgorithm::flagRainInterruption(const Shower& shower, const Shower& previousShower, kvUpdateList_t& data)
 {
-    const miutil::miTime now = miutil::miTime::nowTime();
+    const kvtime::time now = kvtime::now();
 
-    miutil::miTime t = previousShower.last->obstime();
-    t.addMin(1);
+    kvtime::time t = previousShower.last->obstime();
+    kvtime::addMinutes(t, 1);
 
-    for(; t<shower.first->obstime(); t.addMin(1)) {
+    for(; t<shower.first->obstime(); kvtime::addMinutes(t, 1)) {
         bool needInsert = true;
         kvUpdateList_t::iterator it = previousShower.last;
         for( ; it != shower.first; ++it ) {
@@ -569,11 +567,11 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateLis
     f.last = f.first;
     if( f.last != end ) {
         ++f.last;
-        miutil::miTime t = f.first->obstime();
-        t.addMin(1);
+        kvtime::time t = f.first->obstime();
+        kvtime::addMinutes(t, 1);
         while( f.last != end && f.first->original() >= 0.05 && f.last->obstime() == t ) {
             ++f.last;
-            t.addMin(1);
+            kvtime::addMinutes(t, 1);
         }
         --f.last;
         f.duration = 1 + minutesBetween(f.last->obstime(), f.first->obstime());
@@ -588,12 +586,12 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, kvUpdateL
     if (data.empty())
         return;
 
-    miutil::miTime nextXX06 = UT0extended;
-    if (nextXX06.hour() > 6)
-        nextXX06.addDay(1);
-    nextXX06.addHour(6 - nextXX06.hour());
-    nextXX06.addMin(-nextXX06.min());
-    nextXX06.addSec(-nextXX06.sec());
+    kvtime::time nextXX06 = UT0extended;
+    if (kvtime::hour(nextXX06) > 6)
+        kvtime::addDays(nextXX06, 1);
+    kvtime::addHours(nextXX06, 6 - kvtime::hour(nextXX06));
+    kvtime::addMinutes(nextXX06, -kvtime::minute(nextXX06));
+    kvtime::addSeconds(nextXX06, -kvtime::second(nextXX06));
 
     bool operational = true;
 
@@ -608,7 +606,7 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, kvUpdateL
     }
 
     while (mark != data.end()) {
-        nextXX06.addDay(1);
+        kvtime::addDays(nextXX06, 1);
         bool discarded = false, hasNonOperational = !operational;
         float sum = 0;
         int foundFW = -1;
@@ -667,7 +665,7 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, kvUpdateL
 
 // ------------------------------------------------------------------------
 
-int PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum)
+int PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, const kvtime::time& obstime, float sum)
 {
     DBG("station=" << stationid << " obstime=" << obstime << " sum=" << sum);
     const bool isDry = (sum <= mThresholdDry), isWet = (sum >= mThresholdWet);
@@ -721,7 +719,7 @@ int PlumaticAlgorithm::compareWithNeighborStations(int stationid, int type, cons
 
 // ------------------------------------------------------------------------
 
-int PlumaticAlgorithm::countNeighborStations(int stationid, const miutil::miTime& obstime,
+int PlumaticAlgorithm::countNeighborStations(int stationid, const kvtime::time& obstime,
                                              std::vector<int>& dryNeighbors, float& highestDry,
                                              std::vector<int>& wetNeighbors, float& lowestWet)
 {

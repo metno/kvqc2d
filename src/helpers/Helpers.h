@@ -30,6 +30,7 @@
 #ifndef Qc2Helpers_H
 #define Qc2Helpers_H 1
 
+#include "timeutil.h"
 #include <kvalobs/kvData.h>
 #include <iosfwd>
 #include <map>
@@ -49,7 +50,7 @@ bool isMissingOrRejected(const kvalobs::kvData& data);
 std::ostream& digits1(std::ostream& out);
 
 std::string datatext(const kvalobs::kvData& data, int hoursBefore=0);
-std::string datatext(const kvalobs::kvData& data, const miutil::miTime& start);
+std::string datatext(const kvalobs::kvData& data, const kvtime::time& start);
 
 } // namespace Helpers
 

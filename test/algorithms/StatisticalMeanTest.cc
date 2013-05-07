@@ -204,9 +204,9 @@ TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
     const int ctr = stations[0];
 
     DataList data(ctr, 178, 312);
-    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
-    for(; date <= dateEnd; date.addDay(1)) {
-        const int m=date.month(), d=date.day();
+    kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-02-29 06:00:00");
+    for(; date <= dateEnd; kvtime::addDays(date, 1)) {
+        const int m=kvtime::month(date), d=kvtime::day(date);
         if( (m==1 && d>=15 && d<=18) )
             continue;
         for(int i=0; i<N; ++i) {
@@ -236,7 +236,7 @@ TEST_F(StatisticalMeanTest, FakeManyMissing_PR)
     AlgorithmConfig params;
     params.Parse(config);
 
-    int ndays = (dateEnd.date() - miutil::miDate("2012-01-17")) - int(30*0.9);
+    int ndays = (dateEnd.date() - kvtime::makedate(2012, 1, 17)).days() - int(30*0.9);
 
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
@@ -256,9 +256,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation_PR)
 {
     const int ctr = 7010;
     DataList data(ctr, 178, 312);
-    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
-    for(; date <= dateEnd; date.addDay(1)) {
-        const int m=date.month(), d=date.day();
+    kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-02-29 06:00:00");
+    for(; date <= dateEnd; kvtime::addDays(date, 1)) {
+        const int m=kvtime::month(date), d=kvtime::day(date);
         if( (m==1 && d==15) || (m==2 && d==10) )
             continue;
         data.setStation(ctr)
@@ -310,9 +310,9 @@ TEST_F(StatisticalMeanTest, FakeDeviation_TA)
 
     const int ctr = 7010;
     DataList data(ctr, 211, 330);
-    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-02-29 06:00:00");
-    for(; date <= dateEnd; date.addDay(1)) {
-        const int m=date.month(), d=date.day();
+    kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-02-29 06:00:00");
+    for(; date <= dateEnd; kvtime::addDays(date, 1)) {
+        const int m=kvtime::month(date), d=kvtime::day(date);
         if( (m==1 && d==15) || (m==2 && d==10) )
             continue;
         data.setStation(ctr);
@@ -376,8 +376,8 @@ TEST_F(StatisticalMeanTest, FakeDeviation_VV)
     sql.str("");
 
     DataList data(stations[0], paramid, idtype);
-    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-03-31 06:00:00");
-    for(int day=0; date <= dateEnd; date.addDay(1), day += 1) {
+    kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-03-31 06:00:00");
+    for(int day=0; date <= dateEnd; kvtime::addDays(date, 1), day += 1) {
         for(int s=0; stations[s]>0; ++s) {
             const float obs = (s == 0) ? (50*(day%4))+125 : (100*(day%4))+50;
             data.setStation(stations[s])
@@ -421,9 +421,9 @@ void StatisticalMeanTest::TestRR_N(int paramid, int N_PER_DAY)
     sql.str("");
 
     DataList data(stations[0], paramid, idtype);
-    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-03-31 06:00:00");
+    kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-03-31 06:00:00");
     for(int day=0; date <= dateEnd; day += 1) {
-        for(int i=0; i<N_PER_DAY; date.addHour(24/N_PER_DAY), i+=1) {
+        for(int i=0; i<N_PER_DAY; kvtime::addHours(date, 24/N_PER_DAY), i+=1) {
             for(int s=0; stations[s]>0; ++s) {
                 const float obs = (s == 0) ? 2 : 1;
                 data.setStation(stations[s])
@@ -490,9 +490,9 @@ TEST_F(StatisticalMeanTest, MixedTypeIDs)
     sql.str("");
 
     DataList data(stations[0], paramid, idtype[0]);
-    miutil::miTime date("2012-01-01 06:00:00"), dateEnd("2012-03-31 06:00:00");
+    kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-03-31 06:00:00");
     for(int day=0; date <= dateEnd; day += 1) {
-        for(int i=0; i<N_PER_DAY; date.addHour(24/N_PER_DAY), i+=1) {
+        for(int i=0; i<N_PER_DAY; kvtime::addHours(date, 24/N_PER_DAY), i+=1) {
             for(int s=0; stations[s]>0; ++s) {
                 const float obs = (s == 0) ? 2 : 1;
                 data.setStation(stations[s])

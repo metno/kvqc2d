@@ -34,7 +34,6 @@
 #include "foreach.h"
 
 #include <milog/milog.h>
-#include <puTools/miTime.h>
 
 #define NDEBUG
 #include "debug.h"
@@ -80,9 +79,9 @@ void SingleLinearAlgorithm::run()
         DBGV(Qc2Data.size());
 
         foreach(const kvalobs::kvData& d, Qc2Data) {
-            miutil::miTime timeBefore = d.obstime(), timeAfter = d.obstime();
-            timeBefore.addHour(-1);
-            timeAfter.addHour(1);
+            kvtime::time timeBefore = d.obstime(), timeAfter = d.obstime();
+            kvtime::addHours(timeBefore, -1);
+            kvtime::addHours(timeAfter, 1);
 
             const DBInterface::DataList series
                 = database()->findDataOrderObstime(d.stationID(), d.paramID(), d.typeID(), d.sensor(), d.level(), TimeRange(timeBefore, timeAfter));

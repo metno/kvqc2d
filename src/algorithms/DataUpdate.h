@@ -30,9 +30,9 @@
 #ifndef DataUpdate_H
 #define DataUpdate_H 1
 
+#include "helpers/timeutil.h"
 #include <kvalobs/kvData.h>
 #include <kvalobs/kvDataFlag.h>
-#include <puTools/miTime.h>
 #include <iosfwd>
 
 class FlagChange;
@@ -56,7 +56,7 @@ public:
 
     DataUpdate(const kvalobs::kvData& data);
 
-    DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+    DataUpdate(const kvalobs::kvData& templt, const kvtime::time& obstime, const kvtime::time& tbtime,
                float original, float corrected, const std::string& controlinfo);
 
     /**
@@ -89,7 +89,7 @@ public:
     float corrected() const
         { return mData.corrected(); }
 
-    miutil::miTime obstime() const
+    kvtime::time obstime() const
         { return mData.obstime(); }
 
     kvalobs::kvControlInfo controlinfo() const
@@ -124,7 +124,7 @@ public:
     std::string text(int hoursBefore=0, bool modified=true) const;
 
     /// \see text(int,bool)
-    std::string text(const miutil::miTime& start, bool modified=true) const;
+    std::string text(const kvtime::time& start, bool modified=true) const;
 
 private:
     kvalobs::kvData mData;

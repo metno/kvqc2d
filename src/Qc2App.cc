@@ -31,10 +31,10 @@
 
 #include "AlgorithmRunner.h"
 #include "foreach.h"
+#include "helpers/timeutil.h"
 
 #include <kvalobs/kvPath.h>
 #include <milog/milog.h>
-#include <puTools/miTime.h>
 
 #include <boost/bind.hpp>
 #include <signal.h>
@@ -182,7 +182,7 @@ bool Qc2App::sendDataToKvService(const kvalobs::kvStationInfoList &info, bool &b
     CORBA::Long k=0;
     foreach(const kvalobs::kvStationInfo& si, info) {
         stInfoList[k].stationId = si.stationID();
-        stInfoList[k].obstime   = CORBA::string_dup(si.obstime().isoTime().c_str());
+        stInfoList[k].obstime   = CORBA::string_dup(kvtime::iso(si.obstime()).c_str());
         stInfoList[k].typeId_   = si.typeID();
         k += 1;
     }

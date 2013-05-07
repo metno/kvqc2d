@@ -30,8 +30,8 @@
 #ifndef DAYVALUE_H_
 #define DAYVALUE_H_
 
+#include "helpers/timeutil.h"
 #include <boost/shared_ptr.hpp>
-namespace miutil { class miDate; }
 
 class DayValue {
 public:
@@ -49,7 +49,7 @@ public:
     void setDay(int day)
         { mDay = day; }
 
-    int normalisedDayOfYear(const miutil::miDate& day0) const;
+    int normalisedDayOfYear(const kvtime::date& day0) const;
 
 private:
     int mDay;

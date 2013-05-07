@@ -24,10 +24,10 @@ TEST_F(GapInterpolationTest, reproduce_kvalobs_18230)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 16);
    
-    EXPECT_EQ(miutil::miTime("2012-12-11 18:00:00"), bc->update(0).obstime());
+    EXPECT_EQ(kvtime::maketime("2012-12-11 18:00:00"), bc->update(0).obstime());
     EXPECT_NEAR(-11.9, bc->update(0).corrected(), 0.05);
 
-    EXPECT_EQ(miutil::miTime("2012-12-12 09:00:00"), bc->update(15).obstime());
+    EXPECT_EQ(kvtime::maketime("2012-12-12 09:00:00"), bc->update(15).obstime());
     EXPECT_NEAR(-12.0, bc->update(15).corrected(), 0.05);
     
     for (int i=1; i<15; ++i) {

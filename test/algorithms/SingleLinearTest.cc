@@ -82,9 +82,9 @@ TEST_F(SingleLinearTest, test1)
     params.Parse(config);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
-    tb.addHour(-1);
-    ta.addHour(+1);
+    kvtime::time t = kvtime::maketime("2011-10-01 11:00:00"), tb=t, ta=t;
+    kvtime::addHours(tb, -1);
+    kvtime::addHours(ta, +1);
     ASSERT_NO_THROW(series = db->findDataOrderObstime(180, pid, TimeRange(tb, tb)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(14.0, series.begin()->original());
@@ -129,7 +129,7 @@ TEST_F(SingleLinearTest, test2)
     ASSERT_RUN(algo, bc, 1);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t("2011-10-01 11:00:00"), tb=t, ta=t;
+    kvtime::time t = kvtime::maketime("2011-10-01 11:00:00"), tb=t, ta=t;
     ASSERT_NO_THROW(series = db->findDataOrderObstime(180, pid, TimeRange(t, t)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(params.rejected, series.begin()->corrected());
@@ -203,7 +203,7 @@ TEST_F(SingleLinearTest, testFromWiki)
     ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t0("2025-09-16 12:00:00"), t1("2025-09-17 10:00:00");
+    kvtime::time t0 = kvtime::maketime("2025-09-16 12:00:00"), t1 = kvtime::maketime("2025-09-17 10:00:00");
     ASSERT_NO_THROW(series = db->findDataOrderObstime(87120, pid, TimeRange(t0, t0)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(6.7, series.begin()->corrected());
@@ -328,7 +328,7 @@ TEST_F(SingleLinearTest, testFromKro)
     ASSERT_RUN(algo, bc, 1);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t0("2011-10-10 13:00:00");
+    kvtime::time t0 = kvtime::maketime("2011-10-10 13:00:00");
     ASSERT_NO_THROW(series = db->findDataOrderObstime(93000, pid, TimeRange(t0, t0)));
     ASSERT_EQ(1, series.size());
     ASSERT_FLOAT_EQ(1.6, series.begin()->corrected());

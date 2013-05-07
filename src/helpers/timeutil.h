@@ -30,7 +30,48 @@
 #ifndef HELPERS_TIME_H_
 #define HELPERS_TIME_H_
 
+#if 1
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+namespace kvtime {
+typedef boost::posix_time::ptime time;
+typedef boost::gregorian::date   date;
+}
+#else
 #include <puTools/miTime.h>
+namespace kvtime {
+typedef miutil::miTime time;
+typedef miutil::miDate date;
+}
+#endif
+
+namespace kvtime {
+
+time maketime(const std::string& time_text);
+time maketime(int Year, int Month, int Day, int Hour, int Minute, int Second);
+date makedate(int Year, int Month, int Day);
+time now();
+
+void addSeconds(time& t, int nSeconds);
+void addMinutes(time& t, int nMinutes);
+void addHours(time& t, int nHours);
+void addDays(time& t, int nDays);
+void addDays(date& d, int nDays);
+
+int minDiff(const time& t1, const time& t0);
+int hourDiff(const time& t1, const time& t0);
+
+int year  (const time& t);
+int month (const time& t);
+int day   (const time& t);
+int hour  (const time& t);
+int minute(const time& t);
+int second(const time& t);
+int julianDay(const date& t);
+
+std::string iso(const time& t);
+std::string iso(const date& d);
+
+} // namespace kvtime
 
 namespace Helpers {
 
@@ -38,11 +79,11 @@ namespace Helpers {
  * Returns the normalised day of the year, that is 28.2. = 29.2. = day
  * 59, 1.3. = 60, ...
  */
-int normalisedDayOfYear(const miutil::miDate& date);
+int normalisedDayOfYear(const kvtime::date& date);
 
-miutil::miTime plusDay(const miutil::miTime& t, int nDays);
-miutil::miTime plusHour(const miutil::miTime& t, int nHours);
-miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes);
+kvtime::time plusDay(const kvtime::time& t, int nDays);
+kvtime::time plusHour(const kvtime::time& t, int nHours);
+kvtime::time plusMinute(const kvtime::time& t, int nMinutes);
 
 } // namespace Helpers
 

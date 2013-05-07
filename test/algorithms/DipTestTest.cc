@@ -103,8 +103,8 @@ TEST_F(DipTestTest, Bugzilla1327)
     ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
-    t2.addHour(1);
+    kvtime::time t1 = kvtime::maketime("2011-08-13 17:00:00"), t2 = t1;
+    kvtime::addHours(t2, 1);
 
     ASSERT_NO_THROW(series = db->findDataOrderObstime(90800, 90, TimeRange(t1, t2)));
     ASSERT_EQ(2, series.size());
@@ -171,8 +171,8 @@ TEST_F(DipTestTest, FromWikiSpecLinear)
     ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t1("2018-09-09 03:00:00"), t2 = t1;
-    t2.addHour(1);
+    kvtime::time t1 = kvtime::maketime("2018-09-09 03:00:00"), t2 = t1;
+    kvtime::addHours(t2, 1);
 
     ASSERT_NO_THROW(series = db->findDataOrderObstime(18230, 87, TimeRange(t1, t2)));
     ASSERT_EQ(2, series.size());
@@ -231,8 +231,8 @@ TEST_F(DipTestTest, FromWikiSpecAkima)
     ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
-    t2.addHour(1);
+    kvtime::time t1 = kvtime::maketime("2018-09-25 20:00:00"), t2 = t1;
+    kvtime::addHours(t2, 1);
 
     ASSERT_NO_THROW(series = db->findDataOrderObstime(12320, 104, TimeRange(t1, t2)));
     ASSERT_EQ(2, series.size());
@@ -284,8 +284,8 @@ TEST_F(DipTestTest, BadNeighboursForAkima)
     ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t1("2018-09-25 20:00:00"), t2 = t1;
-    t2.addHour(1);
+    kvtime::time t1 = kvtime::maketime("2018-09-25 20:00:00"), t2 = t1;
+    kvtime::addHours(t2, 1);
 
     ASSERT_NO_THROW(series = db->findDataOrderObstime(12320, 104, TimeRange(t1, t2)));
     ASSERT_EQ(2, series.size());
@@ -479,8 +479,8 @@ TEST_F(DipTestTest, Bugzilla1320)
     ASSERT_RUN(algo, bc, 2);
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t1("2011-08-13 17:00:00"), t2 = t1;
-    t2.addHour(1);
+    kvtime::time t1 = kvtime::maketime("2011-08-13 17:00:00"), t2 = t1;
+    kvtime::addHours(t2, 1);
 
     ASSERT_NO_THROW(series = db->findDataOrderObstime(90800, 90, TimeRange(t1, t2)));
     ASSERT_EQ(2, series.size());

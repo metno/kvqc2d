@@ -96,8 +96,8 @@ GapInterpolationAlgorithm::ParamGroupMissingRange::ParamGroupMissingRange(const 
 
 bool GapInterpolationAlgorithm::ParamGroupMissingRange::tryExtend(const kvalobs::kvData& missing)
 {
-    const miutil::miTime obstime = missing.obstime();
-    const int hd = miutil::miTime::hourDiff(obstime, range.t1);
+    const kvtime::time obstime = missing.obstime();
+    const int hd = kvtime::hourDiff(obstime, range.t1);
     assert(hd>=0);
     if( hd > 3 )
         return false;
@@ -163,11 +163,11 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
 
         std::vector<float> valueUU(nd.size(), Interpolation::MISSING_VALUE), valueTA(nd.size(), Interpolation::MISSING_VALUE);
         foreach(const kvalobs::kvData& d, dl) {
-            const int time = miutil::miTime::hourDiff(d.obstime(), t.t0);
+            const int time = kvtime::hourDiff(d.obstime(), t.t0);
             valueUU.at(time) = d.original();
         }
         foreach(const kvalobs::kvData& d, dlTA) {
-            const int time = miutil::miTime::hourDiff(d.obstime(), t.t0);
+            const int time = kvtime::hourDiff(d.obstime(), t.t0);
             valueTA.at(time) = d.corrected();
         }
         for(std::size_t t=0; t<nd.size(); ++t) {
@@ -177,7 +177,7 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
         }
     } else {
         foreach(const kvalobs::kvData& d, dl) {
-            const int time = miutil::miTime::hourDiff(d.obstime(), t.t0);
+            const int time = kvtime::hourDiff(d.obstime(), t.t0);
             nd.at(time) = Interpolation::SupportData(d.original());
         }
     }
@@ -399,7 +399,7 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
                                                              instrument.sensor, instrument.level, range, all);
 
     foreach(const kvalobs::kvData& d, series) {
-        const int time = miutil::miTime::hourDiff(d.obstime(), range.t0), paramid = d.paramID();
+        const int time = kvtime::hourDiff(d.obstime(), range.t0), paramid = d.paramID();
         DBGV(d);
         Interpolation::Quality q = Interpolation::UNUSABLE;
 

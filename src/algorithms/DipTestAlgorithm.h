@@ -46,7 +46,7 @@ public:
 
 private:
     bool  fillParameterDeltaMap(const AlgorithmConfig& params, std::map<int, float>& map);
-    float fetchDelta(const miutil::miTime& time, int pid);
+    float fetchDelta(const kvtime::time& time, int pid);
     void  checkDipAndInterpolate(const kvalobs::kvData& candidate, float delta);
     bool  tryAkima(const kvalobs::kvData& candidate, float& interpolated);
     void  writeChanges(const kvalobs::kvData& dip, const kvalobs::kvData& after, const float interpolated, bool haveAkima);

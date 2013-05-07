@@ -95,7 +95,7 @@ private:
     Message message(Message::Level level);
 
 protected:
-    miutil::miTime UT0, UT1;
+    kvtime::time UT0, UT1;
     std::string CFAILED_STRING;
     float missing, rejected;
 

@@ -77,7 +77,7 @@ public:
     // ----------------------------------------
 
     typedef std::list<kvalobs::kvStationParam> StationParamList;
-    virtual StationParamList findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException) = 0;
+    virtual StationParamList findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) throw (DBException) = 0;
     virtual StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException) = 0;
 
     // ----------------------------------------

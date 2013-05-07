@@ -87,12 +87,6 @@ kvqc2d_LDFLAGS = -pthread -export-dynamic $(BOOST_LDFLAGS)
 kvqc2d_LDADD = \
 	libkvqc2d_1.a interpolation/libinterpolation.a statisticalmean/libstatisticalmean.a libkvqc2d_2.a helpers/libhelpers.a \
 	$(PROG_DEPS_LIBS) \
-	-lkvalobs2_fileutil \
-	-lkvalobs2_kvalobs \
-	-lkvalobs2_kvdb \
-	-lkvalobs2_miconfparser \
-	-lkvalobs2_milog \
-	-lkvalobs2_kvskel \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) -lboost_system -lgsl
 

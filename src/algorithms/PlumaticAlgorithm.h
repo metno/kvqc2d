@@ -52,7 +52,7 @@ private:
 
         PlumaticUpdate(const kvalobs::kvData& data);
 
-        PlumaticUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+        PlumaticUpdate(const kvalobs::kvData& templt, const kvtime::time& obstime, const kvtime::time& tbtime,
                        float original, float corrected, const std::string& controlinfo);
 
         PlumaticUpdate& setNotOperationalStart()
@@ -102,12 +102,12 @@ private:
             : length(l), max(m) { }
     };
 
-    static int minutesBetween(const miutil::miTime& t0, const miutil::miTime& t1)
-        { return miutil::miTime::minDiff(t0, t1); }
+    static int minutesBetween(const kvtime::time& t0, const kvtime::time& t1)
+        { return kvtime::minDiff(t0, t1); }
 
     void discardAllNonOperationalTimes(kvUpdateList_t& data);
-    void checkNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it& m1, const miutil::miTime& t1,
-                                 kvUpdateList_it& m2, const miutil::miTime& t2);
+    void checkNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it& m1, const kvtime::time& t1,
+                                 kvUpdateList_it& m2, const kvtime::time& t2);
     void discardNonOperationalTime(kvUpdateList_t& data, kvUpdateList_it begin, kvUpdateList_it end);
 
     void checkStation(int stationid, float mmpv);
@@ -127,8 +127,8 @@ private:
     void flagHighStart(const Shower& shower, int length);
 
     void checkNeighborStations(int stationid, int type, kvUpdateList_t& data);
-    int compareWithNeighborStations(int stationid, int type, const miutil::miTime& obstime, float sum);
-    int countNeighborStations(int stationid, const miutil::miTime& obstime,
+    int compareWithNeighborStations(int stationid, int type, const kvtime::time& obstime, float sum);
+    int countNeighborStations(int stationid, const kvtime::time& obstime,
                               std::vector<int>& dryNeighbors, float& highestDry,
                               std::vector<int>& wetNeighbors, float& lowestWet);
 
@@ -149,7 +149,7 @@ private:
     FlagChange fc_no_neighbors, fc_neighbors_ok, fc_neighbors_suspicious;
     std::vector<ResolutionStations> mStationlist;
     std::vector<SlidingAlarm> mSlidingAlarms;
-    miutil::miTime UT0extended;
+    kvtime::time UT0extended;
 };
 
 // ########################################################################

@@ -39,7 +39,7 @@ public:
     virtual StationList findNorwegianFixedStations() throw (DBException);
     virtual StationIDList findNorwegianFixedStationIDs() throw (DBException);
 
-    virtual StationParamList findStationParams(int stationID, const miutil::miTime& time, const std::string& qcx) throw (DBException);
+    virtual StationParamList findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) throw (DBException);
     virtual StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException);
 
     virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException);

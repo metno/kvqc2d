@@ -56,7 +56,7 @@ DataUpdate::DataUpdate(const kvalobs::kvData& data)
 
 // ------------------------------------------------------------------------
 
-DataUpdate::DataUpdate(const kvalobs::kvData& templt, const miutil::miTime& obstime, const miutil::miTime& tbtime,
+DataUpdate::DataUpdate(const kvalobs::kvData& templt, const kvtime::time& obstime, const kvtime::time& tbtime,
                        float original, float corrected, const std::string& controlinfo)
     : mData(templt.stationID(), obstime, original, templt.paramID(), tbtime, templt.typeID(), templt.sensor(),
             templt.level(), corrected, kvalobs::kvControlInfo(controlinfo), kvalobs::kvUseInfo(), "QC2-missing-row")
@@ -111,22 +111,22 @@ DataUpdate& DataUpdate::cfailed(const std::string& cf, const std::string& extra)
 
 std::string DataUpdate::text(int hoursBefore, bool modified) const
 {
-    miutil::miTime start = mData.obstime();
-    if( hoursBefore > 0 )
-        start.addHour( -hoursBefore );
+    kvtime::time start = mData.obstime();
+    if (hoursBefore > 0)
+        kvtime::addHours(start, -hoursBefore);
     return text(start, modified);
 }
 
 // ------------------------------------------------------------------------
 
-std::string DataUpdate::text(const miutil::miTime& start, bool modified) const
+std::string DataUpdate::text(const kvtime::time& start, bool modified) const
 {
     std::ostringstream out;
     out << "[stationid=" << mData.stationID() << " AND ";
     if( start >= mData.obstime() ) {
-        out << "obstime='" << mData.obstime().isoTime() << '\'';
+        out << "obstime='" << kvtime::iso(mData.obstime()) << '\'';
     } else {
-        out << "obstime BETWEEN '" << start.isoTime() << "' AND '" << mData.obstime().isoTime() << '\'';
+        out << "obstime BETWEEN '" << kvtime::iso(start) << "' AND '" << kvtime::iso(mData.obstime()) << '\'';
     }
     out << " AND paramid="  << mData.paramID()
         << " AND typeid="   << mData.typeID()

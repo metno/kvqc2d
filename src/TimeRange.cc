@@ -43,21 +43,21 @@ int TimeRange::days() const
 
 int TimeRange::hours() const
 {
-    return miutil::miTime::hourDiff(t1, t0);
+    return kvtime::hourDiff(t1, t0);
 }
 
 // ------------------------------------------------------------------------
 
 void TimeRange::extendByHours(int nHours)
 {
-    t0.addHour(-nHours);
-    t1.addHour( nHours);
+    kvtime::addHours(t0, -nHours);
+    kvtime::addHours(t1,  nHours);
 }
 
 // ========================================================================
 
 std::ostream& operator<<(std::ostream& out, const TimeRange& tr)
 {
-    out << '[' << tr.t0 << "--" << tr.t1 << ']';
+    out << '[' << kvtime::iso(tr.t0) << "--" << kvtime::iso(tr.t1) << ']';
     return out;
 }

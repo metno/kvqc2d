@@ -721,7 +721,7 @@ TEST_F(PlumaticTest, NonOperationalMarked)
     ASSERT_NO_THROW(data.update(db));
 
     std::list<kvalobs::kvData> series;
-    miutil::miTime t0("2011-10-01 12:04:00"), t1("2011-10-01 12:06:00");
+    kvtime::time t0 = kvtime::maketime("2011-10-01 12:04:00"), t1 = kvtime::maketime("2011-10-01 12:06:00");
     ASSERT_NO_THROW(series = db->findDataOrderObstime(27270, 105, TimeRange(t0, t1)));
     ASSERT_EQ(3, series.size());
 
@@ -831,16 +831,16 @@ TEST_F(PlumaticTest, Neighbors)
     DataList dataC(27270, 105, 4);
     for(int day=0; day<NDAYS; ++day) {
         for(int hour=0; hour<24; ++hour) {
-            miutil::miTime tC(2011, 10, 1 + day, hour, 0, 0);
+            kvtime::time tC = kvtime::maketime(2011, 10, 1 + day, hour, 0, 0);
             dataC.add(tC, 0.0, "0101000000000000", "");
-            if( (tC >= miutil::miTime(2011, 10, 1, 6, 0, 0) && tC <= miutil::miTime(2011, 10, 2, 5, 59, 0))
-                || (tC >= miutil::miTime(2011, 10, 3, 6, 0, 0) && tC <= miutil::miTime(2011, 10, 4, 5, 59, 0)) )
+            if( (tC >= kvtime::maketime(2011, 10, 1, 6, 0, 0) && tC <= kvtime::maketime(2011, 10, 2, 5, 59, 0))
+                || (tC >= kvtime::maketime(2011, 10, 3, 6, 0, 0) && tC <= kvtime::maketime(2011, 10, 4, 5, 59, 0)) )
             {
-                tC.addMin(15);
+                kvtime::addMinutes(tC, 15);
                 dataC.add(tC, 0.1, "0101000000000000", "");
-                tC.addMin(1);
+                kvtime::addMinutes(tC, 1);
                 dataC.add(tC, 0.5, "0101000000000000", "");
-                tC.addMin(1);
+                kvtime::addMinutes(tC, 1);
                 dataC.add(tC, 0.1, "0101000000000000", "");
             }
         }
@@ -850,7 +850,7 @@ TEST_F(PlumaticTest, Neighbors)
     const int neighborIDs[] = { 27450, 3005, 17000, 17090, 17150, 17280, 17400, 27045, 27470, 30420, -1 };
     DataList dataN(neighborIDs[0], 110, 302);
     for(int day=0; day<=NDAYS; ++day) {
-        const miutil::miTime tN(2011, 10, 1 + day, 6, 0, 0);
+        const kvtime::time tN = kvtime::maketime(2011, 10, 1 + day, 6, 0, 0);
         for(int i=0; neighborIDs[i]>0; ++i) {
             dataN.setStation(neighborIDs[i])
                 .add(tN, (day == 1 || day==2) ? 5 : 0, "0101000000000000", "");
@@ -900,7 +900,7 @@ TEST_F(PlumaticTest, NeighborUpdate)
     DataList dataC(27270, 105, 4);
     for(int day=0; day<NDAYS; ++day) {
         for(int hour=0; hour<24; ++hour) {
-            miutil::miTime tC(2011, 10, 1 + day, hour, 0, 0);
+            kvtime::time tC = kvtime::maketime(2011, 10, 1 + day, hour, 0, 0);
             dataC.add(tC, 0.0, "0101000000000000", "");
         }
     }
@@ -911,7 +911,7 @@ TEST_F(PlumaticTest, NeighborUpdate)
     // now, all available neighbors are wet
     DataList dataN(neighborIDs[0], 110, 302);
     for(int day=0; day<NDAYS; ++day) {
-        const miutil::miTime tN(2011, 10, 1 + day, 6, 0, 0);
+        const kvtime::time tN = kvtime::maketime(2011, 10, 1 + day, 6, 0, 0);
         for(int i=0; neighborIDs[i] != -1; ++i) {
             if (neighborIDs[i] > 0)
                 dataN.setStation(neighborIDs[i]).add(tN, (day == 2 or i&1) ? 5 : 0, "0101000000000000", "");
@@ -934,7 +934,7 @@ TEST_F(PlumaticTest, NeighborUpdate)
     }
 
     // make some neighbors dry for 2011-10-03, so that the neighbors check passes
-    const miutil::miTime tN(2011, 10, 3, 6, 0, 0);
+    const kvtime::time tN = kvtime::maketime(2011, 10, 3, 6, 0, 0);
     for(int i=0; neighborIDs[i] != -1; ++i) {
         if (neighborIDs[i] < 0)
             dataN.setStation(-neighborIDs[i]).add(tN, 0, "0101000000000000", "");
@@ -949,8 +949,8 @@ TEST_F(PlumaticTest, NeighborUpdate)
         EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
 
     // put some rain in the Pluviometer
-    miutil::miTime t(2011, 10, 2, 6, 5, 0), t1(2011, 10, 3, 6, 0, 0);
-    for(; t < t1; t.addMin(10))
+    kvtime::time t = kvtime::maketime(2011, 10, 2, 6, 5, 0), t1 = kvtime::maketime(2011, 10, 3, 6, 0, 0);
+    for(; t < t1; kvtime::addMinutes(t, 10))
         dataC.add(t, 0.1, "0101000000000000", "");
     ASSERT_NO_THROW(dataC.insert(db));
 
@@ -978,18 +978,18 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
         data.add("2010-08-08 00:00:00", 0, "0101000000000000", "")
             .add("2010-08-08 01:00:00", 0, "0101000000000000", "");
         // 5 days non-operational time here
-        miutil::miTime t(2010, 8, 13, 4, 0, 0);
-        for(int hour=0; hour<3; ++hour, t.addHour(1))
+        kvtime::time t = kvtime::maketime(2010, 8, 13, 4, 0, 0);
+        for(int hour=0; hour<3; ++hour, kvtime::addHours(t, 1))
             data.add(t, 0, "0101000000000000", "");
-        for(int hour=0; hour<24; ++hour, t.addHour(1)) {
+        for(int hour=0; hour<24; ++hour, kvtime::addHours(t, 1)) {
             data.add(t, 0.1, "0101000000000000", "");
-            t.addMin(1);
+            kvtime::addMinutes(t, 1);
             data.add(t, 0.5, "0101000000000000", "");
-            t.addMin(1);
+            kvtime::addMinutes(t, 1);
             data.add(t, 0.1, "0101000000000000", "");
-            t.addMin(-2);
+            kvtime::addMinutes(t, -2);
         }
-        for(int hour=0; hour<24; ++hour, t.addHour(1))
+        for(int hour=0; hour<24; ++hour, kvtime::addHours(t, 1))
             data.add(t, 0, "0101000000000000", "");
         ASSERT_NO_THROW(data.insert(db));
     }
@@ -998,7 +998,7 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
         const int neighborIDs[] = { 44480, 46300, 48090, 46850, -1 };
         DataList data(neighborIDs[0], 110, 302);
         for(int day=0; day<8; ++day) {
-            const miutil::miTime t(2010, 8, 8+day, 6, 0, 0);
+            const kvtime::time t = kvtime::maketime(2010, 8, 8+day, 6, 0, 0);
             for(int i=0; neighborIDs[i]>0; ++i)
                 data.setStation(neighborIDs[i]).add(t, 0, "0101000000000000", "");
         }
@@ -1052,18 +1052,18 @@ TEST_F(PlumaticTest, NeighborsAggregationFlagged)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     DataList dataC(27270, 105, 4);
-    miutil::miTime tC(2011, 10, 1, 6, 0, 0);
-    for(int hour=0; hour<24; ++hour, tC.addHour(1)) {
-        miutil::miTime t(tC);
+    kvtime::time tC = kvtime::maketime(2011, 10, 1, 6, 0, 0);
+    for(int hour=0; hour<24; ++hour, kvtime::addHours(tC, 1)) {
+        kvtime::time t(tC);
         dataC.add(t, 0.0, "0101000000000000", "");
         if( hour == 0 ) {
-            t.addMin(15);
+            kvtime::addMinutes(t, 15);
             dataC.add(t, 0.1, "0101000000000000", "");
-            t.addMin(1);
+            kvtime::addMinutes(t, 1);
             dataC.add(t, 5.0, "0101000000000000", "");
-            t.addMin(1);
+            kvtime::addMinutes(t, 1);
             dataC.add(t, 5.0, "0101000000000000", "");
-            t.addMin(1);
+            kvtime::addMinutes(t, 1);
             dataC.add(t, 0.1, "0101000000000000", "");
         }
     }
@@ -1071,7 +1071,7 @@ TEST_F(PlumaticTest, NeighborsAggregationFlagged)
 
     const int neighborIDs[] = { 27450, 3005, 17000, 17090, 17150, 17280, 17400, 27045, 27470, 30420, -1 };
     DataList dataN(neighborIDs[0], 110, 302);
-    const miutil::miTime tN(2011, 10, 2, 6, 0, 0);
+    const kvtime::time tN = kvtime::maketime(2011, 10, 2, 6, 0, 0);
     for(int i=0; neighborIDs[i]>0; ++i) {
         dataN.setStation(neighborIDs[i])
             .add(tN, 0, "0101000000000000", "");
@@ -1182,8 +1182,8 @@ TEST_F(PlumaticTest, NoDataAtEnd)
     ASSERT_NO_THROW(db->exec(sql.str()));
 
     DataList data(90495, 105, 4);
-    miutil::miTime t(2013, 01, 19, 6, 30, 0);
-    for(int hour=0; hour<30; ++hour, t.addHour(1))
+    kvtime::time t = kvtime::maketime(2013, 01, 19, 6, 30, 0);
+    for(int hour=0; hour<30; ++hour, kvtime::addHours(t, 1))
         data.add(t, 0.1, "0101000010000000", "");
     ASSERT_NO_THROW(data.insert(db));
 

@@ -39,7 +39,6 @@
 
 #include <kvalobs/kvDataFlag.h>
 #include <milog/milog.h>
-#include <puTools/miTime.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -62,7 +61,7 @@ bool DipTestAlgorithm::fillParameterDeltaMap(const AlgorithmConfig& params, std:
     return true;
 }
 
-float DipTestAlgorithm::fetchDelta(const miutil::miTime& time, int pid)
+float DipTestAlgorithm::fetchDelta(const kvtime::time& time, int pid)
 {
     std::ostringstream qcx;
     qcx << "QC1-3a-" << pid;
@@ -111,9 +110,9 @@ void DipTestAlgorithm::run()
 
 void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, float delta)
 {
-    miutil::miTime linearStart = candidate.obstime(), linearStop = candidate.obstime();
-    linearStart.addHour(-1);
-    linearStop.addHour(1);
+    kvtime::time linearStart = candidate.obstime(), linearStop = candidate.obstime();
+    kvtime::addHours(linearStart, -1);
+    kvtime::addHours(linearStop, 1);
     if( linearStart < UT0 || linearStop > UT1 )
         return;
 
@@ -139,7 +138,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
 
 #if 0
     // FIXME which delta -- DeltaCheck or delta?
-    const float deltaCheck = fetchDelta(miutil::miTime::nowTime(), candidate.paramID());
+    const float deltaCheck = fetchDelta(kvtime::time::nowTime(), candidate.paramID());
 #endif
 
     //            x
@@ -162,9 +161,9 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
 bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpolated)
 {
     const int N_BEFORE = 3, N_AFTER = 2, N_AKIMA = N_BEFORE + N_AFTER;
-    miutil::miTime akimaStart = candidate.obstime(), akimaStop = candidate.obstime();
-    akimaStart.addHour(-N_BEFORE);
-    akimaStop .addHour( N_AFTER );
+    kvtime::time akimaStart = candidate.obstime(), akimaStop = candidate.obstime();
+    kvtime::addHours(akimaStart, -N_BEFORE);
+    kvtime::addHours(akimaStop, N_AFTER);
 
     const DBInterface::DataList seriesAkima
         = database()->findDataOrderObstime(candidate.stationID(), candidate.paramID(), candidate.typeID(), TimeRange(akimaStart, akimaStop));
@@ -174,7 +173,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
         return false;
 
     // check that the akima support points are in the right order and with the right time
-    miutil::miTime akimaTime = akimaStart;
+    kvtime::time akimaTime = akimaStart;
     std::vector<double> xt,yt;
     int i = 0;
     foreach(const kvalobs::kvData& a, seriesAkima) {
@@ -185,7 +184,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
             yt.push_back(a.original());
         }
         i += 1;
-        akimaTime.addHour(1);
+        kvtime::addHours(akimaTime, 1);
     }
     DBGV(i);
     if( i < N_AKIMA )

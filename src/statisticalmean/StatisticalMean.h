@@ -87,7 +87,7 @@ private:
     int mParamid;
     float mMaxBadRatePerDay;
     std::vector<int> mTypeids;
-    miutil::miTime mUT0extended;
+    kvtime::time mUT0extended;
 
     FlagSetCU ok_flags;
 

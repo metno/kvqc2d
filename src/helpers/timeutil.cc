@@ -29,9 +29,130 @@
 
 #include "timeutil.h"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/format.hpp>
+
+namespace b_pt = boost::posix_time;
+
+namespace kvtime {
+
+time maketime(const std::string& st)
+{
+    if( st.size() > 10 && st[10] == 'T' ) {
+        std::string t = st;
+        t[10] = ' ';
+        return b_pt::time_from_string(t);
+    } else {
+        return b_pt::time_from_string(st);
+    }
+}
+
+time maketime(int year, int month, int day, int hour, int minute, int second)
+{
+    return time(boost::gregorian::date(year, month, day), b_pt::time_duration(hour, minute, second));
+}
+
+date makedate(int year, int month, int day)
+{
+    return boost::gregorian::date(year, month, day);
+}
+
+time now()
+{
+    return b_pt::second_clock::universal_time();
+}
+
+void addSeconds(time& t, int nSeconds)
+{
+    t += b_pt::seconds(nSeconds);
+}
+
+void addMinutes(time& t, int nMinutes)
+{
+    t += b_pt::minutes(nMinutes);
+}
+
+void addHours(time& t, int nHours)
+{
+    t += b_pt::hours(nHours);
+}
+
+void addDays(time& t, int nDays)
+{
+    t += boost::gregorian::days(nDays);
+}
+
+void addDays(date& d, int nDays)
+{
+    d += boost::gregorian::days(nDays);
+}
+
+int minDiff(const time& t1, const time& t0)
+{
+    return (t1 - t0).total_seconds() / 60;
+}
+
+int hourDiff(const time& t1, const time& t0)
+{
+    // TODO this is subtly different from miTime::hourDiff: difference
+    // between (18:00, 17:45) is 0 hours here and 1 hour for miTime
+    return (t1 - t0).hours();
+}
+
+int year(const time& t)
+{
+    return t.date().year();
+}
+
+int month(const time& t)
+{
+    return t.date().month();
+}
+
+int day(const time& t)
+{
+    return t.date().day();
+}
+
+int hour(const time& t)
+{
+    return t.time_of_day().hours();
+}
+
+int minute(const time& t)
+{
+    return t.time_of_day().minutes();
+}
+
+int second(const time& t)
+{
+    return t.time_of_day().seconds();
+}
+
+int julianDay(const date& d)
+{
+    return d.julian_day();
+}
+
+std::string iso(const time& t)
+{
+    std::string ts = b_pt::to_iso_extended_string(t);
+    if( ts.size() > 10 && ts[10] == 'T' )
+        ts[10] = ' ';
+    return ts;
+}
+
+std::string iso(const date& pd)
+{
+    const int y = pd.year(), m = pd.month(), d = pd.day();
+    return (boost::format("%1$04d-%2$02d-%3$02d") % y % m % d).str();
+}
+
+} // namespace kvtime
+
 namespace Helpers {
 
-int normalisedDayOfYear(const miutil::miDate& date)
+int normalisedDayOfYear(const kvtime::date& date)
 {
     // February 29 is the same as February 28
     const int daysFromPreviousMonths[12] = {
@@ -43,24 +164,24 @@ int normalisedDayOfYear(const miutil::miDate& date)
     return daysFromPreviousMonths[month-1] + day;
 }
 
-miutil::miTime plusDay(const miutil::miTime& t, int nDays)
+kvtime::time plusDay(const kvtime::time& t, int nDays)
 {
-    miutil::miTime p(t);
-    p.addDay(nDays);
+    kvtime::time p(t);
+    kvtime::addDays(p, nDays);
     return p;
 }
 
-miutil::miTime plusHour(const miutil::miTime& t, int nHours)
+kvtime::time plusHour(const kvtime::time& t, int nHours)
 {
-    miutil::miTime p(t);
-    p.addHour(nHours);
+    kvtime::time p(t);
+    kvtime::addHours(p, nHours);
     return p;
 }
 
-miutil::miTime plusMinute(const miutil::miTime& t, int nMinutes)
+kvtime::time plusMinute(const kvtime::time& t, int nMinutes)
 {
-    miutil::miTime p(t);
-    p.addMin(nMinutes);
+    kvtime::time p(t);
+    kvtime::addMinutes(p, nMinutes);
     return p;
 }
 

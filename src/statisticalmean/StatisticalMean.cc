@@ -89,7 +89,7 @@ void StatisticalMean::configure(const AlgorithmConfig& config)
     mTypeids   = config.getMultiParameter<int>("TypeIds");
 
     mUT0extended = UT0;
-    mUT0extended.addDay(-mDays);
+    kvtime::addDays(mUT0extended, -mDays);
 
     mNeighbors->configure(config);
     mMeanFactory->configure(this, config);
@@ -126,8 +126,8 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
 {
     const smap_t smap = fetchData();
 
-    const miutil::miDate date0 = mUT0extended.date();
-    const int day0 = date0.julianDay();
+    const kvtime::date date0 = mUT0extended.date();
+    const int day0 = kvtime::julianDay(date0);
     sdm_t stationDailyMeans;
 
     // calculate daily mean values TODO skip for RR_x
@@ -135,9 +135,9 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
         const dlist_t& dl = sd.second;
         for(dlist_t::const_iterator itB = dl.begin(), itE=itB; itB != dl.end(); itB = itE) {
             dve->newDay();
-            const int day = itB->obstime().date().julianDay() - day0;
+            const int day = kvtime::julianDay(itB->obstime().date()) - day0;
             int obsCount = 0, badCount = 0;
-            for( ; itE != dl.end() && (itE->obstime().date().julianDay() - day0) == day; itE++ ) {
+            for( ; itE != dl.end() && (kvtime::julianDay(itE->obstime().date()) - day0) == day; itE++ ) {
                 obsCount += 1;
                 if( !ok_flags.matches( *itE ) || !dve->addObservation(itE->obstime(), itE->original()) )
                     badCount += 1;
@@ -147,8 +147,8 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
                 dv->setDay(day);
                 stationDailyMeans[sd.first].push_back(dv);
             } else {
-                miutil::miDate d = date0;
-                d.addDay(day);
+                kvtime::date d = date0;
+                kvtime::addDays(d, day);
                 info() << "not enough ok data on " << d << " for statistical checks on " << sd.first;
             }
         }
@@ -165,15 +165,15 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
 
     sd2_t stationMeansPerDay;
 
-    const miutil::miDate date0 = mUT0extended.date();
-    const int day0 = date0.julianDay();
+    const kvtime::date date0 = mUT0extended.date();
+    const int day0 = kvtime::julianDay(date0);
 
     foreach(const sdm_t::value_type& sd, stationDailyMeans) {
         accumulator->newStation();
         const dm_t& dml = sd.second;
         dm_t::const_iterator tail = dml.begin(), head = tail;
 
-        const int d0 = UT0.date().julianDay() - day0, d1 = UT1.date().julianDay() - day0;
+        const int d0 = kvtime::julianDay(UT0.date()) - day0, d1 = kvtime::julianDay(UT1.date()) - day0;
         int accumulatedDays = 0;
         for(int day=d0; day<=d1; ++day) {
             const int dfront = day - mDays;
@@ -191,12 +191,12 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
             if( accumulatedDays >= mDaysRequired  && value != 0 ) {
                 stationMeansPerDay[sd.first][day] = value;
             } else {
-                miutil::miDate d0 = date0, d1 = date0;
-                d0.addDay(dfront);
-                d1.addDay(day);
+                kvtime::date d0 = date0, d1 = date0;
+                kvtime::addDays(d0, dfront);
+                kvtime::addDays(d1, day);
                 warning() << "too few (" << accumulatedDays << ") days with ok data between "
-                        << d0 << " and " << d1 << " for statistical checks on "
-                        << sd.first;
+                          << kvtime::iso(d0) << " and " << kvtime::iso(d1) << " for statistical checks on "
+                          << sd.first;
             }
         }
     }
@@ -218,15 +218,15 @@ struct same_station : public std::unary_function<bool, StatisticalMean::sd2_t::v
 
 void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationMeansPerDay)
 {
-    const miutil::miDate date0 = mUT0extended.date();
+    const kvtime::date date0 = mUT0extended.date();
 
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
         const Instrument& center = sd.first;
         foreach(const dm2_t::value_type& dm, sd.second) {
             const int day = dm.first;
 
-            miutil::miDate date(date0);
-            date.addDay(day);
+            kvtime::date date(date0);
+            kvtime::addDays(date, day);
             if( date < UT0.date() )
                 continue;
 

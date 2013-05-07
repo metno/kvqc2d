@@ -94,33 +94,33 @@ TEST(HelpersTest, Round)
 
 TEST(HelpersTest, NormalisedDayOfYear)
 {
-    EXPECT_EQ(1, Helpers::normalisedDayOfYear("1900-01-01"));
-    EXPECT_EQ(1, Helpers::normalisedDayOfYear("2000-01-01"));
-    EXPECT_EQ(1, Helpers::normalisedDayOfYear("2011-01-01"));
-    EXPECT_EQ(1, Helpers::normalisedDayOfYear("2012-01-01"));
+    EXPECT_EQ(1, Helpers::normalisedDayOfYear(kvtime::makedate(1900, 01, 01)));
+    EXPECT_EQ(1, Helpers::normalisedDayOfYear(kvtime::makedate(2000, 01, 01)));
+    EXPECT_EQ(1, Helpers::normalisedDayOfYear(kvtime::makedate(2011, 01, 01)));
+    EXPECT_EQ(1, Helpers::normalisedDayOfYear(kvtime::makedate(2012, 01, 01)));
 
 
-    EXPECT_EQ(59, Helpers::normalisedDayOfYear("1900-02-28"));
+    EXPECT_EQ(59, Helpers::normalisedDayOfYear(kvtime::makedate(1900, 02, 28)));
 
-    EXPECT_EQ(59, Helpers::normalisedDayOfYear("2000-02-28"));
-    EXPECT_EQ(59, Helpers::normalisedDayOfYear("2000-02-29"));
+    EXPECT_EQ(59, Helpers::normalisedDayOfYear(kvtime::makedate(2000, 02, 28)));
+    EXPECT_EQ(59, Helpers::normalisedDayOfYear(kvtime::makedate(2000, 02, 29)));
 
-    EXPECT_EQ(59, Helpers::normalisedDayOfYear("2011-02-28"));
+    EXPECT_EQ(59, Helpers::normalisedDayOfYear(kvtime::makedate(2011, 02, 28)));
 
-    EXPECT_EQ(59, Helpers::normalisedDayOfYear("2012-02-28"));
-    EXPECT_EQ(59, Helpers::normalisedDayOfYear("2012-02-29"));
-
-
-    EXPECT_EQ(60, Helpers::normalisedDayOfYear("1900-03-01"));
-    EXPECT_EQ(60, Helpers::normalisedDayOfYear("2000-03-01"));
-    EXPECT_EQ(60, Helpers::normalisedDayOfYear("2011-03-01"));
-    EXPECT_EQ(60, Helpers::normalisedDayOfYear("2012-03-01"));
+    EXPECT_EQ(59, Helpers::normalisedDayOfYear(kvtime::makedate(2012, 02, 28)));
+    EXPECT_EQ(59, Helpers::normalisedDayOfYear(kvtime::makedate(2012, 02, 29)));
 
 
-    EXPECT_EQ(365, Helpers::normalisedDayOfYear("1900-12-31"));
-    EXPECT_EQ(365, Helpers::normalisedDayOfYear("2000-12-31"));
-    EXPECT_EQ(365, Helpers::normalisedDayOfYear("2011-12-31"));
-    EXPECT_EQ(365, Helpers::normalisedDayOfYear("2012-12-31"));
+    EXPECT_EQ(60, Helpers::normalisedDayOfYear(kvtime::makedate(1900, 03, 01)));
+    EXPECT_EQ(60, Helpers::normalisedDayOfYear(kvtime::makedate(2000, 03, 01)));
+    EXPECT_EQ(60, Helpers::normalisedDayOfYear(kvtime::makedate(2011, 03, 01)));
+    EXPECT_EQ(60, Helpers::normalisedDayOfYear(kvtime::makedate(2012, 03, 01)));
+
+
+    EXPECT_EQ(365, Helpers::normalisedDayOfYear(kvtime::makedate(1900, 12, 31)));
+    EXPECT_EQ(365, Helpers::normalisedDayOfYear(kvtime::makedate(2000, 12, 31)));
+    EXPECT_EQ(365, Helpers::normalisedDayOfYear(kvtime::makedate(2011, 12, 31)));
+    EXPECT_EQ(365, Helpers::normalisedDayOfYear(kvtime::makedate(2012, 12, 31)));
 }
 
 TEST(HelpersTest, Median)
@@ -160,14 +160,14 @@ TEST(HelpersTest, Quartiles)
 
 TEST(HelpersTest, DataText)
 {
-    const kvalobs::kvData d(18700, "2012-03-01 06:00:00", 12.0, 211, "2012-03-01 07:00:00", 302, 0, 0, 12.0,
+    const kvalobs::kvData d(18700, kvtime::maketime("2012-03-01 06:00:00"), 12.0, 211, kvtime::maketime("2012-03-01 07:00:00"), 302, 0, 0, 12.0,
                             kvalobs::kvControlInfo("0110000000001000"), kvalobs::kvUseInfo("0000000000000000"), "");
     EXPECT_EQ("[stationid=18700 AND obstime='2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
               Helpers::datatext(d));
     EXPECT_EQ("[stationid=18700 AND obstime BETWEEN '2012-02-29 06:00:00' AND '2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
               Helpers::datatext(d, 24));
     EXPECT_EQ("[stationid=18700 AND obstime BETWEEN '2012-02-25 06:00:00' AND '2012-03-01 06:00:00' AND paramid=211 AND typeid=302 AND sensor='0' AND level=0; original=12.0 corr=12.0 controlinfo=0110000000001000 cfailed='']",
-              Helpers::datatext(d, "2012-02-25 06:00:00"));
+            Helpers::datatext(d, kvtime::maketime("2012-02-25 06:00:00")));
 }
 
 TEST(HelpersTest, Split2)
@@ -210,4 +210,10 @@ TEST(HelpersTest, SplitN)
         ASSERT_EQ(1, sp.size());
         EXPECT_EQ("17 =", sp[0]);
     }
+}
+
+TEST(TimeTest, Iso)
+{
+    EXPECT_EQ("2012-02-26", kvtime::iso(kvtime::makedate(2012, 2, 26)));
+    EXPECT_EQ("2013-01-12 05:58:32", kvtime::iso(kvtime::maketime(2013, 1, 12, 5, 58, 32)));
 }

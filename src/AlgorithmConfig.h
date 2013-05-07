@@ -30,10 +30,10 @@
 #ifndef __ReadProgramOptions_h__
 #define __ReadProgramOptions_h__
 
-#include "helpers/ConfigParser.h"
 #include "FlagChange.h"
 #include "FlagPatterns.h"
-#include <puTools/miTime.h>
+#include "helpers/ConfigParser.h"
+#include "helpers/timeutil.h"
 
 #include <boost/filesystem/path.hpp>
 #include <exception>
@@ -59,8 +59,8 @@ public:
 
     typedef std::vector<unsigned char> vector_uchar;
 
-    miutil::miTime UT0;
-    miutil::miTime UT1;
+    kvtime::time UT0;
+    kvtime::time UT1;
 
     std::string Algorithm;
     std::string CFAILED_STRING;

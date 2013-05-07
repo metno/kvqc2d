@@ -4,10 +4,10 @@
 TEST_F(GapInterpolationTest, OnlyMissing)
 {
     DataList data(1380, 211, 502);
-    miutil::miTime t("2012-04-01 00:00:00");
+    kvtime::time t = kvtime::maketime("2012-04-01 00:00:00");
     for(int i=0; i<21*24; ++i) {
         data.add(t, -32767, "0000003000000000", "");
-        t.addHour(1);
+        kvtime::addHours(t, 1);
     }
     ASSERT_NO_THROW(data.insert(db));
 

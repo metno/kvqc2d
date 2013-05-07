@@ -30,13 +30,13 @@
 #ifndef TIMERANGE_H
 #define TIMERANGE_H 1
 
-#include <puTools/miTime.h>
+#include "helpers/timeutil.h"
 #include <iosfwd>
 
 struct TimeRange {
-    miutil::miTime t0;
-    miutil::miTime t1;
-    TimeRange(const miutil::miTime& T0, const miutil::miTime& T1)
+    kvtime::time t0;
+    kvtime::time t1;
+    TimeRange(const kvtime::time& T0, const kvtime::time& T1)
         : t0(T0), t1(T1) { }
     int days() const;
     int hours() const;

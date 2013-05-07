@@ -37,7 +37,7 @@ class DayMeanExtractor : public DayValueExtractor {
 public:
     DayMeanExtractor(bool calculateMean, int paramid);
     virtual void newDay();
-    virtual bool addObservation(const miutil::miTime& obstime, float original);
+    virtual bool addObservation(const kvtime::time& obstime, float original);
     virtual bool isCompleteDay();
     virtual DayValueP value();
 

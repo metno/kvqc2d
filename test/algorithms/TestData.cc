@@ -32,7 +32,7 @@
 #include "foreach.h"
 #include "TestDB.h"
 
-DataList& DataList::add(int stationid, const miutil::miTime& obstime, float original, int paramid,
+DataList& DataList::add(int stationid, const kvtime::time& obstime, float original, int paramid,
                         int type, float corrected, const std::string& controlinfo, const std::string& cfailed)
 {
     kvalobs::kvControlInfo ci(controlinfo);

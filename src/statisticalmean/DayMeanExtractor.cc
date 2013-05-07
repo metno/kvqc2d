@@ -31,7 +31,6 @@
 
 #include "helpers/Helpers.h"
 
-#include <puTools/miTime.h>
 #include <boost/make_shared.hpp>
 
 DayMeanExtractor::DayMeanExtractor(bool cm, int paramid)
@@ -47,9 +46,9 @@ void DayMeanExtractor::newDay()
     mSum = 0;
 }
 
-bool DayMeanExtractor::addObservation(const miutil::miTime& obstime, float original)
+bool DayMeanExtractor::addObservation(const kvtime::time& obstime, float original)
 {
-    const int h = obstime.hour(), hBit = (1<<h), hp = hourPattern();
+    const int h = kvtime::hour(obstime), hBit = (1<<h), hp = hourPattern();
     if( (hp & hBit) == 0 )
         return false;
 
