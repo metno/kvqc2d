@@ -1,3 +1,9 @@
+kvqc2d (1.5.3-1) unstable; urgency=low
+
+  * GapInterpolation: set fmis=4 if it was 0
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 08 May 2013 14:14:21 +0200
+
 kvqc2d (1.5.2-1) unstable; urgency=low
 
   * GapInterpolation: recognize fmis=2 as bad data

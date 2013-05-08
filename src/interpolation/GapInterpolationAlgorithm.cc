@@ -130,7 +130,7 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     params.getFlagChange(missing_flagchange_good,   "missing_flagchange_good", "ftime=1");
     params.getFlagChange(missing_flagchange_bad,    "missing_flagchange_bad" , "ftime=2");
     params.getFlagChange(missing_flagchange_failed, "missing_flagchange_failed" , "ftime=3");
-    params.getFlagChange(missing_flagchange_common, "missing_flagchange_common", "fmis=3->fmis=1;fmis=2->fmis=4");
+    params.getFlagChange(missing_flagchange_common, "missing_flagchange_common", "fmis=3->fmis=1;fmis=[02]->fmis=4");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
     foreach(const std::string& pi, parameters)
