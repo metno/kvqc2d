@@ -1,3 +1,9 @@
+kvqc2d (1.5.2-1) unstable; urgency=low
+
+  * GapInterpolation: recognize fmis=2 as bad data
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 08 May 2013 12:47:48 +0200
+
 kvqc2d (1.5.1-1) unstable; urgency=low
 
   * Plumatic: recognize non-operational period at start
