@@ -1,3 +1,9 @@
+kvqc2d (1.5.4-1) unstable; urgency=low
+
+  * GapInterpolation: use observations with useinfo(2) <= 1
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 13 Jun 2013 12:19:42 +0200
+
 kvqc2d (1.5.3-1) unstable; urgency=low
 
   * GapInterpolation: set fmis=4 if it was 0
