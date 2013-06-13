@@ -408,7 +408,7 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
         const kvalobs::kvUseInfo& useinfo = d.useinfo();
         const kvalobs::kvControlInfo& controlinfo = d.controlinfo();
         const int ftime = controlinfo.flag(kvalobs::flag::ftime), fmis = controlinfo.flag(kvalobs::flag::fmis);
-        if( useinfo.flag(2) == 0 ) {
+        if( useinfo.flag(2) <= 1 ) {
             q = Interpolation::OBSERVATION;
             value = d.original();
             usable = true;
@@ -436,7 +436,7 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
             value = Interpolation::MISSING_VALUE;
             q = Interpolation::UNUSABLE;
             usable = false;
-        } else {
+        } else if ( q != Interpolation::MISSING and q != Interpolation::NO_ROW ) {
             value = pi.toNumerical(value);
         }
 

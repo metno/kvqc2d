@@ -56,6 +56,7 @@ kvqc2dTest_SOURCES= \
 	interpolation/GIT_reproduce_kvalobs_68290.cc \
 	interpolation/GIT_reproduce_kvalobs_76926.cc \
 	interpolation/GIT_reproduce_kvalobs_99740.cc \
+	interpolation/GIT_repro_19940.cc \
 	interpolation/GIT_SingleMissingTAXN.cc \
 	interpolation/GIT_TAGroup.cc \
 	interpolation/GIT_TAInterpolatedNeighbors.cc \

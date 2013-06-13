@@ -70,6 +70,9 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
             akima.add(t, i.value());
 #ifdef AKIMA_MIN_MAX
         const SeriesData smin = data.minimum(t), smax = data.maximum(t);
+        DBG(DBG1(t)
+            << DBG1(smin.value()) << "(q=" << smin.quality() << ')'
+            << DBG1(smax.value()) << "(q=" << smax.quality() << ')');
         if( !smin.needsInterpolation() )
             akimaMin.add(t, smin.value());
         if( !smax.needsInterpolation() )
@@ -83,7 +86,9 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
     for(int t=1; t<duration; ++t) {
         const bool minNeeded = data.minimum(t).needsInterpolation();
         const bool maxNeeded = data.maximum(t).needsInterpolation();
-        DBG(DBG1(t) << DBG1(minNeeded) << DBG1(maxNeeded));
+        DBG(DBG1(t)
+            << DBG1(minNeeded) << "(q=" << data.minimum(t).quality() << ')'
+            << DBG1(maxNeeded) << "(q=" << data.maximum(t).quality() << ')');
         if( !minNeeded && !maxNeeded )
             continue;
 
@@ -125,6 +130,7 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
 
         float mini = std::min(i0.value(), i1.value());
         float maxi = std::max(i0.value(), i1.value());
+        DBG(DBG1(mini) << DBG1(maxi));
         const int Nbetween = 20;
         for(int j=1; j<Nbetween; ++j) {
             const float x = t-1 + j/float(Nbetween);
@@ -141,10 +147,12 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
             Helpers::maximize(maxi, static_cast<float>(akimaMax.interpolate(t)));
 #endif
         if( minNeeded ) {
+            DBGV(mini);
             data.setMinimum(t, BAD, mini);
             results.addOk();
         }
         if( maxNeeded ) {
+            DBGV(maxi);
             data.setMaximum(t, BAD, maxi);
             results.addOk();
         }
