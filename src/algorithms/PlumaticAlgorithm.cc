@@ -653,7 +653,8 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, kvUpdateL
                             info() << "updating fw for station " << stationid
                                    << " in 24h before " << nextXX06 << ", probably neighbor data have changed";
                         for (; start != mark; ++start)
-                            start->flagchange(*fc);
+                            start->flagchange(*fc)
+                                .cfailed("QC2h-1-neighbors", CFAILED_STRING);
                     } else {
                         warning() << "Plumatic implementation error, unexpected new FW flag";
                     }
