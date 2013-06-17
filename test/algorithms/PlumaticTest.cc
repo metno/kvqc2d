@@ -868,12 +868,18 @@ TEST_F(PlumaticTest, Neighbors)
     ASSERT_EQ(2 + nup, logs->count());
     EXPECT_EQ(0, logs->find("station 27270 with typeid 4 is dry .* before 2011-10-03 06:00:00"));
     EXPECT_EQ(1, logs->find("station 27270 with typeid 4 is wet .* before 2011-10-04 06:00:00"));
-    for(int u=0; u<nup1; ++u)
+    for(int u=0; u<nup1; ++u) {
         EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
-    for(int u=nup1; u<nup2; ++u)
+        EXPECT_EQ("", bc->update(u).cfailed());
+    }
+    for(int u=nup1; u<nup2; ++u) {
         EXPECT_EQ(3, bc->update(u).controlinfo().flag(8));
-    for(int u=nup2; u<nup3; ++u)
+        EXPECT_EQ("QC2h-1-neighbors", bc->update(u).cfailed());
+    }
+    for(int u=nup2; u<nup3; ++u) {
         EXPECT_EQ(1, bc->update(u).controlinfo().flag(8));
+        EXPECT_EQ("", bc->update(u).cfailed());
+    }
 
     ASSERT_RUN(algo, bc, 0);
 }
