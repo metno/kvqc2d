@@ -40,7 +40,7 @@ class SqliteTestDB;
 class DataList : public std::list<kvalobs::kvData> {
 public:
     DataList(int stationid, int paramid, int tid)
-        : mStationId(stationid), mParamId(paramid), mTypeId(tid) { }
+        : mStationId(stationid), mParamId(paramid), mTypeId(tid), mSensor(0), mLevel(0) { }
 
     DataList& setStation(int sid)
         { mStationId = sid; return *this; }
@@ -48,6 +48,10 @@ public:
         { mParamId = pid; return *this; }
     DataList& setType(int tid)
         { mTypeId = tid; return *this; }
+    DataList& setSensor(int sid)
+        { mSensor = sid; return *this; }
+    DataList& setLevel(int lid)
+        { mLevel = lid; return *this; }
 
     DataList& add(int stationid, const kvtime::time& obstime, float original, int paramid, int type, float corrected, const std::string& controlinfo, const std::string& cfailed);
 
@@ -79,7 +83,7 @@ public:
     void update(SqliteTestDB* db);
 
 private:
-    int mStationId, mParamId, mTypeId;
+    int mStationId, mParamId, mTypeId, mSensor, mLevel;
 };
 
 #endif /* ALGORITHMTESTBASE_H_ */

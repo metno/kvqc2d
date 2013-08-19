@@ -296,7 +296,9 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
 bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const kvtime::time& earliest, updateList_t& mdata)
 {
     const DBInterface::DataList mdatao
-        = database()->findDataOrderObstime(endpoint.stationID(), endpoint.paramID(), endpoint.typeID(), TimeRange(stepTime(earliest), stepTime(endpoint.obstime())));
+        = database()->findDataOrderObstime(endpoint.stationID(), endpoint.paramID(), endpoint.typeID(),
+                                           endpoint.sensor(), endpoint.level(),
+                                           TimeRange(stepTime(earliest), stepTime(endpoint.obstime())));
     DBGV(mdatao.size());
     mdata = updateList_t(mdatao.rbegin(), mdatao.rend());
 

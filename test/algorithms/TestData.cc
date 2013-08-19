@@ -38,7 +38,7 @@ DataList& DataList::add(int stationid, const kvtime::time& obstime, float origin
     kvalobs::kvControlInfo ci(controlinfo);
     kvalobs::kvUseInfo ui;
     ui.setUseFlags(ci);
-    push_back(kvalobs::kvData(stationid, obstime, original, paramid, obstime, type, 0, 0, corrected, ci, ui, cfailed));
+    push_back(kvalobs::kvData(stationid, obstime, original, paramid, obstime, type, mSensor, mLevel, corrected, ci, ui, cfailed));
     return *this;
 }
 
