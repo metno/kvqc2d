@@ -1,3 +1,9 @@
+kvqc2d (1.5.6-1) unstable; urgency=low
+
+  * use endpoint sensor/level for missing data
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 19 Aug 2013 11:10:04 +0200
+
 kvqc2d (1.5.5-1) unstable; urgency=low
 
   * Plumatic: set cfailed if fw > 1
