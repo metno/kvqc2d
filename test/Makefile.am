@@ -61,7 +61,8 @@ kvqc2dTest_SOURCES= \
 	interpolation/GIT_TAGroup.cc \
 	interpolation/GIT_TAInterpolatedNeighbors.cc \
 	interpolation/GIT_test1.cc \
-	interpolation/GIT_UUBecomes0WithoutNieghbors.cc \
+	interpolation/GIT_UUBecomes0WithoutNeighbors.cc \
+	interpolation/GIT_UUFailed.cc \
 	interpolation/GIT_UUGroup.cc \
 	interpolation/GIT_UUNoJump1.cc \
 	interpolation/GIT_UUSeries.cc \

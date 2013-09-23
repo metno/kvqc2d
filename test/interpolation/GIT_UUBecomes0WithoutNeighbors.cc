@@ -1,7 +1,7 @@
 
 #include "GapInterpolationTestBase.hh"
 
-TEST_F(GapInterpolationTest, UUBecomes0WithoutNieghbors)
+TEST_F(GapInterpolationTest, UUBecomes0WithoutNeighbors)
 {
     DataList data(96400, 211, 330);
     data.add("2012-07-18 00:00:00",       8.3,       8.3, "0111000000100010", "")

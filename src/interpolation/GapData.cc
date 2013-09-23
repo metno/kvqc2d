@@ -128,7 +128,9 @@ SeriesData GapDataUU::asValue(const DataUpdates& u, int time) const
     if( TA >= Interpolation::INVALID_VALUE ) {
         const GapUpdate& gu = u.at(time);
         DBG(DBG1(gu) << DBG1(gu.value()) << DBG1(gu.quality()));
-        return SeriesData(Helpers::formulaTD(TA, gu.value()), gu.quality(), gu.usable());
+        const float v = Helpers::formulaTD(TA, gu.value());
+        const bool u = gu.usable() and (v > Interpolation::INVALID_VALUE);
+        return SeriesData(v, gu.quality(), u);
     } else {
         return SeriesData();
     }
