@@ -1,3 +1,9 @@
+kvqc2d (1.5.7-1) unstable; urgency=low
+
+  * fixed a problem with UU >= 100
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 23 Sep 2013 13:21:36 +0200
+
 kvqc2d (1.5.6-1) unstable; urgency=low
 
   * use endpoint sensor/level for missing data
