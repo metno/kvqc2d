@@ -1,3 +1,9 @@
+kvqc2d (1.5.8-1) unstable; urgency=low
+
+  * fixed a problem with TAN interpolation
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 24 Sep 2013 13:45:53 +0200
+
 kvqc2d (1.5.7-1) unstable; urgency=low
 
   * fixed a problem with UU >= 100
