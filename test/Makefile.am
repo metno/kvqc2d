@@ -39,6 +39,7 @@ kvqc2dTest_SOURCES= \
 	interpolation/GapInterpolationTestBase.hh \
 	interpolation/GapInterpolationTestBase.cc \
 	interpolation/GIT_DoNotSetMaxTo100.cc \
+	interpolation/GIT_DoNotSetMinTo80.cc \
 	interpolation/GIT_FluctuationSize1.cc \
 	interpolation/GIT_FluctuationSize2.cc \
 	interpolation/GIT_GapInMultiplePar.cc \

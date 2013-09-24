@@ -35,7 +35,15 @@
 
 namespace Interpolation {
 
-enum Quality { OBSERVATION, GOOD, BAD, FAILED, MISSING, UNUSABLE, NO_ROW };
+enum Quality {
+    OBSERVATION, //!< 0 ,this is an observation
+    GOOD,        //!< 1
+    BAD,         //!< 2
+    FAILED,      //!< 3
+    MISSING,     //!< 4
+    UNUSABLE,    //!< 5
+    NO_ROW       //!< 6
+};
 enum Values { MISSING_VALUE = -32767, INVALID_VALUE=-32765 };
 
 class SupportData {

@@ -70,12 +70,10 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
             akima.add(t, i.value());
 #ifdef AKIMA_MIN_MAX
         const SeriesData smin = data.minimum(t), smax = data.maximum(t);
-        DBG(DBG1(t)
-            << DBG1(smin.value()) << "(q=" << smin.quality() << ')'
-            << DBG1(smax.value()) << "(q=" << smax.quality() << ')');
-        if( !smin.needsInterpolation() )
+        DBG(DBG1(t) << DBG1(smin) << DBG1(smax));
+        if (smin.usable() and not smin.needsInterpolation())
             akimaMin.add(t, smin.value());
-        if( !smax.needsInterpolation() )
+        if (smax.usable() and not smax.needsInterpolation())
             akimaMax.add(t, smax.value());
 #endif
     }
@@ -122,7 +120,7 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
         const SupportData i0 = data.parameter(t-1), i1 = data.parameter(t);
         const bool canUseAkima = (akima.distance(t+0.5) < 1.5);
         DBG(DBG1(i0.usable()) << DBG1(i1.usable()) << DBG1(canUseAkima ));
-        if( not i0.usable() or not i1.usable() or not canUseAkima ) {
+        if (not (i0.usable() and i1.usable() and canUseAkima)) {
             DBGL;
             failMinMaxIfNeeded(data, t, results);
             continue;
