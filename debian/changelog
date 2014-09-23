@@ -1,3 +1,9 @@
+kvqc2d (1.5.9-1) unstable; urgency=low
+
+  * DipTest: detect data frequency from actual data
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 23 Sep 2014 14:37:24 +0200
+
 kvqc2d (1.5.8-1) unstable; urgency=low
 
   * fixed a problem with TAN interpolation
