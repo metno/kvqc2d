@@ -1,8 +1,9 @@
-kvqc2d (1.5.9-1) unstable; urgency=low
+kvqc2d (1.5.10-1) unstable; urgency=low
 
   * DipTest: detect data frequency from actual data
+  * DipTest: do not mix sensors and levels
 
- -- Alexander Bürger <alexander.buerger@met.no>  Tue, 23 Sep 2014 14:37:24 +0200
+ -- Alexander Bürger <alexander.buerger@met.no>  Wed, 24 Sep 2014 15:34:05 +0200
 
 kvqc2d (1.5.8-1) unstable; urgency=low
 
