@@ -117,7 +117,9 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
         return;
 
     const DBInterface::DataList seriesLinear
-        = database()->findDataOrderObstime(candidate.stationID(), candidate.paramID(), candidate.typeID(), TimeRange(linearStart, linearStop));
+        = database()->findDataOrderObstime(candidate.stationID(), candidate.paramID(), candidate.typeID(),
+                                           candidate.sensor(), candidate.level(), 
+                                           TimeRange(linearStart, linearStop));
     if (seriesLinear.size() < 3) {
         warning() << "found less than 3 rows around potential dip " << Helpers::datatext(candidate, 1);
         return;
@@ -132,24 +134,20 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
         it_candidate = it;
 
     for (++it; it != seriesLinear.end(); ++it) {
-        kvtime::time t0 = t1;
+        t0 = t1;
         t1 = it->obstime();
         if (t1 == candidate.obstime())
             it_candidate = it;
         const int interval = kvtime::minDiff(t1, t0);
         if (interval != interval_begin) {
-            warning() << "varying time interval around potential dip"
+            warning() << "varying time interval " << interval << " != " << interval_begin
+                      << "min at time " << t1 << " near potential dip "
                       << Helpers::datatext(candidate, 1);
             return;
         }
     }
-    if (it_candidate == seriesLinear.begin()) {
-        error() << "problem finding potential dip again b"
-                << Helpers::datatext(candidate, 1);
-        return;
-    }
-    if (it_candidate == seriesLinear.end()) {
-        error() << "problem finding potential dip again e"
+    if (it_candidate == seriesLinear.begin() or it_candidate == seriesLinear.end()) {
+        error() << "problem finding potential dip again "
                 << Helpers::datatext(candidate, 1);
         return;
     }
@@ -157,7 +155,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     --it_before;
     ++it_after;
     if (it_after == seriesLinear.end()) {
-        warning() << "problem finding data after potential dip"
+        warning() << "problem finding data after potential dip "
                   << Helpers::datatext(candidate, 1);
         return;
     }
