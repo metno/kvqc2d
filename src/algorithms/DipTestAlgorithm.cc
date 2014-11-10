@@ -118,34 +118,16 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
 
     const DBInterface::DataList seriesLinear
         = database()->findDataOrderObstime(candidate.stationID(), candidate.paramID(), candidate.typeID(),
-                                           candidate.sensor(), candidate.level(), 
+                                           candidate.sensor(), candidate.level(),
                                            TimeRange(linearStart, linearStop));
     if (seriesLinear.size() < 3) {
         warning() << "found less than 3 rows around potential dip " << Helpers::datatext(candidate, 1);
         return;
     }
 
-    DBInterface::DataList::const_iterator it = seriesLinear.begin(), it_candidate = seriesLinear.end();
-    kvtime::time t0 = it->obstime();
-    ++it;
-    kvtime::time t1 = it->obstime();
-    const int interval_begin = kvtime::minDiff(t1, t0);
-    if (t1 == candidate.obstime())
-        it_candidate = it;
-
-    for (++it; it != seriesLinear.end(); ++it) {
-        t0 = t1;
-        t1 = it->obstime();
-        if (t1 == candidate.obstime())
-            it_candidate = it;
-        const int interval = kvtime::minDiff(t1, t0);
-        if (interval != interval_begin) {
-            warning() << "varying time interval " << interval << " != " << interval_begin
-                      << "min at time " << t1 << " near potential dip "
-                      << Helpers::datatext(candidate, 1);
-            return;
-        }
-    }
+    DBInterface::DataList::const_iterator it_candidate = seriesLinear.begin();
+    while (it_candidate != seriesLinear.end() and it_candidate->obstime() != candidate.obstime())
+        ++it_candidate;
     if (it_candidate == seriesLinear.begin() or it_candidate == seriesLinear.end()) {
         error() << "problem finding potential dip again "
                 << Helpers::datatext(candidate, 1);
@@ -161,6 +143,14 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
     }
 
     const kvalobs::kvData &before = *it_before, &after = *it_after;
+    const int interval_before = kvtime::minDiff(candidate.obstime(), before.obstime());
+    const int interval_after  = kvtime::minDiff(after.obstime(), candidate.obstime());
+    if (interval_before != interval_after) {
+        warning() << "different time step before and after potential dip "
+                  << Helpers::datatext(candidate, 1);
+        return;
+    }
+
     const bool dip_before = dip_before_flags.matches(before), dip_after = dip_after_flags.matches(after);
     if( !(dip_before && dip_after) ) {
         if( message_before_flags.matches(before) || message_after_flags.matches(after) ) {
@@ -189,7 +179,7 @@ void DipTestAlgorithm::checkDipAndInterpolate(const kvalobs::kvData& candidate, 
 
     float interpolated = Helpers::round1( 0.5*(before.original() + after.original()) );
 
-    const bool AkimaPresent = (interval_begin == 60)
+    const bool AkimaPresent = (interval_before == 60)
         and tryAkima(candidate, interpolated);
 
     writeChanges(candidate, after, interpolated, AkimaPresent);
