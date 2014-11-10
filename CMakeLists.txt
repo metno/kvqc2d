@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 enable_testing()
 
 include(FindPkgConfig)
-pkg_check_modules(PC_KVCPP REQUIRED libkvcpp2>=2.5.2a gsl>=1.8)
-set(PC_KVCPP_LIBRARIES ${PC_KVCPP_LIBRARIES} kvalobs2_kvalobs kvalobs2_fileutil kvalobs2_milog kvalobs2_kvdb kvalobs2_miconfparser kvalobs2_kvskel)
+pkg_check_modules(PC_KVCPP REQUIRED libkvcpp>=2.7.2 gsl>=1.8)
 
 include_directories(${PC_KVCPP_INCLUDE_DIRS})
 add_definitions(${PC_KVCPP_CFLAGS_OTHER})
