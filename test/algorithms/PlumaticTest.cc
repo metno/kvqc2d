@@ -552,6 +552,59 @@ TEST_F(PlumaticTest, AggregationOverHighStart)
 
 // ------------------------------------------------------------------------
 
+TEST_F(PlumaticTest, NoAggregation)
+{
+    DataList data(27270, 105, 4);
+    data.add("2011-10-01 12:00:00", 0.0, "0101000000000000", "")
+        .add("2011-10-01 12:03:00", 0.1, "0101000000000000", "")
+        // sliding sum of two too high for the next three; but no limits set
+        .add("2011-10-01 12:04:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:05:00", 5.0, "0101000000000000", "")
+        .add("2011-10-01 12:06:00", 5.0, "0101000000000000", "")
+
+        .add("2011-10-01 12:07:00", 0.1, "0101000000000000", "")
+
+        .add("2011-10-01 13:00:00", 0.1, "0101000000000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011\n"
+        "Start_MM   =   10\n"
+        "Start_DD   =    1\n"
+        "Start_hh   =   12\n"
+        "End_YYYY   = 2011\n"
+        "End_MM     =   12\n"
+        "End_DD     =    1\n"
+        "End_hh     =   13\n"
+        "stations = 0.1:27270\n"
+        "sliding_alarms = \n"
+        "ParamId = 105\n";
+    params.Parse(config);
+    algo->configure(params);
+    ASSERT_RUN(algo, bc, 0);
+
+    // re-configure with sliding_alarms
+    std::stringstream config2;
+    config2 << "Start_YYYY = 2011\n"
+        "Start_MM   =   10\n"
+        "Start_DD   =    1\n"
+        "Start_hh   =   12\n"
+        "End_YYYY   = 2011\n"
+        "End_MM     =   12\n"
+        "End_DD     =    1\n"
+        "End_hh     =   13\n"
+        "stations = 0.1:27270\n"
+        "sliding_alarms = 2<8.4;3<10.2\n"
+        "ParamId = 105\n";
+    AlgorithmConfig params2;
+    params2.Parse(config2);
+    ASSERT_NO_THROW(algo->configure(params2));
+    ASSERT_RUN(algo, bc, 3);
+}
+
+// ------------------------------------------------------------------------
+
 TEST_F(PlumaticTest, Dry)
 {
     DataList data(27270, 105, 4);
@@ -1185,7 +1238,6 @@ TEST_F(PlumaticTest, NeighborsLongNonOperationalPeriod)
     ASSERT_CONFIGURE(algo, params);
     ASSERT_RUN(algo, bc, 0);
 
-    logs->dump();
     ASSERT_EQ(2, logs->count());
     EXPECT_EQ(0, logs->find("ignoring non-operational time for station 44640 between 2010-08-08 02:00:00 and 2010-08-13 03:59:00"));
     EXPECT_EQ(1, logs->find("station 44640 is wet .* while .* neighbors \\([ ,0-9]+\\) are dry .highest=0. in 24h before 2010-08-14 06:00:00"));

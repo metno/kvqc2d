@@ -1,5 +1,5 @@
 AC_PREREQ([2.61])
-AC_INIT([kvqc2d], [1.3.14pre5], [kvalobs-dev@met.no])
+AC_INIT([kvqc2d], [1.3.15], [kvalobs-dev@met.no])
 AM_INIT_AUTOMAKE([1.10 foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
@@ -10,10 +10,10 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 KV_POSTGRESQL
-PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0~rc2 gsl >= 1.8],, [
+PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0 gsl >= 1.8],, [
    PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8])
 ])
-PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0~rc2 gsl >= 1.8 sqlite3 >= 3.3],, [
+PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp2 >= 2.5.0 gsl >= 1.8 sqlite3 >= 3.3],, [
    PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 puTools >= 3.3.0 libkvcpp >= 2.2.0 gsl >= 1.8 sqlite3 >= 3.3])
 ])
 GTEST_LIB_CHECK

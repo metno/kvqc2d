@@ -1,3 +1,15 @@
+kvqc2d (1.3.15-1) unstable; urgency=low
+
+  * Plumatic: allow empty sliding_alarms
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 30 Mar 2012 09:24:30 +0200
+
+kvqc2d (1.3.14-1) unstable; urgency=low
+
+  * Plumatic: WARN in neighbor check 
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 29 Mar 2012 08:42:13 +0200
+
 kvqc2d (1.3.14pre5-1) unstable; urgency=low
 
   * DipTest: do not complain if data outside specified timerange are

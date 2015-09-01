@@ -107,20 +107,22 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     int lookback = maxRainInterrupt+minRainBeforeAndAfter;
     mSlidingAlarms.clear();
     const std::string slidingAlarms = params.getParameter<std::string>("sliding_alarms");
-    const std::vector<std::string> msa = Helpers::splitN(slidingAlarms, ";", true);
-    foreach(const std::string& length_max, msa) {
-        Helpers::split2_t l_m = Helpers::split2(length_max, "<", true);
-        const int length = atoi(l_m.first.c_str());
-        if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
-            throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
-        const float maxi = atof(l_m.second.c_str());
-        if( maxi <= 0.0f )
-            throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
-        mSlidingAlarms.push_back(SlidingAlarm(length, maxi));
-        if( lookback < length )
-            lookback = length;
+    if( !slidingAlarms.empty() ) {
+        const std::vector<std::string> msa = Helpers::splitN(slidingAlarms, ";", true);
+        foreach(const std::string& length_max, msa) {
+            Helpers::split2_t l_m = Helpers::split2(length_max, "<", true);
+            const int length = atoi(l_m.first.c_str());
+            if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
+                throw ConfigException("invalid length (ordering?) in 'sliding_alarms' parameter");
+            const float maxi = atof(l_m.second.c_str());
+            if( maxi <= 0.0f )
+                throw ConfigException("invalid threshold (<=0?) in 'sliding_alarms' parameter");
+            mSlidingAlarms.push_back(SlidingAlarm(length, maxi));
+            if( lookback < length )
+                lookback = length;
+        }
     }
-
+    
     UT0extended = params.UT0;
     UT0extended.addMin(-lookback);
 }
@@ -638,13 +640,13 @@ void PlumaticAlgorithm::compareWithNeighborStations(int stationid, const miutil:
     DBG("sum=" << sum << " n wet=" << nNeighborsWet << " dry=" << nNeighborsDry);
     if( nNeighbors >= 3 ) {
         if( sum <= mThresholdDry && nNeighborsWet == nNeighbors ) {
-            info() << "Plumatic: station " << stationid << " is dry (" << sum
-                   << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
-                   << ") are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
+            warning() << "Plumatic: station " << stationid << " is dry (" << sum
+                      << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
+                      << ") are wet (lowest:" << lowestWetNeighbor << ") in 24h before " << obstime;
         } else if( sum >= mThresholdWet && nNeighborsDry == nNeighbors ) {
-            info() << "Plumatic: station " << stationid << " is wet (" << sum
-                   << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
-                   << ") are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
+            warning() << "Plumatic: station " << stationid << " is wet (" << sum
+                      << ") while " << nNeighbors << " neighbors (" << textNeighbors.str().substr(2)
+                      << ") are dry (highest=" << highestDryNeighbor << ") in 24h before " << obstime;
         }
     } else {
         info() << "found only " << nNeighbors << " neighbor stations with data near " << stationid << " (sum=" << sum << ") at " << obstime;
