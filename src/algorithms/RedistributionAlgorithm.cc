@@ -46,6 +46,15 @@
 #define NDEBUG
 #include "debug.h"
 
+// #define FUTURE 1
+#ifdef FUTURE
+#define IF_FUTURE(x) x
+#define IF_NOT_FUTURE(x) 
+#else
+#define IF_FUTURE(x)
+#define IF_NOT_FUTURE(x) x
+#endif
+
 using Helpers::equal;
 
 // ------------------------------------------------------------------------
@@ -183,13 +192,13 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
             }
             const int m_fmis = m.controlinfo().flag(kvQCFlagTypes::f_fmis);
             const int m_fd   = m.controlinfo().flag(kvQCFlagTypes::f_fd  );
-            if( m_fd != endpoint_fd && endpoint_fd == 2 ) {
+            if( m_fd != endpoint_fd IF_FUTURE(&& endpoint_fd == 2) ) {
                 warning() << "missing point " << m << " has different fd flag than endpoint "
                           << endpoint.text(m.obstime());
                 DBGL;
                 stop = true;
             }
-#if 0
+#ifndef FUTURE
             if( endpoint_fd == 2 && m_fmis != 3 ) {
                 warning() << "missing point " << m << " has fmis!=3 while fd=2 for endpoint "
                           << endpoint.text(m.obstime());
@@ -221,7 +230,7 @@ bool RedistributionAlgorithm::checkAccumulationPeriod(const updateList_t& mdata)
         stop = true;
     }
     if( !equal(redistributed_sum, dry2real(endpoint.original())) ) {
-        const bool fix = (endpoint_fd == 7 || endpoint_fd == 8 ) && count_fhqc_0 == length;
+        const bool fix = (endpoint_fd == 7 IF_FUTURE(|| endpoint_fd == 8) ) && count_fhqc_0 == length;
         (fix ? info() : warning())
             << "redistributed sum " << redistributed_sum
             << " starting " << acc_start
@@ -328,12 +337,21 @@ void RedistributionAlgorithm::configure(const AlgorithmConfig& params)
 {
     Qc2Algorithm::configure(params);
 
+#ifdef FUTURE
     params.getFlagSetCU(endpoint_flags,       "endpoint",            "fmis=[04]&fd=[24678A]", "");
     params.getFlagSetCU(missingpoint_flags,   "missingpoint",        "fmis=3&fd=2|fmis=1&fd=[679]", "");
+#else
+    params.getFlagSetCU(endpoint_flags,       "endpoint",            "fmis=[04]&fd=[267]", "");
+    params.getFlagSetCU(missingpoint_flags,   "missingpoint",        "fmis=3&fd=2|fmis=1&fd=[67]", "");
+#endif
     params.getFlagSetCU(neighbor_flags,       "neighbor",            "fd=1", "U2=0");
     params.getFlagSetCU(warn_and_stop_flags,  "warn_and_stop",       "never", "");
     params.getFlagChange(update_flagchange,   "update_flagchange",   "fd=7;fmis=3->fmis=1");
+#ifdef FUTURE
     params.getFlagChange(endpoint_flagchange, "endpoint_flagchange", "fd=8;fmis=3->fmis=1");
+#else
+    params.getFlagChange(endpoint_flagchange, "endpoint_flagchange", "fd=7;fmis=3->fmis=1");
+#endif
 
     mMinNeighbors = params.getParameter<int>("min_neighbors", 1);
     mMaxNeighbors = params.getParameter<int>("max_neighbors", 5);

@@ -11,6 +11,7 @@ add_executable(kvqc2d ${kvqc2d_SRCS})
 
 target_link_libraries(kvqc2d kvqc2d_1 interpolation statisticalmean kvqc2d_2 helpers
     ${PC_KVCPP_LIBRARIES}
+    ${Boost_THREAD_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
 )

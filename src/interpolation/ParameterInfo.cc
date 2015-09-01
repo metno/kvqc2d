@@ -53,6 +53,7 @@ ParameterInfo::ParameterInfo(const std::string& pi)
   , minParameter(-1)
   , maxParameter(-1)
   , fluctuationLevel(0)
+  , roundingFactor(10)
 {
     const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
     foreach(const std::string& item, items) {
@@ -73,6 +74,8 @@ ParameterInfo::ParameterInfo(const std::string& pi)
             maxOffset = std::atof(kv.second.c_str());
         } else if( kv.first == "maxSigma" ) {
             maxSigma = std::atof(kv.second.c_str());
+        } else if( kv.first == "roundingFactor" ) {
+            roundingFactor = std::atof(kv.second.c_str());
         } else {
             throw std::runtime_error("unknown parameter info '" + kv.first + "'");
         }
