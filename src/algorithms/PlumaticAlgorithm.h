@@ -144,6 +144,7 @@ private:
     int pid;
     std::vector<int> mTypeIds;
     float mThresholdDry, mThresholdWet;
+    int mVippsUnlikelySingle, mVippsUnlikelyStart, mVippsRainInterrupt, mMaxRainInterrupt, mMinRainBeforeAndAfter;
     FlagSetCU discarded_flags, neighbor_flags;
     FlagChange highsingle_flagchange, highstart_flagchange, interruptedrain_flagchange;
     FlagChange fc_no_neighbors, fc_neighbors_ok, fc_neighbors_suspicious;

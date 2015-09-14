@@ -48,13 +48,7 @@
 
 namespace {
 
-const int vippsUnlikelySingle   = 3;
-const int vippsUnlikelyStart    = 3;
-const int vippsRainInterrupt    = 3;
-const int maxRainInterrupt      = 4;
-const int minRainBeforeAndAfter = 2;
 const float numericSafety = 1e-4;
-
 const bool aggregationTriggerMakesBadData = false;
 
 }; // anonymous namespace
@@ -115,6 +109,12 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     params.getFlagChange(fc_neighbors_ok,            "neighbors_ok_flagchange",    "fhqc=[04]->fw=1");
     params.getFlagChange(fc_neighbors_suspicious,    "neighbors_suspicious_flagchange", "fhqc=[04]->fw=3");
 
+    mVippsUnlikelySingle   = params.getParameter<int>("vipps_unlikely_single", 3);
+    mVippsUnlikelyStart    = params.getParameter<int>("vipps_unlikely_start",  3);
+    mVippsRainInterrupt    = params.getParameter<int>("vipps_rain_interrupt", 3);
+    mMaxRainInterrupt      = params.getParameter<int>("rain_interrupt_max", 4);
+    mMinRainBeforeAndAfter = params.getParameter<int>("rain_interrupt_before_after", 2);
+
     mNeighbors->configure(params);
 
     // parse 'stations'
@@ -137,7 +137,7 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     }
 
     // parse 'sliding_alarms'
-    int lookback = maxRainInterrupt+minRainBeforeAndAfter;
+    int lookback = mMaxRainInterrupt+mMinRainBeforeAndAfter;
     mSlidingAlarms.clear();
     const std::string slidingAlarms = params.getParameter<std::string>("sliding_alarms");
     if( !slidingAlarms.empty() ) {
@@ -408,18 +408,18 @@ bool PlumaticAlgorithm::isBadData(const PlumaticUpdate& data)
 
 bool PlumaticAlgorithm::checkRainInterruption(const Shower& shower, const Shower& previousShower, const float mmpv)
 {
-    if( shower.duration < minRainBeforeAndAfter
-        || previousShower.duration < minRainBeforeAndAfter )
+    if( shower.duration < mMinRainBeforeAndAfter
+        || previousShower.duration < mMinRainBeforeAndAfter )
     {
         return false;
     }
 
-    const float threshold = mmpv*vippsRainInterrupt - numericSafety;
+    const float threshold = mmpv*mVippsRainInterrupt - numericSafety;
     if( shower.first->original() < threshold || previousShower.last->original() < threshold )
         return false;
 
     const int interruption = kvtime::minDiff(shower.first->obstime(), previousShower.last->obstime());
-    if( interruption > maxRainInterrupt )
+    if( interruption > mMaxRainInterrupt )
         return false;
 
     // check for bad data in the two minutes before after the interruption
@@ -449,7 +449,7 @@ bool PlumaticAlgorithm::checkHighSingle(const Shower& shower, const float mmpv)
     if( isBadData(*shower.first) )
         return false;
 
-    const float threshold = mmpv*vippsUnlikelySingle - numericSafety;
+    const float threshold = mmpv*mVippsUnlikelySingle - numericSafety;
     if( shower.first->original() < threshold )
         return false;
 
@@ -464,7 +464,7 @@ int PlumaticAlgorithm::checkHighStartLength(const Shower& shower, const float mm
         return 0;
 
     int n = 0;
-    const float threshold = mmpv*vippsUnlikelyStart - numericSafety;
+    const float threshold = mmpv*mVippsUnlikelyStart - numericSafety;
     kvUpdateList_it end = shower.last; ++end;
     for(kvUpdateList_it it = shower.first; it != end && !isBadData(*it); ++it) {
         if( it->original() < threshold )
