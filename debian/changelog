@@ -1,3 +1,10 @@
+kvqc2d (1.5.12-1) unstable; urgency=low
+
+  * Plumatic: complain about mixed fw only if fhqc == 0/4
+  * Plumatic: make number of vipps configurable
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 14 Sep 2015 15:30:00 +0200
+
 kvqc2d (1.5.11-1) unstable; urgency=low
 
   * DipTest: check data frequency only before and after dip
