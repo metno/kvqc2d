@@ -625,8 +625,11 @@ void PlumaticAlgorithm::checkNeighborStations(int stationid, int type, kvUpdateL
                 const int markFW = mark->controlinfo().flag(kvQCFlagTypes::f_fw);
                 if (foundFW == -1)
                     foundFW = markFW;
-                else if (foundFW >= 0 and foundFW != markFW)
-                    foundFW = -2;
+                else if (foundFW >= 0 and foundFW != markFW) {
+                    const int markFHQC = mark->controlinfo().flag(kvQCFlagTypes::f_fhqc);
+                    if (markFHQC == 0 || markFHQC == 4)
+                        foundFW = -2;
+                }
                 sum = Helpers::round(sum + mark->original(), 1000);
             }
         }
