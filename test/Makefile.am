@@ -1,3 +1,7 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
+SUBDIRS = gtest .
+
 TESTS = kvqc2dTest corbatest
 
 check_PROGRAMS = kvqc2dTest corbatest
@@ -76,7 +80,7 @@ kvqc2dTest_DEPENDENCIES = algorithms/StatisticalMean_n110.icc algorithms/Statist
 	../src/helpers/libhelpers.a
 
 AM_CXXFLAGS = -Wall -W \
-	$(GTEST_CXXFLAGS) \
+	$(gtest_CFLAGS) \
 	$(TEST_DEPS_CFLAGS) \
 	$(BOOST_CPPFLAGS) \
 	$(omniORB4_CFLAGS)
@@ -84,15 +88,15 @@ AM_CXXFLAGS = -Wall -W \
 #kvqc2dTest_CPPFLAGS += -ftest-coverage -fprofile-arcs
 #kvqc2dTest_LDFLAGS  += -fprofile-arcs
 
-INCLUDES = -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/src
 
 LDADD = \
 	$(TEST_DEPS_LIBS) \
-	$(GTEST_LIBS) \
+	$(gtest_LIBS) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_FILESYSTEM_LIB) -lboost_system
 
-AM_LDFLAGS = $(GTEST_LDFLAGS)
+AM_LDFLAGS = $(gtest_LDFLAGS)
 
 kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
 	../src/libkvqc2d_1.a ../src/interpolation/libinterpolation.a \
@@ -101,16 +105,6 @@ kvqc2dTest_LDADD = $(LDADD) -lboost_regex \
 	$(LDADD)
 
 
-if HAVE_COMPILED_GTEST
-# nothing
-else
-noinst_LIBRARIES = libgtest_local.a
-nodist_libgtest_local_a_SOURCES = $(GTEST_BASE)/src/gtest/src/gtest-all.cc
-libgtest_local_a_CXXFLAGS = -I$(GTEST_BASE)/src/gtest
-
-kvqc2dTest_LDADD += ./libgtest_local.a
-endif
-
 algorithms/StatisticalMeanTest.cc: algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc
 
 algorithms/StatisticalMean_n110.icc: algorithms/build_daymeans_110.py ../data/normals_110.dat
@@ -118,3 +112,10 @@ algorithms/StatisticalMean_n110.icc: algorithms/build_daymeans_110.py ../data/no
 
 algorithms/StatisticalMean_n212.icc: algorithms/build_daymeans_212.py ../data/normals_212.dat
 	python $^ $@
+
+# for generated .icc files
+AM_CPPFLAGS += -I$(builddir)/algorithms
+
+STATMEANTEST_SRCS = algorithms/StatisticalMean_n110.icc algorithms/StatisticalMean_n212.icc
+BUILT_SOURCES = $(STATMEANTEST_SRCS)
+CLEANFILES = $(STATMEANTEST_SRCS)

@@ -12,7 +12,6 @@ AC_PROG_RANLIB
 KV_POSTGRESQL
 PKG_CHECK_MODULES([PROG_DEPS], [omniORB4 >= 4.0 libkvcpp >= 2.7.2 gsl >= 1.8])
 PKG_CHECK_MODULES([TEST_DEPS], [omniORB4 >= 4.0 libkvcpp >= 2.7.2 gsl >= 1.8 sqlite3 >= 3.6])
-GTEST_CHECK
 
 AX_BOOST_BASE([1.40.0])
 AX_BOOST_THREAD
@@ -20,12 +19,14 @@ if test -z $BOOST_THREAD_LIB; then AC_MSG_ERROR([Unable to find boost thread lib
 AX_BOOST_FILESYSTEM
 if test -z $BOOST_FILESYSTEM_LIB; then AC_MSG_ERROR([Unable to find boost filesystem library]); fi
 
+GTEST_CHECK([test/gtest])
+
 AC_CONFIG_FILES([
         Makefile
         src/Makefile
         src/interpolation/Makefile
         src/statisticalmean/Makefile
         src/helpers/Makefile
-        test/Makefile])
+        test/Makefile test/gtest/Makefile])
 AC_CONFIG_FILES([plu-autoupdate-from-stinfosys],[chmod +x plu-autoupdate-from-stinfosys])
 AC_OUTPUT

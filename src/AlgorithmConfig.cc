@@ -69,18 +69,18 @@ void extractHHMMSS(const ConfigParser& c, const std::string& prefix, kvtime::tim
         kvtime::addSeconds(time, -kvtime::second(time)   + c.get(prefix + "_ss").convert<int>(0));
 }
 
-#if BOOST_FILESYSTEM_VERSION >= 3
-    inline std::string to_native_file(const boost::filesystem::path& path) {
+#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+    inline std::string to_native_file(const fs::path& path) {
         return path.native();
     }
-    inline std::string to_native_dir(const boost::filesystem::path& path) {
+    inline std::string to_native_dir(const fs::path& path) {
         return path.native();
     }
 #else
-    inline std::string to_native_file(const boost::filesystem::path& path) {
+    inline std::string to_native_file(const fs::path& path) {
         return path.native_file_string();
     }
-    inline std::string to_native_dir(const boost::filesystem::path& path) {
+    inline std::string to_native_dir(const fs::path& path) {
         return path.native_directory_string();
     }
 #endif
@@ -98,8 +98,8 @@ AlgorithmConfig::AlgorithmConfig()
 void AlgorithmConfig::setConfigPath(const fs::path& path)
 {
     // this will throw an exception in some unusual cases on Windows systems
-#if BOOST_FILESYSTEM_VERSION >= 3
-    mConfigPath = boost::filesystem3::complete( path );
+#if defined(BOOST_FILESYSTEM_VERSION) && BOOST_FILESYSTEM_VERSION >= 3
+    mConfigPath = fs::absolute(path, fs::initial_path());
 #else
     mConfigPath = fs::complete( path );
 #endif
