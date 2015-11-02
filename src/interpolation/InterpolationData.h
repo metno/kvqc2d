@@ -42,7 +42,8 @@ enum Quality {
     FAILED,      //!< 3
     MISSING,     //!< 4
     UNUSABLE,    //!< 5
-    NO_ROW       //!< 6
+    DISCARDED,   //!< 6
+    NO_ROW       //!< 7
 };
 enum Values { MISSING_VALUE = -32767, INVALID_VALUE=-32765 };
 
@@ -56,8 +57,7 @@ public:
     bool usable() const
         { return mUsable; }
 
-    float value() const
-        { return mValue; }
+    virtual float value() const;
 
 protected:
     bool mUsable;
@@ -76,6 +76,11 @@ public:
 
     Quality quality() const
         { return mQuality; }
+
+    float value() const;
+
+    float original() const
+        { return mValue; }
 
 private:
     Quality mQuality;

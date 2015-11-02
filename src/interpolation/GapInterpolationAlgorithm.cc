@@ -78,7 +78,8 @@ bool isReliableMinMax(const Interpolation::SeriesData& d)
 void discardUpdate(GapUpdate& gu) {
     if( not gu.isNew() ) {
         DBGV(gu);
-        gu.update(Interpolation::FAILED, Interpolation::MISSING_VALUE, true);
+        if (gu.quality() != Interpolation::MISSING && gu.quality() != Interpolation::NO_ROW)
+            gu.update(Interpolation::DISCARDED, gu.value(), true);
     }
 }
 

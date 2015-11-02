@@ -14,6 +14,9 @@ public:
     float value() const
         { return mValue; }
 
+    float original() const
+        { return mOriginalValue; }
+
     Interpolation::Quality quality() const
         { return mQuality; }
 
@@ -28,6 +31,7 @@ public:
 private:
     Interpolation::Quality mQuality;
     float mValue;
+    float mOriginalValue;
     bool mUpdated;
     bool mUsable;
 };

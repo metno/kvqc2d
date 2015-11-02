@@ -7,6 +7,7 @@ GapUpdate::GapUpdate()
     : DataUpdate()
     , mQuality(Interpolation::NO_ROW)
     , mValue(Interpolation::MISSING_VALUE)
+    , mOriginalValue(mValue)
     , mUpdated(false)
     , mUsable(false)
 {
@@ -16,6 +17,7 @@ GapUpdate::GapUpdate(const kvalobs::kvData& data, Interpolation::Quality q, floa
     : DataUpdate(data)
     , mQuality(q)
     , mValue(value)
+    , mOriginalValue(mValue)
     , mUpdated(false)
     , mUsable(usable)
 {

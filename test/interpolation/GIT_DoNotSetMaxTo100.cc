@@ -46,7 +46,7 @@ TEST_F(GapInterpolationTest, DoNotSetMaxTo100)
     ASSERT_CONFIGURE(algo, params);
     const int N = 5;
     ASSERT_RUN(algo, bc, N);
-    const float expectedC[N] = { -7.9, -9.7, -9, -7.4, -7.3 };
+    const float expectedC[N] = { -7.9, -9.7, -9, -7.4, -6.0 };
     const float expectedP[N] = { 211, 213, 213, 215, 215 };
     for(int i=0; i<N; ++i) {
         EXPECT_NEAR(expectedC[i], bc->update(i).corrected(), i==0 ? 0.1 : 1) << "i=" << i;

@@ -80,7 +80,7 @@ TEST_F(GapInterpolationTest, reproduce_kvalobs_19940)
         .add("2013-05-29 10:00:00",      19.5,      19.5, "0111000000000000", "");
     ASSERT_NO_THROW(data.update(db));
 
-    const int NUP2 = 6;
+    const int NUP2 = 4;
     ASSERT_RUN(algo, bc, NUP2);
     for(int i=0; i<NUP2; ++i)
         ASSERT_LT(-50, bc->update(i).corrected()) << "i=" << i;

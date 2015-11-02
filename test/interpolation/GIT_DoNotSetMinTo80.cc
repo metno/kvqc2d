@@ -835,7 +835,7 @@ TEST_F(GapInterpolationTest, DoNotSetMinTo80_2)
 
     const int N = 3;
     ASSERT_RUN(algo, bc, N);
-    const float expectedC[N] = { 14.9, 14.6, 15.8 }; // FIXME this is not a good interpolation!
+    const float expectedC[N] = { 14.9,  4.7, 15.8 }; // FIXME this is not a good interpolation!
     const float expectedP[N] = {  211,  213,  215 };
     for(int i=0; i<N; ++i) {
         EXPECT_NEAR(expectedC[i], bc->update(i).corrected(), i==0 ? 0.1 : 1) << "i=" << i;

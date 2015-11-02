@@ -3,10 +3,24 @@
 
 #include <ostream>
 
+float Interpolation::SupportData::value() const
+{
+    return mValue;
+}
+
+float Interpolation::SeriesData::value() const
+{
+    if (mQuality == DISCARDED)
+        return Interpolation::MISSING_VALUE;
+    else
+        return mValue;
+}
+
 bool Interpolation::SeriesData::needsInterpolation() const
 {
     return mQuality == BAD
         or mQuality == FAILED
+        or mQuality == DISCARDED
         or mQuality == MISSING;
 }
 

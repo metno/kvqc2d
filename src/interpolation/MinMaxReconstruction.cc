@@ -129,6 +129,17 @@ Summary MinMaxReconstruction::reconstructMinMax(Data& data)
         float mini = std::min(i0.value(), i1.value());
         float maxi = std::max(i0.value(), i1.value());
         DBG(DBG1(mini) << DBG1(maxi));
+
+        if (data.minimum(t).quality() == Interpolation::DISCARDED) {
+            // even if discarded, minimum cannot be higher
+            Helpers::minimize(mini, data.minimum(t).original());
+        }
+        if (data.maximum(t).quality() == Interpolation::DISCARDED) {
+            // even if discarded, maximum cannot be lower
+            Helpers::maximize(maxi, data.maximum(t).original());
+        }
+        DBG(DBG1(mini) << DBG1(maxi));
+
         const int Nbetween = 20;
         for(int j=1; j<Nbetween; ++j) {
             const float x = t-1 + j/float(Nbetween);
