@@ -29,6 +29,7 @@
 
 #include "PlumaticAlgorithm.h"
 
+#include "helpers/AlgorithmHelpers.h"
 #include "helpers/mathutil.h"
 #include "helpers/stringutil.h"
 #include "helpers/timeutil.h"
@@ -167,7 +168,8 @@ void PlumaticAlgorithm::run()
     // use script stinfosys-vipp-pluviometer.pl or change program and use "select stationid from obs_pgm where paramid = 105;"
     foreach(const ResolutionStations& rs, mStationlist) {
         foreach(int stationid, rs.stationids) {
-            checkStation(stationid, rs.mmpv);
+            if (Helpers::isNorwegianStationId(stationid))
+                checkStation(stationid, rs.mmpv);
         }
     }
 }
@@ -733,7 +735,7 @@ int PlumaticAlgorithm::countNeighborStations(int stationid, const kvtime::time& 
     wetNeighbors.clear();
 
     if (not mNeighbors->hasStationList()) {
-        std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
+        std::list<kvalobs::kvStation> allStations;
         std::list<int> allStationIDs;
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);

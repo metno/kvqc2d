@@ -64,7 +64,7 @@ StatisticalMean::StatisticalMean()
 std::list<int> StatisticalMean::findNeighbors(int stationID)
 {
     if( !mNeighbors->hasStationList() ) {
-        DBInterface::StationList   allStations; // actually only stationary norwegian stations
+        DBInterface::StationList   allStations;
         DBInterface::StationIDList allStationIDs;
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);
@@ -222,6 +222,8 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
 
     foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
         const Instrument& center = sd.first;
+        if (!Helpers::isNorwegianStationId(center.stationid))
+            continue;
         foreach(const dm2_t::value_type& dm, sd.second) {
             const int day = dm.first;
 

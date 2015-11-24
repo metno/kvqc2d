@@ -55,6 +55,11 @@ void updateUseInfo(kvalobs::kvData& data);
  */
 double distance(double lon1, double lat1, double lon2, double lat2);
 
+/**
+ * Checks if the stationid is for a norwegian station.
+ */
+bool isNorwegianStationId(int stationid);
+
 } // namespace Helpers
 
 #endif /* ALGORITHMHELPERS_H_ */

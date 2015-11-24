@@ -52,7 +52,7 @@ Qc2Algorithm::~Qc2Algorithm()
 
 void Qc2Algorithm::fillStationLists(DBInterface::StationList& stations, DBInterface::StationIDList& idList)
 {
-    stations = mDatabase->findNorwegianFixedStations();
+    stations = mDatabase->findFixedStations();
 
     idList.clear();
     foreach(const kvalobs::kvStation& s, stations) {

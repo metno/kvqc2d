@@ -67,12 +67,12 @@ public:
     // ----------------------------------------
 
     typedef std::list<kvalobs::kvStation> StationList;
-    virtual StationList findNorwegianFixedStations() throw (DBException) = 0;
+    virtual StationList findFixedStations() throw (DBException) = 0;
 
     // ----------------------------------------
 
     typedef std::list<int> StationIDList;
-    virtual StationIDList findNorwegianFixedStationIDs() throw (DBException) = 0;
+    virtual StationIDList findFixedStationIDs() throw (DBException) = 0;
 
     // ----------------------------------------
 

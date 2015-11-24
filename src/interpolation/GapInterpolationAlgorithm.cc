@@ -245,6 +245,8 @@ GapInterpolationAlgorithm::InstrumentMissingRanges GapInterpolationAlgorithm::fi
     InstrumentMissingRanges instrumentMissingRanges;
     foreach(const kvalobs::kvData& d, missingData) {
         const Instrument i = getMasterInstrument(d);
+        if (!Helpers::isNorwegianStationId(i.stationid))
+            continue;
         MissingRanges& mr = instrumentMissingRanges[i];
         if( mr.empty() or not mr.back().tryExtend(d) )
             mr.push_back(ParamGroupMissingRange(d));

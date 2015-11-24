@@ -98,7 +98,7 @@ kvtime::time RedistributionAlgorithm::stepTime(const kvtime::time& time)
 std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 {
     if( !mNeighbors->hasStationList() ) {
-        std::list<kvalobs::kvStation> allStations; // actually only stationary norwegian stations
+        std::list<kvalobs::kvStation> allStations;
         std::list<int> allStationIDs;
         fillStationLists(allStations, allStationIDs);
         mNeighbors->setStationList(allStations);
@@ -112,6 +112,8 @@ std::list<int> RedistributionAlgorithm::findNeighbors(int stationID)
 bool RedistributionAlgorithm::checkEndpoint(const kvalobs::kvData& endpoint)
 {
     DBG("endpoint=" << endpoint);
+    if (!Helpers::isNorwegianStationId(endpoint.stationID()))
+        return false;
     const int m_fhqc = endpoint.controlinfo().flag(kvQCFlagTypes::f_fhqc);
     const bool hqc04 = ( m_fhqc == 0 IF_FUTURE(|| m_fhqc == 4) );
     if( Helpers::isMissingOrRejected(endpoint) ) {

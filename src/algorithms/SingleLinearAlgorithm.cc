@@ -71,7 +71,7 @@ void SingleLinearAlgorithm::configure(const AlgorithmConfig& params)
 
 void SingleLinearAlgorithm::run()
 {
-    const DBInterface::StationIDList stationIDs = database()->findNorwegianFixedStationIDs();
+    const DBInterface::StationIDList stationIDs = database()->findFixedStationIDs();
     DBGV(stationIDs.size());
     foreach(int pid, pids) {
         const DBInterface::DataList Qc2Data

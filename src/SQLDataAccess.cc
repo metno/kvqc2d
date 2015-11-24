@@ -62,22 +62,29 @@ void formatIDList(std::ostream& sql, const CC& ids, const std::string& column)
         sql << ')';
     }
 }
+
+const std::string WHERE_FIXED_STATIONS =
+                          " WHERE stationid >= 60"
+                          "   AND maxspeed = 0"
+                          "   AND lon IS NOT NULL"
+                          "   AND lat IS NOT NULL";
+
 } // anonymous namespace
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationList SQLDataAccess::findNorwegianFixedStations() throw (DBException)
+DBInterface::StationList SQLDataAccess::findFixedStations() throw (DBException)
 {
     return extractStations(kvalobs::kvStation().selectAllQuery()
-                           + " WHERE stationid BETWEEN 60 AND 99999 AND maxspeed = 0");
+                           + WHERE_FIXED_STATIONS);
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationIDList SQLDataAccess::findNorwegianFixedStationIDs() throw (DBException)
+DBInterface::StationIDList SQLDataAccess::findFixedStationIDs() throw (DBException)
 {
     return extractStationIDs("SELECT stationid FROM station"
-                             " WHERE stationid BETWEEN 60 AND 99999 AND maxspeed = 0");
+                             + WHERE_FIXED_STATIONS);
 }
 
 // ------------------------------------------------------------------------

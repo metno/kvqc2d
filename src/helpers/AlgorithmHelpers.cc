@@ -63,4 +63,9 @@ double distance(double lon1, double lat1, double lon2, double lat2)
     return EARTH_RADIUS*c;
 }
 
+bool isNorwegianStationId(int stationid)
+{
+    return stationid >= 60 && stationid < 100000;
+}
+
 } // namespace Helpers

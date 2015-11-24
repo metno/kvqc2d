@@ -36,8 +36,8 @@
 class SQLDataAccess : public DBInterface {
 public:
 
-    virtual StationList findNorwegianFixedStations() throw (DBException);
-    virtual StationIDList findNorwegianFixedStationIDs() throw (DBException);
+    virtual StationList findFixedStations() throw (DBException);
+    virtual StationIDList findFixedStationIDs() throw (DBException);
 
     virtual StationParamList findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) throw (DBException);
     virtual StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException);
