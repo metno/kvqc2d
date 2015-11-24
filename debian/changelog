@@ -1,3 +1,9 @@
+kvqc2d (1.5.14-1) unstable; urgency=low
+
+  * allow foreign stations as neighbor stations
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 24 Nov 2015 14:00:00 +0100
+
 kvqc2d (1.5.13-1) unstable; urgency=low
 
   * GapInterpolation: do not completely ignore unrealiable min/max
