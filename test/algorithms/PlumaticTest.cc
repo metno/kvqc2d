@@ -1218,3 +1218,48 @@ TEST_F(PlumaticTest, NoDataAtEnd)
     ASSERT_EQ(1, logs->count());
     EXPECT_EQ(0, logs->find("ignoring non-operational time for station 90495 between 2013-01-20 12:00:00 and 2013-01-22 05:59:00"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, Type504)
+{
+    std::ostringstream sql;
+    INSERT_STATION(sql, 68120, "SAUPSTAD", 63.3628, 10.3597, 135);
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(68120, 105, 504);
+    kvtime::time t = kvtime::maketime(2011, 5, 31, 0, 0, 0);
+    for(int hour=0; hour<24+19; ++hour, kvtime::addHours(t, 1))
+        data.add(t, 0, "0101000010000000", "");
+    data.add("2011-06-01 19:00:00",   0, "0101000000000000", "")
+        .add("2011-06-01 19:13:00", 0.1, "0101000000000000", "")
+        .add("2011-06-01 19:21:00", 0.1, "0101000000000000", "")
+        .add("2011-06-01 19:59:00", 0.8, "0101000000000000", "")
+        .add("2011-06-01 20:00:00",   0, "0101000000000000", "");
+    t = kvtime::maketime(2011, 6, 1, 21, 0, 0);
+    for(int hour=0; hour<48; ++hour, kvtime::addHours(t, 1))
+        data.add(t, 0, "0101000010000000", "");
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2011\n"
+        "Start_MM   =   06\n"
+        "Start_DD   =   01\n"
+        "Start_hh   =   06\n"
+        "End_YYYY   = 2011\n"
+        "End_MM     =   06\n"
+        "End_DD     =   02\n"
+        "End_hh     =   06\n"
+        "stations = 0.1:68120\n"
+        "sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "TypeId = 444\n" // no data for this one
+        "TypeId = 504\n" // this one has data
+        "ParamId = 105\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 25);
+
+    EXPECT_EQ(0, logs->find("found only 0 neighbor stations"));
+}
