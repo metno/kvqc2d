@@ -182,7 +182,7 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
         DBInterface::DataList data_orig
             = database()->findDataOrderObstime(stationid, pid, typeId, TimeRange(UT0extended, UT1));
         if( data_orig.empty() )
-            return;
+            continue;
         kvUpdateList_t data(data_orig.begin(), data_orig.end());
         
         discardAllNonOperationalTimes(data);
