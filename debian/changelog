@@ -1,4 +1,10 @@
-kvqc2d (1.5.15-1) unstable; urgency=low
+kvqc2d (1.5.15-2) unstable; urgency=low
+
+  * bugfix Plumatic
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 07 Mar 2016 08:00:00 +0100
+
+kvqc2d (1.5.14-1) unstable; urgency=low
 
   * allow foreign stations as neighbor stations
 
