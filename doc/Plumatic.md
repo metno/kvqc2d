@@ -14,19 +14,14 @@ and .
 Running once
 ------------
 
-There is no option to run once, but you can specify the time range and
-both `RunAtHour` and `RunAtMinute` to something very soon (e.g., two
-minutes from now in michine time).  Once the data have been processed,
-you might want to remove or ename the configuration file.
+See the general documentation on [running checks once](RunningOnce.md).
 
-To run once, for a specific time period, create a file like this:
+You might want to adjust some options, for example
 
     # choose pluviometer check
     Algorithm=Plumatic
     
-    # hour and minute when the check shall run; uses machine time, which might be UTC
-    RunAtHour   =22
-    RunAtMinute =12
+    ...
     
     # year, month, day, hour for start and end of the time range to check
     Start_YYYY = 2001
@@ -46,6 +41,11 @@ To run once, for a specific time period, create a file like this:
     
     ParamId = 105
 
+    TypeId = 1234
+    TypeId = 3456
+
+    vipps_unlikely_single = ...
+    vipps_unlikely_start =  ...
 
 Running Regularly
 -----------------
