@@ -1,3 +1,9 @@
+kvqc2d (1.5.16-1) unstable; urgency=low
+
+  * add options to allow running one check from command line
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 10 Mar 2016 08:00:00 +0100
+
 kvqc2d (1.5.15-2) unstable; urgency=low
 
   * bugfix Plumatic
