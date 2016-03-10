@@ -62,6 +62,8 @@ libkvqc2d_1_a_SOURCES = \
 	KvServicedBroadcaster.h \
 	LogfileNotifier.cc \
 	LogfileNotifier.h \
+	SingleFileLogStream.cc \
+	SingleFileLogStream.h \
 	SQLDataAccess.cc \
 	SQLDataAccess.h \
 	Qc2Algorithm.cc \
