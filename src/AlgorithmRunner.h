@@ -32,9 +32,27 @@
 
 class Qc2App;
 
+#include "AlgorithmDispatcher.h"
+
 class AlgorithmRunner {
 public:
-    void runAlgorithms(Qc2App& app);
+    AlgorithmRunner(Qc2App& app);
+    ~AlgorithmRunner();
+
+    void runAlgorithms();
+    void runOneAlgorithm(const std::string& config);
+
+private:
+    void runAlgorithmFromConfig(const AlgorithmConfig& params);
+
+private:
+    Qc2App& app;
+
+    std::auto_ptr<DBInterface> database;
+    std::auto_ptr<Broadcaster> broadcaster;
+    std::auto_ptr<Notifier>    notifier;
+
+    AlgorithmDispatcher dispatcher;
 };
 
 #endif

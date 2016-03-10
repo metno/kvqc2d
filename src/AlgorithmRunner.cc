@@ -44,17 +44,24 @@
 #define NDEBUG 1
 #include "debug.h"
 
-void AlgorithmRunner::runAlgorithms(Qc2App& app)
+AlgorithmRunner::AlgorithmRunner(Qc2App& app_)
+    : app(app_)
+    , database(new KvalobsDB(app))
+    , broadcaster(new KvServicedBroadcaster(app))
+    , notifier(new LogfileNotifier)
 {
-    std::auto_ptr<DBInterface> database(new KvalobsDB(app));
-    std::auto_ptr<Broadcaster> broadcaster(new KvServicedBroadcaster(app));
-    std::auto_ptr<Notifier>    notifier(new LogfileNotifier);
-
-    AlgorithmDispatcher dispatcher;
     dispatcher.setDatabase(database.get());
     dispatcher.setBroadcaster(broadcaster.get());
     dispatcher.setNotifier(notifier.get());
 
+}
+
+AlgorithmRunner::~AlgorithmRunner()
+{
+}
+
+void AlgorithmRunner::runAlgorithms()
+{
     kvtime::time lastEnd = kvtime::now();
     kvtime::addSeconds(lastEnd, -kvtime::second(lastEnd));
     kvtime::addMinutes(lastEnd, -1);
@@ -96,13 +103,7 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
                 LOGINFO("Algorithm " << params.Algorithm << " scheduled for "
                         << std::setw(2) << std::setfill('0') << kvtime::hour(tc.first) << ':'
                         << std::setw(2) << std::setfill('0') << kvtime::minute(tc.first) << " is delayed");
-            try {
-                dispatcher.select(params);
-            } catch ( dnmi::db::SQLException & ex ) {
-                LOGERROR("Exception: " << ex.what());
-            } catch ( ... ) {
-                LOGERROR("Unknown exception: ...");
-            }
+            runAlgorithmFromConfig(params);
         }
         lastEnd = now;
         if( app.isShuttingDown() )
@@ -110,5 +111,25 @@ void AlgorithmRunner::runAlgorithms(Qc2App& app)
         // check config files every minute
         for( int i=0; i<60 && !app.isShuttingDown(); ++i )
             sleep(1);
+    }
+}
+
+void AlgorithmRunner::runOneAlgorithm(const std::string& config)
+{
+    AlgorithmConfig params;
+    params.Parse(config);
+    runAlgorithmFromConfig(params);
+}
+
+void AlgorithmRunner::runAlgorithmFromConfig(const AlgorithmConfig& params)
+{
+    try {
+        dispatcher.select(params);
+    } catch (dnmi::db::SQLException& ex) {
+        LOGERROR("SQL Exception: " << ex.what());
+    } catch (std::exception& ex) {
+        LOGERROR("Exception: " << ex.what());
+    } catch ( ... ) {
+        LOGERROR("Unknown exception: ...");
     }
 }

@@ -64,6 +64,18 @@ Qc2App::Qc2App(int argc, char **argv,
     createPidFile("kvqc2d");
     initializeDB(dbDriver);
     initializeCORBA();
+
+    for (int i=1; i<argc; ++i) {
+        const std::string argi(argv[i]);
+        if (argi == "--run-config") {
+            i += 1;
+            if (i < argc) {
+                algorithmFiles_.push_back(argv[i]);
+            } else {
+                LOGERROR("Missing argument to '" << argi << "', ignored");
+            }
+        }
+    }
 }
 
 Qc2App::~Qc2App()
@@ -163,8 +175,14 @@ void Qc2App::run()
 
 void Qc2App::runAlgorithms()
 {
-    AlgorithmRunner runner;
-    runner.runAlgorithms(*this);
+    AlgorithmRunner runner(*this);
+    if (algorithmFiles_.empty()) {
+        runner.runAlgorithms();
+    } else {
+        for (std::vector<std::string>::const_iterator it = algorithmFiles_.begin(); it != algorithmFiles_.end(); ++it) {
+            runner.runOneAlgorithm(*it);
+        }
+    }
 #ifndef CORBA_IN_BACKGROUND
     getOrb()->shutdown(false);
 #endif /* CORBA_IN_BACKGROUND */

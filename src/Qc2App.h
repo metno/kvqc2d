@@ -37,6 +37,9 @@
 
 #include <boost/thread.hpp>
 
+#include <string>
+#include <vector>
+
 class Qc2App: public KvApp
 {
 public:
@@ -46,6 +49,9 @@ public:
            const char *options[][2]=0);
 
     virtual ~Qc2App();
+
+    const std::vector<std::string>& algorithmFiles() const
+        { return algorithmFiles_; }
 
     void run();
 
@@ -85,6 +91,8 @@ private:
     CKvalObs::CService::DataReadyInput_var refKvServiceDataReady;
 
     boost::thread* mCORBAThread;
+
+    std::vector<std::string> algorithmFiles_;
 };
 
 #endif
