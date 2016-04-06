@@ -30,9 +30,10 @@
 #ifndef ALGORITHMRUNNER_H
 #define ALGORITHMRUNNER_H 1
 
-class Qc2App;
-
 #include "AlgorithmDispatcher.h"
+#include <memory>
+
+class Qc2App;
 
 class AlgorithmRunner {
 public:
@@ -48,9 +49,9 @@ private:
 private:
     Qc2App& app;
 
-    std::auto_ptr<DBInterface> database;
-    std::auto_ptr<Broadcaster> broadcaster;
-    std::auto_ptr<Notifier>    notifier;
+    std::unique_ptr<DBInterface> database;
+    std::unique_ptr<Broadcaster> broadcaster;
+    std::unique_ptr<Notifier>    notifier;
 
     AlgorithmDispatcher dispatcher;
 };

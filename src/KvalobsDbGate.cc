@@ -137,7 +137,7 @@ bool KvalobsDbGate::insertImpl(const std::list<kvalobs::kvDbBase*> &elem,
 void KvalobsDbGate::select(KvalobsDbExtract* extract, const std::string& query)
 {
     checkConnection();
-    std::auto_ptr<dnmi::db::Result> results(retryWhileBusy<dnmi::db::Result*>(mBusyTimeout, boost::bind(&Connection_t::execQuery, mConnection, query)));
+    std::unique_ptr<dnmi::db::Result> results(retryWhileBusy<dnmi::db::Result*>(mBusyTimeout, boost::bind(&Connection_t::execQuery, mConnection, query)));
     if( extract != 0 ) {
         while (results->hasNext())
             extract->extractFromRow(retryWhileBusy<const dnmi::db::DRow&>(mBusyTimeout, boost::bind(&dnmi::db::Result::next, results.get())));

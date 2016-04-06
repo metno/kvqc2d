@@ -65,7 +65,7 @@ DBInterface::StationList KvalobsDB::extractStations(const std::string& sql) thro
 {
     try {
         DBInterface::StationList s;
-        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
+        std::unique_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStation>(std::back_inserter(s)));
         mDbGate.select(extract.get(), sql);
         return s;
     } catch(std::exception& e) {
@@ -96,7 +96,7 @@ private:
 DBInterface::StationIDList KvalobsDB::extractStationIDs(const std::string& sql) throw (DBException)
 {
     try {
-        std::auto_ptr<ExtractStationIDs> extract(new ExtractStationIDs());
+        std::unique_ptr<ExtractStationIDs> extract(new ExtractStationIDs());
         mDbGate.select(extract.get(), sql);
         return extract->ids();
     } catch(std::exception& e) {
@@ -112,7 +112,7 @@ DBInterface::StationParamList KvalobsDB::extractStationParams(const std::string&
 {
     try {
         StationParamList s;
-        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
+        std::unique_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvStationParam>(std::back_inserter(s)));
         mDbGate.select(extract.get(), sql);
         return s;
     } catch(std::exception& e) {
@@ -128,7 +128,7 @@ DBInterface::DataList KvalobsDB::extractData(const std::string& sql) throw (DBEx
 {
     try {
         DataList d;
-        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
+        std::unique_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvData>(std::back_inserter(d)));
         mDbGate.select(extract.get(), sql);
         return d;
     } catch(std::exception& e) {
@@ -171,7 +171,7 @@ DBInterface::reference_value_map_t KvalobsDB::extractStatisticalReferenceValues(
 {
     try {
         DBInterface::reference_value_map_t rvm;
-        std::auto_ptr<KvalobsDbExtract> extract(new ExtractReferenceValue(rvm, missingValue));
+        std::unique_ptr<KvalobsDbExtract> extract(new ExtractReferenceValue(rvm, missingValue));
         mDbGate.select(extract.get(), sql);
         return rvm;
     } catch(std::exception& e) {
@@ -212,7 +212,7 @@ NeighborDataVector KvalobsDB::extractNeighborData(const std::string& sql) throw 
 {
     try {
         NeighborDataVector neighbors;
-        std::auto_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
+        std::unique_ptr<KvalobsDbExtract> extract(new ExtractNeighborData(neighbors));
         mDbGate.select(extract.get(), sql);
         return neighbors;
     } catch(std::exception& e) {
@@ -228,7 +228,7 @@ DBInterface::ModelDataList KvalobsDB::extractModelData(const std::string& sql) t
 {
     try {
         ModelDataList modelData;
-        std::auto_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvModelData>(std::back_inserter(modelData)));
+        std::unique_ptr<KvalobsDbExtract> extract(makeElementExtract<kvalobs::kvModelData>(std::back_inserter(modelData)));
         mDbGate.select(extract.get(), sql);
         return modelData;
     } catch(std::exception& e) {

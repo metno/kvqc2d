@@ -109,15 +109,15 @@ void InitLogger(int argn, char **argv, const std::string &logname)
     }
 
     try {
-        std::auto_ptr<milog::LogStream> logFile;
+        std::unique_ptr<milog::LogStream> logFile;
         if (rotating_logfile) {
-            std::auto_ptr<milog::FLogStream> filelog(new milog::FLogStream(4, 1<<24));
+            std::unique_ptr<milog::FLogStream> filelog(new milog::FLogStream(4, 1<<24));
             if (filelog->open(logfilename))
-                logFile = filelog;
+                logFile = std::move(filelog);
         } else {
-            std::auto_ptr<SingleFileLogStream> filelog(new SingleFileLogStream(logfilename));
+            std::unique_ptr<SingleFileLogStream> filelog(new SingleFileLogStream(logfilename));
             if (filelog->is_open())
-                logFile = filelog;
+                logFile = std::move(filelog);
         }
         if (!logFile.get()) {
             std::cerr << "FATAL: Can't initialize the Logging system.\n";
@@ -125,7 +125,7 @@ void InitLogger(int argn, char **argv, const std::string &logname)
             exit(1);
         }
 
-        std::auto_ptr<milog::LogStream> logConsole(new milog::StdErrStream());
+        std::unique_ptr<milog::LogStream> logConsole(new milog::StdErrStream());
 
         logConsole->loglevel(levelConsole);
         logFile->loglevel(levelFile);
