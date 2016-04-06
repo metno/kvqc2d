@@ -41,7 +41,7 @@ CheckerQuartiles::CheckerQuartiles(StatisticalMean* sm, int days, const std::vec
 
 bool CheckerQuartiles::calculateDiffsToReferences(int station, int dOy, float diffs[3], AccumulatedValueP accumulated)
 {
-    AccumulatedQuartilesP quartiles = boost::static_pointer_cast<AccumulatedQuartiles>(accumulated);
+    AccumulatedQuartilesP quartiles = std::static_pointer_cast<AccumulatedQuartiles>(accumulated);
     bool valid[3] = { false, false, false };
     for(int i=0; i<3; ++i) {
         const float ref = getReference(station, dOy, (boost::format("ref_q%1$d") % (i+1)).str(), valid[i]);

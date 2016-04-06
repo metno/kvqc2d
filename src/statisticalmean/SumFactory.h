@@ -42,8 +42,8 @@ public:
     virtual AccumulatorP accumulator(int paramid);
     virtual DayValueExtractorP dayValueExtractor(int paramid);
 private:
-    boost::shared_ptr<AccumulatorMeanOrSum> mAccumulator;
-    boost::shared_ptr<CheckerMeanOrSum> mChecker;
+    std::shared_ptr<AccumulatorMeanOrSum> mAccumulator;
+    std::shared_ptr<CheckerMeanOrSum> mChecker;
 };
 
 #endif /* SUMFACTORY_H_ */

@@ -30,13 +30,13 @@
 #ifndef ACCUMULATEDVALUE_H_
 #define ACCUMULATEDVALUE_H_
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 class AccumulatedValue {
 public:
     virtual ~AccumulatedValue() = 0;
 };
 
-typedef boost::shared_ptr<AccumulatedValue> AccumulatedValueP;
+typedef std::shared_ptr<AccumulatedValue> AccumulatedValueP;
 
 #endif /* ACCUMULATEDVALUE_H_ */

@@ -32,7 +32,6 @@
 
 #include "DayValue.h"
 #include "helpers/timeutil.h"
-#include <boost/shared_ptr.hpp>
 
 namespace miutil { class miTime; }
 
@@ -44,6 +43,6 @@ public:
     virtual bool isCompleteDay() = 0;
     virtual DayValueP value() = 0;
 };
-typedef boost::shared_ptr<DayValueExtractor> DayValueExtractorP;
+typedef std::shared_ptr<DayValueExtractor> DayValueExtractorP;
 
 #endif /* DAYVALUEEXTRACTOR_H_ */

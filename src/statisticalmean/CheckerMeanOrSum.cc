@@ -40,7 +40,7 @@ bool CheckerMeanOrSum::newCenter(int id, int dayOfYear, AccumulatedValueP accumu
     const float reference = getReference(id, dayOfYear, "ref_value", referenceValid);
     //bool toleranceValid;
     //const float tolerance = getReference(id, dayOfYear, "tolerance", referenceValid);
-    const float value = boost::static_pointer_cast<AccumulatedFloat>(accumulated)->value;
+    const float value = std::static_pointer_cast<AccumulatedFloat>(accumulated)->value;
     return !referenceValid || std::fabs(value - reference) < mTolerance;
 }
 
@@ -50,7 +50,7 @@ bool CheckerMeanOrSum::checkNeighbor(int nbr, AccumulatedValueP accumulated)
 {
     bool referenceValid;
     const float reference = getReference(nbr, mDayOfYear, "ref_value", referenceValid);
-    const float value = boost::static_pointer_cast<AccumulatedFloat>(accumulated)->value;
+    const float value = std::static_pointer_cast<AccumulatedFloat>(accumulated)->value;
     if( referenceValid && std::fabs(value - reference) < mTolerance )
         mCountNeighborsBelowTolerance += 1;
     return mCountNeighborsBelowTolerance <= 3;

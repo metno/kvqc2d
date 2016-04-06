@@ -31,7 +31,6 @@
 
 #include "AlgorithmConfig.h"
 #include "DayMeanExtractor.h"
-#include <boost/make_shared.hpp>
 
 void QuartilesFactory::configure(StatisticalMean* stm, const AlgorithmConfig& params)
 {
@@ -39,8 +38,8 @@ void QuartilesFactory::configure(StatisticalMean* stm, const AlgorithmConfig& pa
     const int days = params.getParameter<int>("days", 30);
     const int daysRequired = params.getParameter<int>("days_required", int(0.9*days + 0.5));
 
-    mAccumulator = boost::make_shared<AccumulatorQuartiles>(days, daysRequired);
-    mChecker = boost::make_shared<CheckerQuartiles>(stm, days, std::vector<float>(6, tolerance));
+    mAccumulator = std::make_shared<AccumulatorQuartiles>(days, daysRequired);
+    mChecker = std::make_shared<CheckerQuartiles>(stm, days, std::vector<float>(6, tolerance));
 }
 
 bool QuartilesFactory::appliesTo(int paramid)
@@ -61,5 +60,5 @@ AccumulatorP QuartilesFactory::accumulator(int /*paramid*/)
 
 DayValueExtractorP QuartilesFactory::dayValueExtractor(int paramid)
 {
-    return boost::make_shared<DayMeanExtractor>(true, paramid);
+    return std::make_shared<DayMeanExtractor>(true, paramid);
 }

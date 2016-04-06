@@ -76,10 +76,10 @@ private:
     void checkAllMeanValues(CheckerP checker, const sd2_t& smpd);
 
 private:
-    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
-    boost::shared_ptr<MeanFactory> mMeanFactory;
-    boost::shared_ptr<QuartilesFactory> mQuartilesFactory;
-    boost::shared_ptr<SumFactory> mSumFactory;
+    std::shared_ptr<RedistributionNeighbors> mNeighbors;
+    std::shared_ptr<MeanFactory> mMeanFactory;
+    std::shared_ptr<QuartilesFactory> mQuartilesFactory;
+    std::shared_ptr<SumFactory> mSumFactory;
 
     float mTolerance;
     int mDays;

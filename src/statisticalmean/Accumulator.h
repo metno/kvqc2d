@@ -32,7 +32,7 @@
 
 #include "AccumulatedValue.h"
 class DayValue;
-typedef boost::shared_ptr<DayValue> DayValueP;
+typedef std::shared_ptr<DayValue> DayValueP;
 
 class Accumulator {
 public:
@@ -43,6 +43,6 @@ public:
     virtual ~Accumulator();
 };
 
-typedef boost::shared_ptr<Accumulator> AccumulatorP;
+typedef std::shared_ptr<Accumulator> AccumulatorP;
 
 #endif /* ACCUMULATOR_H_ */

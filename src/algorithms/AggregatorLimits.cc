@@ -35,7 +35,6 @@
 #include "foreach.h"
 
 #include <kvalobs/kvDataOperations.h>
-#include <boost/make_shared.hpp>
 
 #define NDEBUG 1
 #include "debug.h"
@@ -199,7 +198,7 @@ void AggregatorLimits::configure(const AlgorithmConfig& config)
     config.getFlagChange(mFlagChangeMin, "aggregation_flagchange_min", "fr=6");
     config.getFlagChange(mFlagChangeMax, "aggregation_flagchange_max", "fr=6");
 
-    mLimits = boost::make_shared<LimitValues>();
+    mLimits = std::make_shared<LimitValues>();
 #ifdef USE_STATION_PARAM
     DBInterface::StationIDList allStations(1, DBInterface::ALL_STATIONS);
     addStationLimits(database()->findStationParams(allStations, mParameters, "QC1-1-"));

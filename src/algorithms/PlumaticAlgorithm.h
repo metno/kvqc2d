@@ -32,7 +32,6 @@
 
 #include "Qc2Algorithm.h"
 #include "algorithms/DataUpdate.h"
-#include <boost/shared_ptr.hpp>
 
 class RedistributionNeighbors;
 
@@ -139,7 +138,7 @@ private:
     Shower findShowerForward(const kvUpdateList_it& begin, const kvUpdateList_it& end);
 
 private:
-    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
+    std::shared_ptr<RedistributionNeighbors> mNeighbors;
 
     int pid;
     std::vector<int> mTypeIds;

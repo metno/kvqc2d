@@ -32,7 +32,6 @@
 
 #include "Qc2Algorithm.h"
 #include "algorithms/DataUpdate.h"
-#include <boost/shared_ptr.hpp>
 
 class RedistributionNeighbors;
 
@@ -95,7 +94,7 @@ private:
     kvtime::time stepTime(const kvtime::time& time);
 
 private:
-    boost::shared_ptr<RedistributionNeighbors> mNeighbors;
+    std::shared_ptr<RedistributionNeighbors> mNeighbors;
     FlagSetCU endpoint_flags, missingpoint_flags, neighbor_flags, warn_and_stop_flags;
     FlagChange update_flagchange, endpoint_flagchange;
     std::vector<int> pids;

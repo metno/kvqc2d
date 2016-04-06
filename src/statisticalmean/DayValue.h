@@ -31,7 +31,6 @@
 #define DAYVALUE_H_
 
 #include "helpers/timeutil.h"
-#include <boost/shared_ptr.hpp>
 
 class DayValue {
 public:
@@ -54,6 +53,6 @@ public:
 private:
     int mDay;
 };
-typedef boost::shared_ptr<DayValue> DayValueP;
+typedef std::shared_ptr<DayValue> DayValueP;
 
 #endif /* DAYVALUE_H_ */

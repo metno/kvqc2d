@@ -48,7 +48,7 @@ private:
 
 private:
     std::vector<int> mParameters;
-    boost::shared_ptr<LimitValues> mLimits;
+    std::shared_ptr<LimitValues> mLimits;
     std::string mMinQCX, mMaxQCX;
     FlagSetCU mFlags;
     FlagChange mFlagChangeMin, mFlagChangeMax;

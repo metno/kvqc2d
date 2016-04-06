@@ -39,6 +39,6 @@ struct AccumulatedQuartiles : public AccumulatedValue {
         : q1(qq1), q2(qq2), q3(qq3) { }
 };
 
-typedef boost::shared_ptr<AccumulatedQuartiles> AccumulatedQuartilesP;
+typedef std::shared_ptr<AccumulatedQuartiles> AccumulatedQuartilesP;
 
 #endif /* ACCUMULATEDQUARTILES_H_ */

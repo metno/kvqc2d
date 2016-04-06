@@ -36,8 +36,6 @@
 #include "KvalobsMinMaxData.h"
 #include "Qc2Algorithm.h"
 
-#include <boost/shared_ptr.hpp>
-
 namespace Interpolation {
 class MinMaxInterpolator;
 class MinMaxReconstruction;

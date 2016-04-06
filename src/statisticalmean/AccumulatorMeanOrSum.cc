@@ -32,18 +32,16 @@
 #include "AccumulatedFloat.h"
 #include "DayMean.h"
 
-#include <boost/make_shared.hpp>
-
 void AccumulatorMeanOrSum::push(DayValueP value)
 {
     mCountDays += 1;
-    mSum += boost::static_pointer_cast<DayMean>(value)->mean();
+    mSum += std::static_pointer_cast<DayMean>(value)->mean();
 }
 
 void AccumulatorMeanOrSum::pop(DayValueP value)
 {
     mCountDays -= 1;
-    mSum -= boost::static_pointer_cast<DayMean>(value)->mean();
+    mSum -= std::static_pointer_cast<DayMean>(value)->mean();
 }
 
 AccumulatedValueP AccumulatorMeanOrSum::value()
@@ -51,7 +49,7 @@ AccumulatedValueP AccumulatorMeanOrSum::value()
     if( mCountDays<=0 || mCountDays < mDaysRequired )
         return AccumulatedValueP();
     if( mCalculateMean )
-        return boost::make_shared<AccumulatedFloat>(mSum / mCountDays);
+        return std::make_shared<AccumulatedFloat>(mSum / mCountDays);
     else
-        return boost::make_shared<AccumulatedFloat>(mSum * float(mDays) / float(mCountDays));
+        return std::make_shared<AccumulatedFloat>(mSum * float(mDays) / float(mCountDays));
 }

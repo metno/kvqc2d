@@ -45,8 +45,6 @@
 #include "SumFactory.h"
 #include "foreach.h"
 
-#include <boost/make_shared.hpp>
-
 #define NDEBUG
 #include "debug.h"
 
@@ -261,7 +259,7 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
 
 void StatisticalMean::run()
 {
-    boost::shared_ptr<Factory> factory;
+    std::shared_ptr<Factory> factory;
     if( mMeanFactory->appliesTo(mParamid) ) {
         factory = mMeanFactory;
     } else if( mSumFactory->appliesTo(mParamid) ) {
@@ -314,21 +312,21 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
                 for(int i=365-mDays+1; i<365; ++i) {
                     const float vPush = rvpd[i-1];
                     if( vPush != missing )
-                        acc.push(boost::make_shared<DayMean>(vPush));
+                        acc.push(std::make_shared<DayMean>(vPush));
                 }
                 for(int i=1; i<=365; ++i) {
                     const float vPush = rvpd[i-1];
                     if( vPush != missing )
-                        acc.push(boost::make_shared<DayMean>(vPush));
+                        acc.push(std::make_shared<DayMean>(vPush));
                     AccumulatedValueP v = acc.value();
                     if( v ) {
-                        float mean = boost::static_pointer_cast<AccumulatedFloat>(v)->value;
+                        float mean = std::static_pointer_cast<AccumulatedFloat>(v)->value;
                         rvpd_mean[i-1] = mean;
                     }
                     const int iPop = (365+i-mDays-1) % 365;
                     const float vPop = rvpd[iPop];
                     if( vPop != missing )
-                        acc.pop(boost::make_shared<DayMean>(vPop));
+                        acc.pop(std::make_shared<DayMean>(vPop));
                 }
                 rvps_mean[station] = rvpd_mean;
             }

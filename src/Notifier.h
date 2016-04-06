@@ -30,8 +30,8 @@
 #ifndef Notifier_H
 #define Notifier_H
 
-#include <boost/shared_ptr.hpp>
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 class Notifier;
@@ -54,7 +54,7 @@ public:
     Message& operator<<(const char* t);
 
 private:
-    boost::shared_ptr<std::ostringstream> mStream;
+    std::shared_ptr<std::ostringstream> mStream;
     Level mLevel;
     Notifier* mNotifier;
     const std::string mCategory;

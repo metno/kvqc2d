@@ -54,6 +54,6 @@ private:
     StatisticalMean* mStatisticalMean;
 };
 
-typedef boost::shared_ptr<Checker> CheckerP;
+typedef std::shared_ptr<Checker> CheckerP;
 
 #endif /* CHECKER_H_ */

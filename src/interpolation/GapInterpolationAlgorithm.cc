@@ -44,7 +44,6 @@
 
 #include <kvalobs/kvDataOperations.h>
 
-#include <boost/make_shared.hpp>
 
 #include "gdebug.h"
 
@@ -391,9 +390,9 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
     GapDataPtr data;
     GapDataUUPtr dataUU;
     if( pi.parameter == KVALOBS_PARAMID_UU ) {
-        data = dataUU = boost::make_shared<GapDataUU>(instrument, range, pi, this);
+        data = dataUU = std::make_shared<GapDataUU>(instrument, range, pi, this);
     } else {
-        data = boost::make_shared<GapData>(instrument, range, pi, this);
+        data = std::make_shared<GapData>(instrument, range, pi, this);
     }
 
     const FlagSetCU all; // FIXME this sets too few constraints (none); must in any case be weaker than mDataFlagsUUTA

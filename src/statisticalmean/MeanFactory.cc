@@ -31,7 +31,6 @@
 
 #include "AlgorithmConfig.h"
 #include "DayMeanExtractor.h"
-#include <boost/make_shared.hpp>
 
 void MeanFactory::configure(StatisticalMean* stm, const AlgorithmConfig& params)
 {
@@ -39,8 +38,8 @@ void MeanFactory::configure(StatisticalMean* stm, const AlgorithmConfig& params)
     const int days = params.getParameter<int>("days", 30);
     const int daysRequired = params.getParameter<int>("days_required", int(0.9*days + 0.5));
 
-    mAccumulator = boost::make_shared<AccumulatorMeanOrSum>(true, days, daysRequired);
-    mChecker = boost::make_shared<CheckerMeanOrSum>(stm, tolerance);
+    mAccumulator = std::make_shared<AccumulatorMeanOrSum>(true, days, daysRequired);
+    mChecker = std::make_shared<CheckerMeanOrSum>(stm, tolerance);
 }
 
 bool MeanFactory::appliesTo(int paramid)
@@ -60,5 +59,5 @@ AccumulatorP MeanFactory::accumulator(int /*paramid*/)
 
 DayValueExtractorP MeanFactory::dayValueExtractor(int paramid)
 {
-    return boost::make_shared<DayMeanExtractor>(true, paramid);
+    return std::make_shared<DayMeanExtractor>(true, paramid);
 }

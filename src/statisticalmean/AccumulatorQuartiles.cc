@@ -33,17 +33,15 @@
 #include "DayMean.h"
 #include "helpers/mathutil.h"
 
-#include <boost/make_shared.hpp>
-
 void AccumulatorQuartiles::push(DayValueP value)
 {
-    float v = boost::static_pointer_cast<DayMean>(value)->mean();
+    float v = std::static_pointer_cast<DayMean>(value)->mean();
     mValues.push_back(v);
 }
 
 void AccumulatorQuartiles::pop(DayValueP value)
 {
-    float v = boost::static_pointer_cast<DayMean>(value)->mean();
+    float v = std::static_pointer_cast<DayMean>(value)->mean();
     std::vector<float>::iterator it = std::find(mValues.begin(), mValues.end(), v);
     if( it != mValues.end() )
         mValues.erase(it);
@@ -57,5 +55,5 @@ AccumulatedValueP AccumulatorQuartiles::value()
     double q1, q2, q3;
     Helpers::quartiles(mValues.begin(), mValues.end(), q1, q2, q3);
 
-    return boost::make_shared<AccumulatedQuartiles>(q1, q2, q3);
+    return std::make_shared<AccumulatedQuartiles>(q1, q2, q3);
 }

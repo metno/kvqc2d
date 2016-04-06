@@ -31,8 +31,6 @@
 
 #include "helpers/Helpers.h"
 
-#include <boost/make_shared.hpp>
-
 DayMeanExtractor::DayMeanExtractor(bool cm, int paramid)
     : mCalculateMean(cm)
     , mParamid(paramid)
@@ -82,5 +80,5 @@ DayValueP DayMeanExtractor::value()
     float v = mSum;
     if( mCalculateMean )
         v /= mCountHours;
-    return boost::make_shared<DayMean>(v);
+    return std::make_shared<DayMean>(v);
 }

@@ -85,7 +85,7 @@ public:
 
 // ========================================================================
 
-typedef boost::shared_ptr<GapData>   GapDataPtr;
-typedef boost::shared_ptr<GapDataUU> GapDataUUPtr;
+typedef std::shared_ptr<GapData>   GapDataPtr;
+typedef std::shared_ptr<GapDataUU> GapDataUUPtr;
 
 #endif /* GAPDATA_HH */

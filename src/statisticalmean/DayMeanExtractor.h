@@ -50,6 +50,6 @@ private:
     int mHours, mCountHours;
     float mSum;
 };
-typedef boost::shared_ptr<DayMeanExtractor> DayMeanExtractorP;
+typedef std::shared_ptr<DayMeanExtractor> DayMeanExtractorP;
 
 #endif /* DAYMEANEXTRACTOR_H_ */

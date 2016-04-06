@@ -42,8 +42,8 @@ public:
     virtual AccumulatorP accumulator(int paramid);
     virtual DayValueExtractorP dayValueExtractor(int paramid);
 private:
-    boost::shared_ptr<AccumulatorQuartiles> mAccumulator;
-    boost::shared_ptr<CheckerQuartiles> mChecker;
+    std::shared_ptr<AccumulatorQuartiles> mAccumulator;
+    std::shared_ptr<CheckerQuartiles> mChecker;
 };
 
 #endif /* QUARTILESFACTORY_H_ */

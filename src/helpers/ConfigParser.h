@@ -30,9 +30,9 @@
 #ifndef ConfigParser_H
 #define ConfigParser_H 1
 
-#include <boost/shared_ptr.hpp>
 #include <stdexcept>
 #include <map>
+#include <memory>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -61,7 +61,7 @@ public:
 
     private:
         List_t& mList;
-        boost::shared_ptr<std::ostringstream> mStream;
+        std::shared_ptr<std::ostringstream> mStream;
     };
 
 public:
