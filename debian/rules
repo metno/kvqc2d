@@ -1,32 +1,10 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-DH_COMMAND = dh #--with python2 python2 not available on lucid
+DH_COMMAND = dh
 
 %:
 	$(DH_COMMAND) $@
 
-override_dh_auto_configure: pre-build configure-stamp
-	@true
-
 override_dh_strip:
 	dh_strip --dbg-package=kvqc2d-dbg
-
-configure-stamp:
-	autoreconf -i
-	./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var
-	touch $@
-
-pre-build :: version-deb-autotools
-	@true
-
-# check that the version specified in configure.ac is the same as the
-# most recent version in debian/changelog
-version-deb-autotools:
-	@AC_VERSION=$$(grep ^AC_INIT configure.ac | sed -e 's/^AC_INIT(\[[a-zA-Z0-9_.~]\+\], *\[//' -e 's/\], *\[[a-z@.-]\+\])//'); \
-	DEBIAN_PACKAGE=$$(head -n 1 debian/changelog | sed -e 's/^\([a-z_0-9-]\+\) (/\1/'); \
-	DEBIAN_VERSION=$$(head -n 1 debian/changelog | sed -e 's/^[a-z_0-9-]\+ (\([0-9]\+\.[a-zA-Z0-9_.~]\+\)-[^-)]\+).*$$/\1/'); \
-	if [ "x$$DEBIAN_VERSION" != "x$$AC_VERSION" ]; then \
-	    echo "Error: debian version '$$DEBIAN_VERSION' != version '$$AC_VERSION' from configure.ac"; \
-	    if [ "x$$KVQC2D_BUILD_VERSION_CHECK" != "xNO" ]; then exit 1; fi \
-	fi;

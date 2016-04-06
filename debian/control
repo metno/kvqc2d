@@ -2,18 +2,24 @@ Source: kvqc2d
 Section: science
 Priority: extra
 Maintainer: Met.no Kvalobs Developers <kvalobs-dev@met.no>
-Build-Depends: debhelper (>= 7.0.50), g++ (>= 4.4),
- automake, libsqlite3-dev (>= 3.6), libgsl0-dev (>= 1.8),
- libboost-dev (>= 1.40.0), libboost-thread-dev (>= 1.40.0),
- libboost-filesystem-dev (>= 1.40.0), libomniorb4-dev (>= 4.0.6),
- libkvcpp-dev (>= 2.7.2)
-Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 9),
+ cmake,
+ libsqlite3-dev (>= 3.6),
+ libgsl0-dev (>= 1.8) | libgsl-dev,
+ libboost-dev (>= 1.40.0),
+ libboost-thread-dev (>= 1.40.0),
+ libboost-filesystem-dev (>= 1.40.0),
+ google-mock,
+ python,
+ libkvcpp-dev (>= 4.0),
+ libcurl4-gnutls-dev | libcurl-dev
+Standards-Version: 3.9.2
 
 Package: kvqc2d
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
  libdbd-pg-perl (>= 2.16), ${perl:Depends}
-Recommends: kvalobs (>= 2.5.2a)
+Recommends: kvalobs (>= 2.8.0)
 Description: Non-real-time and geo-statistical quality controls.
  The geo-statistical algorithms will make up the QC2-ROM (space-control)
  and will rely on: handling of data-sets comprising points from the

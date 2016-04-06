@@ -70,6 +70,8 @@ SET(kvqc2d_1_STAT_SRCS
    KvServicedBroadcaster.h
    LogfileNotifier.cc
    LogfileNotifier.h
+   SingleFileLogStream.cc
+   SingleFileLogStream.h
    SQLDataAccess.cc
    SQLDataAccess.h
    Qc2Algorithm.cc

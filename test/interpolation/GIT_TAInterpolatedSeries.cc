@@ -3,14 +3,15 @@
 
 TEST_F(GapInterpolationTest, TAInterpolatedSeries)
 {
+    const float INT = 3.5f, VAL = 4.5f, MISS = -32767;
     DataList data(18700, 211, 330);
-    data.add("2012-11-05 08:00:00",       4.5,      "0111000000100010", "")
-        .add("2012-11-05 09:00:00",       4.5,      "0111000000100010", "")
-        .add("2012-11-05 10:00:00",  -32767.0, 3.5, "0000001100000000", "QC2d-2-I")
-        .add("2012-11-05 11:00:00",  -32767.0,      "0000003000000000", "")
-        .add("2012-11-05 12:00:00",  -32767.0, 3.5, "0000001100000000", "QC2d-2-I")
-        .add("2012-11-05 13:00:00",       4.5,      "0111000000100010", "")
-        .add("2012-11-05 14:00:00",       4.5,      "0111000000100010", "");
+    data.add("2012-11-05 08:00:00",         VAL, "0111000000100010", "")
+        .add("2012-11-05 09:00:00",         VAL, "0111000000100010", "")
+        .add("2012-11-05 10:00:00",  MISS,  INT, "0000001100000000", "QC2d-2-I")
+        .add("2012-11-05 11:00:00",        MISS, "0000003000000000", "")
+        .add("2012-11-05 12:00:00",  MISS,  INT, "0000001100000000", "QC2d-2-I")
+        .add("2012-11-05 13:00:00",         VAL, "0111000000100010", "")
+        .add("2012-11-05 14:00:00",         VAL, "0111000000100010", "");
     ASSERT_NO_THROW(data.insert(db));
 
     std::stringstream config;
@@ -31,7 +32,7 @@ TEST_F(GapInterpolationTest, TAInterpolatedSeries)
     // interpolation yields 4.5 as values before and after the gap are
     // interpolated themselves so they are not used as support points
     ASSERT_RUN(algo, bc, 1);
-    EXPECT_NEAR(4.5, bc->update(0).corrected(), 0.01);
+    EXPECT_NEAR(VAL, bc->update(0).corrected(), 0.01f);
 
     ASSERT_RUN(algo, bc, 0);
 }

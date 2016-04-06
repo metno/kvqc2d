@@ -25,16 +25,12 @@ find_library(SQLITE3_LIBRARY sqlite3)
 ########### next target ###############
 
 ADD_CUSTOM_COMMAND(
-   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/algorithms/StatisticalMean_n110.icc
-   COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/algorithms &&
-           python ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_110.py ${CMAKE_SOURCE_DIR}/data/normals_110.dat ${CMAKE_CURRENT_BINARY_DIR}/algorithms/StatisticalMean_n110.icc
-   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_110.py ${CMAKE_SOURCE_DIR}/data/normals_110.dat
+  OUTPUT algorithms/StatisticalMean_n212.cc
+  COMMAND mkdir -p algorithms
+  COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat algorithms/StatisticalMean_n212.cc
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat
 )
-ADD_CUSTOM_COMMAND(
-   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/algorithms/StatisticalMean_n212.icc
-   COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat ${CMAKE_CURRENT_BINARY_DIR}/algorithms/StatisticalMean_n212.icc
-   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat
-)
+ADD_CUSTOM_TARGET(generate_testfiles DEPENDS algorithms/StatisticalMean_n212.cc)
 
 FILE(GLOB_RECURSE kvqc2dTest_SRCS "*.cc")
 FOREACH(item ${kvqc2dTest_SRCS})
@@ -42,7 +38,12 @@ FOREACH(item ${kvqc2dTest_SRCS})
     LIST(REMOVE_ITEM kvqc2dTest_SRCS ${item})
   ENDIF()
 ENDFOREACH()
-add_executable(kvqc2dTest ${kvqc2dTest_SRCS})
+
+ADD_EXECUTABLE(kvqc2dTest
+ ${kvqc2dTest_SRCS}
+ ${CMAKE_CURRENT_BINARY_DIR}/algorithms/StatisticalMean_n212.cc
+)
+ADD_DEPENDENCIES(kvqc2dTest generate_testfiles)
 
 target_link_libraries(kvqc2dTest kvqc2d_1 interpolation statisticalmean kvqc2d_2 helpers
     ${PC_KVCPP_LIBRARIES}
@@ -51,7 +52,6 @@ target_link_libraries(kvqc2dTest kvqc2d_1 interpolation statisticalmean kvqc2d_2
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${Boost_REGEX_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
 )
 
 add_test(

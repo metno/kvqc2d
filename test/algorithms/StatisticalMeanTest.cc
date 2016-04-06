@@ -304,10 +304,12 @@ TEST_F(StatisticalMeanTest, FakeDeviation_PR)
 
 // ------------------------------------------------------------------------
 
+// in generated file algorithms/StatisticalMean_n212.cc
+void prepare_daymeans_212(SqliteTestDB* db);
+
 TEST_F(StatisticalMeanTest, FakeDeviation_TA)
 {
-#include "StatisticalMean_n212.icc"
-
+    prepare_daymeans_212(db);
     const int ctr = 7010;
     DataList data(ctr, 211, 330);
     kvtime::time date = kvtime::maketime("2012-01-01 06:00:00"), dateEnd = kvtime::maketime("2012-02-29 06:00:00");
