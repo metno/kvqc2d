@@ -34,9 +34,9 @@ is not the easiest reading.
 Parameters
 ----------
 
- * mean applies to paramids 178 (PR) and 211 (TA)
- * sum applies to paramids 106 (RR1), 108 (RR6), 109 (RR12), 110 (RR24)
- * quartiles applies to paramids 262 (UU), 15 (NN), 55 (HL), 273 (VV), 200 (QO)
+ * mean applies primarily to paramids 178 (PR) and 211 (TA)
+ * sum applies peimarily to paramids 106 (RR_1), 108 (RR_6), 109 (RR_12), 110 (RR_24)
+ * quartiles applies primarily to paramids 262 (UU), 15 (NN), 55 (HL), 273 (VV), 2070 (QSI)
 
 Reference values
 ----------------
