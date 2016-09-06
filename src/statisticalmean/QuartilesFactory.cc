@@ -46,7 +46,7 @@ void QuartilesFactory::configure(StatisticalMean* stm, const AlgorithmConfig& pa
 bool QuartilesFactory::appliesTo(int paramid)
 {
     return ( paramid == 262 /* UU */ || paramid == 15 /* NN */ || paramid == 55 /* HL */
-            || paramid == 273 /* VV */ || paramid == 200 /* QO */ );
+            || paramid == 273 /* VV */ || paramid == 200 /* QO */ || paramid == 2070 /* QSI */);
 }
 
 CheckerP QuartilesFactory::checker(int /*paramid*/)
