@@ -41,6 +41,7 @@ You might want to adjust some options, for example
     
     ParamId = 105
 
+    # without any TypeId = .. line, typeids 4 and 504 are checked
     TypeId = 1234
     TypeId = 3456
 
