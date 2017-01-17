@@ -40,28 +40,28 @@ KvServicedBroadcaster::KvServicedBroadcaster(Qc2App& app)
 
 void KvServicedBroadcaster::queueChanged(const kvalobs::kvData& d)
 {
-    mStationList.push_back(kvalobs::kvStationInfo(d.stationID(), d.obstime(), d.typeID()));
+    mDataList.push_back(d);
 }
 
 void KvServicedBroadcaster::sendChanges()
 {
-    if( mStationList.empty() )
+    if (mDataList.empty())
         return;
 
     const int WAIT_MAX = 120;
-    for(int i=0; i<WAIT_MAX; ++i) {
+    for (int i=0; i<WAIT_MAX; ++i) {
         bool busy = true;
-        bool serviceOk = mApp.sendDataToKvService(mStationList, busy);
-        if( !serviceOk ) {
-            LOGWARN("kvServiced problem, keeping " << mStationList.size() << " changes in memory.");
+        bool serviceOk = mApp.sendDataToKvService(mDataList, busy);
+        if (!serviceOk) {
+            LOGWARN("kvServiced problem, keeping " << mDataList.size() << " changes in memory.");
             return;
         }
-        if( !busy ) {
-            mStationList.clear();
+        if (!busy) {
+            mDataList.clear();
             return;
         }
         LOGINFO("kvServiced busy, waiting 1s ...");
         sleep(1);
     }
-    LOGWARN("kvServiced busy for " << WAIT_MAX << "s, keeping " << mStationList.size() << " changes in memory.");
+    LOGWARN("kvServiced busy for " << WAIT_MAX << "s, keeping " << mDataList.size() << " changes in memory.");
 }

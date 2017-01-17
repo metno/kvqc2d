@@ -33,7 +33,6 @@
 #include "Broadcaster.h"
 
 #include <kvalobs/kvData.h>
-#include <kvalobs/kvStationInfo.h>
 
 class Qc2App;
 
@@ -44,7 +43,7 @@ public:
     virtual void sendChanges();
 private:
     Qc2App& mApp;
-    kvalobs::kvStationInfoList mStationList;
+    std::list<kvalobs::kvData> mDataList;
 };
 
 #endif /* STANDARBROADCASTER_H_ */

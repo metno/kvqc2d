@@ -30,9 +30,10 @@
 #ifndef QC2APP_H
 #define QC2APP_H
 
-#include <kvalobs/kvapp.h>
-#include <kvskel/kvService.hh>
 #include <kvalobs/kvStationInfo.h>
+#include <kvcpp/KvApp.h>
+#include <kvskel/kvService.hh>
+#include <kvsubscribe/KafkaProducerThread.h>
 #include <kvdb/dbdrivermgr.h>
 
 #include <boost/thread.hpp>
@@ -40,13 +41,10 @@
 #include <string>
 #include <vector>
 
-class Qc2App: public KvApp
+class Qc2App
 {
 public:
-    Qc2App(int argc, char **argv,
-           const std::string &driver,
-           const std::string &connect_,
-           const char *options[][2]=0);
+    Qc2App(int argc, char **argv, std::shared_ptr<miutil::conf::ConfSection> conf);
 
     virtual ~Qc2App();
 
@@ -55,7 +53,7 @@ public:
 
     void run();
 
-    bool sendDataToKvService(const kvalobs::kvStationInfoList &info_, bool &busy);
+    bool sendDataToKvService(const std::list<kvalobs::kvData>& data, bool &busy);
 
     void startShutdown()
         { mShouldShutdown = true; }
@@ -67,30 +65,23 @@ public:
      * call releaseDbConnection after use.
      */
     dnmi::db::Connection *getNewDbConnection();
-    void                 releaseDbConnection(dnmi::db::Connection *con);
+    void releaseDbConnection(dnmi::db::Connection *con);
 
 private:
-    void initializeDB(const std::string& dbDriver);
-    void initializeCORBA();
-    void runCORBA();
-    void shutdownCORBA();
+    void initializeKAFKA();
+    void runKAFKA();
+    void shutdownKAFKA();
     void runAlgorithms();
 
-    CKvalObs::CService::DataReadyInput_ptr lookUpKvService(bool forceNS,
-                                                           bool &usedNS);
-
-    Qc2App(); //No implementation
+    Qc2App(); // no implementation
+    Qc2App& operator=(const Qc2App& other); // no implementation
 
 private:
-    dnmi::db::DriverManager dbMgr;
-    std::string dbConnect;
-    std::string dbDriverId;
+    std::shared_ptr<miutil::conf::ConfSection> confSection;
+    std::unique_ptr<kvservice::KvApp> app;
     bool mShouldShutdown;
 
-    CKvalObs::CManager::CheckedInput_var refServiceCheckedInput;
-    CKvalObs::CService::DataReadyInput_var refKvServiceDataReady;
-
-    boost::thread* mCORBAThread;
+    std::unique_ptr<kvalobs::service::KafkaProducerThread> mProducerThread;
 
     std::vector<std::string> algorithmFiles_;
 };

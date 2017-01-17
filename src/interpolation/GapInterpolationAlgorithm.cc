@@ -62,12 +62,6 @@ struct HasParameter : public std::unary_function<bool, ParameterInfo> {
     HasParameter(int p) : parameter(p) { }
 };
 
-bool isFailed(const Interpolation::SeriesData& d)
-{
-    DBGV(d);
-    return d.quality() == Interpolation::FAILED;
-}
-
 bool isReliableMinMax(const Interpolation::SeriesData& d)
 {
     DBGV(d);
