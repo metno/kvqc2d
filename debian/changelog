@@ -1,3 +1,10 @@
+kvqc2d (1.6.0~rc2-1) unstable; urgency=low
+
+  * new kvalobs version
+  * CMake build
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 17 Jan 2017 08:00:00 +0200
+
 kvqc2d (1.5.16-1) unstable; urgency=low
 
   * add options to allow running one check from command line
