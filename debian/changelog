@@ -1,3 +1,9 @@
+kvqc2d (1.6.0~rc2-2) unstable; urgency=low
+
+  * add librdkafka-dev to Build-Depends to work around libkvalobs-dev problem
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Mon, 23 Jan 2017 08:00:00 +0100
+
 kvqc2d (1.6.0~rc2-1) unstable; urgency=low
 
   * new kvalobs version
