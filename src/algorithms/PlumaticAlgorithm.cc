@@ -571,7 +571,7 @@ PlumaticAlgorithm::Shower PlumaticAlgorithm::findShowerForward(const kvUpdateLis
         ++f.last;
         kvtime::time t = f.first->obstime();
         kvtime::addMinutes(t, 1);
-        while( f.last != end && f.first->original() >= 0.05 && f.last->obstime() == t ) {
+        while( f.last != end && f.last->original() >= 0.05 && f.last->obstime() == t ) {
             ++f.last;
             kvtime::addMinutes(t, 1);
         }

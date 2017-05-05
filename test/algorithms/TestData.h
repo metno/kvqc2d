@@ -64,6 +64,9 @@ public:
     DataList& add(const kvtime::time& obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
         { return add(obstime, original, original, controlinfo, cfailed); }
 
+    DataList& addM(kvtime::time& obstime, float original, const std::string& controlinfo, const std::string& cfailed="")
+        { add(obstime, original, original, controlinfo, cfailed); kvtime::addMinutes(obstime, 1); return *this; }
+
     DataList& add(int stationid, const kvtime::time& obstime, float original, const std::string& controlinfo, const std::string& cfailed)
         { return add(stationid, obstime, original, mParamId, mTypeId, original, controlinfo, cfailed); }
 

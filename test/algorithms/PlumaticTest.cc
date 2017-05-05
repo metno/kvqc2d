@@ -1263,3 +1263,86 @@ TEST_F(PlumaticTest, Type504)
 
     EXPECT_EQ(0, logs->find("found only 0 neighbor stations"));
 }
+
+// ------------------------------------------------------------------------
+
+TEST_F(PlumaticTest, HighStartWithZeroes)
+{
+    std::ostringstream sql;
+    INSERT_STATION(sql, 50865, "GULLFJELLET", 60.383f, 5.542f, 345);
+    ASSERT_NO_THROW(db->exec(sql.str()));
+
+    DataList data(50865, 105, 508);
+    kvtime::time t = kvtime::maketime(2017, 4, 19, 6, 0, 0);
+#if 1
+    for(int minute=0; minute<3*60-4; ++minute)
+        data.addM(t, 0, "0101000000000000", "");
+    // 08:56
+    data.addM(t, 0.2f, "0101000000000000", "");
+    // 08:57 -- 09:02
+    for(int minute=0; minute<6; ++minute)
+        data.addM(t, 0, "0101000000000000", "");
+    // 09:03
+    data.addM(t, 0.9f, "0101000000000000", "");
+    // 09:04 -- 09:26
+    for(int minute=0; minute<23; ++minute)
+        data.addM(t, 0.6f, "0101000000000000", "");
+    // 09:27 -- next day 06:00
+    for(int minute=0; minute<34+20*60; ++minute)
+        data.addM(t, 0, "0101000000000000", "");
+#else
+    // 06:00
+    data.add(t, 0, "0101000000000000", "");
+    kvtime::addHours(t, 1);
+    // 07:00
+    data.add(t, 0, "0101000000000000", "");
+    kvtime::addHours(t, 1);
+    // 08:00
+    data.add(t, 0, "0101000000000000", "");
+    kvtime::addMinutes(t, 56);
+    // 08:56
+    data.addM(t, 0.2f, "0101000000000000", "");
+    kvtime::addMinutes(t, 4);
+    // 09:00
+    data.add(t, 0, "0101000000000000", "");
+    kvtime::addMinutes(t, 3);
+    // 09:03
+    data.addM(t, 0.9f, "0101000000000000", "");
+    // 09:04 -- 09:26
+    for(int minute=0; minute<23; ++minute)
+        data.addM(t, 0.6f, "0101000000000000", "");
+    kvtime::addMinutes(t, 3);
+    // 10:00 -- 06:00
+    for(int hour=10; hour<24+7; ++hour) {
+        data.add(t, 0, "0101000000000000", "");
+        kvtime::addHours(t, 1);
+    }
+#endif
+    ASSERT_NO_THROW(data.insert(db));
+
+    AlgorithmConfig params;
+    std::stringstream config;
+    config << "Start_YYYY = 2017\n"
+        "Start_MM   =   04\n"
+        "Start_DD   =   19\n"
+        "Start_hh   =   06\n"
+        "End_YYYY   = 2017\n"
+        "End_MM     =   04\n"
+        "End_DD     =   20\n"
+        "End_hh     =   06\n"
+        "stations = 0.1:50865\n"
+        "sliding_alarms = 2<8.1;3<11.9;5<16.2;10<25.6;15<27.3;20<34.4;30<42.0;45<49.1;60<54.9;90<56.7;180<60.8;360<83.3;720<144.1;1440<159.7\n"
+        "TypeId = 508\n"
+        "vipps_unlikely_single = 3\n"
+        "vipps_unlikely_start =  6\n"
+        "vipps_rain_interrupt = 3\n"
+        "rain_interrupt_max = 4\n"
+        "rain_interrupt_before_after = 2\n"
+        "ParamId = 105\n";
+    params.Parse(config);
+
+    ASSERT_CONFIGURE(algo, params);
+    ASSERT_RUN(algo, bc, 1);
+
+    ASSERT_EQ(2, logs->count());
+}
