@@ -1,3 +1,9 @@
+kvqc2d (1.6.0~rc3-1) unstable; urgency=low
+
+  * bugfix Plumatic shower detection
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Fri, 05 May 2017 08:00:00 +0200
+
 kvqc2d (1.6.0~rc2-2) unstable; urgency=low
 
   * add librdkafka-dev to Build-Depends to work around libkvalobs-dev problem
