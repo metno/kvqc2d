@@ -3,10 +3,8 @@
 set -e
 
 # TODO "kvalobs/Qc2Config" should not be hardcoded
-CONFIG_DIR=@sysconfdir@/kvalobs/Qc2Config
-
-exec_prefix=@prefix@
-scriptdir=@libdir@/kvqc2d
+CONFIG_DIR=@CMAKE_INSTALL_FULL_SYSCONFDIR@/kvalobs/Qc2Config
+scriptdir=@CMAKE_INSTALL_PREFIX@/lib/kvqc2d
 
 # fetch new list from stinfosys, store in $STATIONS_LIST
 STATIONS_LIST=/tmp/stations.txt
