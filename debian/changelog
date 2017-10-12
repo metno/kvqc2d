@@ -1,3 +1,9 @@
+kvqc2d (1.6.0~rc4-1) unstable; urgency=low
+
+  * bugfix plu-autoupdate-from-stinfosys paths
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 12 Oct 2017 08:00:00 +0200
+
 kvqc2d (1.6.0~rc3-1) unstable; urgency=low
 
   * bugfix Plumatic shower detection
