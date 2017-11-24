@@ -6,7 +6,7 @@
 use DBI;
 use strict;
 
-my $conn = DBI->connect("dbi:Pg:dbname=stinfosys;host=stinfosys;port=5435", "pstinfosys", "info12");
+my $conn = DBI->connect("dbi:Pg:dbname=stinfosys;host=stinfodb.met.no;port=5432","pstinfosys","");
 
 my %resolution_stations = ();
 
