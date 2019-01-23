@@ -36,7 +36,9 @@
 #include <kvalobs/kvStation.h>
 #include <sstream>
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include "debug.h"
 
 namespace {

@@ -41,7 +41,9 @@
 #include <sstream>
 #include <vector>
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include "debug.h"
 
 namespace fs = boost::filesystem;

@@ -42,7 +42,9 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include "debug.h"
 
 using namespace kvQCFlagTypes;

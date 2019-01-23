@@ -43,7 +43,9 @@
 
 #include <boost/bind.hpp>
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include "debug.h"
 
 #define FUTURE 1

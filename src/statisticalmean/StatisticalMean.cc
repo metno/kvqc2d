@@ -45,7 +45,9 @@
 #include "SumFactory.h"
 #include "foreach.h"
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include "debug.h"
 
 StatisticalMean::StatisticalMean()

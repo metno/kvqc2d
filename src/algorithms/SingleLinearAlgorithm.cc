@@ -35,7 +35,9 @@
 
 #include <milog/milog.h>
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include "debug.h"
 
 using Helpers::equal;
