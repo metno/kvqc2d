@@ -13,7 +13,7 @@ my %resolution_stations = ();
 my $query = $conn->prepare(
     "SELECT si.stationid, em.description FROM sensor_info AS si, equipment AS eq, equipmentmodel AS em "
     . "WHERE em.description LIKE '%unit_resolution=mm per vipp%' "
-    . "AND paramid = 105 "
+    . "AND paramgroupid = 105 "
     . "AND em.modelname = eq.modelname AND si.equipmentid = eq.equipmentid "
     . "AND ((si.totime IS NULL AND si.fromtime <= now()) "
         . " OR (si.totime IS NOT NULL AND now() BETWEEN si.fromtime AND em.totime)) "
