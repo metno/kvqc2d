@@ -1,8 +1,8 @@
-kvqc2d (1.6.0~rc6-1) unstable; urgency=low
+kvqc2d (1.6.0~rc6-2) unstable; urgency=low
 
   * bugfix plu-autoupdate-from-stinfosys
 
- -- Alexander Bürger <alexander.buerger@met.no>  Thus, 25 Apr 2019 08:00:00 +0200
+ -- Alexander Bürger <alexander.buerger@met.no>  Thu, 25 Apr 2019 08:00:00 +0200
 
 kvqc2d (1.6.0~rc5-1) unstable; urgency=low
 
