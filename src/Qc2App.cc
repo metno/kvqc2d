@@ -172,7 +172,7 @@ bool Qc2App::sendDataToKvService(const std::list<kvalobs::kvData> &data, bool& b
     }
 
     using kvalobs::service::KvDataSerializeCommand;
-    KvDataSerializeCommand* dataCmd(new KvDataSerializeCommand(data));
+    KvDataSerializeCommand* dataCmd(new KvDataSerializeCommand(data, "kvqc2"));
     mProducerThread->send(dataCmd);
     LOGINFO("sent data to kafka, hope that the message arrives ...");
     busy = false;
