@@ -11,7 +11,7 @@ Build-Depends: debhelper (>= 9),
  libboost-filesystem-dev (>= 1.40.0),
  google-mock,
  python,
- libkvcpp-dev (>= 4.0),
+ libkvcpp-dev (>= 5.0.5~rc2),
  libcurl4-gnutls-dev | libcurl-dev
 Standards-Version: 3.9.2
 
