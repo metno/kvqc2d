@@ -1,3 +1,9 @@
+kvqc2d (1.6.0-1) unstable; urgency=low
+
+  * kvqc2d depends on kvalobs version >= 5.0.5-1.
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 05 May 2020 11:00:00 +0200
+
 kvqc2d (1.6.0~rc7-1) unstable; urgency=low
 
   * Remove dependency on librdkafka. This is now part of libkvcpp.
@@ -5,7 +11,6 @@ kvqc2d (1.6.0~rc7-1) unstable; urgency=low
   * kvqc2d depend on kvalobs version >= 5.0.5.
 
  -- Alexander Bürger <alexander.buerger@met.no>  Thu, 25 Apr 2019 11:00:00 +0200
-
 
 kvqc2d (1.6.0~rc6-2) unstable; urgency=low
 
