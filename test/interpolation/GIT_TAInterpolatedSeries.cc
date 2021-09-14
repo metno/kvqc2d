@@ -29,10 +29,8 @@ TEST_F(GapInterpolationTest, TAInterpolatedSeries)
     ASSERT_PARSE_CONFIG(params, config);
     ASSERT_CONFIGURE(algo, params);
 
-    // interpolation yields 4.5 as values before and after the gap are
-    // interpolated themselves so they are not used as support points
     ASSERT_RUN(algo, bc, 1);
-    EXPECT_NEAR(VAL, bc->update(0).corrected(), 0.01f);
+    EXPECT_NEAR(MISS, bc->update(0).corrected(), 0.01f);
 
     ASSERT_RUN(algo, bc, 0);
 }
