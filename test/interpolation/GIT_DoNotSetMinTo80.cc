@@ -974,11 +974,12 @@ TEST_F(GapInterpolationTest, DoNotSetTo80_1)
 
     const int N = 5;
     ASSERT_RUN(algo, bc, N);
-    const float expectedC[N] = { -11.4, -11.4, -12.1, -10.9, -11.1 };
+    const float expectedC[N] = { -11.5, -32767, -12.1, -32767, -11.1 };
     const float expectedP[N] = { 211, 213, 213, 215, 215 };
     for(int i=0; i<N; ++i) {
-        EXPECT_NEAR(expectedC[i], bc->update(i).corrected(), i==0 ? 0.1 : 1) << "i=" << i;
-        EXPECT_EQ(expectedP[i], bc->update(i).paramID()) << "i=" << i;
+        const auto& u = bc->update(i);
+        EXPECT_NEAR(expectedC[i], u.corrected(), i==0 ? 0.1 : 1) << "i=" << i << " update=" << u;
+        EXPECT_EQ(expectedP[i], u.paramID()) << "i=" << i << " update=" << u;
     }
     ASSERT_RUN(algo, bc, 0);
 }
