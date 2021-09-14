@@ -1,3 +1,9 @@
+kvqc2d (1.6.1-1) unstable; urgency=low
+
+  * fix unit tests
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 14 Sep 2021 08:00:08 +0200
+
 kvqc2d (1.6.0-1) unstable; urgency=low
 
   * kvqc2d depends on kvalobs version >= 5.0.5-1.
