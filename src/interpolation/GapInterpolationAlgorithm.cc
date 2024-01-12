@@ -40,7 +40,6 @@
 #include "interpolation/MinMaxInterpolator.h"
 #include "interpolation/MinMaxReconstruction.h"
 #include "interpolation/NeighborInterpolator.h"
-#include "foreach.h"
 
 #include <kvalobs/kvDataOperations.h>
 
@@ -127,7 +126,7 @@ void GapInterpolationAlgorithm::configure( const AlgorithmConfig& params )
     params.getFlagChange(missing_flagchange_common, "missing_flagchange_common", "fmis=3->fmis=1;fmis=[02]->fmis=4");
 
     const std::vector<std::string> parameters = params.getMultiParameter<std::string>("Parameter");
-    foreach(const std::string& pi, parameters)
+    for(const std::string& pi : parameters)
         mParameterInfos.push_back(ParameterInfo(pi));
 }
 
@@ -156,11 +155,11 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
                                                                        DBInterface::INVALID_ID, t, mDataFlagsUUTA);
 
         std::vector<float> valueUU(nd.size(), Interpolation::MISSING_VALUE), valueTA(nd.size(), Interpolation::MISSING_VALUE);
-        foreach(const kvalobs::kvData& d, dl) {
+        for(const kvalobs::kvData& d : dl) {
             const int time = kvtime::hourDiff(d.obstime(), t.t0);
             valueUU.at(time) = d.original();
         }
-        foreach(const kvalobs::kvData& d, dlTA) {
+        for(const kvalobs::kvData& d : dlTA) {
             const int time = kvtime::hourDiff(d.obstime(), t.t0);
             valueTA.at(time) = d.corrected();
         }
@@ -170,7 +169,7 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
                 nd.at(t) = Interpolation::SupportData(Helpers::formulaTD(ta, uu));
         }
     } else {
-        foreach(const kvalobs::kvData& d, dl) {
+        for(const kvalobs::kvData& d : dl) {
             const int time = kvtime::hourDiff(d.obstime(), t.t0);
             nd.at(time) = Interpolation::SupportData(d.original());
         }
@@ -182,7 +181,7 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
 
 void GapInterpolationAlgorithm::makeUpdates(GapData::DataUpdates& dul, const ParameterInfo& pi, DBInterface::DataList& updates)
 {
-    foreach(GapUpdate& du, dul) {
+    for(GapUpdate& du : dul) {
         if( not du.isNew() and du.isUpdated() ) {
             const float v = pi.toStorage(du.value());
             const int q = du.quality();
@@ -225,7 +224,7 @@ GapInterpolationAlgorithm::InstrumentMissingRanges GapInterpolationAlgorithm::fi
 {
     const DBInterface::StationIDList stationIDs(1, DBInterface::ALL_STATIONS);
     std::vector<int> pids;
-    foreach(const ParameterInfo& pi, mParameterInfos) {
+    for(const ParameterInfo& pi : mParameterInfos) {
         pids.push_back(pi.parameter);
         if( pi.minParameter > 0 )
             pids.push_back(pi.minParameter);
@@ -236,7 +235,7 @@ GapInterpolationAlgorithm::InstrumentMissingRanges GapInterpolationAlgorithm::fi
         = database()->findDataOrderStationObstime(stationIDs, pids, tids, TimeRange(UT0, UT1), missing_flags);
 
     InstrumentMissingRanges instrumentMissingRanges;
-    foreach(const kvalobs::kvData& d, missingData) {
+    for(const kvalobs::kvData& d : missingData) {
         const Instrument i = getMasterInstrument(d);
         if (!Helpers::isNorwegianStationId(i.stationid))
             continue;
@@ -252,7 +251,7 @@ GapInterpolationAlgorithm::InstrumentMissingRanges GapInterpolationAlgorithm::fi
 Instrument GapInterpolationAlgorithm::getMasterInstrument(const kvalobs::kvData& data)
 {
     Instrument master(data);
-    foreach(const ParameterInfo& pi, mParameterInfos) {
+    for(const ParameterInfo& pi : mParameterInfos) {
         if( pi.minParameter == master.paramid || pi.maxParameter == master.paramid )
             master.paramid = pi.parameter;
     }
@@ -265,11 +264,11 @@ void GapInterpolationAlgorithm::run()
 {
     InstrumentMissingRanges instrumentMissingRanges = findMissing();
 
-    foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges)
+    for(InstrumentMissingRanges::value_type& imr : instrumentMissingRanges)
         if( imr.first.paramid == KVALOBS_PARAMID_TA )
             interpolateMissingRange(imr.first, imr.second);
 
-    foreach(InstrumentMissingRanges::value_type& imr, instrumentMissingRanges)
+    for(InstrumentMissingRanges::value_type& imr : instrumentMissingRanges)
         if( imr.first.paramid != KVALOBS_PARAMID_TA )
             interpolateMissingRange(imr.first, imr.second);
 }
@@ -281,7 +280,7 @@ void GapInterpolationAlgorithm::interpolateMissingRange(const Instrument& instru
     DBG(DBG1(instrument.stationid) << DBG1(instrument.paramid));
     const ParameterInfo& pi = findParameterInfo(instrument.paramid);
 
-    foreach(const ParamGroupMissingRange& pgmr, mr) {
+    for(const ParamGroupMissingRange& pgmr : mr) {
         if( not checkTimeRangeLimits(instrument, pgmr) )
             continue;
 
@@ -394,7 +393,7 @@ GapDataPtr GapInterpolationAlgorithm::findSeriesData(const Instrument& instrumen
     const DataList series = database()->findDataOrderObstime(instrument.stationid, pids, std::vector<int>(1, instrument.type),
                                                              instrument.sensor, instrument.level, range, all);
 
-    foreach(const kvalobs::kvData& d, series) {
+    for(const kvalobs::kvData& d : series) {
         const int time = kvtime::hourDiff(d.obstime(), range.t0), paramid = d.paramID();
         DBGV(d);
         Interpolation::Quality q = Interpolation::UNUSABLE;
@@ -563,13 +562,13 @@ bool GapInterpolationAlgorithm::replaceFromOtherTypeid(GapUpdate& data/*, int pa
         return false;
     DBG(DBG1(data) << DBG1(other.size()));
 #ifndef NDEBUG
-    foreach(const kvalobs::kvData& od, other)
+    for(const kvalobs::kvData& od : other)
         DBGV(od);
 #endif
 
     int max_typeid = 0; // initial value 0 to avoid aggregated values which have typeid < 0
     float best_value = Interpolation::MISSING_VALUE;
-    foreach(const kvalobs::kvData& d, other) {
+    for(const kvalobs::kvData& d : other) {
         const int type = d.typeID();
         if( type != data.data().typeID() and type > max_typeid ) {
             best_value = d.original();

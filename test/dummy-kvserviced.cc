@@ -29,7 +29,6 @@
 
 #include <kvskel/kvService.hh>
 #include <iostream>
-#include "foreach.h"
 
 class DataReadyInput_i: public POA_CKvalObs::CService::DataReadyInput
 {

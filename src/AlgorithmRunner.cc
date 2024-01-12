@@ -31,7 +31,6 @@
 
 #include "AlgorithmConfig.h"
 #include "AlgorithmDispatcher.h"
-#include "foreach.h"
 #include "KvalobsDB.h"
 #include "KvServicedBroadcaster.h"
 #include "LogfileNotifier.h"
@@ -81,7 +80,7 @@ void AlgorithmRunner::runAlgorithms()
         // sort algorithms to be run by scheduled time
         typedef std::multimap<kvtime::time, std::string> queue_t;
         queue_t queue;
-        foreach(const std::string& cf, config_files) {
+        for(const std::string& cf : config_files) {
             try {
                 params.Parse( cf );
                 const int hour = params.RunAtHour < 0 ? kvtime::hour(now) : params.RunAtHour;
@@ -97,7 +96,7 @@ void AlgorithmRunner::runAlgorithms()
         }
 
         // run queued algorithms
-        foreach(queue_t::value_type tc, queue) {
+        for(queue_t::value_type tc : queue) {
             params.Parse( tc.second );
             if( tc.first < now )
                 LOGINFO("Algorithm " << params.Algorithm << " scheduled for "

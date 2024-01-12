@@ -31,7 +31,6 @@
 
 #include "helpers/mathutil.h"
 #include "DBInterface.h"
-#include "foreach.h"
 
 #include <milog/milog.h>
 
@@ -75,12 +74,12 @@ void SingleLinearAlgorithm::run()
 {
     const DBInterface::StationIDList stationIDs = database()->findFixedStationIDs();
     DBGV(stationIDs.size());
-    foreach(int pid, pids) {
+    for(int pid : pids) {
         const DBInterface::DataList Qc2Data
             = database()->findDataOrderObstime(stationIDs, pid, TimeRange(UT0, UT1), missing_flags);
         DBGV(Qc2Data.size());
 
-        foreach(const kvalobs::kvData& d, Qc2Data) {
+        for(const kvalobs::kvData& d : Qc2Data) {
             kvtime::time timeBefore = d.obstime(), timeAfter = d.obstime();
             kvtime::addHours(timeBefore, -1);
             kvtime::addHours(timeAfter, 1);

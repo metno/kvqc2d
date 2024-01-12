@@ -29,7 +29,6 @@
 
 #include "TestData.h"
 
-#include "foreach.h"
 #include "TestDB.h"
 
 DataList& DataList::add(int stationid, const kvtime::time& obstime, float original, int paramid,
@@ -58,7 +57,7 @@ void DataList::update(SqliteTestDB* db)
     // cannot use storeData because it does not modify the original value
     std::ostringstream sql;
     sql << "BEGIN;";
-    foreach(const kvalobs::kvData& d, *this) {
+    for(const kvalobs::kvData& d : *this) {
         sql << "UPDATE data SET original=" << d.original() << ", corrected=" << d.corrected()
             << ", controlinfo='" << d.controlinfo().flagstring() << "', useinfo='" << d.useinfo().flagstring()
             << "', cfailed='" << d.cfailed() << "' " << d.uniqueKey() << ';';

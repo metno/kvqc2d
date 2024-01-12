@@ -30,7 +30,6 @@
 #include "KvalobsDB.h"
 
 #include "FlagPatterns.h"
-#include "foreach.h"
 
 #include <kvalobs/kvQueries.h>
 #include <kvalobs/kvStation.h>
@@ -57,7 +56,7 @@ void formatIDList(std::ostream& sql, const CC& ids, const std::string& column)
     } else {
         sql << column << " IN ";
         char sep = '(';
-        foreach(int ii, ids) {
+        for(int ii : ids) {
             sql << sep << ii;
             sep = ',';
         }
@@ -256,9 +255,9 @@ void SQLDataAccess::storeData(const DataList& toUpdate, const DataList& toInsert
     std::ostringstream sql;
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "BEGIN; ";
-    foreach(const kvalobs::kvData& i, toInsert)
+    for(const kvalobs::kvData& i : toInsert)
         sql << "INSERT INTO " << i.tableName() << " VALUES" << i.toSend() << "; ";
-    foreach(const kvalobs::kvData& u, toUpdate)
+    for(const kvalobs::kvData& u : toUpdate)
         sql << "UPDATE " << u.tableName() << " " << u.toUpdate() << "; ";
     if( (toUpdate.size() + toInsert.size()) > 1 )
         sql << "COMMIT; " << std::endl;

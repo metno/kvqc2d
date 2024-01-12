@@ -31,7 +31,6 @@
 
 #include "helpers/Akima.h"
 #include "helpers/WeightedMean.h"
-#include "foreach.h"
 
 #include <cmath>
 #include <stdexcept>

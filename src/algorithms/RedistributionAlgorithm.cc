@@ -35,7 +35,6 @@
 #include "helpers/timeutil.h"
 #include "algorithms/NeighborsDistance2.h"
 #include "DBInterface.h"
-#include "foreach.h"
 #include "Notifier.icc"
 
 #include <kvalobs/kvQCFlagTypes.h>
@@ -309,7 +308,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
 
 #ifndef NDEBUG
     DBG("  missingdata.size=" << mdata.size());
-    foreach(const RedisUpdate& md, mdata)
+    for(const RedisUpdate& md : mdata)
         DBG("    missingdata md=" << md);
 #endif
 
@@ -339,7 +338,7 @@ bool RedistributionAlgorithm::findMissing(const kvalobs::kvData& endpoint, const
     mdata.push_front(endpoint);
 
 #ifndef NDEBUG
-    foreach(const RedisUpdate& md, mdata)
+    for(const RedisUpdate& md : mdata)
         DBG("  final redistribution series: " << md);
 #endif
 
@@ -364,7 +363,7 @@ bool RedistributionAlgorithm::getNeighborData(const updateList_t& before, dataLi
     // reverse ordering
     ndata = dataList_t(ndata_r.rbegin(), ndata_r.rend());
 
-    foreach(const kvalobs::kvData& n, ndata) {
+    for(const kvalobs::kvData& n : ndata) {
         if( kvtime::hour(n.obstime()) != mMeasurementHour ) {
             warning() << "expected obstime hour " << std::setw(2) << std::setfill('0') << mMeasurementHour
                       << " not seen in neighbor " << Helpers::datatext(n)
@@ -419,7 +418,7 @@ void RedistributionAlgorithm::run()
 
     int lastStationId = -1;
     kvtime::time lastObstime = UT0;
-    foreach(const kvalobs::kvData& endpoint, edata) {
+    for(const kvalobs::kvData& endpoint : edata) {
         if( !checkEndpoint(endpoint) )
             continue;
 
@@ -453,7 +452,7 @@ void RedistributionAlgorithm::redistributeBoneDry(updateList_t& accumulation)
     DBGV(accumulation.size());
     // accumulated value is -1 => nothing to redistribute, all missing values must be dry (-1), too
     bool endpoint = true;
-    foreach(RedisUpdate& a, accumulation) {
+    for(RedisUpdate& a : accumulation) {
         a.corrected(-1);
         a.cfailed("QC2-redist-bonedry", CFAILED_STRING);
         if( endpoint ) {
@@ -491,7 +490,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     bool endpoint = true;
     float weightedNeighborsAccumulated = 0;
     dataList_t::const_iterator itN = ndata.begin();
-    foreach(RedisUpdate& b, before) {
+    for(RedisUpdate& b : before) {
         std::vector<kvalobs::kvData> neighbors;
         DBGV(b.obstime());
         DBGV(itN->obstime());
@@ -514,7 +513,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         float sumWeights = 0.0, sumWeightedValues = 0.0;
         int usedNeighbors = 0, warnNeighbors = 0;
         bool allNeighborsBoneDry = true; // true to assume dry if no neighbors
-        foreach(const kvalobs::kvData& neighbor, neighbors) {
+        for(const kvalobs::kvData& neighbor : neighbors) {
             if( !equal(neighbor.original(), -1.0f) )
                 allNeighborsBoneDry = false;
             const float neighborValue = dry2real(neighbor.original());
@@ -577,7 +576,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         return false;
     }
     float corrected_sum = 0;
-    foreach(RedisUpdate& b, before) {
+    for(RedisUpdate& b : before) {
         const float corr = Helpers::round1(scale * b.corrected());
         corrected_sum += corr;
         if( b.hasAllNeighborsBoneDry() )
@@ -589,7 +588,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
     // make sure that sum of re-distributed is the same as the original accumulated value
     float delta = Helpers::round1(corrected_sum - accumulated);
     if( !accumulationIsDry ) {
-        foreach(RedisUpdate& b, before) {
+        for(RedisUpdate& b : before) {
             if( fabs(delta) <= 0.05f )
                 break;
             const float corr = b.corrected(), threshold = b.hasNeighborsWithPrecipitation() ? (delta+0.1) : 0.05;
@@ -612,7 +611,7 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
 void RedistributionAlgorithm::updateOrInsertData(const updateList_t& data)
 {
     dataList_t toInsert, toUpdate;
-    foreach(const RedisUpdate& du, data) {
+    for(const RedisUpdate& du : data) {
         if( du.needsWrite() ) {
             if( du.isNew() )
                 toInsert.push_front(du.data());

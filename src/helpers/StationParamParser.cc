@@ -31,7 +31,6 @@
 
 #include "helpers/stringutil.h"
 
-#include "foreach.h"
 
 StationParamParser::StationParamParser(const kvalobs::kvStationParam& sp)
 {

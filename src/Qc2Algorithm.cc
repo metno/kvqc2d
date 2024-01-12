@@ -32,7 +32,6 @@
 #include "helpers/AlgorithmHelpers.h"
 #include "Broadcaster.h"
 #include "DBInterface.h"
-#include "foreach.h"
 
 #include <milog/milog.h>
 
@@ -55,7 +54,7 @@ void Qc2Algorithm::fillStationLists(DBInterface::StationList& stations, DBInterf
     stations = mDatabase->findFixedStations();
 
     idList.clear();
-    foreach(const kvalobs::kvStation& s, stations) {
+    for(const kvalobs::kvStation& s : stations) {
         idList.push_back( s.stationID() );
     }
 }
@@ -75,11 +74,11 @@ void Qc2Algorithm::updateSingle(const kvalobs::kvData& update)
 void Qc2Algorithm::storeData(const DBInterface::DataList& toUpdate, const DBInterface::DataList& toInsert)
 {
     database()->storeData(toUpdate, toInsert);
-    foreach(const kvalobs::kvData& i, toInsert) {
+    for(const kvalobs::kvData& i : toInsert) {
         broadcaster()->queueChanged(i);
         info() << "NEW ROW " << Helpers::datatext(i);
     }
-    foreach(const kvalobs::kvData& u, toUpdate) {
+    for(const kvalobs::kvData& u : toUpdate) {
         broadcaster()->queueChanged(u);
         info() << "UPDATE " << Helpers::datatext(u);
     }

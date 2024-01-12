@@ -30,7 +30,6 @@
 #include "KvalobsDB.h"
 
 #include "KvalobsElemExtract.h"
-#include "foreach.h"
 #include "Qc2App.h"
 
 #include <milog/milog.h>

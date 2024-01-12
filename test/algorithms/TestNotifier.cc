@@ -29,7 +29,6 @@
 
 #include "TestNotifier.h"
 
-#include "foreach.h"
 #include <boost/regex.hpp>
 #include <iomanip>
 #include <iostream>
@@ -102,7 +101,7 @@ int TestNotifier::count(int level) const
         return mMessages.size();
 
     int c = 0;
-    foreach(const Record& r, mMessages) {
+    for(const Record& r : mMessages) {
         if( r.level == level )
             c += 1;
     }

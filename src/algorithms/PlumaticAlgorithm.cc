@@ -36,7 +36,6 @@
 #include "DBInterface.h"
 #include "NeighborsDistance2.h"
 #include "Notifier.icc"
-#include "foreach.h"
 
 #include <kvalobs/kvDataOperations.h>
 
@@ -124,13 +123,13 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     mStationlist.clear();
     const std::string stationlist = params.getParameter<std::string>("stations");
     const std::vector<std::string> msl = Helpers::splitN(stationlist, ";", true);
-    foreach(const std::string& mmpv_stations, msl) {
+    for(const std::string& mmpv_stations : msl) {
         Helpers::split2_t m_s = Helpers::split2(mmpv_stations, ":");
         ResolutionStations rs(atof(m_s.first.c_str()));
         if( rs.mmpv <= 0.0f )
             throw ConfigException("invalid mm-per-vipp <= 0 in 'stations' parameter");
         const std::vector<std::string> s = Helpers::splitN(m_s.second, ",", true);
-        foreach(std::string stationidText, s) {
+        for(std::string stationidText : s) {
             const int stationid = atoi(stationidText.c_str());
             if( stationid <= 0 )
                 throw ConfigException("invalid stationid <= 0 in 'stations' parameter");
@@ -145,7 +144,7 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
     const std::string slidingAlarms = params.getParameter<std::string>("sliding_alarms");
     if( !slidingAlarms.empty() ) {
         const std::vector<std::string> msa = Helpers::splitN(slidingAlarms, ";", true);
-        foreach(const std::string& length_max, msa) {
+        for(const std::string& length_max : msa) {
             Helpers::split2_t l_m = Helpers::split2(length_max, "<", true);
             const int length = atoi(l_m.first.c_str());
             if( length <= 1 || (!mSlidingAlarms.empty() && length <= mSlidingAlarms.back().length) )
@@ -168,8 +167,8 @@ void PlumaticAlgorithm::configure(const AlgorithmConfig& params)
 void PlumaticAlgorithm::run()
 {
     // use script stinfosys-vipp-pluviometer.pl or change program and use "select stationid from obs_pgm where paramid = 105;"
-    foreach(const ResolutionStations& rs, mStationlist) {
-        foreach(int stationid, rs.stationids) {
+    for(const ResolutionStations& rs : mStationlist) {
+        for(int stationid : rs.stationids) {
             if (Helpers::isNorwegianStationId(stationid))
                 checkStation(stationid, rs.mmpv);
         }
@@ -180,7 +179,7 @@ void PlumaticAlgorithm::run()
 
 void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 {
-    foreach(const int typeId, mTypeIds) {
+    for(const int typeId : mTypeIds) {
         DBInterface::DataList data_orig
             = database()->findDataOrderObstime(stationid, pid, typeId, TimeRange(UT0extended, UT1));
         if( data_orig.empty() )
@@ -199,7 +198,7 @@ void PlumaticAlgorithm::checkStation(int stationid, float mmpv)
 
 void PlumaticAlgorithm::checkSlidingSums(kvUpdateList_t& data)
 {
-    foreach(const SlidingAlarm& slal, mSlidingAlarms) {
+    for(const SlidingAlarm& slal : mSlidingAlarms) {
         checkSlidingSum(data, slal);
     }
 }
@@ -534,7 +533,7 @@ void PlumaticAlgorithm::flagHighStart(const Shower& shower, int length)
 void PlumaticAlgorithm::storeUpdates(const kvUpdateList_t& data)
 {
     kvDataList_t toInsert, toUpdate;
-    foreach(const DataUpdate& du, data) {
+    for(const DataUpdate& du : data) {
         if( du.needsWrite() ) {
             if( du.isNew() )
                 toInsert.push_back(du.data());
@@ -745,7 +744,7 @@ int PlumaticAlgorithm::countNeighborStations(int stationid, const kvtime::time& 
 
     std::list<int> neighbors = mNeighbors->findNeighbors(stationid);
     std::vector<int> neighborsSorted;
-    foreach(int n, neighbors) {
+    for(int n : neighbors) {
         if (mNeighbors->getWeight(n) > 0)
             neighborsSorted.push_back(n);
     }
@@ -760,13 +759,13 @@ int PlumaticAlgorithm::countNeighborStations(int stationid, const kvtime::time& 
 
     typedef std::map<int, kvalobs::kvData> neighborDataByID_t;
     neighborDataByID_t neighborDataByID;
-    foreach(const kvalobs::kvData& n, ndata) {
+    for(const kvalobs::kvData& n : ndata) {
         neighborDataByID[n.stationID()] = n;
     }
 
     highestDry = lowestWet  = 0;
     int totalNeighbors = 0;
-    foreach(int n, neighborsSorted) {
+    for(int n : neighborsSorted) {
         neighborDataByID_t::const_iterator itN = neighborDataByID.find(n);
         if (itN == neighborDataByID.end())
             continue;

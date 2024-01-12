@@ -30,7 +30,6 @@
 #include "AlgorithmTestBase.h"
 #include "algorithms/PlumaticAlgorithm.h"
 #include "helpers/AlgorithmHelpers.h"
-#include "foreach.h"
 
 #include <algorithm>
 #include <numeric>

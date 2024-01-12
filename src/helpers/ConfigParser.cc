@@ -30,7 +30,6 @@
 #include "ConfigParser.h"
 
 #include <fstream>
-#include "foreach.h"
 
 std::string ErrorList::format(const std::string& separator) const
 {
@@ -157,7 +156,7 @@ const ConfigParser::Item& ConfigParser::get(const std::string& key) const
 ErrorList ConfigParser::checkUnrequested() const
 {
     ErrorList errors;
-    foreach(const mItems_t::value_type& ki, mItems) {
+    for(const mItems_t::value_type& ki : mItems) {
         if( ki.second.requestCount() == 0 )
             errors.add() << "unused option '" << ki.first << "'";
     }

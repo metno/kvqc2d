@@ -32,7 +32,6 @@
 
 #include "AlgorithmTestBase.h"
 #include "statisticalmean/StatisticalMean.h"
-#include "foreach.h"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>

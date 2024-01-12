@@ -32,7 +32,6 @@
 #include "helpers/mathutil.h"
 #include "helpers/stringutil.h"
 #include "interpolation/InterpolationData.h"
-#include "foreach.h"
 
 #include <limits>
 #include <cstdlib>
@@ -58,7 +57,7 @@ ParameterInfo::ParameterInfo(const std::string& pi)
   , roundingFactor(10)
 {
     const Helpers::splitN_t items = Helpers::splitN(pi, ",", true);
-    foreach(const std::string& item, items) {
+    for(const std::string& item : items) {
         Helpers::split2_t kv = Helpers::split2(item, "=");
         if( kv.first == "par" ) {
             parameter = std::atoi(kv.second.c_str());

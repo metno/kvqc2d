@@ -43,7 +43,6 @@
 #include "MeanFactory.h"
 #include "QuartilesFactory.h"
 #include "SumFactory.h"
-#include "foreach.h"
 
 #ifndef NDEBUG
 #define NDEBUG
@@ -113,7 +112,7 @@ StatisticalMean::smap_t StatisticalMean::fetchData()
     // sort by station; as sdata is ordered by time, data for each
     // station will keep this ordering
     smap_t smap;
-    foreach(const kvalobs::kvData& d, sdata) {
+    for(const kvalobs::kvData& d : sdata) {
         if( !Helpers::isMissingOrRejected(d) )
             smap[Instrument(d)].push_back(d);
     }
@@ -131,7 +130,7 @@ StatisticalMean::sdm_t StatisticalMean::findStationDailyMeans(DayValueExtractorP
     sdm_t stationDailyMeans;
 
     // calculate daily mean values TODO skip for RR_x
-    foreach(const smap_t::value_type& sd, smap) {
+    for(const smap_t::value_type& sd : smap) {
         const dlist_t& dl = sd.second;
         for(dlist_t::const_iterator itB = dl.begin(), itE=itB; itB != dl.end(); itB = itE) {
             dve->newDay();
@@ -168,7 +167,7 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
     const kvtime::date date0 = mUT0extended.date();
     const int day0 = kvtime::julianDay(date0);
 
-    foreach(const sdm_t::value_type& sd, stationDailyMeans) {
+    for(const sdm_t::value_type& sd : stationDailyMeans) {
         accumulator->newStation();
         const dm_t& dml = sd.second;
         dm_t::const_iterator tail = dml.begin(), head = tail;
@@ -220,11 +219,11 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
 {
     const kvtime::date date0 = mUT0extended.date();
 
-    foreach(const sd2_t::value_type& sd, stationMeansPerDay) {
+    for(const sd2_t::value_type& sd : stationMeansPerDay) {
         const Instrument& center = sd.first;
         if (!Helpers::isNorwegianStationId(center.stationid))
             continue;
-        foreach(const dm2_t::value_type& dm, sd.second) {
+        for(const dm2_t::value_type& dm : sd.second) {
             const int day = dm.first;
 
             kvtime::date date(date0);
@@ -236,7 +235,7 @@ void StatisticalMean::checkAllMeanValues(CheckerP checker, const sd2_t& stationM
                 continue;
 
             const std::list<int> neighbors = findNeighbors(center.stationid);
-            foreach(int n, neighbors) {
+            for(int n : neighbors) {
                 sd2_t::const_iterator itN = std::find_if(stationMeansPerDay.begin(), stationMeansPerDay.end(), same_station(n));
                 if( itN == stationMeansPerDay.end() )
                     continue;
@@ -305,7 +304,7 @@ float StatisticalMean::getReferenceValue(int station, int dayOfYear, const std::
         if( mParamid == 211 && key == "ref_value" ) {
             DBInterface::reference_value_map_t rvps_mean;
             AccumulatorMeanOrSum acc(true, mDays, mDaysRequired);
-            foreach(DBInterface::reference_value_map_t::value_type s_rv, rvps) {
+            for(DBInterface::reference_value_map_t::value_type s_rv : rvps) {
                 const int station = s_rv.first;
                 const DBInterface::reference_values_t& rvpd = s_rv.second;
                 DBInterface::reference_values_t rvpd_mean(365, missing);

@@ -32,7 +32,6 @@
 #include "helpers/timeutil.h"
 #include "AggregatorLimits.h"
 #include "DataUpdate.h"
-#include "foreach.h"
 
 #include <kvalobs/kvDataOperations.h>
 
@@ -209,7 +208,7 @@ void AggregatorLimits::configure(const AlgorithmConfig& config)
     const std::string paramLimits = config.getParameter<std::string>("param_limits");
     if( !paramLimits.empty() ) {
         const std::vector<std::string> mpl = Helpers::splitN(paramLimits, ";", true);
-        foreach(const std::string& par_max, mpl) {
+        for(const std::string& par_max : mpl) {
             Helpers::split2_t p_m = Helpers::split2(par_max, "<", true);
             const int paramid = atoi(p_m.first.c_str());
             const float maxi = atof(p_m.second.c_str());
@@ -233,7 +232,7 @@ void AggregatorLimits::addStationLimits(const DBInterface::StationParamList&
         )
 {
 #ifdef USE_STATION_PARAM
-    foreach(const kvalobs::kvStationParam& sp, spl) {
+    for(const kvalobs::kvStationParam& sp : spl) {
         const StationParamParser spp(sp);
         const float min = spp.floatValue(mMinQCX, -32767), max = spp.floatValue(mMaxQCX, 32767);
         mLimits->add(sp.stationID(), sp.paramID(), sp.hour(), sp.fromday(), sp.today(), min, max);
@@ -251,7 +250,7 @@ void AggregatorLimits::run()
     DBGV(mParameters.size());
     const DBInterface::DataList outOfRange = database()->findDataAggregations(allStations, mParameters, TimeRange(UT0, UT1), mFlags);
     DBGV(outOfRange.size());
-    foreach(const kvalobs::kvData& data, outOfRange) {
+    for(const kvalobs::kvData& data : outOfRange) {
         DataUpdate du(data);
         DBGV(data);
         const Limits limits = mLimits->find(data.stationID(), data.paramID(), kvtime::hour(data.obstime()), Helpers::normalisedDayOfYear(data.obstime().date()));

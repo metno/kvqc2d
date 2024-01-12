@@ -31,7 +31,6 @@
 
 #include "DBInterface.h"
 #include <milog/milog.h>
-#include "foreach.h"
 
 namespace Helpers {
 

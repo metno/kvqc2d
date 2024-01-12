@@ -46,7 +46,6 @@
 
 #include "AlgorithmConfig.h"
 #include "DBInterface.h"
-#include "foreach.h"
 #include "Qc2App.h"
 
 #include <milog/milog.h>
@@ -79,7 +78,7 @@ AlgorithmDispatcher::AlgorithmDispatcher()
 
 AlgorithmDispatcher::~AlgorithmDispatcher()
 {
-    foreach(algorithms_t::value_type& algo, mAlgorithms) {
+    for(algorithms_t::value_type& algo : mAlgorithms) {
         delete algo.second;
     }
 }
@@ -119,7 +118,7 @@ int AlgorithmDispatcher::select(const AlgorithmConfig& params)
 void AlgorithmDispatcher::setBroadcaster(Broadcaster* b)
 {
     mBroadcaster = b;
-    foreach(algorithms_t::value_type& a, mAlgorithms)
+    for(algorithms_t::value_type& a : mAlgorithms)
         a.second->setBroadcaster(b);
 }
 
@@ -128,7 +127,7 @@ void AlgorithmDispatcher::setBroadcaster(Broadcaster* b)
 void AlgorithmDispatcher::setDatabase(DBInterface* db)
 {
     mDatabase = db;
-    foreach(algorithms_t::value_type& a, mAlgorithms)
+    for(algorithms_t::value_type& a : mAlgorithms)
         a.second->setDatabase(db);
 }
 
@@ -137,6 +136,6 @@ void AlgorithmDispatcher::setDatabase(DBInterface* db)
 void AlgorithmDispatcher::setNotifier(Notifier* n)
 {
     mNotifier = n;
-    foreach(algorithms_t::value_type& a, mAlgorithms)
+    for(algorithms_t::value_type& a : mAlgorithms)
         a.second->setNotifier(n);
 }

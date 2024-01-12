@@ -29,12 +29,11 @@
 
 #include "RedistributionNeighbors.h"
 
-#include "foreach.h"
 
 void RedistributionNeighbors::setStationList(const stations_t& stations)
 {
     mStationsByID.clear();
-    foreach(const kvalobs::kvStation& s, stations) {
+    for(const kvalobs::kvStation& s : stations) {
         mStationsByID[ s.stationID() ] = s;
     }
 }

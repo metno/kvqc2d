@@ -31,12 +31,11 @@
 
 #include "helpers/stringutil.h"
 
-#include "foreach.h"
 
 GetStationParam::GetStationParam(const std::list<kvalobs::kvStationParam>& splist)
 {
     // see https://kvalobs.wiki.met.no/doku.php?id=kvalobs:tabeller_i_kvalobsdatabasen_forklaring&s[]=metadata table station_param
-    foreach(const kvalobs::kvStationParam& p, splist) {
+    for(const kvalobs::kvStationParam& p : splist) {
 #if 0
         std::cout << p.metadata() << std::endl;
         std::cout << p.descMetadata() << std::endl;

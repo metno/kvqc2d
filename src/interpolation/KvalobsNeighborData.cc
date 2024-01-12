@@ -34,7 +34,6 @@
 #include "helpers/timeutil.h"
 #include "AlgorithmConfig.h"
 #include "FlagPatterns.h"
-#include "foreach.h"
 
 using Interpolation::SeriesData;
 using Interpolation::SupportData;

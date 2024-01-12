@@ -31,7 +31,6 @@
 
 #include "helpers/AlgorithmHelpers.h"
 #include "AlgorithmConfig.h"
-#include "foreach.h"
 
 // ------------------------------------------------------------------------
 
@@ -43,7 +42,7 @@ NeighborsDistance2::stationIDs_t NeighborsDistance2::findNeighbors(int aroundID)
     const stationsByID_t::const_iterator itAround = mStationsByID.find(aroundID);
     if( itAround != mStationsByID.end() ) {
         const kvalobs::kvStation& around = itAround->second;
-        foreach(stationsByID_t::value_type& v, mStationsByID) {
+        for(stationsByID_t::value_type& v : mStationsByID) {
             const kvalobs::kvStation& neighbor = v.second;
             if( neighbor.stationID() == aroundID )
                 continue;

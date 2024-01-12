@@ -30,7 +30,6 @@
 #include "Qc2App.h"
 
 #include "AlgorithmRunner.h"
-#include "foreach.h"
 #include "helpers/timeutil.h"
 
 #include <kvalobs/kvPath.h>

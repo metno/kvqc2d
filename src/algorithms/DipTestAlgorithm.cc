@@ -33,7 +33,6 @@
 #include "helpers/AlgorithmHelpers.h"
 #include "helpers/mathutil.h"
 #include "DBInterface.h"
-#include "foreach.h"
 #include "GetStationParam.h"
 #include "ParseParValFile.h"
 
@@ -103,7 +102,7 @@ void DipTestAlgorithm::run()
 
         const DBInterface::DataList candidates = database()->findDataOrderObstime(stationIDs, pid, TimeRange(UT0, UT1), candidate_flags);
         DBGV(candidates.size());
-        foreach(const kvalobs::kvData& c, candidates) {
+        for(const kvalobs::kvData& c : candidates) {
             if( c.original() > missing )
                 checkDipAndInterpolate(c, delta);
         }
@@ -205,7 +204,7 @@ bool DipTestAlgorithm::tryAkima(const kvalobs::kvData& candidate, float& interpo
     kvtime::time akimaTime = akimaStart;
     std::vector<double> xt,yt;
     int i = 0;
-    foreach(const kvalobs::kvData& a, seriesAkima) {
+    for(const kvalobs::kvData& a : seriesAkima) {
         if( i != N_BEFORE ) {
             if( a.original() <= missing || a.obstime() != akimaTime || !(akima_flags.matches(a) || i == N_BEFORE-1 || i == N_BEFORE+1) )
                 return false;
