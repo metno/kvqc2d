@@ -154,7 +154,7 @@ static std::string sqlite3_column_string(sqlite3_stmt *stmt, int col)
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationList SqliteTestDB::extractStations(const std::string& sql) throw (DBException)
+DBInterface::StationList SqliteTestDB::extractStations(const std::string& sql)
 {
     StationList stations;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -188,7 +188,7 @@ DBInterface::StationList SqliteTestDB::extractStations(const std::string& sql) t
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationIDList SqliteTestDB::extractStationIDs(const std::string& sql) throw (DBException)
+DBInterface::StationIDList SqliteTestDB::extractStationIDs(const std::string& sql)
 {
     StationIDList stations;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -203,7 +203,7 @@ DBInterface::StationIDList SqliteTestDB::extractStationIDs(const std::string& sq
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationParamList SqliteTestDB::extractStationParams(const std::string& sql) throw (DBException)
+DBInterface::StationParamList SqliteTestDB::extractStationParams(const std::string& sql)
 {
     StationParamList d;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -231,7 +231,7 @@ DBInterface::StationParamList SqliteTestDB::extractStationParams(const std::stri
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SqliteTestDB::extractData(const std::string& sql) throw (DBException)
+DBInterface::DataList SqliteTestDB::extractData(const std::string& sql)
 {
     DataList d;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -260,7 +260,7 @@ DBInterface::DataList SqliteTestDB::extractData(const std::string& sql) throw (D
 
 // ------------------------------------------------------------------------
 
-DBInterface::reference_value_map_t SqliteTestDB::extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException)
+DBInterface::reference_value_map_t SqliteTestDB::extractStatisticalReferenceValues(const std::string& sql, float missingValue)
 {
     reference_value_map_t rvm;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -281,7 +281,7 @@ DBInterface::reference_value_map_t SqliteTestDB::extractStatisticalReferenceValu
 
 // ------------------------------------------------------------------------
 
-NeighborDataVector SqliteTestDB::extractNeighborData(const std::string& sql) throw (DBException)
+NeighborDataVector SqliteTestDB::extractNeighborData(const std::string& sql)
 {
     NeighborDataVector neighbors;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -300,7 +300,7 @@ NeighborDataVector SqliteTestDB::extractNeighborData(const std::string& sql) thr
 
 // ------------------------------------------------------------------------
 
-DBInterface::ModelDataList SqliteTestDB::extractModelData(const std::string& sql) throw (DBException)
+DBInterface::ModelDataList SqliteTestDB::extractModelData(const std::string& sql)
 {
     ModelDataList modelData;
     sqlite3_stmt *stmt = prepare_statement(sql);
@@ -321,7 +321,7 @@ DBInterface::ModelDataList SqliteTestDB::extractModelData(const std::string& sql
 
 // ------------------------------------------------------------------------
 
-void SqliteTestDB::execSQLUpdate(const std::string& sql) throw (DBException)
+void SqliteTestDB::execSQLUpdate(const std::string& sql)
 {
     char *zErrMsg = 0;
     int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &zErrMsg);

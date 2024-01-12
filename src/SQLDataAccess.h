@@ -36,43 +36,43 @@
 class SQLDataAccess : public DBInterface {
 public:
 
-    virtual StationList findFixedStations() throw (DBException);
-    virtual StationIDList findFixedStationIDs() throw (DBException);
+    StationList findFixedStations() override;
+    StationIDList findFixedStationIDs() override;
 
-    virtual StationParamList findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) throw (DBException);
-    virtual StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException);
+    StationParamList findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) override;
+    StationParamList findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) override;
 
-    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException);
-    virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException);
-    virtual DataList findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) throw (DBException);
-    virtual DataList findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
-    virtual DataList findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& t, const FlagSetCU& flags) throw (DBException);
+    DataList findDataOrderObstime(const StationIDList& stationIDs, int pid, const TimeRange& time, const FlagSetCU& flags) override;
+    DataList findDataOrderObstime(int stationID, int paramID, const TimeRange& time) override;
+    DataList findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) override;
+    DataList findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t) override;
+    DataList findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& t, const FlagSetCU& flags) override;
+    DataList findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) override;
+    DataList findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& t, const FlagSetCU& flags) override;
+    DataList findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& t, const FlagSetCU& flags) override;
+    DataList findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& t, const FlagSetCU& flags) override;
 
-    virtual reference_value_map_t findStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) throw (DBException);
-    virtual NeighborDataVector findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException);
+    reference_value_map_t findStatisticalReferenceValues(int paramid, const std::string& key, float missingValue) override;
+    NeighborDataVector findNeighborData(int stationid, int paramid, float maxsigma) override;
 
-    virtual ModelDataList findModelData(int stationID, int paramID, int level, const TimeRange& time) throw (DBException);
+    ModelDataList findModelData(int stationID, int paramID, int level, const TimeRange& time) override;
 
-    virtual void storeData(const DataList& toUpdate, const DataList& toInsert) throw (DBException);
+    void storeData(const DataList& toUpdate, const DataList& toInsert) override;
 
 protected:
-    virtual StationList extractStations(const std::string& sql) throw (DBException) = 0;
-    virtual StationIDList extractStationIDs(const std::string& sql) throw (DBException) = 0;
-    virtual StationParamList extractStationParams(const std::string& sql) throw (DBException) = 0;
-    virtual DataList extractData(const std::string& sql) throw (DBException) = 0;
-    virtual reference_value_map_t extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException) = 0;
-    virtual NeighborDataVector extractNeighborData(const std::string& sql) throw (DBException) = 0;
-    virtual ModelDataList extractModelData(const std::string& sql) throw (DBException) = 0;
-    virtual void execSQLUpdate(const std::string& sql) throw (DBException) = 0;
+    virtual StationList extractStations(const std::string& sql) = 0;
+    virtual StationIDList extractStationIDs(const std::string& sql) = 0;
+    virtual StationParamList extractStationParams(const std::string& sql) = 0;
+    virtual DataList extractData(const std::string& sql) = 0;
+    virtual reference_value_map_t extractStatisticalReferenceValues(const std::string& sql, float missingValue) = 0;
+    virtual NeighborDataVector extractNeighborData(const std::string& sql) = 0;
+    virtual ModelDataList extractModelData(const std::string& sql) = 0;
+    virtual void execSQLUpdate(const std::string& sql) = 0;
 
-    virtual void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
+    void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
 
 private:
-    virtual DataList findData(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags, bool orderByStation=false) throw (DBException);
+    DataList findData(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags, bool orderByStation=false);
 };
 
 #endif /* SQLDataAccess_h */

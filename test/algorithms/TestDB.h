@@ -40,19 +40,19 @@ public:
     ~SqliteTestDB();
 
 public:
-    virtual StationList extractStations(const std::string& sql) throw (DBException);
-    virtual StationIDList extractStationIDs(const std::string& sql) throw (DBException);
-    virtual StationParamList extractStationParams(const std::string& sql) throw (DBException);
-    virtual DataList extractData(const std::string& sql) throw (DBException);
-    virtual reference_value_map_t extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException);
-    virtual NeighborDataVector extractNeighborData(const std::string& sql) throw (DBException);
-    virtual ModelDataList extractModelData(const std::string& sql) throw (DBException);
-    virtual void execSQLUpdate(const std::string& sql) throw (DBException);
+    StationList extractStations(const std::string& sql) override;
+    StationIDList extractStationIDs(const std::string& sql) override;
+    StationParamList extractStationParams(const std::string& sql) override;
+    DataList extractData(const std::string& sql) override;
+    reference_value_map_t extractStatisticalReferenceValues(const std::string& sql, float missingValue) override;
+    NeighborDataVector extractNeighborData(const std::string& sql) override;
+    ModelDataList extractModelData(const std::string& sql) override;
+    void execSQLUpdate(const std::string& sql) override;
 
     virtual void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
 
     // test helpers
-    void exec(const std::string& statements) throw (DBException)
+    void exec(const std::string& statements)
         { execSQLUpdate(statements); }
 
 private:

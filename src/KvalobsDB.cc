@@ -61,7 +61,7 @@ KvalobsDB::~KvalobsDB()
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationList KvalobsDB::extractStations(const std::string& sql) throw (DBException)
+DBInterface::StationList KvalobsDB::extractStations(const std::string& sql)
 {
     try {
         DBInterface::StationList s;
@@ -93,7 +93,7 @@ private:
 
 } // anonymous namespace
 
-DBInterface::StationIDList KvalobsDB::extractStationIDs(const std::string& sql) throw (DBException)
+DBInterface::StationIDList KvalobsDB::extractStationIDs(const std::string& sql)
 {
     try {
         std::unique_ptr<ExtractStationIDs> extract(new ExtractStationIDs());
@@ -108,7 +108,7 @@ DBInterface::StationIDList KvalobsDB::extractStationIDs(const std::string& sql) 
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationParamList KvalobsDB::extractStationParams(const std::string& sql) throw (DBException)
+DBInterface::StationParamList KvalobsDB::extractStationParams(const std::string& sql)
 {
     try {
         StationParamList s;
@@ -124,7 +124,7 @@ DBInterface::StationParamList KvalobsDB::extractStationParams(const std::string&
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList KvalobsDB::extractData(const std::string& sql) throw (DBException)
+DBInterface::DataList KvalobsDB::extractData(const std::string& sql)
 {
     try {
         DataList d;
@@ -167,7 +167,7 @@ void ExtractReferenceValue::extractFromRow(const dnmi::db::DRow& row)
 
 } // anonymous namespace
 
-DBInterface::reference_value_map_t KvalobsDB::extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException)
+DBInterface::reference_value_map_t KvalobsDB::extractStatisticalReferenceValues(const std::string& sql, float missingValue)
 {
     try {
         DBInterface::reference_value_map_t rvm;
@@ -208,7 +208,7 @@ void ExtractNeighborData::extractFromRow(const dnmi::db::DRow& row)
 
 } // anonymous namespace
 
-NeighborDataVector KvalobsDB::extractNeighborData(const std::string& sql) throw (DBException)
+NeighborDataVector KvalobsDB::extractNeighborData(const std::string& sql)
 {
     try {
         NeighborDataVector neighbors;
@@ -224,7 +224,7 @@ NeighborDataVector KvalobsDB::extractNeighborData(const std::string& sql) throw 
 
 // ------------------------------------------------------------------------
 
-DBInterface::ModelDataList KvalobsDB::extractModelData(const std::string& sql) throw (DBException)
+DBInterface::ModelDataList KvalobsDB::extractModelData(const std::string& sql)
 {
     try {
         ModelDataList modelData;
@@ -240,7 +240,7 @@ DBInterface::ModelDataList KvalobsDB::extractModelData(const std::string& sql) t
 
 // ------------------------------------------------------------------------
 
-void KvalobsDB::execSQLUpdate(const std::string& sql) throw (DBException)
+void KvalobsDB::execSQLUpdate(const std::string& sql)
 {
     try {
         mDbGate.exec(sql);

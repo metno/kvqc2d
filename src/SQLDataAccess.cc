@@ -75,7 +75,7 @@ const std::string WHERE_FIXED_STATIONS =
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationList SQLDataAccess::findFixedStations() throw (DBException)
+DBInterface::StationList SQLDataAccess::findFixedStations()
 {
     return extractStations(kvalobs::kvStation().selectAllQuery()
                            + WHERE_FIXED_STATIONS);
@@ -83,7 +83,7 @@ DBInterface::StationList SQLDataAccess::findFixedStations() throw (DBException)
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationIDList SQLDataAccess::findFixedStationIDs() throw (DBException)
+DBInterface::StationIDList SQLDataAccess::findFixedStationIDs()
 {
     return extractStationIDs("SELECT stationid FROM station"
                              + WHERE_FIXED_STATIONS);
@@ -91,14 +91,14 @@ DBInterface::StationIDList SQLDataAccess::findFixedStationIDs() throw (DBExcepti
 
 // ------------------------------------------------------------------------
 
-DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, const kvtime::time& time, const std::string& qcx) throw (DBException)
+DBInterface::StationParamList SQLDataAccess::findStationParams(int stationID, const kvtime::time& time, const std::string& qcx)
 {
     const std::list<int> station(1, stationID);
     return extractStationParams(kvalobs::kvStationParam().selectAllQuery()
                                 + kvQueries::selectStationParam(station, time, qcx));
 }
 
-DBInterface::StationParamList SQLDataAccess::findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix) throw (DBException)
+DBInterface::StationParamList SQLDataAccess::findStationParams(const StationIDList& stationIDs, const std::vector<int>& pids, const std::string& qcxPrefix)
 {
     std::ostringstream sql;
     sql << kvalobs::kvStationParam().selectAllQuery() << " WHERE ";
@@ -111,7 +111,7 @@ DBInterface::StationParamList SQLDataAccess::findStationParams(const StationIDLi
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, const TimeRange& time, const FlagSetCU& flags)
 {
     const std::vector<int> pids(1, paramID), tids(1, DBInterface::INVALID_ID);
     return findData(stationIDs, pids, tids, INVALID_ID, INVALID_ID, time, flags);
@@ -119,7 +119,7 @@ DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& s
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, const TimeRange& time) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, const TimeRange& time)
 {
     const StationIDList sids(1, stationID);
     return findDataOrderObstime(sids, paramID, time, FlagSetCU());
@@ -127,21 +127,21 @@ DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int par
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, const TimeRange& time)
 {
     return findDataMaybeTSLOrderObstime(stationID, paramID, typeID, INVALID_ID, INVALID_ID, time, FlagSetCU());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& time) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& time)
 {
     return findDataMaybeTSLOrderObstime(stationID, paramID, typeID, sensor, level, time, FlagSetCU());
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataMaybeTSLOrderObstime(int stationID, int paramID, int typeID, int sensor, int level, const TimeRange& time, const FlagSetCU& flags)
 {
     const StationIDList sids(1, stationID);
     const std::vector<int> pids(1, paramID), tids(1, typeID);
@@ -150,7 +150,7 @@ DBInterface::DataList SQLDataAccess::findDataMaybeTSLOrderObstime(int stationID,
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags)
 {
     const StationIDList sids(1, stationID);
     return findData(sids, pids, tids, sensor, level, time, flags, false);
@@ -158,7 +158,7 @@ DBInterface::DataList SQLDataAccess::findDataOrderObstime(int stationID, const s
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& stationIDs, int paramID, int typeID, const TimeRange& time, const FlagSetCU& flags)
 {
     const std::vector<int> pids(1, paramID), tids(1, typeID);
     return findData(stationIDs, pids, tids, INVALID_ID, INVALID_ID, time, flags, false);
@@ -166,14 +166,14 @@ DBInterface::DataList SQLDataAccess::findDataOrderObstime(const StationIDList& s
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataOrderStationObstime(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, const TimeRange& time, const FlagSetCU& flags)
 {
     return findData(stationIDs, pids, tids, INVALID_ID, INVALID_ID, time, flags, true);
 }
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags, bool orderByStation) throw (DBException)
+DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, const std::vector<int>& pids, const std::vector<int>& tids, int sensor, int level, const TimeRange& time, const FlagSetCU& flags, bool orderByStation)
 {
     std::ostringstream sql;
     sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
@@ -197,7 +197,7 @@ DBInterface::DataList SQLDataAccess::findData(const StationIDList& stationIDs, c
 
 // ------------------------------------------------------------------------
 
-DBInterface::DataList SQLDataAccess::findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& time, const FlagSetCU& flags) throw (DBException)
+DBInterface::DataList SQLDataAccess::findDataAggregations(const StationIDList& stationIDs, const std::vector<int>& pids, const TimeRange& time, const FlagSetCU& flags)
 {
     std::ostringstream sql;
     sql << kvalobs::kvData().selectAllQuery() + " WHERE ";
@@ -213,7 +213,7 @@ DBInterface::DataList SQLDataAccess::findDataAggregations(const StationIDList& s
 
 // ------------------------------------------------------------------------
 
-DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues(int paramID, const std::string& key, float missingValue) throw (DBException)
+DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues(int paramID, const std::string& key, float missingValue)
 {
     std::ostringstream sql;
     sql << "SELECT stationid, day_of_year, value FROM qc2_statistical_reference_values"
@@ -223,7 +223,7 @@ DBInterface::reference_value_map_t SQLDataAccess::findStatisticalReferenceValues
 
 // ------------------------------------------------------------------------
 
-NeighborDataVector SQLDataAccess::findNeighborData(int stationid, int paramid, float maxsigma) throw (DBException)
+NeighborDataVector SQLDataAccess::findNeighborData(int stationid, int paramid, float maxsigma)
 {
     std::ostringstream sql;
     sql << "SELECT neighborid, fit_offset, fit_slope, fit_sigma FROM qc2_interpolation_best_neighbors"
@@ -236,7 +236,7 @@ NeighborDataVector SQLDataAccess::findNeighborData(int stationid, int paramid, f
 
 // ------------------------------------------------------------------------
 
-DBInterface::ModelDataList SQLDataAccess::findModelData(int stationID, int paramID, int level, const TimeRange& time) throw (DBException)
+DBInterface::ModelDataList SQLDataAccess::findModelData(int stationID, int paramID, int level, const TimeRange& time)
 {
     std::ostringstream sql;
     sql << kvalobs::kvModelData().selectAllQuery()
@@ -249,7 +249,7 @@ DBInterface::ModelDataList SQLDataAccess::findModelData(int stationID, int param
 
 // ------------------------------------------------------------------------
 
-void SQLDataAccess::storeData(const DataList& toUpdate, const DataList& toInsert) throw (DBException)
+void SQLDataAccess::storeData(const DataList& toUpdate, const DataList& toInsert)
 {
     if( toUpdate.empty() && toInsert.empty() )
         return;
