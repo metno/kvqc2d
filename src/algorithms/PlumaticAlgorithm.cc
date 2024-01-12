@@ -42,10 +42,12 @@
 
 #include <milog/milog.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #define NDEBUG 1
 #include "debug.h"
+
+using namespace boost::placeholders;
 
 namespace {
 

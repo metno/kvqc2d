@@ -7,7 +7,15 @@ include_directories("${CMAKE_SOURCE_DIR}/src"
 find_package(Boost COMPONENTS regex REQUIRED)
 
 FIND_PACKAGE(GTest QUIET)
-IF(NOT GTEST_FOUND)
+IF(GTEST_FOUND)
+  IF (CMAKE_VERSION VERSION_LESS "3.20")
+    SET(GTEST_LIBRARY GTest::GTest)
+    SET(GTEST_MAIN_LIBRARY GTest::Main)
+  ELSE()
+    SET(GTEST_LIBRARY GTest::gtest)
+    SET(GTEST_MAIN_LIBRARY GTest::gtest_main)
+  ENDIF()
+ELSE()
   MESSAGE("apparently no compiled GTest library, trying to build it")
   FIND_FILE(GTEST_DIR src/gtest-all.cc
     HINTS
@@ -22,7 +30,21 @@ IF(NOT GTEST_FOUND)
   ENDIF()
   GET_FILENAME_COMPONENT(GTEST_DIR ${GTEST_DIR} PATH)
   GET_FILENAME_COMPONENT(GTEST_DIR ${GTEST_DIR} PATH)
+  IF(EXISTS "${GTEST_DIR}/../CMakeLists.txt")
+    # bionic, focal:
+    # - package 'googletest' includes googlemock
+    # - cmake complains if not using topmost CMakeLists.txt
+    GET_FILENAME_COMPONENT(GTEST_DIR ${GTEST_DIR} PATH)
+  ELSE()
+    # xenial:
+    # - package 'libgtest-dev' does not include googlemock
+    # - no extra subdirectory
+  ENDIF()
+
+  SET(BUILD_GMOCK OFF CACHE BOOL "do not build gmock" FORCE)
+  SET(BUILD_GTEST ON  CACHE BOOL "build gtest" FORCE)
   ADD_SUBDIRECTORY(${GTEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/gtest EXCLUDE_FROM_ALL)
+
   SET(GTEST_LIBRARY gtest)
   SET(GTEST_MAIN_LIBRARY gtest_main)
 ENDIF()
@@ -34,7 +56,7 @@ find_library(SQLITE3_LIBRARY sqlite3)
 ADD_CUSTOM_COMMAND(
   OUTPUT algorithms/StatisticalMean_n212.cc
   COMMAND mkdir -p algorithms
-  COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat algorithms/StatisticalMean_n212.cc
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat algorithms/StatisticalMean_n212.cc
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/algorithms/build_daymeans_212.py ${CMAKE_SOURCE_DIR}/data/normals_212.dat
 )
 ADD_CUSTOM_TARGET(generate_testfiles DEPENDS algorithms/StatisticalMean_n212.cc)

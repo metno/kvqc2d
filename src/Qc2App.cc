@@ -40,7 +40,6 @@
 #include <kvsubscribe/queue.h>
 #include <milog/milog.h>
 
-#include <boost/bind.hpp>
 #include <signal.h>
 #include <stdexcept>
 

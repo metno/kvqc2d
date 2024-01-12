@@ -41,7 +41,7 @@
 #include <kvalobs/kvQCFlagTypes.h>
 #include <milog/milog.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #ifndef NDEBUG
 #define NDEBUG
@@ -58,6 +58,7 @@
 #endif
 
 using Helpers::equal;
+using namespace boost::placeholders;
 
 namespace {
 
