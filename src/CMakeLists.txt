@@ -58,7 +58,6 @@ SET(kvqc2d_1_STAT_SRCS
    FlagPatterns.h
    FlagUpdate.cc
    FlagUpdate.h
-   foreach.h
    InitLogger.cc
    InitLogger.h
    KvalobsDB.cc
