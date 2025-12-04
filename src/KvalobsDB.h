@@ -30,35 +30,37 @@
 #ifndef KvalobsDB_h
 #define KvalobsDB_h 1
 
-#include "SQLDataAccess.h"
 #include "KvalobsDbGate.h"
+#include "SQLDataAccess.h"
 
 class Qc2App;
 
 class KvalobsDB : public SQLDataAccess {
 public:
-    KvalobsDB(Qc2App& app);
-    virtual ~KvalobsDB();
+  KvalobsDB(Qc2App &app);
+  virtual ~KvalobsDB();
 
 protected:
-    virtual StationList extractStations(const std::string& sql) throw (DBException);
-    virtual StationIDList extractStationIDs(const std::string& sql) throw (DBException);
-    virtual StationParamList extractStationParams(const std::string& sql) throw (DBException);
-    virtual DataList extractData(const std::string& sql) throw (DBException);
-    virtual reference_value_map_t extractStatisticalReferenceValues(const std::string& sql, float missingValue) throw (DBException);
-    virtual NeighborDataVector extractNeighborData(const std::string& sql) throw (DBException);
-    virtual ModelDataList extractModelData(const std::string& sql) throw (DBException);
-    virtual void execSQLUpdate(const std::string& sql) throw (DBException);
+  virtual StationList extractStations(const std::string &sql);
+  virtual StationIDList extractStationIDs(const std::string &sql);
+  virtual StationParamList extractStationParams(const std::string &sql);
+  virtual DataList extractData(const std::string &sql);
+  virtual reference_value_map_t
+  extractStatisticalReferenceValues(const std::string &sql, float missingValue);
+  virtual NeighborDataVector extractNeighborData(const std::string &sql);
+  virtual ModelDataList extractModelData(const std::string &sql);
+  virtual void execSQLUpdate(const std::string &sql);
 
-    virtual void formatStationIDList(std::ostream& sql, const StationIDList& stationIDs);
-
-private:
-    void connect();
-    void disconnect();
+  virtual void formatStationIDList(std::ostream &sql,
+                                   const StationIDList &stationIDs);
 
 private:
-    Qc2App& mApp;
-    KvalobsDbGate mDbGate;
+  void connect();
+  void disconnect();
+
+private:
+  Qc2App &mApp;
+  KvalobsDbGate mDbGate;
 };
 
 #endif /* KvalobsDB_h */

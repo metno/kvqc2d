@@ -26,7 +26,7 @@ for line in normals_dat:
     m = re_value.match(line)
     if not m:
         continue
-    if not stations.has_key(stationid):
+    if  stationid not in stations:
         stations[stationid] = [MISSING] * 365
     
     day = int(m.group(1))
@@ -40,27 +40,27 @@ normals_dat.close()
 # write normals to execute SQL statements in unit tests
 
 normals_cpp = open(sys.argv[2], 'w')
-print >> normals_cpp, """
-
+print("""
 #include "algorithms/TestDB.h"
 #include <gtest/gtest.h>
 #include <sstream>
 
 void prepare_daymeans_212(SqliteTestDB* db)
 {
-std::ostringstream sql;"""
-for stationid in sorted(stations.iterkeys()):
+std::ostringstream sql;
+""", file=normals_cpp)
+for stationid in sorted(stations.keys()):
     for day0, normal in enumerate(stations[stationid]):
         if normal != MISSING:
-            print >> normals_cpp, "sql << \"INSERT INTO qc2_statistical_reference_values VALUES(%5d,211,%3d,'ref_value',%.1f);\";" % (stationid, day0+1, normal)
-    print >> normals_cpp, "ASSERT_NO_THROW(db->exec(sql.str()));"
-    # print >> normals_cpp, "try { db->exec(sql.str()); } catch(std::exception& ex) { FAIL() << ex.what(); }"
-print >> normals_cpp, """
+            print("sql << \"INSERT INTO qc2_statistical_reference_values VALUES(%5d,211,%3d,'ref_value',%.1f);\";" % (stationid, day0+1, normal), file=normals_cpp)
+    print("ASSERT_NO_THROW(db->exec(sql.str()));", file=normals_cpp)
+    # print("try { db->exec(sql.str()); } catch(std::exception& ex) { FAIL() << ex.what(); }", file=normals_cpp)
+print("""
 }
 
 // Local """ + """variables:
 // mode: c++
 // buffer-read-only: t
 // End:
-"""
+""", file=normals_cpp)
 normals_cpp.close()

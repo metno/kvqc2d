@@ -30,6 +30,7 @@
 #ifndef StationParamParser_h
 #define StationParamParser_h
 
+#include <map>
 #include <kvalobs/kvStationParam.h>
 
 class StationParamParser
