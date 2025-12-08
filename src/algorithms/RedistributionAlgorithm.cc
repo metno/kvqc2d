@@ -41,7 +41,7 @@
 #include <kvalobs/kvQCFlagTypes.h>
 #include <milog/milog.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #ifndef NDEBUG
 #define NDEBUG
@@ -504,8 +504,8 @@ bool RedistributionAlgorithm::redistributePrecipitation(updateList_t& before)
         }
         // sort neighbors by decreasing weight
         std::sort(neighbors.begin(), neighbors.end(),
-                  boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, _1 ))
-                  > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, _2 )));
+                  boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, std::placeholders::_1 ))
+                  > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, boost::bind( &kvalobs::kvData::stationID, std::placeholders::_2 )));
         DBGV(neighbors.size());
 
         std::ostringstream cfailed;

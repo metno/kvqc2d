@@ -27,7 +27,7 @@ GapData::GapData(const Instrument& i, const TimeRange& timeRange, const Paramete
 SupportData GapData::model(int time) const
 {
     const float mv = mModelData.at(time).original();
-    if( mv >= Interpolation::INVALID_VALUE )
+    if( mv >= Interpolation::Values::INVALID_VALUE )
         return SupportData(mv);
     else
         return SupportData();
@@ -37,7 +37,7 @@ SeriesData GapData::asValue(const DataUpdates& u, int time) const
 {
     const GapUpdate& d = u.at(time);
     if( d.isNew() )
-        return SeriesData(Interpolation::MISSING_VALUE, Interpolation::NO_ROW, false);
+        return SeriesData(Interpolation::Values::MISSING_VALUE, Interpolation::NO_ROW, false);
     return SeriesData(d.value(), d.quality(), d.usable());
 }
 
@@ -115,7 +115,7 @@ Interpolation::SupportData GapDataUU::model(int time) const
 {
     const float TA = mModelTA.at(time);
     const float mv = mModelData.at(time).original();
-    if( mv >= Interpolation::INVALID_VALUE )
+    if( mv >= Interpolation::Values::INVALID_VALUE )
         return Interpolation::SupportData(Helpers::formulaTD(TA, mv));
     else
         return Interpolation::SupportData();
@@ -125,11 +125,11 @@ SeriesData GapDataUU::asValue(const DataUpdates& u, int time) const
 {
     const float TA = mDataTA.at(time);
     DBG(DBG1(TA) << DBG1(time));
-    if( TA >= Interpolation::INVALID_VALUE ) {
+    if( TA >= Interpolation::Values::INVALID_VALUE ) {
         const GapUpdate& gu = u.at(time);
         DBG(DBG1(gu) << DBG1(gu.value()) << DBG1(gu.quality()));
         const float v = Helpers::formulaTD(TA, gu.value());
-        const bool u = gu.usable() and (v > Interpolation::INVALID_VALUE);
+        const bool u = gu.usable() and (v > Interpolation::Values::INVALID_VALUE);
         return SeriesData(v, gu.quality(), u);
     } else {
         return SeriesData();
@@ -139,6 +139,6 @@ SeriesData GapDataUU::asValue(const DataUpdates& u, int time) const
 void GapDataUU::toValue(DataUpdates& u, int time, Interpolation::Quality q, float value)
 {
     const float TA = mDataTA.at(time);
-    if( TA >= Interpolation::INVALID_VALUE )
+    if( TA >= Interpolation::Values::INVALID_VALUE )
         u.at(time).update(q, Helpers::formulaUU(TA, value));
 }

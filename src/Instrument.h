@@ -47,7 +47,8 @@ struct Instrument {
     explicit Instrument(const kvalobs::kvData& d);
 };
 
-struct lt_Instrument : public std::binary_function<Instrument, Instrument, bool>
+
+struct lt_Instrument
 {
     bool operator()(const Instrument& a, const Instrument& b) const;
 };

@@ -1,0 +1,350 @@
+#!/usr/bin/perl
+
+use strict;
+use Getopt::Long;
+use MIME::QuotedPrint qw(encode_qp);
+use Net::SMTP;
+use POSIX qw(strftime);
+use Sys::Hostname;
+
+my ($logfile,    # logfile basename
+    $logname,    # logfile origin to put in the email
+    $maxlogs,    # how many old logfiles to check
+    $sincefile,  # timestamp filename
+    %colors,     # map log level -> color
+    @mail_to,    # email recipients
+    $mail_from,  # email sender
+    $smtp_host,  # SMTP server to use
+    @categories, # which categories to send
+    $hqc_only,   # whether to send only messages for HQC
+    $DEBUG
+    );
+
+########################################################################
+
+sub configure {
+    $maxlogs = 2;
+    $hqc_only = 0;
+    %colors = ( "WARN" => "#FFBA00", "ERROR" => "#FF3800", "FATAL" => "#FF00A0" );
+    
+    GetOptions("logfile=s"    => \$logfile,
+               "logname=s"    => \$logname,
+               "maxlogs=i"    => \$maxlogs,
+               "sincefile=s"  => \$sincefile,
+               "colors"       => \%colors,
+               "mail-from=s"  => \$mail_from,
+               "mail-to=s"    => \@mail_to,
+               "smtp-host=s"  => \$smtp_host,
+               "categories=s" => \@categories,
+               "hqc-only"     => \$hqc_only,
+               "debug-no-mail" => \$DEBUG);
+
+    @mail_to = split(/,/,join(',',@mail_to));
+    @categories = split(/,/,join(',',@categories));
+
+    $logfile or die "no logfile specified";
+    if( !$logname && $logfile =~ /(^|\/)([a-z_aZ_0-9-]+)\.log$/ ) {
+        $logname = $2;
+    } else {
+        die "\$logname unknown";
+    }
+    if( !$sincefile ) {
+        $sincefile = "$logfile.since";
+    }
+
+    if( $DEBUG == 0 ) {
+        $mail_from or die "no mail-from";
+        @mail_to   or die "no mail-to";
+        $smtp_host or die "no smtp-host";
+    }
+}
+
+########################################################################
+
+# get timestamp from logfile extraction, if it exists, or return ""
+sub read_since {
+    my $SINCE;
+    my $s = "";
+    if( open SINCE, "$sincefile" ) {
+        my @lines = <SINCE>;
+        $s = $lines[0];
+        close SINCE;
+    }
+    return $s;
+}
+
+# write timestamp for next logfile extraction
+sub write_since {
+    my ($n) = @_;
+    if( open SINCE, ">$sincefile" ) {
+        print SINCE $n;
+        close SINCE;
+    }
+}
+
+########################################################################
+
+sub add_category {
+    my ($found_categories, $category) = @_;
+    unless (grep {$_ eq $category} @{$found_categories}) {
+        push(@{$found_categories}, $category);
+    }
+}
+
+sub logtable_head {
+    my ($logname, $now, $since) = @_;
+    my $h = "<html>\n"
+        . "  <body style=\"font-family:'sans-serif'; fons-size: small;\">\n"
+        . "    <h1>$logname/" . hostname ." logfile extract</h1>\n"
+        . "    Extracted from $logfile* on " . hostname . " at $now";
+    if( $since gt "2010" ) {
+        $h .= " for logfile entries since $since";
+    }
+    $h  .= "\n";
+    return $h;
+}
+
+sub push_message {
+    my ($messages, $found_categories, $category, $message, $time, $level) = @_;
+    if( $message ) {
+        my $m = [$time, $level, $message];
+        if( exists ${$messages}{$category} ) {
+            push(@{${$messages}{$category}}, $m);
+        } else {
+            add_category($found_categories, $category);
+            ${$messages}{$category} = [ $m ];
+        }
+    }
+}
+
+sub add_startstop {
+    my ($starts, $found_categories, $category) = @_;
+    if( $category ) {
+        add_category($found_categories, $category);
+        if( exists ${$starts}{$category} ) {
+            ${$starts}{$category} += 1;
+        } else {
+            ${$starts}{$category} = 1;
+        }
+    }
+}
+
+sub scan_file {
+    my ($messages, $found_categories, $starts, $stops, $filename, $since) = @_;
+    my $LOG;
+    if( open LOG, $filename ) {
+        my $category = undef;
+        my $message = undef;
+        my $time = undef;
+        my $level = undef;
+        while (my $line = <LOG>) {
+            if( $line =~ /(20\d\d-\d\d-\d\d \d\d:\d\d:\d\d) ([A-Z]+)/ ) {
+                if( $time && ($time gt $since) && $message && $colors{$level} ) {
+                    push_message($messages, $found_categories, $category, $message, $time, $level);
+                }
+                $message = "";
+                $time = $1;
+                $level = $2;
+            } elsif( $line =~ /^-{20} Running '([A-Za-z0-9]+)'.*$/ ) {
+                if( $time && ($time gt $since)) {
+                    add_startstop($starts, $found_categories, $1);
+                }
+                $time = "";
+            } elsif( $line =~ /^-{20} ([A-Za-z0-9]+) Completed$/ ) {
+                if( $time && ($time gt $since)) {
+                    add_startstop($stops, $found_categories, $1);
+                }
+                $time = "";
+            } elsif( $line =~ /^-{20} (([A-Za-z0-9]+): )?(.*)$/ ) {
+                if( $2 ) {
+                    $category = $2;
+                } else {
+                    $category = "None";
+                }
+                $message .= $3;
+            } else {
+                $message .= $line;
+            }
+        }
+        if( $time && ($time gt $since) && $message && $colors{$level} ) {
+            push_message($messages, $found_categories, $category, $message, $time, $level);
+        }
+        close LOG;
+    }
+}
+
+sub format_startstop {
+    my ($found_categories, $starts, $stops) = @_;
+    my $html = "";
+    foreach my $category (@{$found_categories}) {
+        next unless ( $#categories < 0 || grep {$_ eq $category} @categories );
+        my $started = ${$starts}{$category};
+        my $completed = ${$stops}{$category};
+        $html .= "      <tr>"
+                    . "<td>$category</td>"
+                    . "<td>$started</td>"
+                    . "<td>$completed</td>"
+                    . "</tr>\n";
+    }
+    if( !($html eq "") ) {
+        $html = "<h3>Starts &amp; Stops</h3>\n"
+            . "    <table rules=\"all\" border=\"2\" cellspacing\"2\" cellpadding=\"2\">\n"
+            . "      <thead><tr><th>Check</th><th>Started</th><th>Completed</th></tr></thead>\n"
+            . $html
+            . "    </table>\n";
+    }
+    return $html;
+}
+
+sub format_messages {
+    my ($found_categories, $messages) = @_;
+    my $html = "";
+    foreach my $category (@{$found_categories}) {
+        next unless grep {$_ eq $category} (keys %{$messages});
+        next unless ( $#categories < 0 || grep {$_ eq $category} @categories );
+        my $msgs = ${$messages}{$category};
+        my $c_html = "";
+        my $hqc_redist = ($category eq "Redistribute" && $hqc_only);
+        my $hqc_plu    = ($category eq "Plumatic" && $hqc_only);
+        foreach my $m (@{$msgs}) {
+            my ($time, $level, $text) = @{$m};
+            if( $hqc_redist ) {
+                next unless $text =~ /^HQC: +station=(\d+)( +date_from=(20\d\d-\d\d-\d\d) \d\d:\d\d:\d\d)? +date_to=(20\d\d-\d\d-\d\d) \d\d:\d\d:\d\d +message: +(.*)$/;
+                my $station = $1;
+                my $date_from = "";
+                $date_from = $3 if( $2 );
+                my $date_to = $4;
+                my $message = $5;
+                if( $message =~ "missing or bad data" ) {
+                    $message = "manglende eller feil data i oppsamlingsperioden";
+                } elsif( $message =~ "without missing rows" ) {
+                    $message = "oppsamling uten manglende observasjoner";
+                } elsif( $message =~ "redistributed sum(.*) differs from original accumulated value(.*)" ) {
+                    $message = "oppsamlingsperiode med feil eller inkonsistens; tilfordelt nedb&oslash;r$1 er ikke lik oppsamlet nedb&oslash;r$2";
+                } elsif( $message =~ "accumulation with errors" ) {
+                    $message = "oppsamlingsperiode med feil eller inkonsistens";
+                } elsif( $message =~ "non-0 accumulation with dry neighbors" ) {
+                    $message = "oppsamling med nedbør kan ikke tilfordeles fordi alle nabostasjoner er tørt";
+                } else {
+                    $message = "[$message]";
+                }
+                $c_html .= "      <tr>"
+                    . "<td valign=\"top\">$station</td>"
+                    . "<td valign=\"top\" nowrap>$date_from</td>"
+                    . "<td valign=\"top\" nowrap>$date_to</td>"
+                    . "<td>$message</td>"
+                    . "</tr>\n";
+            } else {
+                my $message = $text;
+                if( $hqc_plu ) {
+                    if( $text =~ /^station \d+ (with typeid \d+ )?is .* while \d+ neighbors/ ) {
+                        $message = $text;
+                    } elsif( $text =~ /^QC2h-1-aggregation-(\d+) triggered.*stationid=(\d+) AND obstime BETWEEN '(20\d\d-\d\d-\d\d \d\d:\d\d:\d\d)' AND '(20\d\d-\d\d-\d\d \d\d:\d\d:\d\d)'/ ) {
+                        my $duration = $1;
+                        my $stationid = $2;
+                        my $period_start = $3;
+                        my $period_end = $4;
+                        $message = "Stasjon $stationid med uvanlig mye nedbør i $duration min mellom $period_start og $period_end.";
+                    } else {
+                        next;
+                    }
+                }
+                $c_html .= "      <tr>"
+                    . "<td valign=\"top\" nowrap>$time</td>"
+                    . "<td valign=\"top\" bgcolor=\"" . $colors{$level} . "\">" . $level . "</td>"
+                    . "<td>" . $message . "</td>"
+                    . "</tr>\n";
+            }
+        }
+        if( !($c_html eq "") ) {
+            my $title = ( $category eq "None" ) ? "without category" : "from $category";
+            $html .= "<h3>Messages $title</h3>\n";
+            if( $hqc_redist ) {
+                $html .= "    <table rules=\"all\" border=\"2\" cellspacing\"2\" cellpadding=\"2\">\n"
+                    . "      <thead><tr><th>Station</th><th>From</th><th>To</th><th align=\"left\">Message</th></tr></thead>\n";
+            } else {
+                $html .= "    <table rules=\"all\" border=\"2\" cellspacing\"2\" cellpadding=\"2\">\n"
+                    . "      <thead><tr><th>Date-Time</th><th>Level</th><th align=\"left\">Message</th></tr></thead>\n";
+            }
+            $html .= $c_html
+                . "    </table>\n";
+        }
+    }
+    return $html;
+}
+
+sub logtable_files {
+    my ($filebase, $since) = @_;
+    my $messages = { };
+    my $starts = { };
+    my $stops = { };
+    my $found_categories = [];
+    for (my $count = $maxlogs; $count >= 1; $count--) {
+        scan_file($messages, $found_categories, $starts, $stops, "$filebase.$count", $since);
+    }
+    scan_file($messages, $found_categories, $starts, $stops, "$filebase", $since);
+    return format_startstop($found_categories, $starts, $stops)
+        . format_messages($found_categories, $messages);
+}
+
+sub logtable_tail {
+    return "  </body>\n"
+        . "</html>\n";
+}
+
+########################################################################
+
+sub send_email {
+    my ($recipients, $from, $subject, $html) = @_;
+
+    my $to = join(', ',@{$recipients});
+    
+    my $smtp = Net::SMTP->new($smtp_host);
+    $smtp->mail($from);
+    foreach my $t (@{$recipients}) {
+        $smtp->to($t);
+    }
+    
+    $smtp->data();
+    $smtp->datasend("To: $to\n");
+    $smtp->datasend("From: $from\n");
+    $smtp->datasend("Subject: $subject\n");
+    $smtp->datasend("MIME-Version: 1.0\n");
+    $smtp->datasend("Content-Disposition: inline\n");
+    $smtp->datasend("Content-Transfer-Encoding: quoted-printable\n");
+    $smtp->datasend("Content-Type: text/html\n");
+    $smtp->datasend("\n");
+    foreach my $l (split(/\n/, encode_qp($html))) {
+        $smtp->datasend("$l\n");
+    }
+    $smtp->dataend();
+    
+    $smtp->quit;
+}
+
+########################################################################
+
+configure();
+
+my $since = read_since;
+my $now = strftime "%Y-%m-%d %H:%M:%S", gmtime;
+my $html_main = logtable_files($logfile, $since);
+
+if( $DEBUG == 0 ) {
+    write_since($now);
+}
+
+if( $html_main ) {
+    my $html = logtable_head($logname, $now, $since)
+        . $html_main
+        . logtable_tail;
+    
+    if( $DEBUG == 0 ) {
+        send_email(\@mail_to,
+                   $mail_from,
+                   ($logname . '/' . hostname . ' logfile extract'),
+                   $html);
+    } else {
+        print $html;
+    }
+}

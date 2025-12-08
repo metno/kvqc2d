@@ -45,12 +45,19 @@ enum Quality {
     DISCARDED,   //!< 6
     NO_ROW       //!< 7
 };
-enum Values { MISSING_VALUE = -32767, INVALID_VALUE=-32765 };
+// Use float constants instead of enum to avoid implicit conversion to float
+namespace Values {
+    const float MISSING_VALUE = -32767; //static_cast<float>(MISSING_VALUE);
+    const float INVALID_VALUE = -32765; //static_cast<float>(INVALID_VALUE);
+}
+const float INVALID_VALUE = Values::INVALID_VALUE;
+const float MISSING_VALUE = Values::MISSING_VALUE;
+
 
 class SupportData {
 public:
     SupportData()
-        : mUsable(false), mValue(MISSING_VALUE) { }
+        : mUsable(false), mValue(Values::MISSING_VALUE) { }
     SupportData(float v, bool usable=true)
         : mUsable(usable), mValue(v) { }
 

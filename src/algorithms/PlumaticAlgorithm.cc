@@ -42,7 +42,7 @@
 
 #include <milog/milog.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #define NDEBUG 1
 #include "debug.h"
@@ -749,7 +749,7 @@ int PlumaticAlgorithm::countNeighborStations(int stationid, const kvtime::time& 
     }
     // sort neighbors by decreasing weight
     std::sort(neighborsSorted.begin(), neighborsSorted.end(),
-              boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _1 ) > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, _2 ));
+              boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, std::placeholders::_1 ) > boost::bind( &RedistributionNeighbors::getWeight, mNeighbors, std::placeholders::_2 ));
 
     const DBInterface::DataList ndata
         = database()->findDataOrderObstime(neighbors, 110 /* RR_24 */, TimeRange(obstime, obstime), neighbor_flags);

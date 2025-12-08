@@ -49,20 +49,18 @@ struct SPInstrument {
         : stationid(s), paramid(p) { }
 };
 
-struct lt_SPInstrument : public std::binary_function<SPInstrument, SPInstrument, bool> {
-    bool operator () (const SPInstrument& a, const SPInstrument& b) const;
-};
 
-bool lt_SPInstrument::operator () (const SPInstrument& a, const SPInstrument& b) const
-{
-    if( a.stationid < b.stationid )
-        return true;
-    if( a.stationid > b.stationid )
+struct lt_SPInstrument {
+    bool operator () (const SPInstrument& a, const SPInstrument& b) const {
+        if( a.stationid < b.stationid )
+            return true;
+        if( a.stationid > b.stationid )
+            return false;
+        if( a.paramid < b.paramid )
+            return true;
         return false;
-    if( a.paramid < b.paramid )
-        return true;
-    return false;
-}
+    }
+};
 
 
 struct Limits {
@@ -83,8 +81,8 @@ bool Limits::valid() const
     return dayFrom >= 1 && dayFrom <= 365 && dayTo >= 1 && dayTo <= 365 && dayFrom <= dayTo;
 }
 
-struct lt_Limits : public std::binary_function<Limits, Limits, bool> {
-    bool operator () (const Limits&  a, const Limits& b) const
+struct lt_Limits {
+    bool operator () (const Limits& a, const Limits& b) const
         { return a.dayFrom < b.dayFrom; }
     bool operator () (const Limits& l, int day) const
         { return l.dayFrom < day; }

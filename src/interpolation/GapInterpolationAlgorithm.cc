@@ -54,7 +54,8 @@ static const int KVALOBS_PARAMID_UU = 262;
 // ========================================================================
 
 namespace /* anonymous */ {
-struct HasParameter : public std::unary_function<bool, ParameterInfo> {
+
+struct HasParameter {
     bool operator() (const ParameterInfo& pi) const {
         return pi.parameter == parameter;
     }
@@ -144,6 +145,7 @@ NeighborDataVector GapInterpolationAlgorithm::findNeighborData(int stationid, in
 Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const TimeRange& t, int neighborid, int paramid)
 {
     DBGL;
+    
     Interpolation::SupportDataList nd(t.hours() + 1);
 
     const DataList dl = database()->findDataMaybeTSLOrderObstime(neighborid, paramid,
@@ -155,7 +157,7 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
                                                                        DBInterface::INVALID_ID, DBInterface::INVALID_ID,
                                                                        DBInterface::INVALID_ID, t, mDataFlagsUUTA);
 
-        std::vector<float> valueUU(nd.size(), Interpolation::MISSING_VALUE), valueTA(nd.size(), Interpolation::MISSING_VALUE);
+        std::vector<float> valueUU(nd.size(), Interpolation::Values::MISSING_VALUE), valueTA(nd.size(), Interpolation::Values::MISSING_VALUE);
         foreach(const kvalobs::kvData& d, dl) {
             const int time = kvtime::hourDiff(d.obstime(), t.t0);
             valueUU.at(time) = d.original();

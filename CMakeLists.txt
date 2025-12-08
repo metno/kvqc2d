@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)  # use -std=c++20 instead of -std=gnu++20
+
 project(kvqc2d CXX)
 
-# set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_CXX_EXTENSIONS ON)  # use -std=c++17 instead of -std=gnu++17
 get_property(allTargets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
 foreach(t ${allTargets})
   get_property(std TARGET ${t} PROPERTY CXX_STANDARD)

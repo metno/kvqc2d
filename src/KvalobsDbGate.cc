@@ -27,7 +27,6 @@
   51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include "KvalobsDbGate.h"
 
 #include "DBInterface.h"
@@ -36,7 +35,7 @@
 #include <sstream>
 #include <time.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <memory>
 
 namespace {

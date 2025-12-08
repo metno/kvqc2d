@@ -205,13 +205,14 @@ StatisticalMean::sd2_t StatisticalMean::findStationMeansPerDay(DayValueExtractor
 }
 
 namespace {
-struct same_station : public std::unary_function<bool, StatisticalMean::sd2_t::value_type> {
+struct same_station {
+    int stationid;
+    same_station(int s) : stationid(s) { }
     bool operator() (const StatisticalMean::sd2_t::value_type& i) const {
         return i.first.stationid == stationid;
     }
-    int stationid;
-    same_station(int s) : stationid(s) { }
 };
+
 }
 
 // ------------------------------------------------------------------------

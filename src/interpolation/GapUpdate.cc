@@ -6,7 +6,7 @@
 GapUpdate::GapUpdate()
     : DataUpdate()
     , mQuality(Interpolation::NO_ROW)
-    , mValue(Interpolation::MISSING_VALUE)
+    , mValue(Interpolation::Values::MISSING_VALUE)
     , mOriginalValue(mValue)
     , mUpdated(false)
     , mUsable(false)
