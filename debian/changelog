@@ -1,3 +1,10 @@
+kvqc2d (1.6.2-1) unstable; urgency=low
+
+  * Make the code c++20 compatible.
+
+ -- Børge Moe <borgem@met.no>  Mon, 8 Dec 2025 07:00:08 +0100
+
+
 kvqc2d (1.6.1-1) unstable; urgency=low
 
   * fix unit tests
