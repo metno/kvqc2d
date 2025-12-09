@@ -8,6 +8,7 @@ kvuserid=5010
 mode="test"
 targets=kvqc2d
 default_os=noble
+kvcpp_tag=latest
 os=noble
 nocache=
 build="true"
@@ -49,6 +50,7 @@ Options:
   --prod        build and push to prod.
   --test        only build. Default.
   --no-cache    Do not use the docker build cache.
+  --kvcpp-tag tag the kvcpp image with the name tagname, default $kvcpp_tag.  
   --build-only  Stop after building.
   --push-only   Push a previous build to registry. Must use the same flags as when building.
   --print-version-tag 
@@ -81,6 +83,7 @@ while test $# -ne 0; do
         use
         exit 0
         ;;
+    --kvcpp-tag) kvcpp_tag=$2; shift;;
     --staging) mode="staging";;
     --prod) mode="prod";;
     --test) mode="test";;
@@ -108,6 +111,7 @@ fi
 echo "KVQC2_VERSION: $KVQC2_VERSION"
 echo "tag: $tag"
 echo "tags: $tags"
+echo "kvcpp_tag: $kvcpp_tag"
 echo "mode: $mode"
 echo "os: $os"
 echo "Build mode: $mode"
@@ -134,7 +138,7 @@ for target in $targets ; do
   if [ "$build" = "true" ]; then
     docker build $nocache \
       --build-arg "kvuser=$kvuser" --build-arg "kvuserid=$kvuserid" \
-      --build-arg "BAISE_IMAGE_TAG=${BUILDDATE}" \
+      --build-arg "BASE_IMAGE_TAG=${kvcpp_tag}" \
       --build-arg "REGISTRY=${registry}" \
       -f docker/${os}/${target}.dockerfile  --tag ${registry}${target}:$tag .
   
