@@ -8,7 +8,7 @@ RUN apt update && apt install -y gfortran gpg software-properties-common apt-uti
 
 COPY CMakeLists.txt Doxyfile format-logs.pl kvqc2d.1 \
   plu-autoupdate-from-stinfosys.in plu-update-from-stinfosys \
-  README version.sh debian-version.sh \
+  README version.sh kvqc2d-version.sh \
   /src/
 
 COPY data /src/data
