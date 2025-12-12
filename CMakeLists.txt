@@ -5,7 +5,7 @@ set(CMAKE_CXX_EXTENSIONS ON)  # use -std=c++20 instead of -std=gnu++20
 
 #For rc version use MAJOR.MINOR.PATCH-rcN
 #ex. 1.7.0-rc1
-project(kvqc2d VERSION 1.6.2 LANGUAGES CXX)
+project(kvqc2d VERSION 1.6.2.1 LANGUAGES CXX)
 MESSAGE("Configure kvqc2d ${PROJECT_VERSION}")
 
 get_property(allTargets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
