@@ -1,3 +1,9 @@
+kvqc2d (1.6.2-1) unstable; urgency=low
+
+  * trying to resolve interpolation problem
+
+ -- Alexander Bürger <alexander.buerger@met.no>  Tue, 21 Apr 2026 08:00:08 +0200
+
 kvqc2d (1.6.1-1) unstable; urgency=low
 
   * fix unit tests
