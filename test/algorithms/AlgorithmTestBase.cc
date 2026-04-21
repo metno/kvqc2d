@@ -113,7 +113,10 @@ void INSERT_STATION(std::ostream& sql, int stationid, const std::string& name, f
 // ########################################################################
 
 AlgorithmTestBase::AlgorithmTestBase()
-    : algo(0)
+    : algo(nullptr)
+    , bc(nullptr)
+    , db(nullptr)
+    , logs(nullptr)
 {
 }
 
@@ -124,7 +127,7 @@ void AlgorithmTestBase::SetUp()
     logs = new TestNotifier();
     db = new SqliteTestDB();
     bc = new TestBroadcaster();
-    if( algo != 0 ) {
+    if( algo ) {
         algo->setNotifier(logs);
         algo->setDatabase(db);
         algo->setBroadcaster(bc);
@@ -136,7 +139,11 @@ void AlgorithmTestBase::SetUp()
 void AlgorithmTestBase::TearDown()
 {
     delete algo;
+    algo = nullptr;
     delete bc;
+    bc = nullptr;
     delete db;
+    db = nullptr;
     delete logs;
+    logs = nullptr;
 }

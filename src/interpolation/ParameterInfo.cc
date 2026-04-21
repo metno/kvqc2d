@@ -92,7 +92,7 @@ float ParameterInfo::toNumerical(float v) const
 
 bool ParameterInfo::hasNumerical(float v) const
 {
-    return v>=minValue && v<=maxValue;
+    return v >= Interpolation::INVALID_VALUE && v >= minValue && v <= maxValue;
 }
 
 float ParameterInfo::toStorage(float v) const

@@ -30,7 +30,7 @@ TEST_F(GapInterpolationTest, TAInterpolatedSeries)
     ASSERT_CONFIGURE(algo, params);
 
     ASSERT_RUN(algo, bc, 1);
-    EXPECT_NEAR(MISS, bc->update(0).corrected(), 0.01f);
+    EXPECT_NEAR(VAL, bc->update(0).corrected(), 0.01f) << bc->update(0);
 
     ASSERT_RUN(algo, bc, 0);
 }

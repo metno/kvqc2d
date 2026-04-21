@@ -31,7 +31,7 @@
 
 SqliteTestDB::SqliteTestDB()
 {
-    if( sqlite3_open("", &db) )
+    if( sqlite3_open(":memory:", &db) )
         throw std::runtime_error("could not create db");
 
     exec("CREATE TABLE data ("

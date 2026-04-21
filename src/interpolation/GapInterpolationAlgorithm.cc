@@ -170,8 +170,10 @@ Interpolation::SupportDataList GapInterpolationAlgorithm::getNeighborData(const 
         }
     } else {
         for(const kvalobs::kvData& d : dl) {
-            const int time = kvtime::hourDiff(d.obstime(), t.t0);
-            nd.at(time) = Interpolation::SupportData(d.original());
+            if( d.original() >= Interpolation::INVALID_VALUE ) {
+                const int time = kvtime::hourDiff(d.obstime(), t.t0);
+                nd.at(time) = Interpolation::SupportData(d.original());
+            }
         }
     }
     return nd;
@@ -575,7 +577,7 @@ bool GapInterpolationAlgorithm::replaceFromOtherTypeid(GapUpdate& data/*, int pa
             max_typeid = type;
         }
     }
-    if( max_typeid > 0 ) {
+    if( max_typeid > 0 && best_value >= Interpolation::INVALID_VALUE ) {
         data.update(Interpolation::GOOD, best_value);
         return true;
     } else {
